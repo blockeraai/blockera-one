@@ -26,7 +26,7 @@ if ( ! function_exists( 'blockera_one_config' ) ) {
 
 		$keyNodes = explode( '.', $key );
 
-		$config_dir = ! empty( $args['root'] ) && file_exists( $args['root'] ) ? $args['root'] : BLOCKERA_CORE_PATH;
+		$config_dir = ! empty( $args['root'] ) && file_exists( $args['root'] ) ? $args['root'] : BLOCKERA_ONE_PATH;
 
 		$configIncludes = array(
 			'app'         => $config_dir . '/config/app.php',
