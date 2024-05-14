@@ -1,0 +1,26 @@
+{
+	"name": "@blockera/blockera-one",
+	"version": "1.0.0",
+	"description": "The bootstrapper for blockera react application for WordPress site and block editors.",
+	"author": "The Blockera Team",
+	"license": "ISC",
+	"keywords": [
+		"blockera",
+		"bootstrap",
+	  	"initliazer",
+		"blockera"
+	],
+	"homepage": "https://github.com/blockeraai/blockera-one/blob/master/packages/blockera-one/README.md",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/blockeraai/blockera-one",
+		"directory": "packages/blockera-one"
+	},
+	"bugs": {
+		"url": "https://github.com/blockeraai/blockera-one/issues"
+	},
+	"engines": {
+		"node": ">=12"
+	},
+	"main": "js/index.js"
+}

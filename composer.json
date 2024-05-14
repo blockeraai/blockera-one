@@ -1,0 +1,72 @@
+{
+	"name": "blockera/blockera-one-theme",
+	"description": "Blockera One - your ultimate WordPress theme solution. Craft a lightning-fast, flawless website effortlessly with the Blockera One WordPress block theme!",
+	"type": "library",
+	"license": "ISC",
+	"repositories": [
+		{
+			"type": "path",
+			"url": "packages/blockera-one"
+		},
+		{
+			"type": "path",
+			"url": "packages/bootstrap"
+		},
+		{
+			"type": "path",
+			"url": "packages/utils"
+		},
+		{
+			"type": "path",
+			"url": "packages/wordpress"
+		}
+	],
+	"autoload-dev": {
+		"psr-4": {}
+	},
+	"authors": [
+		{
+			"name": "The Blockera Team"
+		}
+	],
+	"minimum-stability": "dev",
+	"require": {
+		"php": ">=8.1",
+		"blockera/blockera-one": "*",
+		"blockera/bootstrap": "*",
+		"blockera/utils": "*",
+		"blockera/wordpress": "*",
+		"vlucas/phpdotenv": "^5.5@dev",
+		"illuminate/container": "8.x-dev"
+	},
+	"require-dev": {
+		"symfony/dom-crawler": "5.4.x-dev",
+		"symfony/css-selector": "5.4.x-dev",
+		"voku/simple_html_dom": "dev-master",
+		"dealerdirect/phpcodesniffer-composer-installer": "^0.7",
+		"phpcompatibility/phpcompatibility-wp": "^2.1",
+		"phpunit/phpunit": "^9.5.21",
+		"squizlabs/php_codesniffer": "^3.5",
+		"wp-cli/wp-cli-bundle": "^2.4",
+		"wp-coding-standards/wpcs": "^2.1",
+		"wp-phpunit/wp-phpunit": "dev-master",
+		"filp/whoops": "^2.15",
+		"yoast/phpunit-polyfills": "^2.0@dev",
+		"symfony/var-dumper": "5.4.x-dev"
+	},
+	"config": {
+		"platform": {
+			"php": "8.1"
+		},
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true,
+			"cweagans/composer-patches": true
+		}
+	},
+	"scripts": {
+		"test": "@php ./vendor/bin/phpunit",
+		"lint": "phpcs --standard=phpcs.xml",
+		"format": "phpcbf --standard=phpcs.xml --report-summary --report-source",
+		"test:coverage": "@php ./vendor/bin/phpunit --coverage-html php-coverage"
+	}
+}
