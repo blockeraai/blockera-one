@@ -1,6 +1,6 @@
 <?php
 
-namespace Blockera\Setup\Providers;
+namespace BlockeraOne\Setup\Providers;
 
 use BlockeraOne\Setup\BlockeraOne;
 use Blockera\Bootstrap\Application;
