@@ -8,9 +8,8 @@
 namespace BlockeraOne\Setup;
 
 use Blockera\Bootstrap\Application;
-use BlockeraOne\Setup\Contracts\ContainerInterface;
 
-class BlockeraOne extends Application implements ContainerInterface {
+class BlockeraOne extends Application {
 
 	/**
 	 * Blockera constructor.
