@@ -57,12 +57,22 @@ jobs:
                     '
                   }
 
+                  # Allowed paths: theme packages (*-one / blockera-one-*) and root tests/.
+                  # Synced core packages (editor, blocks-core, …) are out of scope — same idea as blockera-pro.
+                  is_allowed_playwright_path() {
+                    [[ "$1" =~ ^tests/ ]] && return 0
+                    [[ "$1" =~ ^packages/(blockera-one-[^/]+|[^/]+-one)/ ]]
+                  }
+
                   if [ "${{ env.env_file }}" == "true" ]; then
                     # Derive matrix categories from the PR-scoped testMatch file list.
                     # name.category.ply.js → category; name.ply.js → general-1
                     # block-screenshots → expanded to block-screenshots-N batches (allowlist-aware).
                     filtered_categories=$(jq -r '.testMatch[]' .pr-playwright.env.json | while read -r pattern; do
                       [ -z "$pattern" ] && continue
+                      is_allowed_playwright_path "$pattern" || continue
+                      # Core Blockera visual suite is not a blockera-one CI target.
+                      [ "$pattern" = "tests/visual.block-screenshots.ply.js" ] && continue
                       base=$(basename "$pattern" .ply.js)
                       if [[ "$base" == *.* ]]; then
                         echo "${base#*.}"
@@ -180,8 +190,15 @@ jobs:
               run: |
                   test_files=()
 
-                  # Visual snapshot batches: synthetic categories block-screenshots-1..N map to the
-                  # single visual.block-screenshots.ply.js file with an explicit fixture list.
+                  # Theme packages (*-one / blockera-one-*) + root tests/ (theme-specific).
+                  # Synced core packages are out of scope — same idea as blockera-pro (-pro).
+                  is_allowed_playwright_path() {
+                    [[ "$1" =~ ^tests/ ]] && return 0
+                    [[ "$1" =~ ^packages/(blockera-one-[^/]+|[^/]+-one)/ ]]
+                  }
+
+                  # Visual snapshot batches: synthetic categories block-screenshots-1..N.
+                  # Prefer -one package specs; do not fall back to core tests/visual.block-screenshots.ply.js.
                   if [[ "${{ matrix.category }}" =~ ^block-screenshots-([0-9]+)$ ]]; then
                     batch_num="${BASH_REMATCH[1]}"
                     fixtures_csv=$(VISUAL_SNAPSHOT_BATCH_SIZE="${{ env.VISUAL_SNAPSHOT_BATCH_SIZE }}" \
@@ -196,11 +213,20 @@ jobs:
                       exit 0
                     fi
 
-                    test_files+=("tests/visual.block-screenshots.ply.js")
-                  # When .pr-playwright.env.json exists, run only the listed files for this category.
+                    while IFS= read -r -d '' file; do
+                      test_files+=("$file")
+                    done < <(find packages \( -path 'packages/*-one/*' -o -path 'packages/blockera-one-*/*' \) -type f -name '*.block-screenshots.ply.js' -print0 2>/dev/null)
+
+                    if [ ${#test_files[@]} -eq 0 ]; then
+                      echo "No -one package block-screenshots specs; skipping."
+                      exit 0
+                    fi
+                  # When .pr-playwright.env.json exists, run only allowed listed files for this category.
                   elif [ -f ".pr-playwright.env.json" ]; then
                     while IFS= read -r pattern; do
                       [ -z "$pattern" ] && continue
+                      is_allowed_playwright_path "$pattern" || continue
+                      [ "$pattern" = "tests/visual.block-screenshots.ply.js" ] && continue
 
                       base=$(basename "$pattern" .ply.js)
                       if [[ "$base" == *.* ]]; then
@@ -245,27 +271,23 @@ jobs:
                       test_files=("${filtered_files[@]}")
                     fi
                   elif [ "${{ matrix.category }}" != "general-1" ]; then
-                    # Run tests matching the category pattern
-                    # e.g., tests/e2e/specs/**/*.blocks-1.ply.js
-                    # Package specs are limited to theme packages (*-one / blockera-one-*).
+                    # Theme-specific root tests + *-one / blockera-one-* package specs.
                     test_patterns=()
 
-                    # Check tests/e2e/specs directory for .ply.js files
                     if find tests/e2e/specs -type f -name "*.${{ matrix.category }}.ply.js" 2>/dev/null | grep -q .; then
                       test_patterns+=("tests/e2e/specs/**/*.${{ matrix.category }}.ply.js")
                     fi
 
-                    # Check tests directory for .ply.js files
-                    if find tests -type f -name "*.${{ matrix.category }}.ply.js" 2>/dev/null | grep -q .; then
+                    if find tests -type f -name "*.${{ matrix.category }}.ply.js" ! -name 'visual.block-screenshots.ply.js' 2>/dev/null | grep -q .; then
                       test_patterns+=("tests/**/*.${{ matrix.category }}.ply.js")
                     fi
 
-                    # Expand glob patterns to actual file paths to avoid regex conversion issues
                     for pattern in "${test_patterns[@]}"; do
                       if [[ "$pattern" == *"**"* ]]; then
                         base_dir=$(echo "$pattern" | sed -E 's|/\*\*.*||')
                         file_pattern=$(echo "$pattern" | sed -E 's|.*\*\*/||')
                         while IFS= read -r -d '' file; do
+                          [ "$(basename "$file")" = "visual.block-screenshots.ply.js" ] && continue
                           test_files+=("$file")
                         done < <(find "$base_dir" -type f -name "$file_pattern" -print0 2>/dev/null)
                       else
@@ -275,23 +297,23 @@ jobs:
                       fi
                     done
 
-                    # Package-level category specs under *-one / blockera-one-* only.
                     while IFS= read -r -d '' file; do
                       test_files+=("$file")
                     done < <(find packages \( -path 'packages/*-one/*' -o -path 'packages/blockera-one-*/*' \) -type f -name "*.${{ matrix.category }}.ply.js" -print0 2>/dev/null)
                   else
-                    # Run general tests (files without category in name)
+                    # General tests (no category in filename): root tests/ + *-one packages.
                     while IFS= read -r -d '' file; do
                       test_files+=("$file")
                     done < <(find tests/e2e/specs -type f -name "*.ply.js" ! -name "*.*.ply.js" -print0 2>/dev/null)
 
                     while IFS= read -r -d '' file; do
+                      [ "$(basename "$file")" = "visual.block-screenshots.ply.js" ] && continue
                       test_files+=("$file")
-                    done < <(find packages \( -path 'packages/*-one/*' -o -path 'packages/blockera-one-*/*' \) -type f -name "*.ply.js" ! -name "*.*.ply.js" -print0 2>/dev/null)
+                    done < <(find tests -type f -name "*.ply.js" ! -name "*.*.ply.js" ! -path "tests/e2e/specs/*" -print0 2>/dev/null)
 
                     while IFS= read -r -d '' file; do
                       test_files+=("$file")
-                    done < <(find tests -type f -name "*.ply.js" ! -name "*.*.ply.js" ! -path "tests/e2e/specs/*" -print0 2>/dev/null)
+                    done < <(find packages \( -path 'packages/*-one/*' -o -path 'packages/blockera-one-*/*' \) -type f -name "*.ply.js" ! -name "*.*.ply.js" -print0 2>/dev/null)
                   fi
 
                   if [ ${#test_files[@]} -eq 0 ]; then
