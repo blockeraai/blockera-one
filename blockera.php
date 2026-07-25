@@ -118,7 +118,7 @@ $blockera_one_block_supports = apply_filters(
 );
 
 // Initialize hooks on Front Controller.
-blockera_load('hooks', __DIR__);
+blockera_load('bootstrap.hooks', BLOCKERA_ONE_PATH);
 
 add_action('init', 'blockera_init', 10);
 

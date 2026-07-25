@@ -11,7 +11,7 @@
 
 // Loading the blockera site builder functionalities unless the blockera/blockera.php plugin is not activated.
 if ( ! is_plugin_active('blockera/blockera.php') ) {
-	require_once __DIR__ . '/bootstrap/blockera.php';
+	require_once get_template_directory() . '/blockera.php';
 }
 
 if ( ! function_exists( 'blockera_one_post_format_setup' ) ) :
