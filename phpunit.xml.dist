@@ -7,6 +7,7 @@
         convertNoticesToExceptions="true"
         convertWarningsToExceptions="true"
         verbose="true"
+        failOnEmptyTestSuite="false"
 >
     <coverage>
         <report>
@@ -15,27 +16,22 @@
     </coverage>
 
     <testsuites>
+        <!--
+            Unit tests: theme packages ending with -one / blockera-one-* only
+            (same convention as blockera-pro). Synced core packages are out of scope.
+            Directories are discovered at runtime by list-phpunit-one-test-dirs.js and
+            passed as CLI args from npm run test:unit:php:base.
+        -->
         <testsuite name="units">
             <directory suffix=".php">./packages/dev-phpunit/php/</directory>
-            <directory suffix=".php">./packages/blockera/php/tests/</directory>
-            <directory suffix=".php">./packages/blockera-admin/php/tests/</directory>
-            <directory suffix=".php">./packages/data/php/tests/</directory>
-            <directory suffix=".php">./packages/editor/php/Tests/</directory>
-            <directory suffix=".php">./packages/wordpress/php/tests/</directory>
-            <directory suffix=".php">./packages/utils/php/tests/</directory>
             <exclude>./node_modules/</exclude>
             <exclude>./dist/</exclude>
-            <exclude>./packages/blockera/php/tests/Fixtures/</exclude>
-            <exclude>./packages/editor/php/Tests/Fixtures/</exclude>
-            <exclude>./packages/editor/php/Tests/StyleDefinitionTestCase.php</exclude>
         </testsuite>
         <testsuite name="snapshots">
             <directory suffix=".php">./packages/dev-phpunit/php/</directory>
             <directory suffix=".php">./tests/phpunit/main/</directory>
             <exclude>./node_modules/</exclude>
             <exclude>./dist/</exclude>
-            <exclude>./packages/blockera/php/tests/Fixtures/</exclude>
-            <exclude>./packages/editor/php/Tests/Fixtures/</exclude>
             <exclude>./packages/editor/php/Tests/StyleDefinitionTestCase.php</exclude>
         </testsuite>
     </testsuites>
@@ -43,10 +39,9 @@
     <php>
         <env name="VERSION" value="1.0-beta" />
         <const name="PHPUNIT_PLUGIN_TEST" value="true"/>
-        <env name="__BLOCKERA_DIR__" value="blockera" />
+        <env name="__BLOCKERA_DIR__" value="themes/blockera-one" />
         <env name="WP_PHPUNIT__TESTS_CONFIG" value="./packages/dev-phpunit/php/config.php" />
         <env name="WP_TESTS_CONFIG_FILE_PATH" value="./packages/dev-phpunit/php/config.php" />
     </php>
 
 </phpunit>
-

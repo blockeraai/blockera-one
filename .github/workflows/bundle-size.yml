@@ -19,8 +19,8 @@ on:
             - '**.prettier*'
             # These files configures stylelint. Changes could affect the outcome.
             - '**.stylelint*'
-            # These archive file of Blockera plugin. Changes could affect the outcome.
-            - 'blockera.zip'
+            # These archive file of Blockera One theme. Changes could affect the outcome.
+            - 'blockera-one.zip'
             # These files configures TypeScript. Changes could affect the outcome.
             # TODO: uncomment below pattern to detect tsconfig file in future.
             #- '**.tsconfig*'
@@ -41,7 +41,7 @@ jobs:
     build:
         name: Building and Give Sizes
         runs-on: ubuntu-latest
-        if: ${{ github.repository == 'blockeraai/blockera' || github.event_name == 'pull_request' }}
+        if: ${{ github.repository == 'blockeraai/blockera-one' || github.event_name == 'pull_request' }}
 
         steps:
             - name: Checkout
@@ -56,14 +56,14 @@ jobs:
                   custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
                   composer-options: '--no-dev -o --apcu-autoloader -a'
 
-            - name: Build Plugin Zip File
-              uses: ./.github/build-plugin-zip
+            - name: Build Theme Zip File
+              uses: ./.github/build-theme-zip
 
             - id: compressed-size
               uses: preactjs/compressed-size-action@v2
               with:
                   repo-token: '${{ secrets.BLOCKERABOT_PAT }}'
-                  pattern: '{dist/**/*.min.js,dist/**/*.min.css,blockera.zip,packages/**/*.php,!**/test/**,!**/tests/**,packages/php/**/*.json,packages/js/**/*.json,packages/**/*.svg}'
+                  pattern: '{dist/**/*.min.js,dist/**/*.min.css,blockera-one.zip,packages/**/*.php,!**/test/**,!**/tests/**,packages/php/**/*.json,packages/js/**/*.json,packages/**/*.svg}'
 
             # Action has no title input; prepend a custom H1 after it posts/updates the comment.
             - name: Prepend H1 to size comment

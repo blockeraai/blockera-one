@@ -27,7 +27,10 @@ const getFiles = (dir, pattern) => {
 const main = () => {
 	const categories = new Set();
 
-	const categorizedFiles = getFiles('packages', /\.(.*?)\.e2e\.cy\.js/);
+	const categorizedFiles = getFiles(
+		'packages',
+		/\/(blockera-one-.*|.*-one)\/.*\.(.*?)\.e2e\.cy\.js/
+	);
 	categorizedFiles.forEach((file) => {
 		const match = file.match(/\.(.*?)\.e2e\.cy\.js/);
 		if (match && match[1]) {
@@ -35,13 +38,11 @@ const main = () => {
 		}
 	});
 
-	const generalFiles = getFiles('packages', /\/[\w-]+\.e2e\.cy\.js/);
+	const generalFiles = getFiles(
+		'packages',
+		/\/(blockera-one-.*|.*-one)\/.*\/[\w-]+\.e2e\.cy\.js/
+	);
 	if (generalFiles.length) {
-		categories.add('general-1');
-	}
-
-	const baseFiles = getFiles('tests', /\/[\w-]+\.e2e\.cy\.js/);
-	if (baseFiles.length) {
 		categories.add('general-1');
 	}
 

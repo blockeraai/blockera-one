@@ -11,17 +11,17 @@ jobs:
     sync-dependencies:
         name: Update Blockera Pro Dependencies
         runs-on: ubuntu-latest
-        if: github.repository == 'blockeraai/blockera'
+        if: github.repository == 'blockeraai/blockera-one'
 
         steps:
-            - name: Checkout Blockera
+            - name: Checkout Blockera One
               uses: actions/checkout@v4
               with:
-                  path: blockera
+                  path: blockera-one
 
             - name: Get Package Versions
               id: package_versions
-              working-directory: blockera/packages
+              working-directory: blockera-one/packages
               run: |
                   # Function to convert version to underscore format
                   version_to_underscore() {
@@ -102,7 +102,7 @@ jobs:
                   # Create PR using GitHub CLI
                   gh pr create \
                     --title "Update Blockera package dependencies" \
-                    --body "This PR updates the Blockera package dependencies to keep versions in sync with the main repository." \
+                    --body "This PR updates the Blockera package dependencies to keep versions in sync with the Blockera One theme repository." \
                     --label "dependencies" \
                     --repo "blockeraai/blockera-pro"
               env:

@@ -68,7 +68,7 @@ jobs:
         name: Test
         needs: detect_categories
         runs-on: ubuntu-latest
-        if: ${{ github.repository == 'blockeraai/blockera' || github.event_name == 'pull_request' }}
+        if: ${{ github.repository == 'blockeraai/blockera-one' || github.event_name == 'pull_request' }}
         strategy:
             fail-fast: false
             matrix:
@@ -128,18 +128,12 @@ jobs:
 
             - name: Run Cypress E2E Tests
               run: |
+                  package_glob='packages/**-one(-**|)/**'
+
                   if [ "${{ matrix.category }}" != "general-1" ]; then
-                    spec_pattern="packages/**/*.${{ matrix.category }}.e2e.cy.js"
-                    if [ -d "tests" ]; then
-                      spec_pattern="${spec_pattern},tests/**/*.${{ matrix.category }}.e2e.cy.js"
-                    fi
+                    spec_pattern="${package_glob}/*.${{ matrix.category }}.e2e.cy.js"
                   else
-                    search_dirs="packages"
-                    if [ -d "tests" ]; then
-                      search_dirs="${search_dirs} tests"
-                    fi
-                    spec_pattern=$(find $search_dirs -type f -name "*.e2e.cy.js" ! -name "*.*.e2e.cy.js" | tr '\n' ',')
-                    spec_pattern="${spec_pattern%,}" # Remove trailing comma
+                    spec_pattern="${package_glob}/!(*.*.e2e).cy.js"
                   fi
 
                   # If the env file exists, filter spec patterns based on .pr-cypress.env.json
@@ -157,9 +151,10 @@ jobs:
                     # Generate spec pattern based on filtered categories
                     for category in $filtered_categories; do
                       if [ "${{ matrix.category }}" == "$category" ]; then
-                        spec_pattern="packages/**/*.${{ matrix.category }}.e2e.cy.js"
-                        if [ -d "tests" ]; then
-                          spec_pattern="${spec_pattern},tests/**/*.${{ matrix.category }}.e2e.cy.js"
+                        if [ "${{ matrix.category }}" != "general-1" ]; then
+                          spec_pattern="${package_glob}/*.${{ matrix.category }}.e2e.cy.js"
+                        else
+                          spec_pattern="${package_glob}/!(*.*.e2e).cy.js"
                         fi
                       fi
                     done

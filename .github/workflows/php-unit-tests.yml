@@ -44,7 +44,7 @@ jobs:
         needs: compute-previous-wordpress-version
         runs-on: ubuntu-latest
         timeout-minutes: 20
-        if: ${{ github.repository == 'blockeraai/blockera' || github.event_name == 'pull_request' }}
+        if: ${{ github.repository == 'blockeraai/blockera-one' || github.event_name == 'pull_request' }}
         strategy:
             fail-fast: true
             matrix:
@@ -72,23 +72,30 @@ jobs:
             - name: Checkout Repository
               uses: actions/checkout@v4
 
+            - name: Find Specs Files
+              id: find_specs_files
+              run: |
+                  file_count=$(find ./packages/blockera-one-* ./packages/*-one \
+                    -type f -name '*Test.php' 2>/dev/null | wc -l | tr -d '[:space:]')
+                  echo "file_count=${file_count:-0}" >> $GITHUB_OUTPUT
+                  echo "Found ${file_count:-0} PHPUnit test file(s) under *-one / blockera-one-* packages."
+
             - name: Setup Node.js and install dependencies
+              if: steps.find_specs_files.outputs.file_count != '0'
               uses: ./.github/setup-node
 
             - name: Setup PHP Composer install dependencies
+              if: steps.find_specs_files.outputs.file_count != '0'
               uses: ./.github/setup-php
               with:
                   php-version: ${{ matrix.php }}
 
             - name: Npm build
+              if: steps.find_specs_files.outputs.file_count != '0'
               run: npm run build
 
-            #            - name: Docker debug information
-            #              run: |
-            #                  docker -v
-            #                  docker-compose -v
-
             - name: General debug information
+              if: steps.find_specs_files.outputs.file_count != '0'
               run: |
                   npm --version
                   node --version
@@ -97,6 +104,7 @@ jobs:
                   locale -a
 
             - name: Create requires environment files
+              if: steps.find_specs_files.outputs.file_count != '0'
               run: |
                   # Set the base configuration file
                   WP_ENV_CONFIG=".github/wp-env-configs/base.json"
@@ -112,19 +120,20 @@ jobs:
                   cat .env
 
             - name: Start WordPress Environment
+              if: steps.find_specs_files.outputs.file_count != '0'
               run: bash .github/scripts/retry-wp-env-start.sh
 
             - name: Running single site unit tests
-              if: ${{ ! matrix.multisite }}
+              if: ${{ ! matrix.multisite && steps.find_specs_files.outputs.file_count != '0' }}
               run: |
                   set -o pipefail
                   npm run test:unit:php | tee phpunit.log
 
             # Verifies that PHPUnit actually runs in the first place. We want visibility
             # into issues which can cause it to fail silently, so we check the output
-            # to verify that at least 500 tests have passed. This is an arbitrary
-            # number, but makes sure a drastic change doesn't happen without us noticing.
+            # to verify that at least 1 test has passed when -one package tests exist.
             - name: Check number of passed tests
+              if: steps.find_specs_files.outputs.file_count != '0'
               run: |
                   # Note: relies on PHPUnit execution to fail on test failure.
                   # Extract the number of executed tests from the log file.
@@ -135,7 +144,7 @@ jobs:
                   fi
                   # Extract just the number of tests from the string.
                   num_tests=$(echo "$num_tests" | grep -Eo '[0-9]+')
-                  if [ $num_tests -lt 54 ] ; then
+                  if [ $num_tests -lt 1 ] ; then
                     echo "Only $num_tests tests passed, which is much fewer than expected." && exit 1
                   fi
                   echo "$num_tests tests passed."
