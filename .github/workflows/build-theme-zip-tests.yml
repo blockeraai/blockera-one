@@ -27,25 +27,34 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v4
 
+            - name: Find Specs Files
+              id: find_specs_files
+              run: echo "file_count=$(find ./packages -path "*-one*" -name "*.build.e2e.cy.js" | wc -l | tr -d '[:space:]')" >> $GITHUB_OUTPUT
+
             - name: Setup Node.js and install dependencies
+              if: steps.find_specs_files.outputs.file_count != '0'
               uses: ./.github/setup-node
 
             - name: Install Composer dependencies
+              if: steps.find_specs_files.outputs.file_count != '0'
               uses: ramsey/composer-install@v2
               with:
                   custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
                   composer-options: '--no-dev -o --apcu-autoloader -a'
 
             - name: Build Theme Zip File
+              if: steps.find_specs_files.outputs.file_count != '0'
               uses: ./.github/build-theme-zip
 
             - name: Extract blockera-one.zip to build directory
+              if: steps.find_specs_files.outputs.file_count != '0'
               run: |
                   mkdir build
                   unzip blockera-one.zip -d ./build/blockera-one
                   rm -rf blockera-one.zip
 
             - name: Create Requirements
+              if: steps.find_specs_files.outputs.file_count != '0'
               run: |
                   cd ./build/blockera-one
                   mkdir packages
@@ -81,9 +90,10 @@ jobs:
                   mkdir -p ./build/blockera-one/packages/editor/js/preview-mode/constants
                   cp ./packages/editor/js/tabs/constants/testIds.ts ./build/blockera-one/packages/editor/js/tabs/constants/
                   cp ./packages/editor/js/preview-mode/constants/testIds.ts ./build/blockera-one/packages/editor/js/preview-mode/constants/
-                  find ./packages/ -type f \( -name "*.build.e2e.cy.js" \) -exec cp {} ./build/blockera-one/packages/blockera/tests \;
+                  find ./packages -path "*-one*" -name "*.build.e2e.cy.js" -type f -exec cp {} ./build/blockera-one/packages/blockera/tests \;
 
             - name: Setup and Run E2E tests on Blockera One build
+              if: steps.find_specs_files.outputs.file_count != '0'
               run: |
                   cd ./build/blockera-one
                   npx cypress install
