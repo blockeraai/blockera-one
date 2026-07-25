@@ -1,0 +1,102 @@
+name: Build Blockera One Theme Tests
+
+on:
+    pull_request:
+        types: [opened, synchronize, ready_for_review]
+
+    workflow_dispatch:
+
+# Cancels all previous workflow runs for pull requests that have not completed.
+concurrency:
+    # The concurrency group contains the workflow name and the branch name for pull requests
+    # or the commit hash for any other events.
+    group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+    cancel-in-progress: true
+
+jobs:
+    build_tests:
+        name: Building and Run E2E Tests (PHP ${{ matrix.php }})
+        runs-on: ubuntu-latest
+        if: ${{ github.repository == 'blockeraai/blockera-one' || github.event_name == 'pull_request' }}
+        strategy:
+            fail-fast: true
+            matrix:
+                php: ['7.4', '8.0', '8.1', '8.2']
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Find Specs Files
+              id: find_specs_files
+              run: echo "file_count=$(find ./packages -path "*-one*" -name "*.build.e2e.cy.js" | wc -l | tr -d '[:space:]')" >> $GITHUB_OUTPUT
+
+            - name: Setup Node.js and install dependencies
+              if: steps.find_specs_files.outputs.file_count != '0'
+              uses: ./.github/setup-node
+
+            - name: Install Composer dependencies
+              if: steps.find_specs_files.outputs.file_count != '0'
+              uses: ramsey/composer-install@v2
+              with:
+                  custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
+                  composer-options: '--no-dev -o --apcu-autoloader -a'
+
+            - name: Build Theme Zip File
+              if: steps.find_specs_files.outputs.file_count != '0'
+              uses: ./.github/build-theme-zip
+
+            - name: Extract blockera-one.zip to build directory
+              if: steps.find_specs_files.outputs.file_count != '0'
+              run: |
+                  mkdir build
+                  unzip blockera-one.zip -d ./build/blockera-one
+                  rm -rf blockera-one.zip
+
+            - name: Create Requirements
+              if: steps.find_specs_files.outputs.file_count != '0'
+              run: |
+                  cd ./build/blockera-one
+                  mkdir packages
+                  mkdir packages/blockera
+                  mkdir packages/blockera/tests
+                  mkdir -p .github/scripts
+                  mkdir -p .github/wp-env-configs
+
+                  # Copy the setup script and configs
+                  cp ../../.github/scripts/setup-wp-env.js .github/scripts/
+                  cp ../../.github/scripts/retry-wp-env-start.sh .github/scripts/
+                  cp ../../.github/wp-env-configs/base.json .github/wp-env-configs/
+
+                  # Copy the base configuration and add PHP version
+                  cp .github/wp-env-configs/base.json .wp-env.json
+                  jq --arg php "${{ matrix.php }}" '. + {"phpVersion": $php}' .wp-env.json > .wp-env.json.tmp && mv .wp-env.json.tmp .wp-env.json
+
+                  cat .wp-env.json
+                  touch cypress.env.json
+                  echo '{"isLogin": false,"wpUsername": "admin","wpPassword": "password","testURL": "http://localhost:8888","e2e": {"excludeSpecPattern": [],"specPattern": ["packages/**/*.build.e2e.cy.js"]}}' >> cypress.env.json
+                  cat cypress.env.json
+                  cd ../..
+                  cp -r ./cypress ./build/blockera-one
+                  cp ./package.json ./build/blockera-one
+                  cp -r ./node_modules ./build/blockera-one
+                  cp ./cypress.config.js ./build/blockera-one
+                  # Cypress webpack babel-loader resolves babel.config.js from theme root.
+                  cp ./babel.config.js ./build/blockera-one
+                  cp -r ./packages/dev-cypress ./build/blockera-one/packages
+                  # Cypress webpack aliases resolve to packages/editor/.../testIds.ts; the zip
+                  # extract does not include source packages, so mirror the minimal files.
+                  mkdir -p ./build/blockera-one/packages/editor/js/tabs/constants
+                  mkdir -p ./build/blockera-one/packages/editor/js/preview-mode/constants
+                  cp ./packages/editor/js/tabs/constants/testIds.ts ./build/blockera-one/packages/editor/js/tabs/constants/
+                  cp ./packages/editor/js/preview-mode/constants/testIds.ts ./build/blockera-one/packages/editor/js/preview-mode/constants/
+                  find ./packages -path "*-one*" -name "*.build.e2e.cy.js" -type f -exec cp {} ./build/blockera-one/packages/blockera/tests \;
+
+            - name: Setup and Run E2E tests on Blockera One build
+              if: steps.find_specs_files.outputs.file_count != '0'
+              run: |
+                  cd ./build/blockera-one
+                  npx cypress install
+                  bash .github/scripts/retry-wp-env-start.sh
+                  npm run test:e2e
+                  npm run env:stop

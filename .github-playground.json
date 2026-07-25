@@ -1,9 +1,9 @@
 {
 	"meta": {
-		"title": "Install Blockera plugin from github artifact",
+		"title": "Install Blockera One theme from github artifact",
 		"author": "https://blockera.ai/",
-		"description": "Install and activate a WordPress Blockera plugin from a .php file stored in a github artifact.",
-		"categories": ["plugins"]
+		"description": "Install and activate the Blockera One theme from a zip file stored in a GitHub artifact.",
+		"categories": ["themes"]
 	},
 	"landingPage": "/wp-admin/admin.php?page=blockera-settings-dashboard",
 	"preferredVersions": {
@@ -24,8 +24,8 @@
 			}
 		},
 		{
-			"step": "installPlugin",
-			"pluginData": {
+			"step": "installTheme",
+			"themeData": {
 				"resource": "url",
 				"url": "URL_PLACEMENT"
 			}
@@ -33,7 +33,7 @@
 		{
 			"step": "setSiteOptions",
 			"options": {
-				"blogname": "Blockera Demo"
+				"blogname": "Blockera One Demo"
 			}
 		}
 	]

@@ -17,7 +17,7 @@ jobs:
     unit-js:
         name: JavaScript
         runs-on: ubuntu-latest
-        if: ${{ github.repository == 'blockeraai/blockera' || github.event_name == 'pull_request' }}
+        if: ${{ github.repository == 'blockeraai/blockera-one' || github.event_name == 'pull_request' }}
 
         strategy:
             fail-fast: false

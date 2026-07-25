@@ -1,0 +1,65 @@
+name: Blockera One Theme Checkup
+
+on:
+    pull_request:
+        types: [opened, synchronize, ready_for_review]
+
+    workflow_dispatch:
+
+# Cancels all previous workflow runs for pull requests that have not completed.
+concurrency:
+    # The concurrency group contains the workflow name and the branch name for pull requests
+    # or the commit hash for any other events.
+    group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+    cancel-in-progress: true
+
+jobs:
+    test_wp_theme_check:
+        name: WordPress Theme Review
+        runs-on: ubuntu-latest
+        if: ${{ github.repository == 'blockeraai/blockera-one' || github.event_name == 'pull_request' }}
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js and install dependencies
+              uses: ./.github/setup-node
+
+            - name: Setup PHP Composer install dependencies
+              uses: ./.github/setup-php
+              with:
+                  composer-options: '--no-dev -o --apcu-autoloader -a'
+
+            - name: Build Theme Zip File
+              uses: ./.github/build-theme-zip
+
+            - name: Extract blockera-one.zip to build directory
+              run: |
+                  mkdir -p build
+                  unzip blockera-one.zip -d ./build/blockera-one
+                  rm -rf blockera-one.zip
+
+            - name: Test With WordPress Theme Review Action
+              uses: WordPress/theme-review-action@trunk
+              with:
+                  root-folder: './build/blockera-one'
+                  accessible-ready: true
+
+    test_php_security_check:
+        name: PHP Security Check
+        runs-on: ubuntu-latest
+        if: ${{ github.repository == 'blockeraai/blockera-one' || github.event_name == 'pull_request' }}
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Cache mechanism
+              uses: actions/cache@v4
+              with:
+                  path: ~/.symfony/cache
+                  key: db
+
+            - name: Run PHP Security Check
+              uses: symfonycorp/security-checker-action@v5

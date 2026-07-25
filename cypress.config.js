@@ -20,11 +20,7 @@ let env = {
 			'packages/**/*.visual.cy.js',
 			'tests/**/*.visual.cy.js',
 		],
-		excludeSpecPattern: [
-			'packages/**/*.build.e2e.js',
-			// Playwright performance suite — never run via Cypress CI.
-			'tests/performance/**',
-		],
+		excludeSpecPattern: ['packages/**/*.build.e2e.js'],
 	},
 };
 
@@ -74,7 +70,6 @@ module.exports = defineConfig({
 					: []),
 				// Always exclude even if cypress.env.json / .pr-cypress.env.json overrides e2e.
 				'packages/**/*.build.e2e.js',
-				'tests/performance/**',
 			])
 		),
 		supportFile: 'packages/dev-cypress/js/support/e2e.js',

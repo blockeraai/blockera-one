@@ -1,4 +1,4 @@
-name: Update Changelog and upload Blockera plugin to WordPress.org plugin repo
+name: Update Changelog and upload Blockera One theme to WordPress.org theme repo
 
 on:
     release:
@@ -8,6 +8,7 @@ jobs:
     get-release-branch:
         name: Get release branch name
         runs-on: ubuntu-latest
+        if: github.repository == 'blockeraai/blockera-one'
         outputs:
             release_branch: ${{ steps.get_release_branch.outputs.release_branch }}
         steps:
@@ -23,11 +24,11 @@ jobs:
     upload:
         name: Publish as trunk (and tag)
         runs-on: ubuntu-latest
-        environment: wp.org plugin
+        environment: wp.org theme
         needs: [get-release-branch]
-        if: ${{ !github.event.release.prerelease && github.event.release.assets[0] }}
+        if: ${{ github.repository == 'blockeraai/blockera-one' && !github.event.release.prerelease && github.event.release.assets[0] }}
         env:
-            PLUGIN_REPO_URL: 'https://plugins.svn.wordpress.org/blockera'
+            THEME_REPO_URL: 'https://themes.svn.wordpress.org/blockera-one'
             STABLE_VERSION_REGEX: '[0-9]\+\.[0-9]\+\.[0-9]\+\s*'
             SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
             SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
@@ -39,20 +40,20 @@ jobs:
                   sudo apt-get update
                   sudo apt-get install -y subversion
 
-            - name: Check out Blockera trunk from WP.org plugin repo
-              run: svn checkout "$PLUGIN_REPO_URL/trunk" --username "$SVN_USERNAME" --password "$SVN_PASSWORD"
+            - name: Check out Blockera One trunk from WP.org theme repo
+              run: svn checkout "$THEME_REPO_URL/trunk" --username "$SVN_USERNAME" --password "$SVN_PASSWORD"
 
             - name: Delete everything
               working-directory: ./trunk
               run: find . -maxdepth 1 -not -name ".svn" -not -name "." -not -name ".." -exec rm -rf {} +
 
-            - name: Download and unzip Blockera plugin asset into trunk folder
+            - name: Download and unzip Blockera One theme asset into trunk folder
               env:
-                  PLUGIN_URL: ${{ github.event.release.assets[0].browser_download_url }}
+                  THEME_URL: ${{ github.event.release.assets[0].browser_download_url }}
               run: |
-                  curl -L -o blockera.zip $PLUGIN_URL
-                  unzip blockera.zip -d trunk
-                  rm blockera.zip
+                  curl -L -o blockera-one.zip "$THEME_URL"
+                  unzip blockera-one.zip -d trunk
+                  rm blockera-one.zip
 
             - name: Replace the stable tag placeholder with the existing stable tag on the SVN repository
               env:
@@ -71,10 +72,10 @@ jobs:
             - name: Create the SVN tag
               working-directory: ./trunk
               run: |
-                  svn copy "$PLUGIN_REPO_URL/trunk" "$PLUGIN_REPO_URL/tags/$VERSION" -m "Tagging version $VERSION" \
+                  svn copy "$THEME_REPO_URL/trunk" "$THEME_REPO_URL/tags/$VERSION" -m "Tagging version $VERSION" \
                    --no-auth-cache --non-interactive  --username "$SVN_USERNAME" --password "$SVN_PASSWORD"
 
-            - name: Update the plugin's stable version
+            - name: Update the theme's stable version
               working-directory: ./trunk
               run: |
                   sed -i "s/Stable tag: ${STABLE_VERSION_REGEX}/Stable tag: ${VERSION}/g" ./readme.txt

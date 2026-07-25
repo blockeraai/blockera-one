@@ -17,7 +17,7 @@ jobs:
     build:
         name: Building and Scan Files
         runs-on: ubuntu-latest
-        if: ${{ github.repository == 'blockeraai/blockera' || github.event_name == 'pull_request' }}
+        if: ${{ github.repository == 'blockeraai/blockera-one' || github.event_name == 'pull_request' }}
 
         steps:
             - uses: actions/checkout@v4
@@ -33,15 +33,13 @@ jobs:
               with:
                   composer-options: '--no-dev -o --apcu-autoloader -a'
 
-            - name: Build Plugin Zip File
-              uses: ./.github/build-plugin-zip
-              with:
-                  composer-options: '--no-dev -o --apcu-autoloader -a'
+            - name: Build Theme Zip File
+              uses: ./.github/build-theme-zip
 
             - name: VirusTotal Scan
               uses: crazy-max/ghaction-virustotal@v4
               with:
                   vt_api_key: ${{ secrets.VT_API_KEY }}
                   files: |
-                      ./blockera.zip
+                      ./blockera-one.zip
                       ./

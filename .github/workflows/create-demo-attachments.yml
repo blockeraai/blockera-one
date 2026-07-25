@@ -33,16 +33,14 @@ jobs:
               with:
                   composer-options: '--no-dev -o --apcu-autoloader -a'
 
-            - name: Build Plugin Zip File
-              uses: ./.github/build-plugin-zip
-              with:
-                  main-file-suffix: '-${{ github.event.pull_request.number }}'
+            - name: Build Theme Zip File
+              uses: ./.github/build-theme-zip
 
             - name: Upload ZIP as Actions artifact
               uses: actions/upload-artifact@v4
               with:
-                  name: blockera-pr-${{ github.event.pull_request.number }}
-                  path: blockera.zip
+                  name: blockera-one-pr-${{ github.event.pull_request.number }}
+                  path: blockera-one.zip
                   retention-days: 14
                   if-no-files-found: error
 
@@ -57,11 +55,11 @@ jobs:
 
                   RELEASE_TAG="ci-artifacts"
                   SHORT_SHA="${SHORT_SHA:0:7}"
-                  ASSET_NAME="blockera-pr-${PR_NUMBER}.zip"
+                  ASSET_NAME="blockera-one-pr-${PR_NUMBER}.zip"
                   # Stable asset path; query string busts CDN/browser cache after each push.
                   PUBLIC_URL="https://github.com/${REPO}/releases/download/${RELEASE_TAG}/${ASSET_NAME}?v=${SHORT_SHA}"
 
-                  cp blockera.zip "${ASSET_NAME}"
+                  cp blockera-one.zip "${ASSET_NAME}"
 
                   # Ensure a public prerelease exists (draft assets require auth and break Playground).
                   if ! gh release view "${RELEASE_TAG}" --repo "${REPO}" >/dev/null 2>&1; then
@@ -77,8 +75,8 @@ jobs:
                     --repo "${REPO}" \
                     --clobber
 
-                  # Remove legacy sha-suffixed assets for this PR (blockera-pr-{N}-{sha}.zip).
-                  LEGACY_PREFIX="blockera-pr-${PR_NUMBER}-"
+                  # Remove legacy sha-suffixed assets for this PR (blockera-one-pr-{N}-{sha}.zip).
+                  LEGACY_PREFIX="blockera-one-pr-${PR_NUMBER}-"
                   mapfile -t LEGACY_ASSETS < <(
                     gh release view "${RELEASE_TAG}" --repo "${REPO}" --json assets \
                       | jq -r --arg prefix "${LEGACY_PREFIX}" '
@@ -145,7 +143,7 @@ jobs:
                   fi
 
                   # Replace URL_PLACEMENT with the newly generated URL
-                  ENCODED_JSON=$(echo "$FINAL_JSON" | jq --arg new_url "${{ env.uploaded_zip_file }}" '.steps[2].pluginData.url = $new_url')
+                  ENCODED_JSON=$(echo "$FINAL_JSON" | jq --arg new_url "${{ env.uploaded_zip_file }}" '.steps[2].themeData.url = $new_url')
 
                   # Update the blogname to append PR number
                   ENCODED_JSON=$(echo "$ENCODED_JSON" | jq --arg pr_num "${{ github.event.pull_request.number }}" '.steps[3].options.blogname += " (PR \($pr_num))"')
@@ -225,8 +223,8 @@ jobs:
                   set -euo pipefail
 
                   RELEASE_TAG="ci-artifacts"
-                  ASSET_NAME="blockera-pr-${PR_NUMBER}.zip"
-                  LEGACY_PREFIX="blockera-pr-${PR_NUMBER}-"
+                  ASSET_NAME="blockera-one-pr-${PR_NUMBER}.zip"
+                  LEGACY_PREFIX="blockera-one-pr-${PR_NUMBER}-"
 
                   if ! gh release view "${RELEASE_TAG}" --repo "${REPO}" >/dev/null 2>&1; then
                     echo "Release ${RELEASE_TAG} not found; nothing to clean up."

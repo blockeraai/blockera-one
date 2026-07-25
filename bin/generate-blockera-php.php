@@ -2,89 +2,114 @@
 <?php
 
 /**
- * Generates the production (plugin build) version of `blockera.php`,
+ * Generates the production (theme build) version of `blockera.php`,
  * containing alternate `define` statements from the development version.
  *
  * @package blockera-build
  */
 
-$f = fopen(dirname(__DIR__) . '/blockera.php', 'r');
+$root = dirname( __DIR__ );
+$f    = fopen( $root . '/blockera.php', 'r' );
 
-$plugin_version = null;
-$inside_defines = false;
+$theme_version = null;
+$inside_block  = false;
 
 /**
- * Prints `define` statements for the production version of `blockera.php`
- * (the plugin entry point).
+ * Read theme version from style.css header.
+ *
+ * @return string
  */
-function print_production_defines()
-{
+function blockera_one_read_theme_version(): string {
+	$style = dirname( __DIR__ ) . '/style.css';
+	$css   = file_get_contents( $style );
 
-    global $plugin_version;
+	if ( false === $css ) {
+		return '0.0.0';
+	}
 
-    echo "if (! defined('BLOCKERA_SB_VERSION')) { define( 'BLOCKERA_SB_VERSION', '$plugin_version' ); }\n";
+	// style.css theme headers are plain `Version:` lines (not `* Version:`).
+	if ( preg_match( '/^Version:\s*([0-9.]+)/mi', $css, $matches ) ) {
+		return $matches[1];
+	}
 
-    $git_commit = trim(shell_exec('git rev-parse HEAD'));
-
-    echo "if (! defined('BLOCKERA_SB_MODE')) { define( 'BLOCKERA_SB_MODE', 'production' ); }\n";
-    echo "if (! defined('BLOCKERA_GIT_COMMIT')) { define( 'BLOCKERA_GIT_COMMIT', '$git_commit' ); }\n";
+	return '0.0.0';
 }
 
-while (true) {
-    $line = fgets($f);
-    if (false === $line) {
-        break;
-    }
+/**
+ * Prints `define` statements for the production version of `blockera.php`.
+ */
+function print_production_defines() {
+	global $theme_version;
 
-    if (
-        ! $plugin_version &&
-        preg_match('@^\s*\*\s*Version:\s*([0-9.]+)@', $line, $matches)
-    ) {
-        $plugin_version = $matches[1];
-    }
+	$version    = $theme_version ?: blockera_one_read_theme_version();
+	$git_commit = trim( (string) shell_exec( 'git rev-parse HEAD' ) );
 
-    switch (trim($line)) {
-        case '### BEGIN AUTO-GENERATED DEFINES':
-            $inside_defines = true;
-            echo $line;
-            print_production_defines();
-            break;
+	echo "if (! defined('BLOCKERA_ONE_VERSION')) { define( 'BLOCKERA_ONE_VERSION', '{$version}' ); }\n";
+	echo "if (! defined('BLOCKERA_ONE_MODE')) { define( 'BLOCKERA_ONE_MODE', 'production' ); }\n";
+	echo "if (! defined('BLOCKERA_GIT_COMMIT')) { define( 'BLOCKERA_GIT_COMMIT', '{$git_commit}' ); }\n";
+}
 
-        case '### END AUTO-GENERATED DEFINES':
-        case '### END AUTO-GENERATED FRONT CONTROLLERS':
-            $inside_defines = false;
-            echo $line;
-            break;
+$theme_version = blockera_one_read_theme_version();
 
-        case '### BEGIN AUTO-GENERATED FRONT CONTROLLERS':
-            $inside_defines = true;
-            echo $line;
-            echo '	require BLOCKERA_SB_PATH . ' . "'inc/app.php';\n";
-            break;
+while ( true ) {
+	$line = fgets( $f );
+	if ( false === $line ) {
+		break;
+	}
+
+	switch ( trim( $line ) ) {
+		case '### BEGIN AUTO-GENERATED DEFINES':
+			$inside_block = true;
+			echo $line;
+			print_production_defines();
+			break;
+
+		case '### END AUTO-GENERATED DEFINES':
+		case '### END AUTO-GENERATED FRONT CONTROLLERS':
+		case '### END AUTO-GENERATED AUTOLOADER':
+			$inside_block = false;
+			echo $line;
+			break;
+
+		case '### BEGIN AUTO-GENERATED FRONT CONTROLLERS':
+			$inside_block = true;
+			echo $line;
+			echo "\trequire BLOCKERA_ONE_PATH . 'inc/app.php';\n";
+			break;
 
 		case '### BEGIN AUTO-GENERATED AUTOLOADER':
-			$inside_defines = true;
+			$inside_block = true;
 			echo $line;
-			echo "require_once __DIR__ . '/inc/class-shared-autoload-coordinator.php';
-\Blockera\SharedAutoload\Coordinator::getInstance()->registerPlugin('blockera', __DIR__);
+			echo <<<'PHP'
+add_filter(
+	'blockera/autoloader-coordinator/plugins/dependencies',
+	static function ( array $repos ): array {
+		$repos['blockera-one'] = [
+			'dir' => __DIR__,
+			'priority' => 10,
+			'default' => true,
+		];
+
+		return $repos;
+	}
+);
+
+require_once __DIR__ . '/inc/class-shared-autoload-coordinator.php';
+\Blockera\SharedAutoload\Coordinator::getInstance()->registerPlugin();
 \Blockera\SharedAutoload\Coordinator::getInstance()->bootstrap();
 
-// loading autoloader.
+// Fallback Composer autoloader for non-Blockera vendor packages.
 require __DIR__ . '/vendor/autoload.php';
-";
+
+PHP;
 			break;
 
-		case '### END AUTO-GENERATED AUTOLOADER':
-			$inside_defines = false;
-			echo $line;
+		default:
+			if ( ! $inside_block ) {
+				echo $line;
+			}
 			break;
-
-        default:
-            if (! $inside_defines) {
-                echo $line;
-            }
-            break;
-    }
+	}
 }
 
-fclose($f);
+fclose( $f );

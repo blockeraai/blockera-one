@@ -17,20 +17,28 @@ jobs:
     cypress_components_tests:
         name: Cypress Components Tests
         runs-on: ubuntu-latest
-        if: ${{ github.repository == 'blockeraai/blockera' || github.event_name == 'pull_request' }}
+        if: ${{ github.repository == 'blockeraai/blockera-one' || github.event_name == 'pull_request' }}
 
         steps:
             - name: Checkout Repository
               uses: actions/checkout@v4
 
+            - name: Find Specs Files
+              id: find_specs_files
+              run: echo "file_count=$(find ./packages/blockera-one-* ./packages/*-one -name "*.component.cy.js" 2>/dev/null | wc -l | tr -d '[:space:]')" >> $GITHUB_OUTPUT
+
             - name: Setup Node.js and install dependencies
+              if: steps.find_specs_files.outputs.file_count != '0'
               uses: ./.github/setup-node
 
             - name: Install Cypress
+              if: steps.find_specs_files.outputs.file_count != '0'
               run: npx cypress install
 
-            - name: Build plugin assets
+            - name: Build theme assets
+              if: steps.find_specs_files.outputs.file_count != '0'
               run: npm run build
 
             - name: Run Cypress Tests
-              run: npm run test:ct
+              if: steps.find_specs_files.outputs.file_count != '0'
+              run: npm run test:ct -- --spec "./packages/blockera-one-*/**/*.component.cy.js" "./packages/*-one/**/*.component.cy.js"

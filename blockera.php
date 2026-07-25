@@ -6,8 +6,9 @@
  */
 
 ### BEGIN AUTO-GENERATED AUTOLOADER
+// Use product constants: defined means the plugin/theme bootstrap already ran.
 // the fallback way to load the composer default autoloader.
-if (! is_plugin_active('blockera-pro/blockera-pro.php') && ! is_plugin_active('blockera/blockera.php')) {
+if ( ! defined( 'BLOCKERA_PRO_FILE' ) && ! defined( 'BLOCKERA_SB_FILE' ) ) {
 	require_once get_template_directory() . '/vendor/autoload.php';
 } else {
 	// the shared autoloader way to load the composer customized autoloader.
@@ -89,18 +90,23 @@ $blockera_one_compat_free_with_pro = new \Blockera\PluginCompatibility\Compatibi
 	new Blockera\Utils\Utils()
 );
 
-add_action('plugins_loaded', 'blockera_load_compatibility_check', 5);
-
 /**
  * Blockera is loading ...
  *
  * @return void
  */
-function blockera_load_compatibility_check(): void{
+function blockera_load_compatibility_check(): void {
 
 	global $blockera_one_compat_free_with_pro, $blockera_one_is_compatible_with_pro;
 
 	$blockera_one_is_compatible_with_pro = $blockera_one_compat_free_with_pro->load();
+}
+
+// Themes load after plugins_loaded; run immediately when that hook already fired.
+if ( did_action( 'plugins_loaded' ) ) {
+	blockera_load_compatibility_check();
+} else {
+	add_action( 'plugins_loaded', 'blockera_load_compatibility_check', 5 );
 }
 
 /**
