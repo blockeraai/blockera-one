@@ -1,0 +1,179 @@
+<?php
+/**
+ * Bootstrap The blockera application.
+ * 
+ * @package blockera-one/inc/blockera.php
+ */
+
+### BEGIN AUTO-GENERATED AUTOLOADER
+// the fallback way to load the composer default autoloader.
+if (! is_plugin_active('blockera-pro/blockera-pro.php') && ! is_plugin_active('blockera/blockera.php')) {
+	require_once get_template_directory() . '/vendor/autoload.php';
+} else {
+	// the shared autoloader way to load the composer customized autoloader.
+	add_filter(
+        'blockera/autoloader-coordinator/plugins/dependencies',
+        function ( array $repos): array {
+			$repos['blockera-one'] = [
+				'dir' => __DIR__,
+				'priority' => 10,
+				'default' => true,
+			];
+
+			return $repos;
+		}
+    );
+
+	// Register into shared autoload coordinator.
+	// This replaces vendor/autoload.php by loading directly from Composer-generated static files.
+	require_once __DIR__ . '/packages/autoloader-coordinator/loader.php';
+
+	// Register into shared autoload coordinator and bootstrap autoloading.
+	\Blockera\SharedAutoload\Coordinator::getInstance()->registerPlugin();
+	\Blockera\SharedAutoload\Coordinator::getInstance()->bootstrap();
+
+	// Invalidate package manifest cache on plugin activation, deactivation, and upgrade.
+	add_action('activated_plugin', [ \Blockera\SharedAutoload\Coordinator::getInstance(), 'invalidatePackageManifest' ]);
+	add_action('deactivated_plugin', [ \Blockera\SharedAutoload\Coordinator::getInstance(), 'invalidatePackageManifest' ]);
+	add_action('upgrader_process_complete', [ \Blockera\SharedAutoload\Coordinator::getInstance(), 'invalidatePackageManifest' ]);
+}
+### END AUTO-GENERATED AUTOLOADER
+
+if (! defined('BLOCKERA_ONE_FILE')) {
+    define('BLOCKERA_ONE_FILE', __FILE__);
+}
+
+if (! defined('BLOCKERA_ONE_URI')) {
+    define('BLOCKERA_ONE_URI', get_template_directory_uri() . '/');
+}
+
+if (! defined('BLOCKERA_ONE_PATH')) {
+    define('BLOCKERA_ONE_PATH', get_template_directory() . '/');
+}
+
+### BEGIN AUTO-GENERATED DEFINES
+if (! defined('BLOCKERA_ONE_MODE')) {
+    define('BLOCKERA_ONE_MODE', 'development');
+}
+
+if (! defined('BLOCKERA_ONE_VERSION')) {
+    define('BLOCKERA_ONE_VERSION', wp_get_theme()->get( 'Version' ));
+}
+### END AUTO-GENERATED DEFINES
+
+if (file_exists(BLOCKERA_ONE_PATH . '.env')) {
+    // Env Loading ...
+    $blockera_one_dotenv = Dotenv\Dotenv::createImmutable(BLOCKERA_ONE_PATH);
+    $blockera_one_dotenv->safeLoad();
+}
+
+global $blockera_one_env_mode, $blockera_one_mode, $blockera_one_block_supports;
+
+// Set the blockera environment mode.
+$blockera_one_env_mode = 'development' === ( isset($_ENV['APP_MODE']) ? sanitize_text_field($_ENV['APP_MODE']) : 'production' );
+// Set the blockera mode.
+$blockera_one_mode = defined('BLOCKERA_ONE_MODE') && 'development' === BLOCKERA_ONE_MODE && $blockera_one_env_mode;
+
+global $blockera_one_compat_free_with_pro;
+
+$blockera_one_compat_free_with_pro = new \Blockera\PluginCompatibility\CompatibilityCheck(
+    [
+		'file' => BLOCKERA_ONE_FILE,
+		'slug' => 'blockera-one',
+		'version' => BLOCKERA_ONE_VERSION,
+		'plugin_path' => BLOCKERA_ONE_PATH,
+		'compatible_with_slug' => 'blockera-pro',
+		'transient_key' => 'blockera-compat-redirect',
+		'mode' => $blockera_one_mode ? 'development' : 'production',
+	],
+	new Blockera\Utils\Utils()
+);
+
+add_action('plugins_loaded', 'blockera_load_compatibility_check', 5);
+
+/**
+ * Blockera is loading ...
+ *
+ * @return void
+ */
+function blockera_load_compatibility_check(): void{
+
+	global $blockera_one_compat_free_with_pro, $blockera_one_is_compatible_with_pro;
+
+	$blockera_one_is_compatible_with_pro = $blockera_one_compat_free_with_pro->load();
+}
+
+/**
+ * Filter the block supports.
+ *
+ * @hook  'blockera.block.supports'
+ * @since 1.12.2
+ * @param array $block_supports The block supports.
+ * 
+ * @return array The filtered block supports.
+ */
+$blockera_one_block_supports = apply_filters(
+	'blockera.block.supports',
+	blockera_get_available_block_supports()
+);
+
+// Initialize hooks on Front Controller.
+blockera_load('hooks', __DIR__);
+
+add_action('init', 'blockera_init', 10);
+
+function blockera_init(): void {
+
+	blockera_load('bootstrap.init', BLOCKERA_ONE_PATH);
+
+    /**
+     * This hook for extendable setup process from internal or third-party developers.
+     *
+     * @hook  'blockera/before/setup'
+     * @since 1.3.0
+     */
+    do_action('blockera/before/setup');
+
+	global $blockera_one_compat_free_with_pro, $blockera_one_is_compatible_with_pro;
+
+	if (! $blockera_one_is_compatible_with_pro) {
+		// Add compatibility check hooks.
+		add_action('admin_init', [ $blockera_one_compat_free_with_pro, 'adminInitialize' ]);
+		add_action('admin_menu', [ $blockera_one_compat_free_with_pro, 'adminMenus' ]);
+	}
+
+    new \Blockera\Telemetry\Jobs(
+        new \Blockera\WordPress\Sender(),
+        blockera_core_config('telemetry')
+    );
+
+    ### BEGIN AUTO-GENERATED FRONT CONTROLLERS
+    /**
+     * For developers: Blockera debugging mode.
+     *
+     * Change this to true to enable the display of notices during development.
+     * It is strongly recommended that internal developers use of "APP_MODE" env variable with "development" value
+     * in their development environments.
+     *
+     * For information on other constants that can be used for debugging,
+     * visit the documentation.
+     *
+     * @link TODO: please insert link of docs.
+     */
+    if (blockera_core_config('app.debug') && class_exists(\Whoops\Run::class)) {
+
+        $whoops = new \Whoops\Run();
+        $whoops->pushHandler(new \Whoops\Handler\PrettyPageHandler());
+        $whoops->register();
+    }
+    require BLOCKERA_ONE_PATH . 'packages/blockera/php/app.php';
+    ### END AUTO-GENERATED FRONT CONTROLLERS
+
+    /**
+     * This hook for extendable setup process from internal or third-party developers.
+     *
+     * @hook  'blockera/after/setup'
+     * @since 1.3.0
+     */
+    do_action('blockera/after/setup');
+}

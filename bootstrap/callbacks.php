@@ -1,0 +1,91 @@
+<?php
+/**
+ * The callbacks file contains callback functions for WordPress hooks.
+ *
+ * @package Blockera/bootstrap
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * Add the 6 days schedule on stack.
+ *
+ * @param array $schedules The schedules array.
+ *
+ * @return array the new schedules array.
+ */
+function blockera_add_cron_interval( array $schedules ): array {
+
+    $schedules['blockera_6_days'] = array(
+        'interval' => 60 * 60 * 24 * 6,
+        'display'  => esc_html__('Every 6 Days', 'blockera'),
+    );
+    $schedules['blockera_7_days'] = array(
+        'interval' => 60 * 60 * 24 * 7,
+        'display'  => esc_html__('Every 7 Days', 'blockera'),
+    );
+
+    return $schedules;
+}
+
+/**
+ * Redirecting your WordPress admin to your plugin dashboard page after activation it.
+ *
+ * @return void
+ */
+function blockera_redirect_to_dashboard_page(): void {
+
+	if ( ! blockera_is_admin() || blockera_is_doing_ajax() ) {
+		return;
+	}
+
+	$option = blockera_core_config( 'telemetryRestParams.slug' ) . '_do_activation_redirect';
+
+	if ( ! get_option( $option, false ) ) {
+		return;
+	}
+
+	if ( blockera_telemetry_opt_in_is_off( 'blockera' ) ) {
+		return;
+	}
+
+	delete_option( $option );
+
+	if ( current_user_can( 'activate_plugins' ) ) {
+		// Redirect to plugin dashboard or settings page.
+		wp_safe_redirect( admin_url( 'admin.php?page=' . blockera_core_config( 'app.dashboard_page' ) ) );
+		exit;
+	}
+}
+
+/**
+ * Activation plugin hook.
+ *
+ * @return void
+ */
+function blockera_activation_hook(): void {
+
+    if (! wp_next_scheduled('blockera_each_six_days')) {
+
+        wp_schedule_event(time(), 'blockera_6_days', 'blockera_each_six_days');
+    }
+    if (! wp_next_scheduled('blockera_each_seven_days')) {
+
+        wp_schedule_event(time(), 'blockera_7_days', 'blockera_each_seven_days');
+    }
+
+    add_option(blockera_core_config('telemetryRestParams.slug') . '_do_activation_redirect', true);
+}
+
+/**
+ * Deactivation plugin hook.
+ *
+ * @return void
+ */
+function blockera_deactivation_hook(): void {
+
+    wp_clear_scheduled_hook('blockera_each_six_days');
+    wp_clear_scheduled_hook('blockera_each_seven_days');
+}

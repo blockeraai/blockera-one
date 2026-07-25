@@ -1,0 +1,731 @@
+#!/usr/bin/env zsh
+
+# -------------------------
+# USAGE:
+#   xdebug-graphs                           → uses current directory, all types
+#   xdebug-graphs /path/to/dir              → uses provided directory, all types
+#   xdebug-graphs --types extra-small,small → uses current directory, specified types
+#   xdebug-graphs /path/to/dir --types extra-small,small → uses provided directory, specified types
+# -------------------------
+
+# Parse arguments
+BASE_DIR="$PWD"
+TYPES_ARG=""
+expect_types=false
+
+for arg in "$@"; do
+  if [[ "$arg" == --types ]]; then
+    expect_types=true
+  elif [[ "$expect_types" == true ]]; then
+    TYPES_ARG="$arg"
+    expect_types=false
+  elif [[ "$arg" != --* ]]; then
+    BASE_DIR="$arg"
+  fi
+done
+
+PATH_FRAGMENT="/wp-content/plugins/blockera"
+NAMESPACE_PREFIX="Blockera\\"
+
+BLOCKERA_COLOR="#0047eb"
+TOP5_COLOR="#004dff"
+TEXT_COLOR="#ffffff"
+
+# Safety check
+if [[ ! -d "$BASE_DIR" ]]; then
+  echo "❌ Directory not found: $BASE_DIR"
+  exit 1
+fi
+
+echo "📊 Using BASE_DIR: $BASE_DIR"
+
+# Fail early if required tools are missing
+if ! python3 -c "import gprof2dot" 2>/dev/null; then
+  echo "❌ Missing dependency: gprof2dot"
+  echo "   Install with: pip install gprof2dot"
+  exit 1
+fi
+
+if ! python3 -c "import reportlab" 2>/dev/null; then
+  echo "❌ Missing dependency: reportlab"
+  echo "   Install with: pip install reportlab"
+  exit 1
+fi
+
+if ! python3 -c "import pypdf" 2>/dev/null; then
+  echo "❌ Missing dependency: pypdf"
+  echo "   Install with: pip install pypdf"
+  exit 1
+fi
+
+if ! command -v dot >/dev/null 2>&1; then
+  echo "❌ Missing dependency: Graphviz (dot)"
+  echo "   Install with: brew install graphviz"
+  exit 1
+fi
+
+# Define all available types
+ALL_SUFFIXES=(extra-small small medium large full)
+ALL_NODE_THS=(5 2 0.25 0.125 0.01)
+ALL_EDGE_THS=(3 1 0.10 0.05 0.01)
+
+# Filter types if --types argument is provided
+if [[ -n "$TYPES_ARG" ]]; then
+  # Split comma-separated types
+  IFS=',' read -rA REQUESTED_TYPES <<< "$TYPES_ARG"
+  
+  SUFFIXES=()
+  NODE_THS=()
+  EDGE_THS=()
+  
+  for requested_type in "${REQUESTED_TYPES[@]}"; do
+    requested_type=$(echo "$requested_type" | xargs)  # trim whitespace
+    found=false
+    for ((i=1; i<=${#ALL_SUFFIXES[@]}; i++)); do
+      if [[ "${ALL_SUFFIXES[$i]}" == "$requested_type" ]]; then
+        SUFFIXES+=("${ALL_SUFFIXES[$i]}")
+        NODE_THS+=("${ALL_NODE_THS[$i]}")
+        EDGE_THS+=("${ALL_EDGE_THS[$i]}")
+        found=true
+        break
+      fi
+    done
+    if [[ "$found" == false ]]; then
+      echo "⚠️  Warning: Unknown type '$requested_type'. Available types: ${ALL_SUFFIXES[*]}"
+    fi
+  done
+  
+  if [[ ${#SUFFIXES[@]} -eq 0 ]]; then
+    echo "❌ No valid types specified. Available types: ${ALL_SUFFIXES[*]}"
+    exit 1
+  fi
+  
+  echo "📋 Generating types: ${SUFFIXES[*]}"
+else
+  # Use all default types
+  SUFFIXES=("${ALL_SUFFIXES[@]}")
+  NODE_THS=("${ALL_NODE_THS[@]}")
+  EDGE_THS=("${ALL_EDGE_THS[@]}")
+  echo "📋 Generating all types: ${SUFFIXES[*]}"
+fi
+
+FOUND_ANY=false
+GENERATED_ANY=false
+
+for FILE in "$BASE_DIR"/cachegrind.*(N-.om); do
+  [[ "$FILE" == *.pdf || "$FILE" == *.svg || "$FILE" == *.png || "$FILE" == *.dot ]] && continue
+  FOUND_ANY=true
+
+  for ((i=1; i<=${#SUFFIXES[@]}; i++)); do
+    SUFFIX="${SUFFIXES[$i]}"
+    NODE_T="${NODE_THS[$i]}"
+    EDGE_T="${EDGE_THS[$i]}"
+
+    PDF="${FILE}-${SUFFIX}.pdf"
+    DOT="${FILE}-${SUFFIX}.dot"
+    SUMMARY_PDF="${FILE}-${SUFFIX}.summary.pdf"
+    GRAPH_PDF="${FILE}-${SUFFIX}.graph.pdf"
+
+    if [[ -f "$PDF" ]]; then
+      continue
+    fi
+
+    echo "→ Generating: $(basename "$PDF")"
+
+    if ! python3 -m gprof2dot -f callgrind \
+      --node-thres "$NODE_T" \
+      --edge-thres "$EDGE_T" \
+      "$FILE" > "$DOT"; then
+      echo "❌ gprof2dot failed for: $(basename "$FILE") ($SUFFIX)"
+      rm -f "$DOT"
+      continue
+    fi
+
+    # Highlight Blockera nodes and rewrite labels in the DOT file
+    if ! python3 - "$DOT" "$PATH_FRAGMENT" "$NAMESPACE_PREFIX" "$BLOCKERA_COLOR" "$TOP5_COLOR" "$TEXT_COLOR" <<'PY'
+import sys, re
+
+dot_path, path_frag, ns_prefix, color, top5_color, text_color = sys.argv[1:]
+
+node_re = re.compile(r'^(\s*[^ \t\[]+)\s+\[(.*)\];\s*$')
+edge_re = re.compile(r'^(\s*[^ \t\[]+)\s+->\s+([^ \t\[]+)(?:\s+\[(.*)\])?\s*;\s*$')
+attr_text_re = re.compile(r'(label|tooltip)="([^"]*)"')
+
+percent_re = re.compile(r'^\s*\d+(?:\.\d+)?%\s*$')
+self_percent_re = re.compile(r'^\s*\(?\s*\d+(?:\.\d+)?%\s*\)?\s*$')
+calls_re = re.compile(r'^\s*(\d+)\s*([x×])\s*$', re.I)
+
+plugins_strip_re = re.compile(r'.*?/wp-content/plugins/')
+blockera_func_re = re.compile(r'\bblockera_\w+(?:\(\))?', re.I)
+
+def shorten_paths(text):
+    return plugins_strip_re.sub('/', text)
+
+def contains_blockera(text):
+    """Check if text contains blockera-related content"""
+    if not text:
+        return False
+    text = text.replace('\\\\', '\\')
+    if path_frag in text or '/blockera/' in text or ns_prefix in text:
+        return True
+    # Check for WordPress-style functions starting with blockera_
+    if blockera_func_re.search(text):
+        return True
+    return False
+
+def should_highlight(attrs):
+    for _, raw in attr_text_re.findall(attrs):
+        if contains_blockera(raw):
+            return True
+    return False
+
+def ensure(attrs, key, value):
+    # Check if attribute exists
+    pattern = rf'(^|,)\s*{re.escape(key)}\s*="[^"]*"'
+    if re.search(pattern, attrs):
+        # Replace existing value
+        result = re.sub(pattern, rf'\1{key}="{value}"', attrs)
+        # Clean up any double commas
+        result = re.sub(r',\s*,', ',', result)
+        return result
+    # Add new attribute
+    if attrs.strip():
+        return attrs + f', {key}="{value}"'
+    return f'{key}="{value}"'
+
+def force_set_color(attrs, color):
+    """Force set color attribute, removing any existing color"""
+    # Remove any existing color attribute
+    attrs = re.sub(r'(^|,)\s*color\s*="[^"]*"', '', attrs)
+    # Clean up any double commas or leading/trailing commas
+    attrs = re.sub(r',\s*,', ',', attrs)
+    attrs = attrs.strip().strip(',').strip()
+    # Add the new color
+    if attrs:
+        return attrs + f', color="{color}"'
+    return f'color="{color}"'
+
+def rewrite_label(label):
+    lines = label.split('\\n')
+
+    if len(lines) >= 2 and percent_re.match(lines[1]) and not lines[1].startswith("Inc:"):
+        lines[1] = "Inc: " + lines[1].strip()
+
+    if len(lines) >= 3 and self_percent_re.match(lines[2]) and not lines[2].startswith("Self:"):
+        lines[2] = "Self: " + lines[2].replace('(', '').replace(')', '').strip()
+
+    for i, s in enumerate(lines):
+        if s.lstrip().startswith("Calls:"):
+            break
+        if calls_re.match(s):
+            lines[i] = "Calls: " + s.strip()
+            break
+
+    return "\\n".join(lines)
+
+def rewrite_attrs(attrs):
+    def repl(m):
+        key, text = m.groups()
+        text = shorten_paths(text)
+        if key == "label":
+            text = rewrite_label(text)
+        return f'{key}="{text}"'
+    return attr_text_re.sub(repl, attrs)
+
+def extract_include_time(attrs):
+    """Extract include time percentage from label attributes"""
+    for key, raw in attr_text_re.findall(attrs):
+        if key == "label":
+            # Look for "Inc: X%" pattern or just "X%" on second line
+            lines = raw.split('\\n')
+            # Try to match "Inc: X%" format (after rewrite_label)
+            for line in lines:
+                inc_match = re.search(r'Inc:\s*(\d+(?:\.\d+)?)%', line, re.I)
+                if inc_match:
+                    return float(inc_match.group(1))
+            # Try to match just percentage on second line (before rewrite_label)
+            # The second line is typically the include time percentage
+            if len(lines) >= 2:
+                second_line = lines[1].strip()
+                if percent_re.match(second_line):
+                    return float(second_line.rstrip('%'))
+            # Fallback: look for any percentage value in the label
+            for line in lines:
+                percent_match = re.search(r'(\d+(?:\.\d+)?)%', line)
+                if percent_match:
+                    return float(percent_match.group(1))
+    return 0.0
+
+# First pass: identify blockera nodes and collect include times
+blockera_nodes = set()
+blockera_node_times = {}  # node_id -> include_time
+with open(dot_path, 'r', errors='ignore') as f:
+    for line in f:
+        m = node_re.match(line)
+        if m:
+            node_id, attrs = m.groups()
+            node_id_raw = node_id.strip()
+            node_id_clean = node_id_raw.strip('"')
+            if should_highlight(attrs) or contains_blockera(node_id_clean):
+                # Store the exact node_id as it appears (with any quotes)
+                blockera_nodes.add(node_id_raw)
+                # Also store cleaned version for matching
+                blockera_nodes.add(node_id_clean)
+                # Store quoted version if not already quoted
+                if '"' not in node_id_raw:
+                    blockera_nodes.add(f'"{node_id_clean}"')
+                elif node_id_raw.startswith('"') and node_id_raw.endswith('"'):
+                    blockera_nodes.add(node_id_clean)
+                
+                # Extract include time for this node
+                include_time = extract_include_time(attrs)
+                # Store time for all node_id variations
+                blockera_node_times[node_id_raw] = include_time
+                blockera_node_times[node_id_clean] = include_time
+                if '"' not in node_id_raw:
+                    blockera_node_times[f'"{node_id_clean}"'] = include_time
+                elif node_id_raw.startswith('"') and node_id_raw.endswith('"'):
+                    blockera_node_times[node_id_clean] = include_time
+
+# Identify top 5 blockera nodes by include time
+top5_nodes = set()
+if blockera_node_times:
+    # Deduplicate nodes by their cleaned ID (same node might appear with/without quotes)
+    unique_node_times = {}
+    for node_id, include_time in blockera_node_times.items():
+        node_clean = node_id.strip('"')
+        # Keep the maximum include time for each unique node
+        if node_clean not in unique_node_times or include_time > unique_node_times[node_clean]:
+            unique_node_times[node_clean] = include_time
+    
+    # Sort unique nodes by include time (descending) and get top 5
+    sorted_nodes = sorted(unique_node_times.items(), key=lambda x: x[1], reverse=True)
+    top5_items = sorted_nodes[:5]
+    for node_clean, _ in top5_items:
+        # Add all variations for matching
+        top5_nodes.add(node_clean)
+        top5_nodes.add(f'"{node_clean}"')
+
+# Second pass: process nodes and edges
+out = []
+with open(dot_path, 'r', errors='ignore') as f:
+    for line in f:
+        # Check for edge definition
+        edge_m = edge_re.match(line)
+        if edge_m:
+            source_node, target_node, attrs = edge_m.groups()
+            source_raw = source_node.strip()
+            source_clean = source_raw.strip('"')
+            
+            # Check if source is a blockera node (try multiple formats)
+            is_blockera_source = (
+                source_raw in blockera_nodes or 
+                source_clean in blockera_nodes or
+                (source_raw.startswith('"') and source_raw.endswith('"') and source_clean in blockera_nodes) or
+                (not source_raw.startswith('"') and f'"{source_clean}"' in blockera_nodes)
+            )
+            
+            if is_blockera_source:
+                if attrs is None:
+                    attrs = ''
+                
+                # Check if source is a top 5 node
+                is_top5_source = (
+                    source_raw in top5_nodes or
+                    source_clean in top5_nodes or
+                    (source_raw.startswith('"') and source_raw.endswith('"') and source_clean in top5_nodes) or
+                    (not source_raw.startswith('"') and f'"{source_clean}"' in top5_nodes)
+                )
+                
+                edge_color = top5_color if is_top5_source else color
+                
+                # Make edge color 20% transparent (80% opacity = 0xCC in hex)
+                # Convert color from #RRGGBB to #RRGGBBAA format
+                transparent_color = edge_color + 'CC'  # 20% transparent = 80% opacity
+                attrs = force_set_color(attrs, transparent_color)
+                # Set label color to be fully opaque (normal)
+                attrs = ensure(attrs, 'labelfontcolor', edge_color)
+                attrs = ensure(attrs, 'fontcolor', edge_color)
+                attrs = ensure(attrs, 'penwidth', '3')
+                # Remove any existing <b> tags from label first
+                label_pattern = r'label="([^"]*)"'
+                match = re.search(label_pattern, attrs)
+                if match:
+                    label_text = match.group(1)
+                    # Remove all <b> tags
+                    label_text = re.sub(r'</?b>', '', label_text)
+                    label_text = re.sub(r'&lt;/?b&gt;', '', label_text)
+                    attrs = re.sub(label_pattern, f'label="{label_text}"', attrs)
+                # Use font attributes to make label bold
+                attrs = ensure(attrs, 'labelfontweight', 'bold')
+                attrs = ensure(attrs, 'fontweight', 'bold')
+                # Try using a bold font name (PostScript style)
+                attrs = ensure(attrs, 'labelfontname', 'Helvetica-Bold')
+                attrs = ensure(attrs, 'fontname', 'Helvetica-Bold')
+                out.append(f"{source_node} -> {target_node} [{attrs}];\n")
+            else:
+                if attrs:
+                    out.append(f"{source_node} -> {target_node} [{attrs}];\n")
+                else:
+                    out.append(f"{source_node} -> {target_node};\n")
+            continue
+        
+        # Check for node definition
+        node_m = node_re.match(line)
+        if node_m:
+            node_id, attrs = node_m.groups()
+            node_id_clean = node_id.strip().strip('"')
+            
+            # Check both node_id and original attrs for blockera functions (before rewriting)
+            should_hl = should_highlight(attrs) or contains_blockera(node_id_clean)
+            
+            attrs = rewrite_attrs(attrs)
+
+            # Apply highlighting if needed
+            if should_hl:
+                # Check if this is a top 5 node
+                is_top5 = (
+                    node_id.strip() in top5_nodes or
+                    node_id_clean in top5_nodes or
+                    (node_id.strip().startswith('"') and node_id.strip().endswith('"') and node_id_clean in top5_nodes) or
+                    (not node_id.strip().startswith('"') and f'"{node_id_clean}"' in top5_nodes)
+                )
+                
+                node_color = top5_color if is_top5 else color
+                border_color = '#ef0000' if is_top5 else node_color
+                
+                attrs = ensure(attrs, 'shape', 'box')
+                attrs = ensure(attrs, 'style', 'filled')
+                attrs = ensure(attrs, 'fillcolor', node_color)
+                attrs = force_set_color(attrs, border_color)  # Border color - red for top 5, same as fill for others
+                attrs = ensure(attrs, 'fontcolor', text_color)
+                # Border width: 6 for top 5 nodes, 2 for others
+                border_width = '6' if is_top5 else '2'
+                attrs = ensure(attrs, 'penwidth', border_width)
+
+            out.append(f"{node_id} [{attrs}];\n")
+            continue
+        
+        # Not a node or edge, keep as-is
+        out.append(line)
+
+with open(dot_path, 'w') as f:
+    f.writelines(out)
+PY
+    then
+      echo "❌ DOT post-process failed for: $(basename "$FILE") ($SUFFIX)"
+      rm -f "$DOT" "$SUMMARY_PDF" "$GRAPH_PDF"
+      continue
+    fi
+
+    # Build ranking summary PDF from nodes present in this graph DOT
+    if ! python3 - "$DOT" "$SUMMARY_PDF" "$PATH_FRAGMENT" "$NAMESPACE_PREFIX" "$BLOCKERA_COLOR" "$SUFFIX" <<'PY'
+import re
+import sys
+from reportlab.lib import colors
+from reportlab.lib.enums import TA_LEFT
+from reportlab.lib.pagesizes import letter, landscape
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.units import inch
+from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
+dot_path, summary_pdf, path_frag, ns_prefix, blockera_color, graph_suffix = sys.argv[1:]
+
+node_re = re.compile(r'^(\s*[^ \t\[]+)\s+\[(.*)\];\s*$')
+attr_text_re = re.compile(r'(label|tooltip)="([^"]*)"')
+plugins_strip_re = re.compile(r'.*?/wp-content/plugins/')
+blockera_func_re = re.compile(r'\bblockera_\w+(?:\(\))?', re.I)
+
+def shorten_paths(text):
+    return plugins_strip_re.sub('/', text)
+
+def contains_blockera(text):
+    if not text:
+        return False
+    text = text.replace('\\\\', '\\')
+    if path_frag in text or '/blockera/' in text or ns_prefix in text:
+        return True
+    if blockera_func_re.search(text):
+        return True
+    return False
+
+def parse_label_stats(label):
+    """Parse rewritten label lines into name / Inc / Self / Calls."""
+    lines = [shorten_paths(line) for line in label.split('\\n')]
+    name = lines[0].strip() if lines else ''
+    inc = 0.0
+    self_time = 0.0
+    calls = 0
+
+    for line in lines[1:]:
+        inc_match = re.search(r'Inc:\s*(\d+(?:\.\d+)?)%', line, re.I)
+        if inc_match:
+            inc = float(inc_match.group(1))
+            continue
+        self_match = re.search(r'Self:\s*(\d+(?:\.\d+)?)%', line, re.I)
+        if self_match:
+            self_time = float(self_match.group(1))
+            continue
+        calls_match = re.search(r'Calls:\s*(\d+)\s*[x×]', line, re.I)
+        if calls_match:
+            calls = int(calls_match.group(1))
+            continue
+        # Fallback for unre-written labels
+        bare = line.strip()
+        if re.fullmatch(r'\d+(?:\.\d+)?%', bare) and inc == 0.0:
+            inc = float(bare.rstrip('%'))
+        elif re.fullmatch(r'\(?\s*\d+(?:\.\d+)?%\s*\)?', bare) and self_time == 0.0:
+            self_time = float(re.search(r'(\d+(?:\.\d+)?)%', bare).group(1))
+        elif re.fullmatch(r'\d+\s*[x×]', bare, re.I) and calls == 0:
+            calls = int(re.search(r'(\d+)', bare).group(1))
+
+    return name, inc, self_time, calls
+
+def collect_nodes(path):
+    nodes = []
+    seen = set()
+    with open(path, 'r', errors='ignore') as f:
+        for line in f:
+            m = node_re.match(line)
+            if not m:
+                continue
+            node_id, attrs = m.groups()
+            node_clean = node_id.strip().strip('"')
+            label = None
+            for key, raw in attr_text_re.findall(attrs):
+                if key == 'label':
+                    label = raw
+                    break
+            if not label:
+                continue
+            name, inc, self_time, calls = parse_label_stats(label)
+            if not name:
+                name = node_clean
+            # Deduplicate by cleaned node id (quotes variants)
+            if node_clean in seen:
+                continue
+            seen.add(node_clean)
+            is_blockera = contains_blockera(label) or contains_blockera(node_clean) or contains_blockera(name)
+            nodes.append({
+                'name': name,
+                'inc': inc,
+                'self': self_time,
+                'calls': calls,
+                'is_blockera': is_blockera,
+            })
+    return nodes
+
+def top_n(nodes, key, n=20):
+    return sorted(nodes, key=lambda row: row[key], reverse=True)[:n]
+
+def hex_color(value):
+    value = value.lstrip('#')
+    return colors.Color(
+        int(value[0:2], 16) / 255.0,
+        int(value[2:4], 16) / 255.0,
+        int(value[4:6], 16) / 255.0,
+    )
+
+def build_summary_pdf(path, nodes):
+    accent = hex_color(blockera_color)
+    muted = colors.Color(0.35, 0.35, 0.38)
+    header_bg = colors.Color(0.95, 0.96, 0.98)
+    alt_row = colors.Color(0.97, 0.98, 1.0)
+    # full graphs include many more nodes; show a deeper ranking table
+    table_rows = 60 if graph_suffix == 'full' else 20
+
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        'RankTitle',
+        parent=styles['Heading1'],
+        fontSize=16,
+        leading=20,
+        textColor=colors.HexColor('#111827'),
+        spaceAfter=4,
+    )
+    subtitle_style = ParagraphStyle(
+        'RankSubtitle',
+        parent=styles['Normal'],
+        fontSize=9,
+        textColor=muted,
+        spaceAfter=14,
+    )
+    cell_style = ParagraphStyle(
+        'RankCell',
+        parent=styles['Normal'],
+        fontSize=8,
+        leading=10,
+        alignment=TA_LEFT,
+        wordWrap='CJK',
+        fontName='Helvetica',
+    )
+    cell_style_active = ParagraphStyle(
+        'RankCellActive',
+        parent=cell_style,
+        fontName='Helvetica-Bold',
+    )
+    header_style = ParagraphStyle(
+        'RankHeader',
+        parent=styles['Normal'],
+        fontSize=8,
+        leading=10,
+        textColor=colors.HexColor('#111827'),
+        fontName='Helvetica',
+    )
+    # Active sort column: bold (+ ↓); ReportLab draws ↓ via Symbol with Helvetica-Bold.
+    header_style_active = ParagraphStyle(
+        'RankHeaderActive',
+        parent=header_style,
+        fontName='Helvetica-Bold',
+    )
+    sort_col = {'inc': 2, 'self': 3, 'calls': 4}
+
+    pages = [
+        (f'Top {table_rows} Blockera — Included Time', True, 'inc'),
+        (f'Top {table_rows} Blockera — Self Time', True, 'self'),
+        (f'Top {table_rows} Blockera — Calls', True, 'calls'),
+        (f'Top {table_rows} Non-Blockera — Included Time', False, 'inc'),
+        (f'Top {table_rows} Non-Blockera — Self Time', False, 'self'),
+        (f'Top {table_rows} Non-Blockera — Calls', False, 'calls'),
+    ]
+
+    doc = SimpleDocTemplate(
+        path,
+        pagesize=landscape(letter),
+        leftMargin=0.6 * inch,
+        rightMargin=0.6 * inch,
+        topMargin=0.55 * inch,
+        bottomMargin=0.5 * inch,
+    )
+    story = []
+
+    for index, (title, want_blockera, sort_key) in enumerate(pages):
+        if index > 0:
+            story.append(PageBreak())
+
+        filtered = [n for n in nodes if n['is_blockera'] == want_blockera]
+        ranked = top_n(filtered, sort_key, table_rows)
+
+        title_color = accent if want_blockera else colors.HexColor('#111827')
+        page_title = ParagraphStyle(
+            f'Title{index}',
+            parent=title_style,
+            textColor=title_color,
+        )
+        story.append(Paragraph(title, page_title))
+        story.append(Paragraph(
+            f'Graph type: {graph_suffix} · Ranked from nodes in this graph only',
+            subtitle_style,
+        ))
+
+        # Mark the active sort column (bold header + cells + ↓; tables are always descending).
+        active_col = sort_col[sort_key]
+        col_headers = [
+            Paragraph('#', header_style),
+            Paragraph('Function / Method', header_style),
+            Paragraph('Inc % ↓', header_style_active) if sort_key == 'inc' else Paragraph('Inc %', header_style),
+            Paragraph('Self % ↓', header_style_active) if sort_key == 'self' else Paragraph('Self %', header_style),
+            Paragraph('Calls ↓', header_style_active) if sort_key == 'calls' else Paragraph('Calls', header_style),
+        ]
+        data = [col_headers]
+
+        if not ranked:
+            data.append([
+                '',
+                Paragraph('No nodes in this graph', cell_style),
+                '',
+                '',
+                '',
+            ])
+        else:
+            for rank, row in enumerate(ranked, start=1):
+                inc_style = cell_style_active if active_col == 2 else cell_style
+                self_style = cell_style_active if active_col == 3 else cell_style
+                calls_style = cell_style_active if active_col == 4 else cell_style
+                data.append([
+                    Paragraph(str(rank), cell_style),
+                    Paragraph(row['name'].replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;'), cell_style),
+                    Paragraph(f"{row['inc']:.2f}%", inc_style),
+                    Paragraph(f"{row['self']:.2f}%", self_style),
+                    Paragraph(f"{row['calls']:,}", calls_style),
+                ])
+
+        table = Table(data, colWidths=[0.45 * inch, 7.6 * inch, 0.85 * inch, 0.85 * inch, 0.85 * inch])
+        style_cmds = [
+            ('BACKGROUND', (0, 0), (-1, 0), header_bg),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor('#111827')),
+            ('FONTSIZE', (0, 0), (-1, -1), 8),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('ALIGN', (0, 0), (0, -1), 'CENTER'),
+            ('ALIGN', (2, 0), (-1, -1), 'RIGHT'),
+            ('LEFTPADDING', (0, 0), (-1, -1), 6),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+            ('TOPPADDING', (0, 0), (-1, -1), 5),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+            ('GRID', (0, 0), (-1, -1), 0.4, colors.Color(0.85, 0.87, 0.9)),
+            ('BOX', (0, 0), (-1, -1), 1, accent if want_blockera else colors.Color(0.7, 0.72, 0.76)),
+            ('LINEBELOW', (0, 0), (-1, 0), 1, accent if want_blockera else colors.Color(0.55, 0.57, 0.62)),
+        ]
+        for row_i in range(1, len(data)):
+            if row_i % 2 == 0:
+                style_cmds.append(('BACKGROUND', (0, row_i), (-1, row_i), alt_row))
+
+        table.setStyle(TableStyle(style_cmds))
+        story.append(table)
+        story.append(Spacer(1, 0.15 * inch))
+
+    doc.build(story)
+
+nodes = collect_nodes(dot_path)
+build_summary_pdf(summary_pdf, nodes)
+PY
+    then
+      echo "❌ Summary PDF failed for: $(basename "$FILE") ($SUFFIX)"
+      rm -f "$DOT" "$SUMMARY_PDF" "$GRAPH_PDF"
+      continue
+    fi
+
+    if ! dot -Tpdf -o "$GRAPH_PDF" "$DOT"; then
+      echo "❌ Graphviz (dot) failed for: $(basename "$PDF")"
+      rm -f "$DOT" "$SUMMARY_PDF" "$GRAPH_PDF"
+      continue
+    fi
+
+    # Merge: call graph first, then summary tables
+    if ! python3 - "$SUMMARY_PDF" "$GRAPH_PDF" "$PDF" <<'PY'
+import sys
+from pypdf import PdfReader, PdfWriter
+
+summary_path, graph_path, out_path = sys.argv[1:]
+writer = PdfWriter()
+for path in (graph_path, summary_path):
+    reader = PdfReader(path)
+    for page in reader.pages:
+        writer.add_page(page)
+with open(out_path, 'wb') as f:
+    writer.write(f)
+PY
+    then
+      echo "❌ PDF merge failed for: $(basename "$PDF")"
+      rm -f "$DOT" "$SUMMARY_PDF" "$GRAPH_PDF" "$PDF"
+      continue
+    fi
+
+    rm -f "$DOT" "$SUMMARY_PDF" "$GRAPH_PDF"
+    GENERATED_ANY=true
+    echo "\033[32m✓ Generated: $(basename "$PDF")\033[0m"
+  done
+done
+
+if [[ "$FOUND_ANY" == false ]]; then
+  echo "❌ No cachegrind.* files found in: $BASE_DIR"
+  echo "   Tip: cd to your profiles folder, or pass it as an argument:"
+  echo "   xdebug-graphs /Users/aliaghdam/Sites/xdebug-profiles"
+  exit 1
+fi
+
+if [[ "$GENERATED_ANY" == false ]]; then
+  echo "✅ Done (nothing new to generate)"
+else
+  echo "✅ Done"
+fi

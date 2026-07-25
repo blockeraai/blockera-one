@@ -1,0 +1,15 @@
+== Changelog ==
+
+### Version 1.12.2 - 2025-07-22
+
+### Improvements
+- Animation of editor frame while changing the responsive breakpoints. 
+
+### Bug Fixes
+- Icons of breakpoints are not showing correctly in features change graph.
+
+### More
+
+This release includes 0 commits since the last release.
+
+To read the changelog for older Blockera releases, please navigate to the [releases page](https://community.blockera.ai/changelog-9l8hbrv0).

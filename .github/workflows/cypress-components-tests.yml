@@ -1,0 +1,36 @@
+name: Cypress Components Tests
+
+on:
+    pull_request:
+        types: [opened, synchronize, ready_for_review]
+
+    workflow_dispatch:
+
+# Cancels all previous workflow runs for pull requests that have not completed.
+concurrency:
+    # The concurrency group contains the workflow name and the branch name for pull requests
+    # or the commit hash for any other events.
+    group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+    cancel-in-progress: true
+
+jobs:
+    cypress_components_tests:
+        name: Cypress Components Tests
+        runs-on: ubuntu-latest
+        if: ${{ github.repository == 'blockeraai/blockera' || github.event_name == 'pull_request' }}
+
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js and install dependencies
+              uses: ./.github/setup-node
+
+            - name: Install Cypress
+              run: npx cypress install
+
+            - name: Build plugin assets
+              run: npm run build
+
+            - name: Run Cypress Tests
+              run: npm run test:ct

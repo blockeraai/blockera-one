@@ -1,0 +1,28 @@
+{
+	"editor": {
+		"extensions": {
+			"effectsExtension": {
+				"divider": false,
+				"mask": false
+			}
+		},
+		"styleEngine": {
+			"enabledCustomClassBlockState": "false"
+		}
+	},
+	"data": {
+		"dynamicValue": false
+	},
+	"earlyAccessLab": {
+		"optimizeStyleGenerationOnEditor": false,
+		"optimizeStyleGenerationOnEditorStatus": "alpha",
+		"enableSvgUpload": true,
+		"enableSvgUploadStatus": "pre-release"
+	},
+	"ai": {
+		"experimentalTools": false
+	},
+	"globalStylesUi": {
+		"presetTaxonomyGroupedUi": true
+	}
+}
