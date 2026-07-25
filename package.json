@@ -202,7 +202,7 @@
 		"stylelint": "^16.8.2"
 	},
 	"scripts": {
-		"build": "wp-scripts build --progress --mode production && postcss style.css --use cssnano -o style.min.css --no-map",
+		"build": "wp-scripts build --progress --mode production",
 		"format": "wp-scripts format",
 		"lint:js": "wp-scripts lint-js",
 		"lint:js:fix": "npm run lint:js -- --fix",
@@ -212,7 +212,7 @@
 		"update:changelogs": "node ./bin/plugin/cli.js update-packages-changelog",
 		"other:changelog": "node ./bin/plugin/cli.js changelog",
 		"plugin-zip": "wp-scripts plugin-zip",
-		"start": "rm -rf dist && wp-scripts start --progress --mode development && postcss style.css --use cssnano -o style.min.css --no-map --watch",
+		"start": "rm -rf dist && wp-scripts start --progress --mode development",
 		"start:debug": "DEBUG_MODE=on wp-scripts start --progress",
 		"clean": "rm -rf build dist/* node_modules vendor wordpress",
 		"prepare": "husky install",
