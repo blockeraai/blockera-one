@@ -1,4 +1,4 @@
-name: Blockera Plugin Checkup
+name: Blockera One Theme Checkup
 
 on:
     pull_request:
@@ -14,10 +14,10 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
-    test_wp_plugin_check:
-        name: WordPress (PCP)
+    test_wp_theme_check:
+        name: WordPress Theme Review
         runs-on: ubuntu-latest
-        if: ${{ github.repository == 'blockeraai/blockera' || github.event_name == 'pull_request' }}
+        if: ${{ github.repository == 'blockeraai/blockera-one' || github.event_name == 'pull_request' }}
 
         steps:
             - name: Checkout
@@ -31,31 +31,25 @@ jobs:
               with:
                   composer-options: '--no-dev -o --apcu-autoloader -a'
 
-            - name: Build Plugin Zip File
-              uses: ./.github/build-plugin-zip
+            - name: Build Theme Zip File
+              uses: ./.github/build-theme-zip
 
-            - name: Extract blockera.zip to build directory
+            - name: Extract blockera-one.zip to build directory
               run: |
-                  mkdir build
-                  unzip blockera.zip -d ./build/blockera
-                  rm -rf blockera.zip
+                  mkdir -p build
+                  unzip blockera-one.zip -d ./build/blockera-one
+                  rm -rf blockera-one.zip
 
-            - name: Test With WordPress Plugin Check (PCP)
-              uses: wordpress/plugin-check-action@v1
+            - name: Test With WordPress Theme Review Action
+              uses: WordPress/theme-review-action@trunk
               with:
-                  repo-token: ${{ secrets.BLOCKERABOT_PAT }}
-                  build-dir: './build/blockera'
-                  categories: |
-                      general
-                      security
-                      performance
-                      plugin_repo
-                      accessibility
+                  root-folder: './build/blockera-one'
+                  accessible-ready: true
 
     test_php_security_check:
         name: PHP Security Check
         runs-on: ubuntu-latest
-        if: ${{ github.repository == 'blockeraai/blockera' || github.event_name == 'pull_request' }}
+        if: ${{ github.repository == 'blockeraai/blockera-one' || github.event_name == 'pull_request' }}
 
         steps:
             - name: Checkout
