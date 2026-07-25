@@ -26,7 +26,7 @@ warning () {
 	echo -e "\n${YELLOW_BOLD}$1${COLOR_RESET}\n"
 }
 
-status "💃 Time to build the Blockera plugin ZIP file 🕺"
+status "💃 Time to build the Blockera One theme ZIP file 🕺"
 
 if [ -z "$NO_CHECKS" ]; then
 	# Make sure there are no changes in the working tree. Release builds should be
@@ -39,7 +39,7 @@ if [ -z "$NO_CHECKS" ]; then
 	fi
 	if [ ! -z "$changed" ]; then
 		git status
-		error "ERROR: Cannot build plugin zip with dirty working tree. ☝️
+		error "ERROR: Cannot build theme zip with dirty working tree. ☝️
 		Commit your changes and try again."
 		exit 1
 	fi
@@ -55,7 +55,7 @@ if [ -z "$NO_CHECKS" ]; then
 		read answer
 		if [ "$answer" != "${answer#[Yy]}" ]; then
 			# Remove ignored files to reset repository to pristine condition. Previous
-			# test ensures that changed files abort the plugin build.
+			# test ensures that changed files abort the theme build.
 			status "Cleaning working directory... 🛀"
 			git clean -xdf
 		else
@@ -135,31 +135,35 @@ vendor_without_blockera=$(
   find ./vendor -type f -not -path "./vendor/blockera" \
 );
 
-main_plugin_file='blockera.php'
-
-if [ -n "$MAIN_FILE_SUFFIX" ]; then
-  main_plugin_file="blockera$MAIN_FILE_SUFFIX.php"
-  cp blockera.php "$main_plugin_file"
-fi
-
-# Generate the plugin zip file.
+# Generate the theme zip file.
 status "Creating archive... 🎁"
-zip -r -q blockera.zip \
-  inc \
+zip -r -q blockera-one.zip \
+	style.css \
+	style.min.css \
+	functions.php \
+	index.php \
+	theme.json \
+	screenshot.png \
+	templates \
+	parts \
+	patterns \
+	styles \
+	images \
+	inc \
 	config \
 	assets \
 	bootstrap \
+	blockera.php \
 	readme.txt \
 	languages \
 	$build_files \
-	$main_plugin_file \
 	changelog.txt \
 	composer.json \
 	experimental.config.json \
 	$vendor_without_blockera \
   ### BEGIN AUTO-GENERATED VENDOR PACKAGES PATH PATTERN
   ### END AUTO-GENERATED VENDOR PACKAGES PATH PATTERN
-  && echo "blockera.zip created successfully ✅" || echo "blockera.zip creation failed ❌"
+  && echo "blockera-one.zip created successfully ✅" || echo "blockera-one.zip creation failed ❌"
 
 status "Cleaning up... 🧹"
 
@@ -173,4 +177,4 @@ git checkout readme.txt
 git checkout config/panel.php
 git checkout packages/env/php/functions.php
 
-success "Done ✅ You've built Blockera! 🎉 "
+success "Done ✅ You've built Blockera One! 🎉 "

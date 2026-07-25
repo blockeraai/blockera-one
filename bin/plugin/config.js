@@ -31,7 +31,7 @@ const config = {
 	githubRepositoryOwner: gitRepoOwner,
 	githubRepositoryName: 'blockera',
 	pluginEntryPoint: 'blockera.php',
-	buildZipCommand: '/bin/bash bin/build-plugin-zip.temp.sh',
+	buildZipCommand: '/bin/bash bin/build-theme-zip.temp.sh',
 	githubRepositoryURL: 'https://github.com/' + gitRepoOwner + '/blockera/',
 	wpRepositoryReleasesURL: 'https://github.com/blockeraai/blockera/releases/',
 	gitRepositoryURL: 'https://github.com/' + gitRepoOwner + '/blockera.git',

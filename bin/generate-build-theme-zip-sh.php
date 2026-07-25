@@ -2,13 +2,13 @@
 <?php
 
 /**
- * Generates the production (plugin build) version of `./bin/build-plugin-zip.sh`,
+ * Generates the production (theme build) version of `./bin/build-theme-zip.sh`,
  * containing alternate `define` statements from the development version.
  *
  * @package blockera-build
  */
 
-$f = fopen(dirname(__DIR__) . '/bin/build-plugin-zip.sh', 'r');
+$f = fopen(dirname(__DIR__) . '/bin/build-theme-zip.sh', 'r');
 $filtered_packages = array_filter(
     (function() {
         $packages_dir = dirname(__DIR__) . '/packages';
