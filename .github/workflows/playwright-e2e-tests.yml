@@ -247,6 +247,7 @@ jobs:
                   elif [ "${{ matrix.category }}" != "general-1" ]; then
                     # Run tests matching the category pattern
                     # e.g., tests/e2e/specs/**/*.blocks-1.ply.js
+                    # Package specs are limited to theme packages (*-one / blockera-one-*).
                     test_patterns=()
 
                     # Check tests/e2e/specs directory for .ply.js files
@@ -257,11 +258,6 @@ jobs:
                     # Check tests directory for .ply.js files
                     if find tests -type f -name "*.${{ matrix.category }}.ply.js" 2>/dev/null | grep -q .; then
                       test_patterns+=("tests/**/*.${{ matrix.category }}.ply.js")
-                    fi
-
-                    # Check packages directory for .ply.js files
-                    if find packages -type f -name "*.${{ matrix.category }}.ply.js" 2>/dev/null | grep -q .; then
-                      test_patterns+=("packages/**/*.${{ matrix.category }}.ply.js")
                     fi
 
                     # Expand glob patterns to actual file paths to avoid regex conversion issues
@@ -278,6 +274,11 @@ jobs:
                         fi
                       fi
                     done
+
+                    # Package-level category specs under *-one / blockera-one-* only.
+                    while IFS= read -r -d '' file; do
+                      test_files+=("$file")
+                    done < <(find packages \( -path 'packages/*-one/*' -o -path 'packages/blockera-one-*/*' \) -type f -name "*.${{ matrix.category }}.ply.js" -print0 2>/dev/null)
                   else
                     # Run general tests (files without category in name)
                     while IFS= read -r -d '' file; do
@@ -286,7 +287,7 @@ jobs:
 
                     while IFS= read -r -d '' file; do
                       test_files+=("$file")
-                    done < <(find packages -type f -name "*.ply.js" ! -name "*.*.ply.js" -print0 2>/dev/null)
+                    done < <(find packages \( -path 'packages/*-one/*' -o -path 'packages/blockera-one-*/*' \) -type f -name "*.ply.js" ! -name "*.*.ply.js" -print0 2>/dev/null)
 
                     while IFS= read -r -d '' file; do
                       test_files+=("$file")

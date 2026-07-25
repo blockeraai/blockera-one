@@ -27,7 +27,11 @@ const getFiles = (dir, pattern) => {
 const main = () => {
 	const categories = new Set();
 
-	const categorizedFiles = getFiles('packages', /\.(.*?)\.ply\.js/);
+	// Theme-specific packages only (names ending with -one / blockera-one-*).
+	const categorizedFiles = getFiles(
+		'packages',
+		/\/(blockera-one-.*|.*-one)\/.*\.(.*?)\.ply\.js/
+	);
 	categorizedFiles.forEach((file) => {
 		const match = file.match(/\.(.*?)\.ply\.js/);
 		if (match && match[1]) {
@@ -35,11 +39,15 @@ const main = () => {
 		}
 	});
 
-	const generalFiles = getFiles('packages', /\/[\w-]+\.ply\.js/);
+	const generalFiles = getFiles(
+		'packages',
+		/\/(blockera-one-.*|.*-one)\/.*\/[\w-]+\.ply\.js/
+	);
 	if (generalFiles.length) {
 		categories.add('general-1');
 	}
 
+	// Theme-level suites (e.g. tests/visual.block-screenshots.ply.js).
 	const baseCategorizedFiles = getFiles('tests', /\.(.*?)\.ply\.js/);
 	baseCategorizedFiles.forEach((file) => {
 		const match = file.match(/\.(.*?)\.ply\.js/);
