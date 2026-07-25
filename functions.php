@@ -9,8 +9,8 @@
  * @since Twenty Twenty-Five 1.0
  */
 
-// Loading the blockera site builder functionalities unless the blockera/blockera.php plugin is not activated.
-if ( ! is_plugin_active('blockera/blockera.php') ) {
+// Load embedded Blockera only when the free plugin is not already active.
+if ( ! defined( 'BLOCKERA_SB_FILE' ) ) {
 	require_once get_template_directory() . '/blockera.php';
 }
 

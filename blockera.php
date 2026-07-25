@@ -6,8 +6,9 @@
  */
 
 ### BEGIN AUTO-GENERATED AUTOLOADER
+// Use product constants: defined means the plugin/theme bootstrap already ran.
 // the fallback way to load the composer default autoloader.
-if (! is_plugin_active('blockera-pro/blockera-pro.php') && ! is_plugin_active('blockera/blockera.php')) {
+if ( ! defined( 'BLOCKERA_PRO_FILE' ) && ! defined( 'BLOCKERA_SB_FILE' ) ) {
 	require_once get_template_directory() . '/vendor/autoload.php';
 } else {
 	// the shared autoloader way to load the composer customized autoloader.
