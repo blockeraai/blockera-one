@@ -90,18 +90,23 @@ $blockera_one_compat_free_with_pro = new \Blockera\PluginCompatibility\Compatibi
 	new Blockera\Utils\Utils()
 );
 
-add_action('plugins_loaded', 'blockera_load_compatibility_check', 5);
-
 /**
  * Blockera is loading ...
  *
  * @return void
  */
-function blockera_load_compatibility_check(): void{
+function blockera_load_compatibility_check(): void {
 
 	global $blockera_one_compat_free_with_pro, $blockera_one_is_compatible_with_pro;
 
 	$blockera_one_is_compatible_with_pro = $blockera_one_compat_free_with_pro->load();
+}
+
+// Themes load after plugins_loaded; run immediately when that hook already fired.
+if ( did_action( 'plugins_loaded' ) ) {
+	blockera_load_compatibility_check();
+} else {
+	add_action( 'plugins_loaded', 'blockera_load_compatibility_check', 5 );
 }
 
 /**
