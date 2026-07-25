@@ -90,7 +90,7 @@ jobs:
         needs: detect_categories
         runs-on: ubuntu-latest
         timeout-minutes: 60
-        if: ${{ github.repository == 'blockeraai/blockera' || github.event_name == 'pull_request' }}
+        if: ${{ github.repository == 'blockeraai/blockera-one' || github.event_name == 'pull_request' }}
         strategy:
             fail-fast: false
             matrix:
@@ -161,7 +161,7 @@ jobs:
             - name: Verify mu-plugin fixture paths for compatibility tests
               run: |
                   # Test that mu-plugin files exist and can be copied (required for tests with activateMuPlugin in beforeEach)
-                  npx wp-env run cli -- wp eval 'foreach (["packages/editor/js/extensions/libs/background/test/global-styles/fixtures/background-color-setup-1.php","packages/blocks-core/js/libs/wordpress/group/test/global-styles/fixtures/link-inner-blocks-simple-color.php","packages/editor/js/extensions/libs/block-card/inner-blocks/test/global-styles/fixtures/link-color-simple.php"] as $f) { $p = ABSPATH . "wp-content/plugins/blockera/" . $f; if (!file_exists($p)) { echo "Missing: " . $p; exit(1); } } echo "Mu-plugin fixtures OK";'
+                  npx wp-env run cli -- wp eval 'foreach (["packages/editor/js/extensions/libs/background/test/global-styles/fixtures/background-color-setup-1.php","packages/blocks-core/js/libs/wordpress/group/test/global-styles/fixtures/link-inner-blocks-simple-color.php","packages/editor/js/extensions/libs/block-card/inner-blocks/test/global-styles/fixtures/link-color-simple.php"] as $f) { $p = ABSPATH . "wp-content/themes/blockera-one/" . $f; if (!file_exists($p)) { echo "Missing: " . $p; exit(1); } } echo "Mu-plugin fixtures OK";'
 
             - name: Wait for WordPress to be ready
               run: |
