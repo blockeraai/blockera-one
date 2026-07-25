@@ -43,7 +43,7 @@
     <php>
         <env name="VERSION" value="1.0-beta" />
         <const name="PHPUNIT_PLUGIN_TEST" value="true"/>
-        <env name="__BLOCKERA_DIR__" value="blockera" />
+        <env name="__BLOCKERA_DIR__" value="themes/blockera-one" />
         <env name="WP_PHPUNIT__TESTS_CONFIG" value="./packages/dev-phpunit/php/config.php" />
         <env name="WP_TESTS_CONFIG_FILE_PATH" value="./packages/dev-phpunit/php/config.php" />
     </php>
