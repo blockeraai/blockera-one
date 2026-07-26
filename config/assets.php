@@ -27,6 +27,7 @@ return [
 			'editor',
 			'blocks-core',
 			'bootstrap',
+			'blockera-one',
 			'blockera',
 			'editor-styles',
 			'telemetry-styles',
