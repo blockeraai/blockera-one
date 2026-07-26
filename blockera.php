@@ -40,52 +40,52 @@ if ( ! defined( 'BLOCKERA_PRO_FILE' ) && ! defined( 'BLOCKERA_SB_FILE' ) ) {
 }
 ### END AUTO-GENERATED AUTOLOADER
 
-if (! defined('BLOCKERA_ONE_FILE')) {
-    define('BLOCKERA_ONE_FILE', __FILE__);
+if (! defined('BLOCKERA_SB_FILE')) {
+    define('BLOCKERA_SB_FILE', __FILE__);
 }
 
-if (! defined('BLOCKERA_ONE_URI')) {
-    define('BLOCKERA_ONE_URI', get_template_directory_uri() . '/');
+if (! defined('BLOCKERA_SB_URI')) {
+    define('BLOCKERA_SB_URI', get_template_directory_uri() . '/');
 }
 
-if (! defined('BLOCKERA_ONE_PATH')) {
-    define('BLOCKERA_ONE_PATH', get_template_directory() . '/');
+if (! defined('BLOCKERA_SB_PATH')) {
+    define('BLOCKERA_SB_PATH', get_template_directory() . '/');
 }
 
 ### BEGIN AUTO-GENERATED DEFINES
-if (! defined('BLOCKERA_ONE_MODE')) {
-    define('BLOCKERA_ONE_MODE', 'development');
+if (! defined('BLOCKERA_SB_MODE')) {
+    define('BLOCKERA_SB_MODE', 'development');
 }
 
-if (! defined('BLOCKERA_ONE_VERSION')) {
-    define('BLOCKERA_ONE_VERSION', wp_get_theme()->get( 'Version' ));
+if (! defined('BLOCKERA_SB_VERSION')) {
+    define('BLOCKERA_SB_VERSION', wp_get_theme()->get( 'Version' ));
 }
 ### END AUTO-GENERATED DEFINES
 
-if (file_exists(BLOCKERA_ONE_PATH . '.env')) {
+if (file_exists(BLOCKERA_SB_PATH . '.env')) {
     // Env Loading ...
-    $blockera_one_dotenv = Dotenv\Dotenv::createImmutable(BLOCKERA_ONE_PATH);
-    $blockera_one_dotenv->safeLoad();
+    $blockera_dotenv = Dotenv\Dotenv::createImmutable(BLOCKERA_SB_PATH);
+    $blockera_dotenv->safeLoad();
 }
 
-global $blockera_one_env_mode, $blockera_one_mode, $blockera_one_block_supports;
+global $blockera_env_mode, $blockera_mode, $blockera_block_supports;
 
 // Set the blockera environment mode.
-$blockera_one_env_mode = 'development' === ( isset($_ENV['APP_MODE']) ? sanitize_text_field($_ENV['APP_MODE']) : 'production' );
+$blockera_env_mode = 'development' === ( isset($_ENV['APP_MODE']) ? sanitize_text_field($_ENV['APP_MODE']) : 'production' );
 // Set the blockera mode.
-$blockera_one_mode = defined('BLOCKERA_ONE_MODE') && 'development' === BLOCKERA_ONE_MODE && $blockera_one_env_mode;
+$blockera_mode = defined('BLOCKERA_SB_MODE') && 'development' === BLOCKERA_SB_MODE && $blockera_env_mode;
 
-global $blockera_one_compat_free_with_pro;
+global $blockera_compat_free_with_pro;
 
-$blockera_one_compat_free_with_pro = new \Blockera\PluginCompatibility\CompatibilityCheck(
+$blockera_compat_free_with_pro = new \Blockera\PluginCompatibility\CompatibilityCheck(
     [
-		'file' => BLOCKERA_ONE_FILE,
+		'file' => BLOCKERA_SB_FILE,
 		'slug' => 'blockera-one',
-		'version' => BLOCKERA_ONE_VERSION,
-		'plugin_path' => BLOCKERA_ONE_PATH,
+		'version' => BLOCKERA_SB_VERSION,
+		'plugin_path' => BLOCKERA_SB_PATH,
 		'compatible_with_slug' => 'blockera-pro',
 		'transient_key' => 'blockera-compat-redirect',
-		'mode' => $blockera_one_mode ? 'development' : 'production',
+		'mode' => $blockera_mode ? 'development' : 'production',
 	],
 	new Blockera\Utils\Utils()
 );
@@ -95,18 +95,18 @@ $blockera_one_compat_free_with_pro = new \Blockera\PluginCompatibility\Compatibi
  *
  * @return void
  */
-function blockera_load_compatibility_check(): void {
+function blockera_one_load_compatibility_check(): void {
 
-	global $blockera_one_compat_free_with_pro, $blockera_one_is_compatible_with_pro;
+	global $blockera_compat_free_with_pro, $blockera_is_compatible_with_pro;
 
-	$blockera_one_is_compatible_with_pro = $blockera_one_compat_free_with_pro->load();
+	$blockera_is_compatible_with_pro = $blockera_compat_free_with_pro->load();
 }
 
 // Themes load after plugins_loaded; run immediately when that hook already fired.
 if ( did_action( 'plugins_loaded' ) ) {
-	blockera_load_compatibility_check();
+	blockera_one_load_compatibility_check();
 } else {
-	add_action( 'plugins_loaded', 'blockera_load_compatibility_check', 5 );
+	add_action( 'plugins_loaded', 'blockera_one_load_compatibility_check', 5 );
 }
 
 /**
@@ -118,19 +118,19 @@ if ( did_action( 'plugins_loaded' ) ) {
  * 
  * @return array The filtered block supports.
  */
-$blockera_one_block_supports = apply_filters(
+$blockera_block_supports = apply_filters(
 	'blockera.block.supports',
 	blockera_get_available_block_supports()
 );
 
 // Initialize hooks on Front Controller.
-blockera_load('bootstrap.hooks', BLOCKERA_ONE_PATH);
+blockera_load('bootstrap.hooks', BLOCKERA_SB_PATH);
 
-add_action('init', 'blockera_init', 10);
+add_action('init', 'blockera_one_init', 10);
 
-function blockera_init(): void {
+function blockera_one_init(): void {
 
-	blockera_load('bootstrap.init', BLOCKERA_ONE_PATH);
+	blockera_load('bootstrap.init', BLOCKERA_SB_PATH);
 
     /**
      * This hook for extendable setup process from internal or third-party developers.
@@ -140,12 +140,12 @@ function blockera_init(): void {
      */
     do_action('blockera/before/setup');
 
-	global $blockera_one_compat_free_with_pro, $blockera_one_is_compatible_with_pro;
+	global $blockera_compat_free_with_pro, $blockera_is_compatible_with_pro;
 
-	if (! $blockera_one_is_compatible_with_pro) {
+	if (! $blockera_is_compatible_with_pro) {
 		// Add compatibility check hooks.
-		add_action('admin_init', [ $blockera_one_compat_free_with_pro, 'adminInitialize' ]);
-		add_action('admin_menu', [ $blockera_one_compat_free_with_pro, 'adminMenus' ]);
+		add_action('admin_init', [ $blockera_compat_free_with_pro, 'adminInitialize' ]);
+		add_action('admin_menu', [ $blockera_compat_free_with_pro, 'adminMenus' ]);
 	}
 
     new \Blockera\Telemetry\Jobs(
@@ -172,7 +172,7 @@ function blockera_init(): void {
         $whoops->pushHandler(new \Whoops\Handler\PrettyPageHandler());
         $whoops->register();
     }
-    require BLOCKERA_ONE_PATH . 'packages/blockera/php/app.php';
+    require BLOCKERA_SB_PATH . 'packages/blockera/php/app.php';
     ### END AUTO-GENERATED FRONT CONTROLLERS
 
     /**

@@ -16,8 +16,8 @@ blockera_load('callbacks', __DIR__);
 
 add_filter( 'cron_schedules', 'blockera_add_cron_interval' );
 add_action('admin_init', 'blockera_redirect_to_dashboard_page');
-register_activation_hook(BLOCKERA_ONE_FILE, 'blockera_activation_hook');
-register_deactivation_hook(BLOCKERA_ONE_FILE, 'blockera_deactivation_hook');
+register_activation_hook(BLOCKERA_SB_FILE, 'blockera_activation_hook');
+register_deactivation_hook(BLOCKERA_SB_FILE, 'blockera_deactivation_hook');
 
 // Warm runs on wp_loaded for frontend, editor, and admin (admin_print_styles needs merged settings for @font-face).
 add_action( 'wp_loaded', 'blockera_warm_merged_settings_cache', 99 );

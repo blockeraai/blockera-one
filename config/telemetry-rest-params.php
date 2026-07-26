@@ -18,7 +18,7 @@ return [
 	/**
 	 * The main script file absolute path of product.
 	 */
-	'main'  => BLOCKERA_ONE_FILE,
+	'main'  => BLOCKERA_SB_FILE,
 	/**
 	 * The nonce security field.
 	 */
