@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "56eb224ac1351269f7a30453e03f5e59",
+    "content-hash": "791fbcd66618b1adf883706de66e26fb",
     "packages": [
         {
             "name": "blockera/blockera",
@@ -59,6 +59,33 @@
                 ]
             },
             "description": "The blockera admin menus on WordPress admin dashboard.",
+            "transport-options": {
+                "relative": true
+            }
+        },
+        {
+            "name": "blockera/blockera-one",
+            "version": "1.3.3",
+            "dist": {
+                "type": "path",
+                "url": "packages/blockera-one",
+                "reference": "835c92adea4479daf6ed58e0336df01557f9974f"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Blockera\\One\\": "php/"
+                },
+                "files": [
+                    "php/functions.php"
+                ]
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Blockera\\One\\Tests\\": "php/tests/"
+                }
+            },
+            "description": "The bootstrapper for blockera one theme php application for WordPress in admin and front-end sides.",
             "transport-options": {
                 "relative": true
             }
@@ -2355,12 +2382,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-stubs/wordpress-stubs.git",
-                "reference": "04ebb2e841429038322c92043154a0ff5641e3c9"
+                "reference": "3073909e64764fdf5f9e94d9e90b02adf8f2612a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-stubs/wordpress-stubs/zipball/04ebb2e841429038322c92043154a0ff5641e3c9",
-                "reference": "04ebb2e841429038322c92043154a0ff5641e3c9",
+                "url": "https://api.github.com/repos/php-stubs/wordpress-stubs/zipball/3073909e64764fdf5f9e94d9e90b02adf8f2612a",
+                "reference": "3073909e64764fdf5f9e94d9e90b02adf8f2612a",
                 "shasum": ""
             },
             "conflict": {
@@ -2400,7 +2427,7 @@
                 "issues": "https://github.com/php-stubs/wordpress-stubs/issues",
                 "source": "https://github.com/php-stubs/wordpress-stubs/tree/master"
             },
-            "time": "2026-07-12T08:38:49+00:00"
+            "time": "2026-07-26T13:31:12+00:00"
         },
         {
             "name": "phpcompatibility/php-compatibility",
@@ -2993,12 +3020,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "b55400405d81e959e63b4a17f557ccfd7ca40a5c"
+                "reference": "b760399172d31f71075305db16181569588f20f8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/b55400405d81e959e63b4a17f557ccfd7ca40a5c",
-                "reference": "b55400405d81e959e63b4a17f557ccfd7ca40a5c",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/b760399172d31f71075305db16181569588f20f8",
+                "reference": "b760399172d31f71075305db16181569588f20f8",
                 "shasum": ""
             },
             "require": {
@@ -3080,7 +3107,7 @@
                     "type": "other"
                 }
             ],
-            "time": "2026-07-24T05:20:26+00:00"
+            "time": "2026-07-24T06:34:38+00:00"
         },
         {
             "name": "psr/log",
@@ -7447,12 +7474,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/wp-cli/wp-cli.git",
-                "reference": "776897923176304d813dae252799d1790c6a0cb6"
+                "reference": "ca7cc6d8b1b4593c5d0d0925c0330f26f5c60a1b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wp-cli/wp-cli/zipball/776897923176304d813dae252799d1790c6a0cb6",
-                "reference": "776897923176304d813dae252799d1790c6a0cb6",
+                "url": "https://api.github.com/repos/wp-cli/wp-cli/zipball/ca7cc6d8b1b4593c5d0d0925c0330f26f5c60a1b",
+                "reference": "ca7cc6d8b1b4593c5d0d0925c0330f26f5c60a1b",
                 "shasum": ""
             },
             "require": {
@@ -7524,7 +7551,7 @@
                 "issues": "https://github.com/wp-cli/wp-cli/issues",
                 "source": "https://github.com/wp-cli/wp-cli"
             },
-            "time": "2026-07-23T02:41:42+00:00"
+            "time": "2026-07-24T17:16:59+00:00"
         },
         {
             "name": "wp-cli/wp-cli-bundle",
@@ -7532,12 +7559,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/wp-cli/wp-cli-bundle.git",
-                "reference": "242f8c078210b28a4bae2b1549d6b8f93aabe83e"
+                "reference": "142ee57beab1d2edd0467d76e6d71ee774193804"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wp-cli/wp-cli-bundle/zipball/242f8c078210b28a4bae2b1549d6b8f93aabe83e",
-                "reference": "242f8c078210b28a4bae2b1549d6b8f93aabe83e",
+                "url": "https://api.github.com/repos/wp-cli/wp-cli-bundle/zipball/142ee57beab1d2edd0467d76e6d71ee774193804",
+                "reference": "142ee57beab1d2edd0467d76e6d71ee774193804",
                 "shasum": ""
             },
             "require": {
@@ -7603,7 +7630,7 @@
                 "issues": "https://github.com/wp-cli/wp-cli-bundle/issues",
                 "source": "https://github.com/wp-cli/wp-cli-bundle"
             },
-            "time": "2026-07-23T09:19:50+00:00"
+            "time": "2026-07-25T16:09:42+00:00"
         },
         {
             "name": "wp-cli/wp-config-transformer",
@@ -7843,5 +7870,5 @@
     "platform-overrides": {
         "php": "7.4"
     },
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.6.0"
 }
