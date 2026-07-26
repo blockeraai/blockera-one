@@ -19,6 +19,7 @@ import { Icon } from '@blockera/icons';
  */
 import Modal from '../modal';
 import { Button } from '../button';
+import { FEATURE_WRAPPER_TEST_ID } from './constants/testIds';
 
 export function FeatureWrapper({
 	type,
@@ -180,6 +181,7 @@ export function FeatureWrapper({
 				'show-text-' + showText,
 				className
 			)}
+			data-test={FEATURE_WRAPPER_TEST_ID.root(type)}
 			onClick={onClick}
 			{...props}
 		>
@@ -188,6 +190,11 @@ export function FeatureWrapper({
 					'feature-wrapper__notice',
 					isNoticeClickable ? 'is-clickable' : ''
 				)}
+				data-test={
+					'companion' === type
+						? FEATURE_WRAPPER_TEST_ID.companionNotice
+						: undefined
+				}
 				role={onClick ? 'button' : undefined}
 				tabIndex={onClick ? 0 : undefined}
 				onClick={onClick}
@@ -238,6 +245,7 @@ export function FeatureWrapper({
 
 			{'companion' === type && isCompanionModalOpen ? (
 				<Modal
+					data-test={FEATURE_WRAPPER_TEST_ID.companionModal}
 					headerIcon={
 						<Icon
 							icon="blockera"
