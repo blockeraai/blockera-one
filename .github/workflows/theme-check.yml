@@ -41,7 +41,7 @@ jobs:
                   rm -rf blockera-one.zip
 
             - name: Test With WordPress Theme Review Action
-              uses: WordPress/theme-review-action@trunk
+              uses: ./.github/theme-review-check
               with:
                   root-folder: './build/blockera-one'
                   accessible-ready: true
