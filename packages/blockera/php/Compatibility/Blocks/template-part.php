@@ -9,6 +9,21 @@ if (! function_exists('blockera_register_block_core_template_part')) {
 	 * @since 5.9.0
 	 */
 	function blockera_register_block_core_template_part() {
+		$registry = WP_Block_Type_Registry::get_instance();
+
+		if ( $registry->is_registered( 'core/template-part' ) ) {
+			$registered = $registry->get_registered( 'core/template-part' );
+
+			if (
+				isset( $registered->render_callback )
+				&& 'blockera_render_block_core_template_part' === $registered->render_callback
+			) {
+				return;
+			}
+
+			unregister_block_type( 'core/template-part' );
+		}
+
 		register_block_type_from_metadata(
 			ABSPATH . WPINC . '/blocks/template-part',
 			array(
