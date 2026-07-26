@@ -40,7 +40,7 @@ describe('Blockera One → companion plugin identity', () => {
 		});
 	});
 
-	it.only('opens companion install modal from the notice', () => {
+	it('opens companion install modal from the notice', () => {
 		openParagraphBlockStylesView();
 		openBackgroundClippingSection();
 
