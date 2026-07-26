@@ -44,8 +44,8 @@ function print_production_defines() {
 	$version    = $theme_version ?: blockera_one_read_theme_version();
 	$git_commit = trim( (string) shell_exec( 'git rev-parse HEAD' ) );
 
-	echo "if (! defined('BLOCKERA_ONE_VERSION')) { define( 'BLOCKERA_ONE_VERSION', '{$version}' ); }\n";
-	echo "if (! defined('BLOCKERA_ONE_MODE')) { define( 'BLOCKERA_ONE_MODE', 'production' ); }\n";
+	echo "if (! defined('BLOCKERA_SB_VERSION')) { define( 'BLOCKERA_SB_VERSION', '{$version}' ); }\n";
+	echo "if (! defined('BLOCKERA_SB_MODE')) { define( 'BLOCKERA_SB_MODE', 'production' ); }\n";
 	echo "if (! defined('BLOCKERA_GIT_COMMIT')) { define( 'BLOCKERA_GIT_COMMIT', '{$git_commit}' ); }\n";
 }
 
@@ -74,7 +74,7 @@ while ( true ) {
 		case '### BEGIN AUTO-GENERATED FRONT CONTROLLERS':
 			$inside_block = true;
 			echo $line;
-			echo "\trequire BLOCKERA_ONE_PATH . 'inc/app.php';\n";
+			echo "\trequire BLOCKERA_SB_PATH . 'inc/app.php';\n";
 			break;
 
 		case '### BEGIN AUTO-GENERATED AUTOLOADER':
