@@ -83,6 +83,13 @@ function blockera_after_setup_theme() {
 	remove_action( 'wp_footer', 'wp_enqueue_global_styles', 1 );
 	remove_filter( 'render_block', array( 'WP_Duotone', 'render_duotone_support' ), 10, 3 );
 	remove_action( 'init', 'register_block_core_template_part' );
+	add_action(
+		'init',
+		static function (): void {
+			remove_action( 'init', 'register_block_core_template_part' );
+		},
+		8
+	);
 	remove_filter( 'render_block_data', 'wp_render_block_style_variation_support_styles', 10, 2 );
 	remove_filter( 'render_block', 'wp_render_block_style_variation_class_name', 10, 2 );
 	remove_filter( 'render_block', 'wp_render_layout_support_flag', 10, 2 );
@@ -98,7 +105,7 @@ function blockera_after_setup_theme() {
 	// Admin font faces: see blockera_replace_admin_font_face_hooks() (admin_init; outside early return).
 	add_action( 'enqueue_block_editor_assets', 'blockera_enqueue_global_styles_css_custom_properties' );
 	add_filter( 'render_block', array( BlockeraDuotone::class, 'render_duotone_support' ), 10, 3 );
-	add_action( 'init', 'blockera_register_block_core_template_part' );
+	add_action( 'init', 'blockera_register_block_core_template_part', 9 );
 	add_filter( 'render_block_data', 'blockera_render_block_style_variation_support_styles', 10, 2 );
 	add_filter( 'render_block', 'blockera_render_block_style_variation_class_name', 10, 2 );
 	add_action( 'wp_enqueue_scripts', 'blockera_enqueue_block_size_variation_styles', 1 );
