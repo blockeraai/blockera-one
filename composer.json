@@ -10,6 +10,10 @@
 		},
 		{
 			"type": "path",
+			"url": "packages/blockera-one"
+		},
+		{
+			"type": "path",
 			"url": "packages/features-core"
 		},
 		{
@@ -102,6 +106,7 @@
 	"require": {
 		"php": ">=7.4",
 		"blockera/blockera": "*",
+		"blockera/blockera-one": "*",
 		"blockera/features-core": "*",
 		"blockera/feature-icon": "*",
 		"blockera/blockera-admin": "*",
