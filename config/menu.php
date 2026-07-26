@@ -12,7 +12,7 @@ if (! defined('ABSPATH')) {
 
 ob_start();
 
-include BLOCKERA_ONE_PATH . 'assets/menu-logo.svg';
+include BLOCKERA_SB_PATH . 'assets/menu-logo.svg';
 
 global $blockera_logo;
 

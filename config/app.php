@@ -10,24 +10,24 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
-global $blockera_one_mode;
+global $blockera_mode;
 
 return [
-    'root_url'       => BLOCKERA_ONE_URI,
-    'root_path'      => BLOCKERA_ONE_PATH,
+    'root_url'       => BLOCKERA_SB_URI,
+    'root_path'      => BLOCKERA_SB_PATH,
     'name'           => 'blockera',
     'dashboard_page' => 'blockera-settings-dashboard',
-    'dist_url'       => BLOCKERA_ONE_URI . 'dist/',
-    'dist_path'      => BLOCKERA_ONE_PATH . 'dist/',
-    'packages_url'   => BLOCKERA_ONE_URI . 'packages/',
-    'packages_path'  => blockera_core_env('APP_MODE', 'production') === 'development' ? BLOCKERA_ONE_PATH . 'packages/' : BLOCKERA_ONE_PATH . 'vendor/',
-    'vendor_path'    => BLOCKERA_ONE_PATH . 'vendor/',
-    'vendor_url'     => BLOCKERA_ONE_URI . 'vendor/',
-    'version'        => defined('BLOCKERA_ONE_VERSION') ? BLOCKERA_ONE_VERSION : blockera_core_env('VERSION'),
+    'dist_url'       => BLOCKERA_SB_URI . 'dist/',
+    'dist_path'      => BLOCKERA_SB_PATH . 'dist/',
+    'packages_url'   => BLOCKERA_SB_URI . 'packages/',
+    'packages_path'  => blockera_core_env('APP_MODE', 'production') === 'development' ? BLOCKERA_SB_PATH . 'packages/' : BLOCKERA_SB_PATH . 'vendor/',
+    'vendor_path'    => BLOCKERA_SB_PATH . 'vendor/',
+    'vendor_url'     => BLOCKERA_SB_URI . 'vendor/',
+    'version'        => defined('BLOCKERA_SB_VERSION') ? BLOCKERA_SB_VERSION : blockera_core_env('VERSION'),
     'namespaces'     => [
         'controllers' => '\Blockera\Setup\Http\Controllers\\',
     ],
-    'debug'          => (bool) $blockera_one_mode,
+    'debug'          => (bool) $blockera_mode,
     'upgrade_url' 	 => 'https://blockera.ai/products/site-builder/upgrade/?utm_source=blockera-admin&utm_medium=referral&utm_campaign=upgrade-page&utm_content=cta-link',
     /**
      * Extendable blockera application providers by external developers.
