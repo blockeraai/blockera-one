@@ -18,4 +18,6 @@ source-code-wordpress
 **/stories/*
 /bin/plugin/**
 /bin/*.js
+/bin/popular-block-themes/**
+/bin/snapshot-screenshots/**
 tests/**/input.html
