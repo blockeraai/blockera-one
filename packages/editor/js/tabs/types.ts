@@ -130,6 +130,10 @@ export interface AddTabOptions {
 	evictLastUnpinnedIfAtLimit?: boolean;
 	/** Called with the evicted unpinned tab (e.g. push to recently closed). */
 	onEvictedUnpinned?: (tab: Tab) => void;
+	/**
+	 * When true, skip companion and free-tier tab limits (e.g. site editor view-mode toggle).
+	 */
+	skipTabLimits?: boolean;
 }
 
 /**
