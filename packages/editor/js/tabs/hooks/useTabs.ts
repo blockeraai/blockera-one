@@ -20,7 +20,11 @@ import { localStorage } from '@blockera/storage';
  * Internal dependencies
  */
 import { TABS_STORAGE_KEY } from '../utils/storageKeys';
-import { hasReachedLimit, resolveTabsConfig } from '../utils';
+import {
+	hasReachedLimit,
+	resolveTabsConfig,
+	isCompanionPlugin,
+} from '../utils';
 import type {
 	Tab,
 	AddTabOptions,
@@ -339,6 +343,7 @@ export function useTabs({
 			};
 
 			let outcome: 'existed' | 'added' | 'blocked' = 'existed';
+			let blockReason: 'companion' | 'regular' | null = null;
 			let evictedUnpinnedTab: Tab | undefined;
 			const current = workspaceTabsRef.current;
 			let next = current;
@@ -348,6 +353,9 @@ export function useTabs({
 				current.tabs.find((tab) => tab.key === key)
 			) {
 				outcome = 'existed';
+			} else if (!isCompanionPlugin()) {
+				outcome = 'blocked';
+				blockReason = 'companion';
 			} else if (
 				hasReachedLimit(current.tabs.length, tabsLimits.regular)
 			) {
@@ -364,6 +372,7 @@ export function useTabs({
 					};
 				} else {
 					outcome = 'blocked';
+					blockReason = 'regular';
 				}
 			} else {
 				outcome = 'added';
@@ -385,8 +394,8 @@ export function useTabs({
 				options.onEvictedUnpinned(evictedUnpinnedTab);
 			}
 
-			if (outcome === 'blocked') {
-				showLimitExceeded('regular');
+			if (outcome === 'blocked' && blockReason) {
+				showLimitExceeded(blockReason);
 				return false;
 			}
 
@@ -647,6 +656,15 @@ export function useTabs({
 		setLimitExceededType(null);
 	}, []);
 
+	const guardOpenAddTab = useCallback((): boolean => {
+		if (!isCompanionPlugin()) {
+			showLimitExceeded('companion');
+			return false;
+		}
+
+		return true;
+	}, [showLimitExceeded]);
+
 	return {
 		tabs, // Combined array for backward compatibility
 		pinnedTabs: workspaceTabs['pinned-tabs'],
@@ -663,5 +681,6 @@ export function useTabs({
 		reorderTabs,
 		limitExceededType,
 		clearLimitExceeded,
+		guardOpenAddTab,
 	};
 }
