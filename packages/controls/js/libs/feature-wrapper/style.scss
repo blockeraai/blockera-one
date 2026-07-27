@@ -441,3 +441,12 @@
 		transform: translateX(200%);
 	}
 }
+
+.components-modal__screen-overlay:has(
+		.blockera-component-feature-wrapper-companion-modal
+	),
+.components-modal__screen-overlay:has(
+		.blockera-component-feature-wrapper-companion-reload-dialog
+	) {
+	z-index: 1000000000;
+}
