@@ -1108,12 +1108,50 @@ export const registerCommands = () => {
 		}).should('exist');
 	});
 
-	/** Opens the add-tab flow (command palette in “add tab” mode). */
-	Cypress.Commands.add('tabsOpenAddPalette', () => {
+	/** Stub companion plugin as installed so tabs e2e can add multiple tabs in theme mode. */
+	Cypress.Commands.add('tabsStubCompanionPluginInstalled', () => {
+		cy.window().then((win) => {
+			expect(win.wp?.hooks, 'wp.hooks').to.exist;
+
+			win.wp.hooks.addFilter(
+				'blockera.products.isCompanionPlugin',
+				'blockera-e2e/tabs.isCompanionPlugin',
+				() => true,
+				999
+			);
+		});
+	});
+
+	/** Dispatch Ctrl/Cmd+T for the workspace add-tab shortcut. */
+	Cypress.Commands.add('tabsPressAddTabShortcut', () => {
+		const isMac = Cypress.platform === 'darwin';
+
+		cy.window().then((win) => {
+			win.document.dispatchEvent(
+				new win.KeyboardEvent('keydown', {
+					key: 't',
+					code: 'KeyT',
+					bubbles: true,
+					cancelable: true,
+					metaKey: isMac,
+					ctrlKey: !isMac,
+				})
+			);
+		});
+	});
+
+	/** Click add tab without stubbing companion (theme-mode limit tests). */
+	Cypress.Commands.add('tabsOpenAddTabWithoutCompanionStub', () => {
 		cy.get(`[test-id="${WORKSPACE_TABS_TEST_ID.add}"]`)
 			.first()
 			.should('exist')
 			.click({ force: true });
+	});
+
+	/** Opens the add-tab flow (command palette in “add tab” mode). */
+	Cypress.Commands.add('tabsOpenAddPalette', () => {
+		cy.tabsStubCompanionPluginInstalled();
+		cy.tabsOpenAddTabWithoutCompanionStub();
 	});
 
 	/**
@@ -1510,6 +1548,16 @@ export const registerCommands = () => {
 				.should(shouldExist ? 'exist' : 'not.exist');
 		}
 	);
+
+	/**
+	 * Asserts the companion install modal is visible (theme mode tab limit).
+	 * @param {Cypress.Timeoutable} [options] e.g. `{ timeout: 20000 }`.
+	 */
+	Cypress.Commands.add('tabsExpectCompanionLimitPrompt', (options = {}) => {
+		cy.get('.blockera-component-feature-wrapper-companion-modal', options)
+			.should('exist')
+			.should('be.visible');
+	});
 
 	/**
 	 * Asserts the workspace tab limit upgrade prompt is visible (free tier; Pro removes limits).
