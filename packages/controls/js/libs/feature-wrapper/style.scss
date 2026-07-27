@@ -402,14 +402,33 @@
 	.install-now.activating-message {
 		pointer-events: none;
 	}
-}
 
-.blockera-component-feature-wrapper-companion-reload-dialog {
+	.blockera-component-modal__actions {
+		align-items: center;
+	}
+
 	&__actions {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 8px;
+		align-items: center;
 		justify-content: flex-end;
+		gap: 8px;
+		width: 100%;
+
+		.components-button.blockera-component-button {
+			box-sizing: border-box;
+			min-height: var(--blockera-controls-input-height);
+			height: var(--blockera-controls-input-height);
+			padding: 0 12px;
+			line-height: 1;
+		}
+
+		.install-now.button-primary {
+			min-height: var(--blockera-controls-input-height);
+			height: var(--blockera-controls-input-height);
+			padding: 0 12px;
+			line-height: 1;
+		}
 	}
 }
 
