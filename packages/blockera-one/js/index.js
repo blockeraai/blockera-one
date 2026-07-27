@@ -3,7 +3,7 @@
 /**
  * External dependencies
  */
-import { addFilter } from '@wordpress/hooks';
+import { addFilter, applyFilters } from '@wordpress/hooks';
 
 /**
  * This plugin defines the companion (Blockera Site Builder) plugin as installed.
@@ -13,6 +13,28 @@ addFilter(
 	'blockera-one/products.isCompanionPlugin',
 	() => false,
 	20
+);
+
+/**
+ * Theme mode: one open tab until the companion plugin is active.
+ * Pro free-tier limits apply once the companion is present.
+ */
+addFilter(
+	'blockera.editor.tabs',
+	'blockera-one/editor.tabs.companion',
+	(tabsConfig) => {
+		if (applyFilters('blockera.products.isCompanionPlugin', false)) {
+			return tabsConfig;
+		}
+
+		return {
+			...tabsConfig,
+			limits: {
+				...(tabsConfig?.limits || {}),
+				regular: 1,
+			},
+		};
+	}
 );
 
 /**
