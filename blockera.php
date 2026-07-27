@@ -143,6 +143,7 @@ function blockera_one_init(): void {
         $whoops->register();
     }
     require BLOCKERA_SB_PATH . 'packages/blockera/php/app.php';
+    require BLOCKERA_SB_PATH . 'packages/blockera-one/php/functions.php';
     ### END AUTO-GENERATED FRONT CONTROLLERS
 
     /**
