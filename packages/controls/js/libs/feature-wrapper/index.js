@@ -17,9 +17,8 @@ import { Icon } from '@blockera/icons';
 /**
  * Internal dependencies
  */
-import Modal from '../modal';
-import { Button } from '../button';
 import { FEATURE_WRAPPER_TEST_ID } from './constants/testIds';
+import { CompanionPluginModal } from './components/CompanionPluginModal';
 
 export function FeatureWrapper({
 	type,
@@ -244,42 +243,10 @@ export function FeatureWrapper({
 			</div>
 
 			{'companion' === type && isCompanionModalOpen ? (
-				<Modal
-					data-test={FEATURE_WRAPPER_TEST_ID.companionModal}
-					headerIcon={
-						<Icon
-							icon="blockera"
-							library="blockera"
-							iconSize="18"
-						/>
-					}
-					headerTitle={__('Install Companion Plugin', 'blockera')}
+				<CompanionPluginModal
+					isOpen={isCompanionModalOpen}
 					onRequestClose={() => setIsCompanionModalOpen(false)}
-					actions={
-						<>
-							<Button
-								variant="tertiary"
-								onClick={() => setIsCompanionModalOpen(false)}
-							>
-								{__('Close', 'blockera')}
-							</Button>
-
-							<Button variant="primary">
-								{__('Install', 'blockera')}
-							</Button>
-						</>
-					}
-					className={componentInnerClassNames(
-						'feature-wrapper-companion-modal'
-					)}
-				>
-					<p>
-						{__(
-							'For using all features you have to install the companion plugin: Blockera Site Builder.',
-							'blockera'
-						)}
-					</p>
-				</Modal>
+				/>
 			) : null}
 
 			<div
