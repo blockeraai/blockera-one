@@ -104,13 +104,13 @@ export function CompanionPluginModal({
 
 	let modalActions: MixedElement;
 
+	const modalActionsClassName = componentInnerClassNames(
+		'feature-wrapper-companion-modal__actions'
+	);
+
 	if (isConfirmView) {
 		modalActions = (
-			<div
-				className={componentInnerClassNames(
-					'feature-wrapper-companion-reload-dialog__actions'
-				)}
-			>
+			<div className={modalActionsClassName}>
 				<Button
 					{...({
 						'test-id':
@@ -159,7 +159,7 @@ export function CompanionPluginModal({
 		);
 	} else if (isCountdownView) {
 		modalActions = (
-			<>
+			<div className={modalActionsClassName}>
 				<Button
 					{...({
 						'test-id': FEATURE_WRAPPER_TEST_ID.companionClose,
@@ -179,11 +179,11 @@ export function CompanionPluginModal({
 				>
 					{__('Reload now', 'blockera')}
 				</Button>
-			</>
+			</div>
 		);
 	} else {
 		modalActions = (
-			<>
+			<div className={modalActionsClassName}>
 				<Button
 					{...({
 						'test-id': FEATURE_WRAPPER_TEST_ID.companionClose,
@@ -207,7 +207,7 @@ export function CompanionPluginModal({
 				>
 					{installButtonLabel}
 				</Button>
-			</>
+			</div>
 		);
 	}
 
