@@ -11,13 +11,72 @@ import { isString } from '@blockera/utils';
  */
 import {
 	closeWelcomeGuide,
+	disableGutenbergFeatures,
 	hexStringToByte,
 	openBoxSpacingSide,
 	openBoxPositionSide,
 	removeScopedStorageKeys,
+	setAbsoluteBlockToolbar,
 } from '../helpers';
 import { WORKSPACE_TABS_TEST_ID } from 'blockera-editor-tabs-test-ids';
 import { PREVIEW_MODE_TEST_ID } from 'blockera-editor-preview-test-ids';
+
+function resolveCypressTestUrl(path = '/wp-admin') {
+	const testURL = Cypress.env('testURL');
+
+	if (
+		(testURL.endsWith('/') && !path.startsWith('/')) ||
+		(!testURL.endsWith('/') && path.startsWith('/'))
+	) {
+		return `${testURL}${path}`;
+	}
+
+	if (!testURL.endsWith('/') && !path.startsWith('/')) {
+		return `${testURL}/${path}`;
+	}
+
+	if (testURL.endsWith('/') && path.startsWith('/')) {
+		return `${testURL.slice(0, -1)}${path}`;
+	}
+
+	return `${testURL}${path}`;
+}
+
+function buildStaleTabsStorageJson(unpinnedCount) {
+	const tabs = Array.from({ length: unpinnedCount }, (_, index) => ({
+		id: 9000 + index,
+		type: 'post',
+		title: `Stale tab ${index + 1}`,
+		slug: null,
+		status: 'draft',
+		key: `post-${9000 + index}`,
+		isPinned: false,
+	}));
+
+	return JSON.stringify({
+		main: {
+			'pinned-tabs': [],
+			tabs,
+		},
+	});
+}
+
+function buildStaleRecentlyClosedStorageJson() {
+	return JSON.stringify({
+		main: [
+			{
+				id: 8888,
+				type: 'post',
+				title: 'Stale closed tab',
+				slug: null,
+				status: 'draft',
+				key: 'post-8888',
+				isPinned: false,
+				closedAt: Date.now(),
+			},
+		],
+	});
+}
 
 export const registerCommands = () => {
 	//This registers the cy.compareSnapshot() custom command provided by the plugin
@@ -1557,6 +1616,61 @@ export const registerCommands = () => {
 		cy.get('.blockera-component-feature-wrapper-companion-modal', options)
 			.should('exist')
 			.should('be.visible');
+	});
+
+	/** Asserts the companion install modal is not shown (theme mode tab bootstrap). */
+	Cypress.Commands.add('tabsExpectNoCompanionLimitPrompt', () => {
+		cy.get('.blockera-component-feature-wrapper-companion-modal').should(
+			'not.exist'
+		);
+	});
+
+	/**
+	 * Visit post-new with stale workspace tabs in localStorage (theme bootstrap test).
+	 *
+	 * @param {{ postType?: string, staleTabCount?: number }} [options]
+	 */
+	Cypress.Commands.add('tabsVisitPostNewWithStaleStorage', (options = {}) => {
+		const { postType = 'post', staleTabCount = 3 } = options;
+		const url = resolveCypressTestUrl(
+			`/wp-admin/post-new.php?post_type=${postType}`
+		);
+
+		cy.visit(url, {
+			onBeforeLoad(win) {
+				removeScopedStorageKeys(win.localStorage, 'blockera-tabs-tabs');
+				removeScopedStorageKeys(
+					win.localStorage,
+					'blockera-tabs-recently-closed'
+				);
+				win.localStorage.setItem(
+					'blockera-tabs-tabs',
+					buildStaleTabsStorageJson(staleTabCount)
+				);
+				win.localStorage.setItem(
+					'blockera-tabs-recently-closed',
+					buildStaleRecentlyClosedStorageJson()
+				);
+			},
+		});
+
+		// eslint-disable-next-line cypress/no-unnecessary-waiting
+		cy.wait(2000);
+		closeWelcomeGuide();
+
+		if (['post', 'page'].includes(postType)) {
+			disableGutenbergFeatures();
+			setAbsoluteBlockToolbar();
+		}
+	});
+
+	/** Clicks the site editor view-mode toggle (companion limit bypass). */
+	Cypress.Commands.add('tabsClickSiteEditorViewModeToggle', () => {
+		cy.get('.edit-site-editor__view-mode-toggle', { timeout: 60000 })
+			.should('be.visible')
+			.find('button')
+			.first()
+			.click({ force: true });
 	});
 
 	/**
