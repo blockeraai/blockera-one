@@ -16,15 +16,25 @@ if ( ! function_exists( 'blockera_one_should_load_embedded_blockera' ) ) :
 	 * @return bool
 	 */
 	function blockera_one_should_load_embedded_blockera(): bool {
-		if ( defined( 'BLOCKERA_SB_FILE' ) ) {
-			return false;
-		}
-
 		if ( ! function_exists( 'is_plugin_active' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}
 
-		return ! is_plugin_active( 'blockera/blockera.php' );
+		// Standalone Blockera Site Builder plugin is active — do not bootstrap twice.
+		if ( is_plugin_active( 'blockera/blockera.php' ) ) {
+			return false;
+		}
+
+		// Blockera bootstrap already ran via another loader.
+		if ( function_exists( 'blockera_add_cron_interval' ) ) {
+			return false;
+		}
+
+		if ( defined( 'BLOCKERA_SB_FILE' ) ) {
+			return false;
+		}
+
+		return true;
 	}
 endif;
 
