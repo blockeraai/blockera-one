@@ -111,6 +111,7 @@ export default function TabsManager(): React.ReactElement | null {
 		reorderTabs,
 		limitExceededType,
 		clearLimitExceeded,
+		guardOpenAddTab,
 	} = useTabs({
 		persistenceEnabled: isPersistenceEnabled,
 	});
@@ -1402,6 +1403,16 @@ export default function TabsManager(): React.ReactElement | null {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [postId, postType]);
 
+	const openAddTabCommandBarRef = useRef<(() => void) | null>(null);
+
+	const guardedOpenAddTabCommandBar = useCallback((): void => {
+		if (!guardOpenAddTab()) {
+			return;
+		}
+
+		openAddTabCommandBarRef.current?.();
+	}, [guardOpenAddTab]);
+
 	if (!container || tabs.length === 0) {
 		return null;
 	}
@@ -1414,128 +1425,141 @@ export default function TabsManager(): React.ReactElement | null {
 			tabs={tabs}
 			onDocumentInaccessible={handleDocumentInaccessible}
 		>
-			{({ openAddTabCommandBar }) => (
-				<>
-					<TabKeyboardShortcuts
-						openAddTabCommandBar={openAddTabCommandBar}
-						tabs={tabs}
-						activeTabKey={activeTabKey}
-						onTabClick={handleTabClick}
-						onTabClose={handleTabClose}
-						onReopenTab={handleReopenTab}
-						recentlyClosedTabs={recentlyClosedTabs}
-					/>
+			{({ openAddTabCommandBar }) => {
+				openAddTabCommandBarRef.current = openAddTabCommandBar;
 
-					{createPortal(
-						<>
-							<TabsBar
-								pinnedTabs={pinnedTabs}
-								unpinnedTabs={unpinnedTabs}
-								activeTabKey={activeTabKey}
-								getIsDirty={getIsDirty}
-								isTabLocked={isTabLocked}
-								getLockUser={getLockUser}
-								onTabClick={handleTabClick}
-								onTabClose={handleTabClose}
-								onAddClick={openAddTabCommandBar}
-								onCloseOthers={handleCloseOthers}
-								onCloseToRight={handleCloseToRight}
-								onCloseSaved={handleCloseSaved}
-								onView={handleView}
-								onCopyViewLink={handleCopyViewLink}
-								onCopyEditorLink={handleCopyEditorLink}
-								onTogglePin={handleTogglePin}
-								onRename={handleRename}
-								onClearRename={handleClearRename}
-								isPersistenceEnabled={isPersistenceEnabled}
-								onTogglePersistence={togglePersistence}
-								isRecentlyClosedPersistenceEnabled={
-									isRecentlyClosedPersistenceEnabled
-								}
-								onToggleRecentlyClosedPersistence={
-									toggleRecentlyClosedPersistence
-								}
-								isTabIconsEnabled={isTabIconsEnabled}
-								onToggleTabIcons={toggleTabIcons}
-								isIconOnlyPinnedTabsEnabled={
-									isIconOnlyPinnedTabsEnabled
-								}
-								onToggleIconOnlyPinnedTabs={
-									toggleIconOnlyPinnedTabs
-								}
-								recentlyClosedTabs={recentlyClosedTabs}
-								onReopenTab={handleReopenTab}
-								onUpdateClosedTab={updateClosedTab}
-								onRemoveClosedTab={removeClosedTab}
-								onReorderTabs={handleReorderTabs}
-								limitExceededType={limitExceededType}
-								onCloseLimitPromotion={clearLimitExceeded}
-							/>
+				return (
+					<>
+						<TabKeyboardShortcuts
+							openAddTabCommandBar={guardedOpenAddTabCommandBar}
+							tabs={tabs}
+							activeTabKey={activeTabKey}
+							onTabClick={handleTabClick}
+							onTabClose={handleTabClose}
+							onReopenTab={handleReopenTab}
+							recentlyClosedTabs={recentlyClosedTabs}
+						/>
 
-							<CloseTabConfirmDialog
-								isOpen={pendingCloseTabs.length > 0}
-								onClose={handleCancelClose}
-								onSaveAndClose={handleSaveAndClose}
-								onCloseWithoutSaving={handleCloseWithoutSaving}
-								tabs={pendingCloseTabs}
-								getTabTitle={getTabTitle}
-								onOpenTab={handleOpenTabFromCloseConfirm}
-								activeTabKey={activeTabKey}
-								isSaving={isSavingTab}
-							/>
+						{createPortal(
+							<>
+								<TabsBar
+									pinnedTabs={pinnedTabs}
+									unpinnedTabs={unpinnedTabs}
+									activeTabKey={activeTabKey}
+									getIsDirty={getIsDirty}
+									isTabLocked={isTabLocked}
+									getLockUser={getLockUser}
+									onTabClick={handleTabClick}
+									onTabClose={handleTabClose}
+									onAddClick={guardedOpenAddTabCommandBar}
+									onCloseOthers={handleCloseOthers}
+									onCloseToRight={handleCloseToRight}
+									onCloseSaved={handleCloseSaved}
+									onView={handleView}
+									onCopyViewLink={handleCopyViewLink}
+									onCopyEditorLink={handleCopyEditorLink}
+									onTogglePin={handleTogglePin}
+									onRename={handleRename}
+									onClearRename={handleClearRename}
+									isPersistenceEnabled={isPersistenceEnabled}
+									onTogglePersistence={togglePersistence}
+									isRecentlyClosedPersistenceEnabled={
+										isRecentlyClosedPersistenceEnabled
+									}
+									onToggleRecentlyClosedPersistence={
+										toggleRecentlyClosedPersistence
+									}
+									isTabIconsEnabled={isTabIconsEnabled}
+									onToggleTabIcons={toggleTabIcons}
+									isIconOnlyPinnedTabsEnabled={
+										isIconOnlyPinnedTabsEnabled
+									}
+									onToggleIconOnlyPinnedTabs={
+										toggleIconOnlyPinnedTabs
+									}
+									recentlyClosedTabs={recentlyClosedTabs}
+									onReopenTab={handleReopenTab}
+									onUpdateClosedTab={updateClosedTab}
+									onRemoveClosedTab={removeClosedTab}
+									onReorderTabs={handleReorderTabs}
+									limitExceededType={limitExceededType}
+									onCloseLimitPromotion={clearLimitExceeded}
+								/>
 
-							<RenameTabModal
-								isOpen={showRenameModal}
-								onClose={() => {
-									setShowRenameModal(false);
-									setRenameTabKey(null);
-								}}
-								onSave={handleSaveRename}
-								tab={
-									tabs.find(
-										(tab) => tab.key === renameTabKey
-									) ?? null
-								}
-							/>
+								<CloseTabConfirmDialog
+									isOpen={pendingCloseTabs.length > 0}
+									onClose={handleCancelClose}
+									onSaveAndClose={handleSaveAndClose}
+									onCloseWithoutSaving={
+										handleCloseWithoutSaving
+									}
+									tabs={pendingCloseTabs}
+									getTabTitle={getTabTitle}
+									onOpenTab={handleOpenTabFromCloseConfirm}
+									activeTabKey={activeTabKey}
+									isSaving={isSavingTab}
+								/>
 
-							<TabLockedModal
-								isOpen={showLockedModal}
-								documentTitle={
-									lockedTabKey
-										? (() => {
-												const lockedTab = tabs.find(
-													(t) =>
-														t.key === lockedTabKey
-												);
-												return lockedTab
-													? getTabTitle(lockedTab)
-													: '';
-											})()
-										: ''
-								}
-								lockUser={
-									lockedTabKey
-										? getLockUser(lockedTabKey)
-										: null
-								}
-								onTakeOver={handleLockTakeOver}
-								onCloseTab={handleLockCloseTab}
-							/>
+								<RenameTabModal
+									isOpen={showRenameModal}
+									onClose={() => {
+										setShowRenameModal(false);
+										setRenameTabKey(null);
+									}}
+									onSave={handleSaveRename}
+									tab={
+										tabs.find(
+											(tab) => tab.key === renameTabKey
+										) ?? null
+									}
+								/>
 
-							<TabUnavailableModal
-								isOpen={unavailableDocument !== null}
-								documentLabel={unavailableDocument?.title ?? ''}
-								documentType={unavailableDocument?.type ?? ''}
-								documentSlug={unavailableDocument?.slug ?? null}
-								onConfirm={() => {
-									setUnavailableDocument(null);
-								}}
-							/>
-						</>,
-						container
-					)}
-				</>
-			)}
+								<TabLockedModal
+									isOpen={showLockedModal}
+									documentTitle={
+										lockedTabKey
+											? (() => {
+													const lockedTab = tabs.find(
+														(t) =>
+															t.key ===
+															lockedTabKey
+													);
+													return lockedTab
+														? getTabTitle(lockedTab)
+														: '';
+												})()
+											: ''
+									}
+									lockUser={
+										lockedTabKey
+											? getLockUser(lockedTabKey)
+											: null
+									}
+									onTakeOver={handleLockTakeOver}
+									onCloseTab={handleLockCloseTab}
+								/>
+
+								<TabUnavailableModal
+									isOpen={unavailableDocument !== null}
+									documentLabel={
+										unavailableDocument?.title ?? ''
+									}
+									documentType={
+										unavailableDocument?.type ?? ''
+									}
+									documentSlug={
+										unavailableDocument?.slug ?? null
+									}
+									onConfirm={() => {
+										setUnavailableDocument(null);
+									}}
+								/>
+							</>,
+							container
+						)}
+					</>
+				);
+			}}
 		</CommandBarIntegration>
 	);
 }
