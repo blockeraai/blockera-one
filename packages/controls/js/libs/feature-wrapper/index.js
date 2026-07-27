@@ -49,6 +49,20 @@ export function FeatureWrapper({
 }): MixedElement {
 	const [isCompanionModalOpen, setIsCompanionModalOpen] = useState(false);
 
+	const openCompanionModal = (e: any) => {
+		e.preventDefault();
+		e.stopPropagation();
+		setIsCompanionModalOpen(true);
+	};
+
+	const closeCompanionModal = () => {
+		setIsCompanionModalOpen(false);
+	};
+
+	const stopModalEventPropagation = (event: any) => {
+		event.stopPropagation();
+	};
+
 	if ('none' === type) {
 		return children;
 	}
@@ -89,11 +103,7 @@ export function FeatureWrapper({
 					/>
 				);
 				link = '';
-				onClick = (e: any) => {
-					e.preventDefault();
-					e.stopPropagation();
-					setIsCompanionModalOpen(true);
-				};
+				onClick = openCompanionModal;
 				break;
 
 			case 'native':
@@ -183,7 +193,17 @@ export function FeatureWrapper({
 				className
 			)}
 			data-test={FEATURE_WRAPPER_TEST_ID.root(type)}
-			onClick={onClick}
+			onClick={
+				'companion' === type
+					? (event) => {
+							if (isCompanionModalOpen) {
+								return;
+							}
+
+							openCompanionModal(event);
+						}
+					: onClick
+			}
 			{...props}
 		>
 			<div
@@ -245,10 +265,15 @@ export function FeatureWrapper({
 			</div>
 
 			{'companion' === type && isCompanionModalOpen ? (
-				<CompanionPluginModal
-					isOpen={isCompanionModalOpen}
-					onRequestClose={() => setIsCompanionModalOpen(false)}
-				/>
+				<div
+					onClick={stopModalEventPropagation}
+					onMouseDown={stopModalEventPropagation}
+				>
+					<CompanionPluginModal
+						isOpen={isCompanionModalOpen}
+						onRequestClose={closeCompanionModal}
+					/>
+				</div>
 			) : null}
 
 			<div

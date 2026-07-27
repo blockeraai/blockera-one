@@ -74,15 +74,20 @@ export function CompanionPluginModal({
 		handleInstall,
 	} = useCompanionPluginInstall(handleInstallComplete);
 
-	const handleModalClose = useCallback(() => {
-		if (isBusy || isCountdownActive) {
-			return;
-		}
+	const handleModalClose = useCallback(
+		(event?: { stopPropagation?: () => void }) => {
+			event?.stopPropagation?.();
 
-		cancelCountdown();
-		setPostInstallView('install');
-		onRequestClose();
-	}, [cancelCountdown, isBusy, isCountdownActive, onRequestClose]);
+			if (isBusy || isCountdownActive) {
+				return;
+			}
+
+			cancelCountdown();
+			setPostInstallView('install');
+			onRequestClose();
+		},
+		[cancelCountdown, isBusy, isCountdownActive, onRequestClose]
+	);
 
 	if (!isOpen) {
 		return null;
@@ -117,7 +122,9 @@ export function CompanionPluginModal({
 							FEATURE_WRAPPER_TEST_ID.companionReloadCancel,
 					}: Record<string, string>)}
 					variant="tertiary"
-					onClick={handleModalClose}
+					onClick={(event) => {
+						handleModalClose(event);
+					}}
 					disabled={isSaving}
 				>
 					{__('Cancel', 'blockera')}
@@ -165,7 +172,9 @@ export function CompanionPluginModal({
 						'test-id': FEATURE_WRAPPER_TEST_ID.companionClose,
 					}: Record<string, string>)}
 					variant="tertiary"
-					onClick={handleModalClose}
+					onClick={(event) => {
+						handleModalClose(event);
+					}}
 				>
 					{__('Cancel', 'blockera')}
 				</Button>
@@ -189,7 +198,9 @@ export function CompanionPluginModal({
 						'test-id': FEATURE_WRAPPER_TEST_ID.companionClose,
 					}: Record<string, string>)}
 					variant="tertiary"
-					onClick={handleModalClose}
+					onClick={(event) => {
+						handleModalClose(event);
+					}}
 					disabled={isBusy}
 				>
 					{__('Close', 'blockera')}
