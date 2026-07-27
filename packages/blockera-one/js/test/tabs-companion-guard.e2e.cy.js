@@ -7,7 +7,7 @@ import {
 	assertCompanionPluginFilter,
 } from '@blockera/dev-cypress/js/helpers';
 
-describe('Workspace tabs: Companion limit (theme mode)', () => {
+describe('Blockera One → workspace tabs companion guard', () => {
 	beforeEach(() => {
 		cy.tabsResetWorkspaceStorage();
 		cy.tabsResetTabsRelatedStorage();
