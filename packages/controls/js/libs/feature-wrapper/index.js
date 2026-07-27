@@ -20,6 +20,8 @@ import { Icon } from '@blockera/icons';
 import { FEATURE_WRAPPER_TEST_ID } from './constants/testIds';
 import { CompanionPluginModal } from './components/CompanionPluginModal';
 
+export { CompanionPluginModal };
+
 export function FeatureWrapper({
 	type,
 	typeName = '',
