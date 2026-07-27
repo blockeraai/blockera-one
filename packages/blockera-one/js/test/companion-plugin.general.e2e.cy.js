@@ -4,15 +4,11 @@ import {
 	assertBlockeraOneCompanionFilterRegistered,
 	openParagraphBlockStylesView,
 	openBackgroundClippingSection,
+	getClippingCompanionWrapper,
+	assertCompanionInstallNoticeVisible,
+	openCompanionInstallModalInEditor,
+	closeCompanionInstallModal,
 } from '@blockera/dev-cypress/js/helpers';
-// eslint-disable-next-line import/no-unresolved
-import { FEATURE_WRAPPER_TEST_ID } from 'blockera-controls-feature-wrapper-test-ids';
-
-const clippingCompanionWrapper = () =>
-	cy
-		.getParentContainer('Clipping')
-		.parents(`[data-test="${FEATURE_WRAPPER_TEST_ID.root('companion')}"]`)
-		.first();
 
 describe('Blockera One → companion plugin identity', () => {
 	beforeEach(() => {
@@ -28,11 +24,8 @@ describe('Blockera One → companion plugin identity', () => {
 		openParagraphBlockStylesView();
 		openBackgroundClippingSection();
 
-		clippingCompanionWrapper().within(() => {
-			cy.get('.blockera-component-feature-wrapper__notice__text').and(
-				'contain.text',
-				'Install Companion Plugin to Unlock'
-			);
+		getClippingCompanionWrapper().within(() => {
+			assertCompanionInstallNoticeVisible();
 
 			cy.get('button')
 				.first()
@@ -41,28 +34,7 @@ describe('Blockera One → companion plugin identity', () => {
 	});
 
 	it('opens companion install modal from the notice', () => {
-		openParagraphBlockStylesView();
-		openBackgroundClippingSection();
-
-		clippingCompanionWrapper().within(() => {
-			cy.get('.blockera-component-feature-wrapper__notice__text')
-				.and('contain.text', 'Install Companion Plugin to Unlock')
-				.click();
-		});
-
-		cy.get(
-			'.blockera-component-' + FEATURE_WRAPPER_TEST_ID.companionModal
-		).should('be.visible');
-		cy.get(
-			'.blockera-component-' + FEATURE_WRAPPER_TEST_ID.companionModal
-		).should('contain.text', 'Blockera Site Builder');
-
-		cy.get('.blockera-component-' + FEATURE_WRAPPER_TEST_ID.companionModal)
-			.find('button[aria-label="Close"]')
-			.click();
-
-		cy.get(
-			'.blockera-component-' + FEATURE_WRAPPER_TEST_ID.companionModal
-		).should('not.exist');
+		openCompanionInstallModalInEditor();
+		closeCompanionInstallModal();
 	});
 });
