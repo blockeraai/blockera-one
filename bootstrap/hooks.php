@@ -18,7 +18,9 @@ define( 'BLOCKERA_BOOTSTRAP_HOOKS_LOADED', true );
 use Blockera\WordPress\RenderBlock\Setup;
 use Blockera\Setup\Compatibility\BlockSupports\BlockeraDuotone;
 
-blockera_load('callbacks', __DIR__);
+if ( ! function_exists( 'blockera_add_cron_interval' ) ) {
+	blockera_load('callbacks', __DIR__);
+}
 
 add_filter( 'cron_schedules', 'blockera_add_cron_interval' );
 add_action('admin_init', 'blockera_redirect_to_dashboard_page');
