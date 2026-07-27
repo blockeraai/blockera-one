@@ -47,3 +47,5 @@ export { prefetchImages } from './prefetchImages';
 
 export { resolveTabsConfig, hasReachedLimit } from './tabsConfig';
 export type { TabsConfig, TabsLimitsConfig } from './tabsConfig';
+
+export { isCompanionPlugin } from './isCompanionPlugin';
