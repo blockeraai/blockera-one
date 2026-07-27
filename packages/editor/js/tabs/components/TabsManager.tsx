@@ -45,6 +45,12 @@ import {
 } from '../utils/tabActions';
 import { hasLocalAutosave } from '../utils/hasLocalAutosave';
 import { buildTabSwitchCandidates } from '../utils/buildTabSwitchCandidates';
+import {
+	consumeSiteEditorViewModeToggleBypass,
+	isSiteEditorViewModeToggleClick,
+	markSiteEditorViewModeToggleNavigation,
+} from '../utils/siteEditorViewModeToggle';
+import { isPostNewEditorPage } from '../../utils/isEditorPage';
 import type {
 	DocumentInaccessibleInfo,
 	RecentlyClosedTab,
@@ -388,6 +394,34 @@ export default function TabsManager(): React.ReactElement | null {
 	// Handle bulk edit posts from URL parameters
 	useBulkEditTabs(addTab, prefetchEntity, postType);
 
+	/**
+	 * Site editor view-mode toggle navigates without tab limit promotions.
+	 */
+	useEffect(() => {
+		const onPointerDown = (event: PointerEvent): void => {
+			if (isSiteEditorViewModeToggleClick(event.target)) {
+				markSiteEditorViewModeToggleNavigation();
+			}
+		};
+
+		document.addEventListener('pointerdown', onPointerDown, true);
+
+		return () => {
+			document.removeEventListener('pointerdown', onPointerDown, true);
+		};
+	}, []);
+
+	const getDocumentSyncAddTabOptions = useCallback(() => {
+		const skipTabLimits =
+			consumeSiteEditorViewModeToggleBypass() || isPostNewEditorPage();
+
+		return {
+			skipTabLimits,
+			evictLastUnpinnedIfAtLimit: !skipTabLimits,
+			onEvictedUnpinned: addClosedTab,
+		};
+	}, [addClosedTab]);
+
 	// Pre-fetch entity data for all tabs on initial page load
 	usePrefetchTabEntities(tabs, postType, postId);
 
@@ -515,7 +549,9 @@ export default function TabsManager(): React.ReactElement | null {
 				if (activeTabKey !== key) {
 					setActiveTabKey(key);
 				}
-				void addTab(postType, postId).then((ok) => {
+				void addTab(postType, postId, null, null, null, {
+					...getDocumentSyncAddTabOptions(),
+				}).then((ok) => {
 					if (ok) {
 						removeClosedTab(key);
 						scheduleLockCheckForCurrentKey(() => {
@@ -543,7 +579,9 @@ export default function TabsManager(): React.ReactElement | null {
 					setPreviousTabKey(activeTabKey);
 				}
 				setActiveTabKey(key);
-				void addTab(postType, postId).then((ok) => {
+				void addTab(postType, postId, null, null, null, {
+					...getDocumentSyncAddTabOptions(),
+				}).then((ok) => {
 					if (ok) {
 						removeClosedTab(key);
 						scheduleLockCheckForCurrentKey(() => {
@@ -555,8 +593,7 @@ export default function TabsManager(): React.ReactElement | null {
 			}
 
 			void addTab(postType, postId, null, null, null, {
-				evictLastUnpinnedIfAtLimit: true,
-				onEvictedUnpinned: addClosedTab,
+				...getDocumentSyncAddTabOptions(),
 			}).then((ok) => {
 				if (ok) {
 					if (activeTabKey && activeTabKey !== key) {

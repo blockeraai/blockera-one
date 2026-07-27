@@ -5,6 +5,7 @@ import {
 	useState,
 	useCallback,
 	useEffect,
+	useLayoutEffect,
 	useRef,
 	useMemo,
 } from '@wordpress/element';
@@ -19,12 +20,16 @@ import { localStorage } from '@blockera/storage';
 /**
  * Internal dependencies
  */
-import { TABS_STORAGE_KEY } from '../utils/storageKeys';
+import {
+	TABS_STORAGE_KEY,
+	RECENTLY_CLOSED_STORAGE_KEY,
+} from '../utils/storageKeys';
 import {
 	hasReachedLimit,
 	resolveTabsConfig,
 	isCompanionPlugin,
 } from '../utils';
+import { isPostNewEditorPage } from '../../utils/isEditorPage';
 import type {
 	Tab,
 	AddTabOptions,
@@ -41,6 +46,21 @@ import type {
  * Exported for use in other hooks that need workspace-aware storage.
  */
 export const MAIN_WORKSPACE_ID = 'main';
+
+function getWorkspaceTabCount(workspaceTabs: WorkspaceTabs): number {
+	return workspaceTabs['pinned-tabs'].length + workspaceTabs.tabs.length;
+}
+
+function getInitialWorkspaceTabs(limits: TabsLimitsConfig): WorkspaceTabs {
+	if (isPostNewEditorPage()) {
+		return {
+			'pinned-tabs': [],
+			tabs: [],
+		};
+	}
+
+	return loadTabsFromStorage(limits);
+}
 
 /**
  * Load tabs from localStorage
@@ -175,10 +195,24 @@ export function useTabs({
 
 	// Initialize from localStorage on mount - use new structure internally
 	const [workspaceTabs, setWorkspaceTabs] = useState<WorkspaceTabs>(() => {
-		return loadTabsFromStorage(tabsLimits);
+		return getInitialWorkspaceTabs(tabsLimits);
 	});
 	const [limitExceededType, setLimitExceededType] =
 		useState<TabsLimitExceededType>(null);
+
+	useLayoutEffect(() => {
+		if (!isPostNewEditorPage()) {
+			return;
+		}
+
+		clearTabsFromStorage();
+		try {
+			localStorage.removeItem(RECENTLY_CLOSED_STORAGE_KEY);
+		} catch {
+			// localStorage might be disabled, ignore
+		}
+		setLimitExceededType(null);
+	}, []);
 
 	const workspaceTabsRef = useRef(workspaceTabs);
 
@@ -353,7 +387,16 @@ export function useTabs({
 				current.tabs.find((tab) => tab.key === key)
 			) {
 				outcome = 'existed';
-			} else if (!isCompanionPlugin()) {
+			} else if (options?.skipTabLimits) {
+				outcome = 'added';
+				next = {
+					'pinned-tabs': current['pinned-tabs'],
+					tabs: [...current.tabs, newTab],
+				};
+			} else if (
+				!isCompanionPlugin() &&
+				getWorkspaceTabCount(current) > 0
+			) {
 				outcome = 'blocked';
 				blockReason = 'companion';
 			} else if (
