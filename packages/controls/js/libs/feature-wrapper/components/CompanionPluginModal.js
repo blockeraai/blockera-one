@@ -112,7 +112,10 @@ export function CompanionPluginModal({
 				)}
 			>
 				<Button
-					data-test={FEATURE_WRAPPER_TEST_ID.companionReloadCancel}
+					{...({
+						'test-id':
+							FEATURE_WRAPPER_TEST_ID.companionReloadCancel,
+					}: Record<string, string>)}
 					variant="tertiary"
 					onClick={handleModalClose}
 					disabled={isSaving}
@@ -121,7 +124,10 @@ export function CompanionPluginModal({
 				</Button>
 
 				<Button
-					data-test={FEATURE_WRAPPER_TEST_ID.companionReloadDiscard}
+					{...({
+						'test-id':
+							FEATURE_WRAPPER_TEST_ID.companionReloadDiscard,
+					}: Record<string, string>)}
 					variant="secondary"
 					isDestructive
 					onClick={reloadPage}
@@ -131,7 +137,9 @@ export function CompanionPluginModal({
 				</Button>
 
 				<Button
-					data-test={FEATURE_WRAPPER_TEST_ID.companionReloadSave}
+					{...({
+						'test-id': FEATURE_WRAPPER_TEST_ID.companionReloadSave,
+					}: Record<string, string>)}
 					variant="primary"
 					onClick={() => {
 						void (async () => {
@@ -153,7 +161,9 @@ export function CompanionPluginModal({
 		modalActions = (
 			<>
 				<Button
-					data-test={FEATURE_WRAPPER_TEST_ID.companionClose}
+					{...({
+						'test-id': FEATURE_WRAPPER_TEST_ID.companionClose,
+					}: Record<string, string>)}
 					variant="tertiary"
 					onClick={handleModalClose}
 				>
@@ -161,7 +171,9 @@ export function CompanionPluginModal({
 				</Button>
 
 				<Button
-					data-test={FEATURE_WRAPPER_TEST_ID.companionReloadNow}
+					{...({
+						'test-id': FEATURE_WRAPPER_TEST_ID.companionReloadNow,
+					}: Record<string, string>)}
 					variant="primary"
 					onClick={reloadNow}
 				>
@@ -173,7 +185,9 @@ export function CompanionPluginModal({
 		modalActions = (
 			<>
 				<Button
-					data-test={FEATURE_WRAPPER_TEST_ID.companionClose}
+					{...({
+						'test-id': FEATURE_WRAPPER_TEST_ID.companionClose,
+					}: Record<string, string>)}
 					variant="tertiary"
 					onClick={handleModalClose}
 					disabled={isBusy}
@@ -182,7 +196,9 @@ export function CompanionPluginModal({
 				</Button>
 
 				<Button
-					data-test={FEATURE_WRAPPER_TEST_ID.companionInstall}
+					{...({
+						'test-id': FEATURE_WRAPPER_TEST_ID.companionInstall,
+					}: Record<string, string>)}
 					variant="primary"
 					className={installButtonClassName}
 					onClick={handleInstall}
