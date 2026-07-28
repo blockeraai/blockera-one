@@ -266,6 +266,11 @@ $script_ver     = (string) filemtime(__DIR__ . '/script.js');
 					<input type="search" id="search-input" class="control-input" placeholder="Name, slug, author, parent…">
 				</div>
 
+				<div class="control-group">
+					<label class="control-label" for="min-installs-input">Min installs</label>
+					<input type="number" id="min-installs-input" class="control-input control-input-num" min="0" step="1" placeholder="0" inputmode="numeric">
+				</div>
+
 				<div class="control-group dropdown-group">
 					<button type="button" class="control-btn" id="tags-toggle" aria-expanded="false" aria-controls="tags-panel">
 						Tags

@@ -365,6 +365,7 @@
 		statProgress: document.getElementById('stat-progress'),
 		statCached: document.getElementById('stat-cached'),
 		searchInput: document.getElementById('search-input'),
+		minInstallsInput: document.getElementById('min-installs-input'),
 		tagsToggle: document.getElementById('tags-toggle'),
 		tagsPanel: document.getElementById('tags-panel'),
 		tagsList: document.getElementById('tags-list'),
@@ -394,6 +395,7 @@
 	let scrapeAbort = false;
 	const selectedTags = new Set();
 	let searchQuery = '';
+	let minActiveInstalls = 0;
 	const visibleColumns = loadVisibleColumns();
 	const themeSort = { key: 'active_installs', dir: 'desc' };
 	const authorSort = { key: 'theme_count', dir: 'desc' };
@@ -642,13 +644,26 @@
 		els.statCached.textContent = formatCachedAt(cachedAt);
 	}
 
+	function parseMinActiveInstalls(raw) {
+		const n = parseInt(String(raw == null ? '' : raw).trim(), 10);
+		if (!Number.isFinite(n) || n <= 0) {
+			return 0;
+		}
+		return n;
+	}
+
 	function getFilteredThemes() {
 		const q = searchQuery.trim().toLowerCase();
 		const tagList = Array.from(selectedTags);
+		const minInstalls = minActiveInstalls;
 
 		const out = [];
 		for (let i = 0; i < themes.length; i++) {
 			const theme = themes[i];
+
+			if (minInstalls > 0 && (theme.active_installs || 0) < minInstalls) {
+				continue;
+			}
 
 			if (tagList.length) {
 				let hasAll = true;
@@ -1220,7 +1235,7 @@
 			return;
 		}
 
-		// Parent may be hidden by search/tags — clear filters and try again.
+		// Parent may be hidden by search/tags/min installs — clear filters and try again.
 		const parentTheme = findThemeBySlug(slug);
 		if (!parentTheme) {
 			return;
@@ -1228,6 +1243,8 @@
 
 		searchQuery = '';
 		els.searchInput.value = '';
+		minActiveInstalls = 0;
+		els.minInstallsInput.value = '';
 		selectedTags.clear();
 		refreshTables(isFetching ? els.statProgress.textContent : '100%');
 		window.requestAnimationFrame(() => {
@@ -1815,6 +1832,13 @@
 
 		els.searchInput.addEventListener('input', () => {
 			searchQuery = els.searchInput.value || '';
+			refreshTables(isFetching ? els.statProgress.textContent : '100%');
+		});
+
+		els.minInstallsInput.addEventListener('input', () => {
+			minActiveInstalls = parseMinActiveInstalls(
+				els.minInstallsInput.value
+			);
 			refreshTables(isFetching ? els.statProgress.textContent : '100%');
 		});
 
