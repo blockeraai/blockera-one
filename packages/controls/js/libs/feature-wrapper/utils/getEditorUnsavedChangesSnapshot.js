@@ -1,13 +1,6 @@
 // @flow
 
 /**
- * External dependencies
- */
-import { select } from '@wordpress/data';
-import { store as coreStore } from '@wordpress/core-data';
-import { store as editorStore } from '@wordpress/editor';
-
-/**
  * Read the current editor unsaved state directly from data stores.
  *
  * Used at install completion time to avoid stale React closures.
@@ -17,8 +10,20 @@ export function getEditorUnsavedChangesSnapshot(): {
 	isSaveable: boolean,
 } {
 	try {
-		const coreSelect = select(coreStore);
-		const editorSelect = select(editorStore);
+		const data =
+			typeof window !== 'undefined' && window.wp && window.wp.data
+				? window.wp.data
+				: null;
+
+		if (!data || typeof data.select !== 'function') {
+			return {
+				hasUnsavedChanges: false,
+				isSaveable: false,
+			};
+		}
+
+		const coreSelect = data.select('core');
+		const editorSelect = data.select('core/editor');
 
 		if (!coreSelect || !editorSelect) {
 			return {
