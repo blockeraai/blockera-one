@@ -664,6 +664,7 @@
 			}
 
 			if (q) {
+				// Include parent slug/name so child themes are findable by parent.
 				const hay =
 					(theme.name || '') +
 					' ' +
@@ -671,7 +672,11 @@
 					' ' +
 					(theme.authorName || '') +
 					' ' +
-					(theme.description || '');
+					(theme.description || '') +
+					' ' +
+					(theme.parentSlug || '') +
+					' ' +
+					(theme.parentName || '');
 				if (!hay.toLowerCase().includes(q)) {
 					continue;
 				}
