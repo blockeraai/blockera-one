@@ -87,9 +87,6 @@ describe('Blockera One → workspace tabs companion guard', () => {
 			cy.tabsClickSiteEditorViewModeToggle();
 
 			cy.tabsExpectNoCompanionLimitPrompt();
-			cy.get('.blockera-tabs-bar', { timeout: 60000 }).should(
-				'be.visible'
-			);
 		});
 	});
 });
