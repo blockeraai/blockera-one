@@ -263,7 +263,7 @@ $script_ver     = (string) filemtime(__DIR__ . '/script.js');
 
 				<div class="control-group">
 					<label class="control-label" for="search-input">Search</label>
-					<input type="search" id="search-input" class="control-input" placeholder="Name, slug, author…">
+					<input type="search" id="search-input" class="control-input" placeholder="Name, slug, author, parent…">
 				</div>
 
 				<div class="control-group dropdown-group">
