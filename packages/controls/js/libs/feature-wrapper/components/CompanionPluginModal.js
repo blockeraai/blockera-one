@@ -39,8 +39,18 @@ export function CompanionPluginModal({
 		useState<PostInstallView>('install');
 
 	const reloadPage = useCallback(() => {
+		if (typeof window.__blockeraCompanionTestReload === 'function') {
+			window.__blockeraCompanionTestReload();
+			return;
+		}
+
 		window.location.reload();
 	}, []);
+
+	const countdownSeconds =
+		typeof window.__blockeraCompanionTestCountdownSeconds === 'number'
+			? window.__blockeraCompanionTestCountdownSeconds
+			: undefined;
 
 	const {
 		countdown,
@@ -48,7 +58,7 @@ export function CompanionPluginModal({
 		start: startCountdown,
 		cancel: cancelCountdown,
 		reloadNow,
-	} = useReloadCountdown(reloadPage);
+	} = useReloadCountdown(reloadPage, countdownSeconds);
 
 	const handleInstallComplete = useCallback(() => {
 		const { hasUnsavedChanges } = getEditorUnsavedChangesSnapshot();
@@ -78,7 +88,7 @@ export function CompanionPluginModal({
 		(event?: { stopPropagation?: () => void }) => {
 			event?.stopPropagation?.();
 
-			if (isBusy || isCountdownActive) {
+			if (isBusy) {
 				return;
 			}
 
@@ -86,7 +96,7 @@ export function CompanionPluginModal({
 			setPostInstallView('install');
 			onRequestClose();
 		},
-		[cancelCountdown, isBusy, isCountdownActive, onRequestClose]
+		[cancelCountdown, isBusy, onRequestClose]
 	);
 
 	if (!isOpen) {
