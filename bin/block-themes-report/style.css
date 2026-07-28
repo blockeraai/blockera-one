@@ -138,6 +138,11 @@ body {
 	background: #ffffff;
 }
 
+.control-input-num {
+	min-width: 0;
+	width: 110px;
+}
+
 .control-input:focus {
 	outline: none;
 	border-color: #2271b1;
