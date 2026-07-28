@@ -1357,6 +1357,7 @@
 		renderAuthorsTable(authors);
 		updateHeaderStats(filtered, authors, progressLabel);
 		refreshTagsList();
+		syncStickyHeaderOffset();
 	}
 
 	// Skip expensive DOM rebuilds while the tab is hidden; progress label still updates.
@@ -1904,7 +1905,51 @@
 		});
 	}
 
+	/**
+	 * Keep table thead sticky offset synced with the sticky page header height
+	 * so column headers remain visible below .header while scrolling.
+	 */
+	function syncStickyHeaderOffset() {
+		const header = document.querySelector('.header');
+		if (!header) {
+			return;
+		}
+		const height = Math.ceil(header.getBoundingClientRect().height);
+		const topPx = height + 'px';
+		document.documentElement.style.setProperty(
+			'--btr-sticky-header-height',
+			topPx
+		);
+		// Inline top keeps offset correct after thead rebuilds and avoids stale CSS cache.
+		const thNodes = document.querySelectorAll('.data-table thead th');
+		for (let i = 0; i < thNodes.length; i++) {
+			thNodes[i].style.top = topPx;
+			thNodes[i].style.position = 'sticky';
+			thNodes[i].style.zIndex = '5';
+		}
+	}
+
+	function bindStickyHeaderOffset() {
+		const header = document.querySelector('.header');
+		if (!header) {
+			return;
+		}
+
+		syncStickyHeaderOffset();
+
+		if (typeof ResizeObserver !== 'undefined') {
+			const observer = new ResizeObserver(() => {
+				syncStickyHeaderOffset();
+			});
+			observer.observe(header);
+			return;
+		}
+
+		window.addEventListener('resize', syncStickyHeaderOffset);
+	}
+
 	function init() {
+		bindStickyHeaderOffset();
 		bindEvents();
 		renderColumnsPicker();
 

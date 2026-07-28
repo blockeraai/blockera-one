@@ -221,6 +221,8 @@ if (is_readable($cache_file)) {
 
 $themes_json    = wp_json_encode($themes, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
 $cached_at_json = wp_json_encode($cached_at, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+$style_ver      = (string) filemtime(__DIR__ . '/style.css');
+$script_ver     = (string) filemtime(__DIR__ . '/script.js');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -228,7 +230,7 @@ $cached_at_json = wp_json_encode($cached_at, JSON_HEX_TAG | JSON_HEX_AMP | JSON_
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Block Themes Report - Blockera One</title>
-	<link rel="stylesheet" href="style.css">
+	<link rel="stylesheet" href="style.css?v=<?php echo esc_attr($style_ver); ?>">
 </head>
 <body>
 	<div class="header">
@@ -328,6 +330,6 @@ $cached_at_json = wp_json_encode($cached_at, JSON_HEX_TAG | JSON_HEX_AMP | JSON_
 		const bootstrapThemes = <?php echo $themes_json ? $themes_json : '[]'; ?>;
 		const bootstrapCachedAt = <?php echo $cached_at_json ? $cached_at_json : 'null'; ?>;
 	</script>
-	<script src="script.js"></script>
+	<script src="script.js?v=<?php echo esc_attr($script_ver); ?>"></script>
 </body>
 </html>
