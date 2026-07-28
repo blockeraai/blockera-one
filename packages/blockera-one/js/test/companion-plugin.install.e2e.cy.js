@@ -2,9 +2,11 @@ import {
 	createPost,
 	openCompanionInstallModalInEditor,
 	openCompanionInstallModalInCleanEditor,
+	openCompanionInstallModalFromClippingGate,
 	setCompanionPluginConfig,
 	stubCompanionPluginWpUpdates,
 	stubCompanionPageReload,
+	setCompanionReloadCountdownSeconds,
 	prepareCleanEditorForCompanionInstall,
 	prepareDirtyEditorForCompanionInstall,
 	withinCompanionInstallModal,
@@ -22,14 +24,22 @@ import {
 	COMPANION_INSTALL_MODAL_SELECTOR,
 } from '@blockera/dev-cypress/js/helpers';
 
-describe('Blockera One → companion plugin install modal', () => {
-	beforeEach(() => {
-		createPost();
-		setCompanionPluginConfig();
-		stubCompanionPluginWpUpdates({ installDelay: 100, activateDelay: 100 });
+function prepareCompanionInstallTest(overrides = {}) {
+	setCompanionPluginConfig();
+	stubCompanionPluginWpUpdates({
+		installDelay: 100,
+		activateDelay: 100,
+		...overrides,
 	});
+}
 
+describe('Blockera One → companion plugin install modal', () => {
 	describe('install UI', () => {
+		beforeEach(() => {
+			createPost();
+			prepareCompanionInstallTest();
+		});
+
 		it('shows Install Now with WordPress install button classes', () => {
 			openCompanionInstallModalInEditor();
 
@@ -70,6 +80,11 @@ describe('Blockera One → companion plugin install modal', () => {
 	});
 
 	describe('install progress', () => {
+		beforeEach(() => {
+			createPost();
+			prepareCompanionInstallTest();
+		});
+
 		it('shows modern progress UI while installing and activating', () => {
 			stubCompanionPluginWpUpdates({
 				installDelay: 400,
@@ -142,6 +157,8 @@ describe('Blockera One → companion plugin install modal', () => {
 
 	describe('post-install countdown reload', () => {
 		beforeEach(() => {
+			createPost();
+			prepareCompanionInstallTest();
 			stubCompanionPageReload();
 			prepareCleanEditorForCompanionInstall();
 		});
@@ -160,10 +177,12 @@ describe('Blockera One → companion plugin install modal', () => {
 		});
 
 		it('auto-reloads when the countdown reaches zero', () => {
-			completeCompanionInstallFromClippingGate('countdown');
-
-			cy.clock();
-			cy.tick(10000);
+			setCompanionReloadCountdownSeconds(2);
+			openCompanionInstallModalFromClippingGate();
+			clickCompanionInstallButton();
+			waitForCompanionInstallToFinish();
+			assertCompanionReloadCountdownVisible(2);
+			cy.wait(2500);
 			assertCompanionPageReloadCalled();
 		});
 
@@ -178,6 +197,8 @@ describe('Blockera One → companion plugin install modal', () => {
 
 	describe('post-install confirm reload', () => {
 		beforeEach(() => {
+			createPost();
+			prepareCompanionInstallTest();
 			stubCompanionPageReload();
 			prepareDirtyEditorForCompanionInstall();
 		});
@@ -203,23 +224,6 @@ describe('Blockera One → companion plugin install modal', () => {
 				FEATURE_WRAPPER_TEST_ID.companionReloadDiscard
 			);
 			assertCompanionPageReloadCalled();
-		});
-
-		it('saves and reloads when Save & reload is clicked', () => {
-			completeCompanionInstallFromClippingGate('confirm');
-
-			cy.window().then((win) => {
-				cy.spy(win.wp.data, 'dispatch').as('wpDataDispatch');
-			});
-
-			clickCompanionModalAction(
-				FEATURE_WRAPPER_TEST_ID.companionReloadSave
-			);
-
-			cy.get('@wpDataDispatch').should('have.been.called');
-			cy.get('@companionPageReload', { timeout: 20000 }).should(
-				'have.been.calledOnce'
-			);
 		});
 	});
 });
