@@ -1,11 +1,11 @@
 <?php
 /**
- * Popular Block Themes Report
+ * Block Themes Report
  *
  * Browser-accessible development tool for browsing WordPress.org block themes
  * (full-site-editing) with active installs, tags, and author aggregates.
  *
- * Access via: http://yoursite.local/wp-content/themes/blockera-one/bin/popular-block-themes/
+ * Access via: http://yoursite.local/wp-content/themes/blockera-one/bin/block-themes-report/
  *
  * Only works in development mode (WP_DEBUG).
  */
@@ -21,7 +21,7 @@ $cache_file = __DIR__ . '/cache.json';
  *
  * @return bool
  */
-function pbt_bootstrap_wordpress() {
+function btr_bootstrap_wordpress() {
 	$wp_load_paths = [
 		dirname(__DIR__, 5) . '/wp-load.php', // .../themes/blockera-one/bin/tool → ABSPATH
 		dirname(__DIR__, 4) . '/wp-load.php',
@@ -39,13 +39,13 @@ function pbt_bootstrap_wordpress() {
 }
 
 if (!defined('WP_DEBUG') || !WP_DEBUG) {
-	$wp_loaded = pbt_bootstrap_wordpress();
+	$wp_loaded = btr_bootstrap_wordpress();
 
 	if (!$wp_loaded || (!defined('WP_DEBUG') || !WP_DEBUG)) {
 		die('This tool is only available in development mode. Set WP_DEBUG to true in wp-config.php');
 	}
 } elseif (!defined('ABSPATH')) {
-	pbt_bootstrap_wordpress();
+	btr_bootstrap_wordpress();
 }
 
 /**
@@ -54,7 +54,7 @@ if (!defined('WP_DEBUG') || !WP_DEBUG) {
  * @param array $payload Response body.
  * @param int   $status  HTTP status.
  */
-function pbt_json_response(array $payload, $status = 200) {
+function btr_json_response(array $payload, $status = 200) {
 	status_header($status);
 	header('Content-Type: application/json; charset=utf-8');
 	echo wp_json_encode($payload);
@@ -67,18 +67,18 @@ if ($action === 'clear-cache') {
 	if (file_exists($cache_file)) {
 		unlink($cache_file);
 	}
-	pbt_json_response(['success' => true]);
+	btr_json_response(['success' => true]);
 }
 
 if ($action === 'save-cache') {
 	$raw = file_get_contents('php://input');
 	if ($raw === false || $raw === '') {
-		pbt_json_response(['success' => false, 'error' => 'Empty body'], 400);
+		btr_json_response(['success' => false, 'error' => 'Empty body'], 400);
 	}
 
 	$data = json_decode($raw, true);
 	if (!is_array($data) || !isset($data['themes']) || !is_array($data['themes'])) {
-		pbt_json_response(['success' => false, 'error' => 'Invalid JSON'], 400);
+		btr_json_response(['success' => false, 'error' => 'Invalid JSON'], 400);
 	}
 
 	$payload = [
@@ -92,10 +92,10 @@ if ($action === 'save-cache') {
 	);
 
 	if ($written === false) {
-		pbt_json_response(['success' => false, 'error' => 'Failed to write cache'], 500);
+		btr_json_response(['success' => false, 'error' => 'Failed to write cache'], 500);
 	}
 
-	pbt_json_response([
+	btr_json_response([
 		'success'   => true,
 		'cached_at' => $payload['cached_at'],
 		'count'     => count($payload['themes']),
@@ -105,7 +105,7 @@ if ($action === 'save-cache') {
 if ($action === 'scrape-patterns') {
 	$slug = isset($_REQUEST['slug']) ? sanitize_title(wp_unslash($_REQUEST['slug'])) : '';
 	if ($slug === '') {
-		pbt_json_response(['success' => false, 'error' => 'Missing slug'], 400);
+		btr_json_response(['success' => false, 'error' => 'Missing slug'], 400);
 	}
 
 	$url = 'https://wordpress.org/themes/' . rawurlencode($slug) . '/';
@@ -117,12 +117,12 @@ if ($action === 'scrape-patterns') {
 			'headers'    => [
 				'Accept' => 'text/html',
 			],
-			'user-agent' => 'BlockeraOnePopularBlockThemes/1.0; (+local-dev-tool)',
+			'user-agent' => 'BlockeraOneBlockThemesReport/1.0; (+local-dev-tool)',
 		]
 	);
 
 	if (is_wp_error($response)) {
-		pbt_json_response(
+		btr_json_response(
 			[
 				'success' => false,
 				'slug'    => $slug,
@@ -136,7 +136,7 @@ if ($action === 'scrape-patterns') {
 	$body = (string) wp_remote_retrieve_body($response);
 
 	if ($code < 200 || $code >= 300 || $body === '') {
-		pbt_json_response(
+		btr_json_response(
 			[
 				'success' => false,
 				'slug'    => $slug,
@@ -195,7 +195,7 @@ if ($action === 'scrape-patterns') {
 	}
 	$style_variations_count = count($style_slugs);
 
-	pbt_json_response(
+	btr_json_response(
 		[
 			'success'                => true,
 			'slug'                   => $slug,
@@ -227,13 +227,13 @@ $cached_at_json = wp_json_encode($cached_at, JSON_HEX_TAG | JSON_HEX_AMP | JSON_
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Popular Block Themes - Blockera One</title>
+	<title>Block Themes Report - Blockera One</title>
 	<link rel="stylesheet" href="style.css">
 </head>
 <body>
 	<div class="header">
 		<div class="header-content">
-			<h1>Popular Block Themes</h1>
+			<h1>Block Themes Report</h1>
 			<div class="stats-container">
 				<div class="stat">
 					<span class="stat-label">Themes</span>
