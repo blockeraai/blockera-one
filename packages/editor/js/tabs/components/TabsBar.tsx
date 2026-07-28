@@ -22,6 +22,8 @@ import type { Modifier } from '@dnd-kit/core';
 /**
  * WordPress dependencies
  */
+import { Button, Tooltip } from '@wordpress/components';
+import { plus } from '@wordpress/icons';
 import {
 	useRef,
 	useEffect,
@@ -31,15 +33,13 @@ import {
 	useMemo,
 	createPortal,
 } from '@wordpress/element';
-import { Button, Tooltip } from '@wordpress/components';
-import { plus } from '@wordpress/icons';
 import { __ } from '@wordpress/i18n';
 import { displayShortcut } from '@wordpress/keycodes';
 
 /**
  * Blockera dependencies
  */
-import { Flex, UpgradePrompt, CompanionPluginModal } from '@blockera/controls';
+import { Flex, UpgradePrompt } from '@blockera/controls';
 
 /**
  * Internal dependencies
@@ -858,22 +858,9 @@ const TabsBar = memo(function TabsBar({
 				)
 			: null;
 
-	const companionLimitPrompt =
-		limitExceededType === 'companion'
-			? createPortal(
-					<CompanionPluginModal
-						key="companion"
-						isOpen
-						onRequestClose={onCloseLimitPromotion}
-					/>,
-					document.body
-				)
-			: null;
-
 	return (
 		<>
 			{limitUpgradePrompt}
-			{companionLimitPrompt}
 			<div className="blockera-tabs-bar" ref={tabsBarRef}>
 				<DndContext
 					sensors={sensors}

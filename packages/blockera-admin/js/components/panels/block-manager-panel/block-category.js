@@ -13,17 +13,11 @@ import { without } from '@blockera/utils';
 import { Button, Flex, Grid } from '@blockera/controls';
 import { componentInnerClassNames } from '@blockera/classnames';
 import { Icon } from '@blockera/icons';
-import { AdminFeatureWrapper } from '@blockera/wordpress';
 
 /**
  * Internal dependencies
  */
 import BlockType from './block-type';
-
-const blockManagerCategoryConfig = {
-	status: true,
-	onCompanion: true,
-};
 
 /**
  * Renders the list of BlockType controls for a given block category on the
@@ -104,75 +98,73 @@ export default function BlockCategory(props: {
 	}
 
 	return (
-		<AdminFeatureWrapper config={blockManagerCategoryConfig}>
+		<Flex
+			gap={15}
+			direction={'column'}
+			className={'blockera-settings-section'}
+		>
 			<Flex
-				gap={15}
-				direction={'column'}
-				className={'blockera-settings-section'}
+				alignItems={'center'}
+				justifyContent={'space-between'}
+				className={'blockera-block-category'}
 			>
-				<Flex
-					alignItems={'center'}
-					justifyContent={'space-between'}
-					className={'blockera-block-category'}
+				<div className={'blockera-block-category'}>
+					<h4 className={'blockera-block-category-name'}>
+						{getCategoryIcon(category.slug)}
+
+						{category.title}
+					</h4>
+				</div>
+
+				<div
+					className={componentInnerClassNames(
+						'block-category-buttons'
+					)}
 				>
-					<div className={'blockera-block-category'}>
-						<h4 className={'blockera-block-category-name'}>
-							{getCategoryIcon(category.slug)}
-
-							{category.title}
-						</h4>
-					</div>
-
-					<div
+					<Button
 						className={componentInnerClassNames(
-							'block-category-buttons'
+							'block-category-button'
 						)}
-					>
-						<Button
-							className={componentInnerClassNames(
-								'block-category-button'
-							)}
-							data-test={`${category.slug}-category=disable`}
-							text={__('Disable All', 'blockera')}
-							onClick={() => onBlockCategoryChange(false)}
-							variant={'tertiary'}
-							size={'small'}
-							disabled={checkedBlockNames.length === 0}
-						/>
+						data-test={`${category.slug}-category=disable`}
+						text={__('Disable All', 'blockera')}
+						onClick={() => onBlockCategoryChange(false)}
+						variant={'tertiary'}
+						size={'small'}
+						disabled={checkedBlockNames.length === 0}
+					/>
 
-						<Button
-							className={componentInnerClassNames(
-								'block-category-button'
-							)}
-							data-test={`${category.slug}-category=enable`}
-							text={__('Enable All', 'blockera')}
-							onClick={() => onBlockCategoryChange(true)}
-							variant={'tertiary'}
-							size={'small'}
-							disabled={
-								checkedBlockNames.length === blockNames.length
-							}
-						/>
-					</div>
-				</Flex>
-
-				<Grid
-					gridTemplateColumns={'repeat(3, 1fr)'}
-					justifyContent={'space-between'}
-					className={'blockera-block-category-items'}
-				>
-					{blockTypes.map((blockType, index) => {
-						return (
-							<BlockType
-								key={index}
-								blockType={blockType}
-								disabledBlocks={disabledBlocks}
-								handleBlockTypeChange={handleBlockTypeChange}
-							/>
-						);
-					})}
-				</Grid>
+					<Button
+						className={componentInnerClassNames(
+							'block-category-button'
+						)}
+						data-test={`${category.slug}-category=enable`}
+						text={__('Enable All', 'blockera')}
+						onClick={() => onBlockCategoryChange(true)}
+						variant={'tertiary'}
+						size={'small'}
+						disabled={
+							checkedBlockNames.length === blockNames.length
+						}
+					/>
+				</div>
 			</Flex>
-		</AdminFeatureWrapper>
+
+			<Grid
+				gridTemplateColumns={'repeat(3, 1fr)'}
+				justifyContent={'space-between'}
+				className={'blockera-block-category-items'}
+			>
+				{blockTypes.map((blockType, index) => {
+					return (
+						<BlockType
+							key={index}
+							blockType={blockType}
+							disabledBlocks={disabledBlocks}
+							handleBlockTypeChange={handleBlockTypeChange}
+						/>
+					);
+				})}
+			</Grid>
+		</Flex>
 	);
 }

@@ -45,12 +45,6 @@ import {
 } from '../utils/tabActions';
 import { hasLocalAutosave } from '../utils/hasLocalAutosave';
 import { buildTabSwitchCandidates } from '../utils/buildTabSwitchCandidates';
-import {
-	consumeSiteEditorViewModeToggleBypass,
-	isSiteEditorViewModeToggleClick,
-	markSiteEditorViewModeToggleNavigation,
-} from '../utils/siteEditorViewModeToggle';
-import { isPostNewEditorPage } from '../../utils/isEditorPage';
 import type {
 	DocumentInaccessibleInfo,
 	RecentlyClosedTab,
@@ -117,7 +111,6 @@ export default function TabsManager(): React.ReactElement | null {
 		reorderTabs,
 		limitExceededType,
 		clearLimitExceeded,
-		guardOpenAddTab,
 	} = useTabs({
 		persistenceEnabled: isPersistenceEnabled,
 	});
@@ -394,34 +387,6 @@ export default function TabsManager(): React.ReactElement | null {
 	// Handle bulk edit posts from URL parameters
 	useBulkEditTabs(addTab, prefetchEntity, postType);
 
-	/**
-	 * Site editor view-mode toggle navigates without tab limit promotions.
-	 */
-	useEffect(() => {
-		const onPointerDown = (event: PointerEvent): void => {
-			if (isSiteEditorViewModeToggleClick(event.target)) {
-				markSiteEditorViewModeToggleNavigation();
-			}
-		};
-
-		document.addEventListener('pointerdown', onPointerDown, true);
-
-		return () => {
-			document.removeEventListener('pointerdown', onPointerDown, true);
-		};
-	}, []);
-
-	const getDocumentSyncAddTabOptions = useCallback(() => {
-		const skipTabLimits =
-			consumeSiteEditorViewModeToggleBypass() || isPostNewEditorPage();
-
-		return {
-			skipTabLimits,
-			evictLastUnpinnedIfAtLimit: !skipTabLimits,
-			onEvictedUnpinned: addClosedTab,
-		};
-	}, [addClosedTab]);
-
 	// Pre-fetch entity data for all tabs on initial page load
 	usePrefetchTabEntities(tabs, postType, postId);
 
@@ -549,9 +514,7 @@ export default function TabsManager(): React.ReactElement | null {
 				if (activeTabKey !== key) {
 					setActiveTabKey(key);
 				}
-				void addTab(postType, postId, null, null, null, {
-					...getDocumentSyncAddTabOptions(),
-				}).then((ok) => {
+				void addTab(postType, postId).then((ok) => {
 					if (ok) {
 						removeClosedTab(key);
 						scheduleLockCheckForCurrentKey(() => {
@@ -579,9 +542,7 @@ export default function TabsManager(): React.ReactElement | null {
 					setPreviousTabKey(activeTabKey);
 				}
 				setActiveTabKey(key);
-				void addTab(postType, postId, null, null, null, {
-					...getDocumentSyncAddTabOptions(),
-				}).then((ok) => {
+				void addTab(postType, postId).then((ok) => {
 					if (ok) {
 						removeClosedTab(key);
 						scheduleLockCheckForCurrentKey(() => {
@@ -593,7 +554,8 @@ export default function TabsManager(): React.ReactElement | null {
 			}
 
 			void addTab(postType, postId, null, null, null, {
-				...getDocumentSyncAddTabOptions(),
+				evictLastUnpinnedIfAtLimit: true,
+				onEvictedUnpinned: addClosedTab,
 			}).then((ok) => {
 				if (ok) {
 					if (activeTabKey && activeTabKey !== key) {
@@ -1440,16 +1402,6 @@ export default function TabsManager(): React.ReactElement | null {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [postId, postType]);
 
-	const openAddTabCommandBarRef = useRef<(() => void) | null>(null);
-
-	const guardedOpenAddTabCommandBar = useCallback((): void => {
-		if (!guardOpenAddTab()) {
-			return;
-		}
-
-		openAddTabCommandBarRef.current?.();
-	}, [guardOpenAddTab]);
-
 	if (!container || tabs.length === 0) {
 		return null;
 	}
@@ -1462,141 +1414,128 @@ export default function TabsManager(): React.ReactElement | null {
 			tabs={tabs}
 			onDocumentInaccessible={handleDocumentInaccessible}
 		>
-			{({ openAddTabCommandBar }) => {
-				openAddTabCommandBarRef.current = openAddTabCommandBar;
+			{({ openAddTabCommandBar }) => (
+				<>
+					<TabKeyboardShortcuts
+						openAddTabCommandBar={openAddTabCommandBar}
+						tabs={tabs}
+						activeTabKey={activeTabKey}
+						onTabClick={handleTabClick}
+						onTabClose={handleTabClose}
+						onReopenTab={handleReopenTab}
+						recentlyClosedTabs={recentlyClosedTabs}
+					/>
 
-				return (
-					<>
-						<TabKeyboardShortcuts
-							openAddTabCommandBar={guardedOpenAddTabCommandBar}
-							tabs={tabs}
-							activeTabKey={activeTabKey}
-							onTabClick={handleTabClick}
-							onTabClose={handleTabClose}
-							onReopenTab={handleReopenTab}
-							recentlyClosedTabs={recentlyClosedTabs}
-						/>
+					{createPortal(
+						<>
+							<TabsBar
+								pinnedTabs={pinnedTabs}
+								unpinnedTabs={unpinnedTabs}
+								activeTabKey={activeTabKey}
+								getIsDirty={getIsDirty}
+								isTabLocked={isTabLocked}
+								getLockUser={getLockUser}
+								onTabClick={handleTabClick}
+								onTabClose={handleTabClose}
+								onAddClick={openAddTabCommandBar}
+								onCloseOthers={handleCloseOthers}
+								onCloseToRight={handleCloseToRight}
+								onCloseSaved={handleCloseSaved}
+								onView={handleView}
+								onCopyViewLink={handleCopyViewLink}
+								onCopyEditorLink={handleCopyEditorLink}
+								onTogglePin={handleTogglePin}
+								onRename={handleRename}
+								onClearRename={handleClearRename}
+								isPersistenceEnabled={isPersistenceEnabled}
+								onTogglePersistence={togglePersistence}
+								isRecentlyClosedPersistenceEnabled={
+									isRecentlyClosedPersistenceEnabled
+								}
+								onToggleRecentlyClosedPersistence={
+									toggleRecentlyClosedPersistence
+								}
+								isTabIconsEnabled={isTabIconsEnabled}
+								onToggleTabIcons={toggleTabIcons}
+								isIconOnlyPinnedTabsEnabled={
+									isIconOnlyPinnedTabsEnabled
+								}
+								onToggleIconOnlyPinnedTabs={
+									toggleIconOnlyPinnedTabs
+								}
+								recentlyClosedTabs={recentlyClosedTabs}
+								onReopenTab={handleReopenTab}
+								onUpdateClosedTab={updateClosedTab}
+								onRemoveClosedTab={removeClosedTab}
+								onReorderTabs={handleReorderTabs}
+								limitExceededType={limitExceededType}
+								onCloseLimitPromotion={clearLimitExceeded}
+							/>
 
-						{createPortal(
-							<>
-								<TabsBar
-									pinnedTabs={pinnedTabs}
-									unpinnedTabs={unpinnedTabs}
-									activeTabKey={activeTabKey}
-									getIsDirty={getIsDirty}
-									isTabLocked={isTabLocked}
-									getLockUser={getLockUser}
-									onTabClick={handleTabClick}
-									onTabClose={handleTabClose}
-									onAddClick={guardedOpenAddTabCommandBar}
-									onCloseOthers={handleCloseOthers}
-									onCloseToRight={handleCloseToRight}
-									onCloseSaved={handleCloseSaved}
-									onView={handleView}
-									onCopyViewLink={handleCopyViewLink}
-									onCopyEditorLink={handleCopyEditorLink}
-									onTogglePin={handleTogglePin}
-									onRename={handleRename}
-									onClearRename={handleClearRename}
-									isPersistenceEnabled={isPersistenceEnabled}
-									onTogglePersistence={togglePersistence}
-									isRecentlyClosedPersistenceEnabled={
-										isRecentlyClosedPersistenceEnabled
-									}
-									onToggleRecentlyClosedPersistence={
-										toggleRecentlyClosedPersistence
-									}
-									isTabIconsEnabled={isTabIconsEnabled}
-									onToggleTabIcons={toggleTabIcons}
-									isIconOnlyPinnedTabsEnabled={
-										isIconOnlyPinnedTabsEnabled
-									}
-									onToggleIconOnlyPinnedTabs={
-										toggleIconOnlyPinnedTabs
-									}
-									recentlyClosedTabs={recentlyClosedTabs}
-									onReopenTab={handleReopenTab}
-									onUpdateClosedTab={updateClosedTab}
-									onRemoveClosedTab={removeClosedTab}
-									onReorderTabs={handleReorderTabs}
-									limitExceededType={limitExceededType}
-									onCloseLimitPromotion={clearLimitExceeded}
-								/>
+							<CloseTabConfirmDialog
+								isOpen={pendingCloseTabs.length > 0}
+								onClose={handleCancelClose}
+								onSaveAndClose={handleSaveAndClose}
+								onCloseWithoutSaving={handleCloseWithoutSaving}
+								tabs={pendingCloseTabs}
+								getTabTitle={getTabTitle}
+								onOpenTab={handleOpenTabFromCloseConfirm}
+								activeTabKey={activeTabKey}
+								isSaving={isSavingTab}
+							/>
 
-								<CloseTabConfirmDialog
-									isOpen={pendingCloseTabs.length > 0}
-									onClose={handleCancelClose}
-									onSaveAndClose={handleSaveAndClose}
-									onCloseWithoutSaving={
-										handleCloseWithoutSaving
-									}
-									tabs={pendingCloseTabs}
-									getTabTitle={getTabTitle}
-									onOpenTab={handleOpenTabFromCloseConfirm}
-									activeTabKey={activeTabKey}
-									isSaving={isSavingTab}
-								/>
+							<RenameTabModal
+								isOpen={showRenameModal}
+								onClose={() => {
+									setShowRenameModal(false);
+									setRenameTabKey(null);
+								}}
+								onSave={handleSaveRename}
+								tab={
+									tabs.find(
+										(tab) => tab.key === renameTabKey
+									) ?? null
+								}
+							/>
 
-								<RenameTabModal
-									isOpen={showRenameModal}
-									onClose={() => {
-										setShowRenameModal(false);
-										setRenameTabKey(null);
-									}}
-									onSave={handleSaveRename}
-									tab={
-										tabs.find(
-											(tab) => tab.key === renameTabKey
-										) ?? null
-									}
-								/>
+							<TabLockedModal
+								isOpen={showLockedModal}
+								documentTitle={
+									lockedTabKey
+										? (() => {
+												const lockedTab = tabs.find(
+													(t) =>
+														t.key === lockedTabKey
+												);
+												return lockedTab
+													? getTabTitle(lockedTab)
+													: '';
+											})()
+										: ''
+								}
+								lockUser={
+									lockedTabKey
+										? getLockUser(lockedTabKey)
+										: null
+								}
+								onTakeOver={handleLockTakeOver}
+								onCloseTab={handleLockCloseTab}
+							/>
 
-								<TabLockedModal
-									isOpen={showLockedModal}
-									documentTitle={
-										lockedTabKey
-											? (() => {
-													const lockedTab = tabs.find(
-														(t) =>
-															t.key ===
-															lockedTabKey
-													);
-													return lockedTab
-														? getTabTitle(lockedTab)
-														: '';
-												})()
-											: ''
-									}
-									lockUser={
-										lockedTabKey
-											? getLockUser(lockedTabKey)
-											: null
-									}
-									onTakeOver={handleLockTakeOver}
-									onCloseTab={handleLockCloseTab}
-								/>
-
-								<TabUnavailableModal
-									isOpen={unavailableDocument !== null}
-									documentLabel={
-										unavailableDocument?.title ?? ''
-									}
-									documentType={
-										unavailableDocument?.type ?? ''
-									}
-									documentSlug={
-										unavailableDocument?.slug ?? null
-									}
-									onConfirm={() => {
-										setUnavailableDocument(null);
-									}}
-								/>
-							</>,
-							container
-						)}
-					</>
-				);
-			}}
+							<TabUnavailableModal
+								isOpen={unavailableDocument !== null}
+								documentLabel={unavailableDocument?.title ?? ''}
+								documentType={unavailableDocument?.type ?? ''}
+								documentSlug={unavailableDocument?.slug ?? null}
+								onConfirm={() => {
+									setUnavailableDocument(null);
+								}}
+							/>
+						</>,
+						container
+					)}
+				</>
+			)}
 		</CommandBarIntegration>
 	);
 }

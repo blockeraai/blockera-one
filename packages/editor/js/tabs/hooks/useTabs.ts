@@ -5,7 +5,6 @@ import {
 	useState,
 	useCallback,
 	useEffect,
-	useLayoutEffect,
 	useRef,
 	useMemo,
 } from '@wordpress/element';
@@ -20,16 +19,8 @@ import { localStorage } from '@blockera/storage';
 /**
  * Internal dependencies
  */
-import {
-	TABS_STORAGE_KEY,
-	RECENTLY_CLOSED_STORAGE_KEY,
-} from '../utils/storageKeys';
-import {
-	hasReachedLimit,
-	resolveTabsConfig,
-	isCompanionPlugin,
-} from '../utils';
-import { isPostNewEditorPage } from '../../utils/isEditorPage';
+import { TABS_STORAGE_KEY } from '../utils/storageKeys';
+import { hasReachedLimit, resolveTabsConfig } from '../utils';
 import type {
 	Tab,
 	AddTabOptions,
@@ -46,21 +37,6 @@ import type {
  * Exported for use in other hooks that need workspace-aware storage.
  */
 export const MAIN_WORKSPACE_ID = 'main';
-
-function getWorkspaceTabCount(workspaceTabs: WorkspaceTabs): number {
-	return workspaceTabs['pinned-tabs'].length + workspaceTabs.tabs.length;
-}
-
-function getInitialWorkspaceTabs(limits: TabsLimitsConfig): WorkspaceTabs {
-	if (isPostNewEditorPage()) {
-		return {
-			'pinned-tabs': [],
-			tabs: [],
-		};
-	}
-
-	return loadTabsFromStorage(limits);
-}
 
 /**
  * Load tabs from localStorage
@@ -195,24 +171,10 @@ export function useTabs({
 
 	// Initialize from localStorage on mount - use new structure internally
 	const [workspaceTabs, setWorkspaceTabs] = useState<WorkspaceTabs>(() => {
-		return getInitialWorkspaceTabs(tabsLimits);
+		return loadTabsFromStorage(tabsLimits);
 	});
 	const [limitExceededType, setLimitExceededType] =
 		useState<TabsLimitExceededType>(null);
-
-	useLayoutEffect(() => {
-		if (!isPostNewEditorPage()) {
-			return;
-		}
-
-		clearTabsFromStorage();
-		try {
-			localStorage.removeItem(RECENTLY_CLOSED_STORAGE_KEY);
-		} catch {
-			// localStorage might be disabled, ignore
-		}
-		setLimitExceededType(null);
-	}, []);
 
 	const workspaceTabsRef = useRef(workspaceTabs);
 
@@ -377,7 +339,6 @@ export function useTabs({
 			};
 
 			let outcome: 'existed' | 'added' | 'blocked' = 'existed';
-			let blockReason: 'companion' | 'regular' | null = null;
 			let evictedUnpinnedTab: Tab | undefined;
 			const current = workspaceTabsRef.current;
 			let next = current;
@@ -387,18 +348,6 @@ export function useTabs({
 				current.tabs.find((tab) => tab.key === key)
 			) {
 				outcome = 'existed';
-			} else if (options?.skipTabLimits) {
-				outcome = 'added';
-				next = {
-					'pinned-tabs': current['pinned-tabs'],
-					tabs: [...current.tabs, newTab],
-				};
-			} else if (
-				!isCompanionPlugin() &&
-				getWorkspaceTabCount(current) > 0
-			) {
-				outcome = 'blocked';
-				blockReason = 'companion';
 			} else if (
 				hasReachedLimit(current.tabs.length, tabsLimits.regular)
 			) {
@@ -415,7 +364,6 @@ export function useTabs({
 					};
 				} else {
 					outcome = 'blocked';
-					blockReason = 'regular';
 				}
 			} else {
 				outcome = 'added';
@@ -437,8 +385,8 @@ export function useTabs({
 				options.onEvictedUnpinned(evictedUnpinnedTab);
 			}
 
-			if (outcome === 'blocked' && blockReason) {
-				showLimitExceeded(blockReason);
+			if (outcome === 'blocked') {
+				showLimitExceeded('regular');
 				return false;
 			}
 
@@ -699,15 +647,6 @@ export function useTabs({
 		setLimitExceededType(null);
 	}, []);
 
-	const guardOpenAddTab = useCallback((): boolean => {
-		if (!isCompanionPlugin()) {
-			showLimitExceeded('companion');
-			return false;
-		}
-
-		return true;
-	}, [showLimitExceeded]);
-
 	return {
 		tabs, // Combined array for backward compatibility
 		pinnedTabs: workspaceTabs['pinned-tabs'],
@@ -724,6 +663,5 @@ export function useTabs({
 		reorderTabs,
 		limitExceededType,
 		clearLimitExceeded,
-		guardOpenAddTab,
 	};
 }
