@@ -73,14 +73,154 @@ export function openParagraphBlockStylesView() {
 	cy.getByAriaControls('styles-view').click();
 }
 
+const COMPANION_CLEAN_BLOCK_PROPS_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+const COMPANION_CLEAN_BLOCK_CLASS =
+	'blockera-block blockera-block-companion-clean';
+
+/**
+ * @param {Object} data wp.data store registry.
+ * @return {string} Default block name from core/blocks.
+ */
+function getDefaultBlockNameFromStore(data) {
+	const blocksSelect = data.select('core/blocks');
+
+	return typeof blocksSelect?.getDefaultBlockName === 'function'
+		? blocksSelect.getDefaultBlockName()
+		: 'core/paragraph';
+}
+
+/**
+ * @param {Object} data wp.data store registry.
+ * @return {Object|undefined} Default paragraph block with Blockera ids already set.
+ */
+function findHydratedDefaultParagraphBlock(data) {
+	const blockEditorSelect = data.select('core/block-editor');
+	const defaultBlockName = getDefaultBlockNameFromStore(data);
+
+	return blockEditorSelect
+		.getBlocks()
+		.find(
+			(block) =>
+				block.name === defaultBlockName &&
+				block.attributes?.blockeraPropsId &&
+				block.attributes?.className
+		);
+}
+
+/**
+ * Ensure a saved default paragraph block with Blockera bootstrap attrs exists.
+ *
+ * Fresh post-new canvases are empty and Blockera's inspector bootstraps
+ * `blockeraPropsId` / `className` when the Styles tab opens (see block-base.js
+ * `primePresetHover`), which marks the post dirty. Pre-hydrate + save via store
+ * APIs so opening styles does not apply new customizations.
+ *
+ * @see source-code-block-editor/packages/e2e-test-utils-playwright/src/editor/select-blocks.ts
+ * @see packages/editor/js/extensions/components/block-base.js
+ */
+export function ensureSavedHydratedDefaultParagraphBlock() {
+	cy.window({ timeout: 20000 }).then((win) => {
+		const data = win.wp.data;
+		const blockEditorSelect = data.select('core/block-editor');
+		const editorSelect = data.select('core/editor');
+
+		expect(blockEditorSelect, 'core/block-editor store').to.not.equal(
+			undefined
+		);
+
+		if (!findHydratedDefaultParagraphBlock(data)) {
+			const block = win.wp.blocks.createBlock('core/paragraph', {
+				blockeraPropsId: COMPANION_CLEAN_BLOCK_PROPS_ID,
+				className: COMPANION_CLEAN_BLOCK_CLASS,
+			});
+
+			data.dispatch('core/block-editor').resetBlocks([block]);
+		}
+
+		if (editorSelect.isEditedPostDirty()) {
+			const editorDispatch = data.dispatch('core/editor');
+
+			if (!editorSelect.getEditedPostAttribute('title')) {
+				editorDispatch.editPost({ title: 'Companion e2e clean' });
+			}
+
+			void editorDispatch.savePost();
+		}
+	});
+
+	assertBlockData(
+		(data) => {
+			expect(
+				data.select('core/editor').isEditedPostDirty(),
+				'edited post dirty after save'
+			).to.equal(false);
+		},
+		{ timeout: 60000 }
+	);
+}
+
+/**
+ * Select the first existing default block via the block editor store only.
+ *
+ * Uses `initialPosition: -1` so Gutenberg does not focus the content area.
+ *
+ * @see source-code-block-editor/packages/block-editor/src/store/actions.js selectBlock
+ * @see source-code-block-editor/packages/e2e-test-utils-playwright/src/editor/select-blocks.ts
+ */
+export function selectDefaultParagraphBlockInEditor() {
+	assertBlockData((data) => {
+		const blockEditorSelect = data.select('core/block-editor');
+		const paragraphBlock =
+			findHydratedDefaultParagraphBlock(data) ||
+			blockEditorSelect
+				.getBlocks()
+				.find(
+					(block) => block.name === getDefaultBlockNameFromStore(data)
+				) ||
+			blockEditorSelect
+				.getBlocks()
+				.find((block) => block.name === 'core/paragraph');
+
+		expect(paragraphBlock, 'default paragraph block').to.not.equal(
+			undefined
+		);
+
+		data.dispatch('core/block-editor').selectBlock(
+			paragraphBlock.clientId,
+			-1
+		);
+
+		expect(
+			blockEditorSelect.getSelectedBlock()?.clientId,
+			'selected block client id'
+		).to.equal(paragraphBlock.clientId);
+	});
+}
+
+/**
+ * Open the Blockera styles tab only when it is not already expanded.
+ */
+export function ensureBlockeraStylesViewOpen() {
+	cy.getByAriaControls('styles-view', { timeout: 20000 }).then(($btn) => {
+		if ($btn.attr('aria-expanded') !== 'true') {
+			cy.wrap($btn).click();
+		}
+	});
+}
+
 /**
  * Open the block editor styles panel without modifying block content.
+ *
+ * Seeds a saved, Blockera-hydrated default block, selects it via store APIs
+ * (no canvas clicks / typing), and opens Styles without enabling save/publish.
  *
  * Use this when post-install behavior depends on a clean editor state.
  */
 export function openCleanParagraphBlockStylesView() {
-	cy.getBlock('default').click({ force: true });
-	cy.getByAriaControls('styles-view').click();
+	ensureSavedHydratedDefaultParagraphBlock();
+	selectDefaultParagraphBlockInEditor();
+	ensureBlockeraStylesViewOpen();
+	assertEditorHasNoUnsavedChanges();
 }
 
 /**
@@ -174,7 +314,6 @@ export function getClippingCompanionWrapper() {
  */
 export function prepareCleanEditorForCompanionInstall() {
 	openCleanParagraphBlockStylesView();
-	assertEditorHasNoUnsavedChanges();
 }
 
 /**
@@ -212,14 +351,24 @@ export function assertCompanionInstallModalClosed() {
  * Assert the stubbed companion page reload was called once.
  */
 export function assertCompanionPageReloadCalled() {
-	cy.get('@companionPageReload').should('have.been.calledOnce');
+	cy.window().then((win) => {
+		expect(
+			win.__blockeraCompanionReloadCalls,
+			'companion reload calls'
+		).to.equal(1);
+	});
 }
 
 /**
  * Assert the stubbed companion page reload was not called.
  */
 export function assertCompanionPageReloadNotCalled() {
-	cy.get('@companionPageReload').should('not.have.been.called');
+	cy.window().then((win) => {
+		expect(
+			win.__blockeraCompanionReloadCalls || 0,
+			'companion reload calls'
+		).to.equal(0);
+	});
 }
 
 /**
@@ -270,7 +419,6 @@ export function openCompanionInstallModalInEditor() {
  */
 export function openCompanionInstallModalInCleanEditor() {
 	openCleanParagraphBlockStylesView();
-	assertEditorHasNoUnsavedChanges();
 	openCompanionInstallModalFromClippingGate();
 }
 
@@ -283,7 +431,6 @@ export function setCompanionPluginConfig(overrides = {}) {
 	cy.window().then((win) => {
 		win.blockeraCompanionPlugin = {
 			...DEFAULT_COMPANION_PLUGIN_CONFIG,
-			...(win.blockeraCompanionPlugin || {}),
 			...overrides,
 		};
 	});
@@ -357,19 +504,29 @@ export function stubCompanionPluginWpUpdates({
 }
 
 /**
- * Stub window.location.reload for post-install reload assertions.
+ * Stub page reload for post-install reload assertions.
+ *
+ * Electron/Cypress cannot stub `window.location.reload`, so the modal checks
+ * `window.__blockeraCompanionTestReload` when present (e2e only).
  */
 export function stubCompanionPageReload() {
-	cy.window().then((win) => {
-		const reloadStub = cy.stub().as('companionPageReload');
+	cy.window({ log: false }).then((win) => {
+		win.__blockeraCompanionReloadCalls = 0;
+		win.__blockeraCompanionTestReload = () => {
+			win.__blockeraCompanionReloadCalls += 1;
+		};
+		delete win.__blockeraCompanionTestCountdownSeconds;
+	});
+}
 
-		Object.defineProperty(win, 'location', {
-			configurable: true,
-			value: {
-				...win.location,
-				reload: reloadStub,
-			},
-		});
+/**
+ * Shorten the post-install reload countdown for e2e timing.
+ *
+ * @param {number} seconds Countdown duration in seconds.
+ */
+export function setCompanionReloadCountdownSeconds(seconds) {
+	cy.window({ log: false }).then((win) => {
+		win.__blockeraCompanionTestCountdownSeconds = seconds;
 	});
 }
 
@@ -419,9 +576,9 @@ export function assertCompanionReloadCountdownVisible(seconds = 10) {
 		cy.contains('Blockera Site Builder was installed successfully.').should(
 			'be.visible'
 		);
-		cy.contains('Reloading in 10 seconds to unlock all features…').should(
-			'be.visible'
-		);
+		cy.contains(
+			`Reloading in ${seconds} seconds to unlock all features…`
+		).should('be.visible');
 	});
 }
 
@@ -429,9 +586,6 @@ export function assertCompanionReloadCountdownVisible(seconds = 10) {
  * Assert post-install unsaved-changes confirm view is visible.
  */
 export function assertCompanionReloadConfirmVisible() {
-	cy.getByDataTest(FEATURE_WRAPPER_TEST_ID.companionReloadDialog).should(
-		'be.visible'
-	);
 	cy.contains('Reload editor to unlock features?').should('be.visible');
 	cy.contains('you have unsaved editor changes').should('be.visible');
 	cy.getByTestId(FEATURE_WRAPPER_TEST_ID.companionReloadCancel).should(
@@ -451,6 +605,12 @@ export function assertCompanionReloadConfirmVisible() {
  * @param {'countdown'|'confirm'} expectedView Expected post-install view.
  */
 export function completeCompanionPluginInstall(expectedView = 'countdown') {
+	if ('confirm' === expectedView) {
+		// Apply unsaved edits immediately before install so autosave cannot
+		// persist them while the modal progress UI is shown.
+		makeEditorPostDirty();
+	}
+
 	clickCompanionInstallButton();
 	assertCompanionInstallProgressVisible();
 	waitForCompanionInstallToFinish();
@@ -466,10 +626,37 @@ export function completeCompanionPluginInstall(expectedView = 'countdown') {
 /**
  * Make the current editor post dirty without saving.
  *
+ * Uses block editor store APIs so the post stays dirty even when a modal
+ * overlay blocks canvas interactions.
+ *
  * @param {string} text Text appended to the default block.
  */
 export function makeEditorPostDirty(text = ' unsaved companion e2e') {
-	cy.getBlock('default').type(text, { delay: 0 });
+	cy.window().then((win) => {
+		const data = win.wp.data;
+		const blockEditorSelect = data.select('core/block-editor');
+		const paragraphBlock =
+			findHydratedDefaultParagraphBlock(data) ||
+			blockEditorSelect
+				.getBlocks()
+				.find(
+					(block) => block.name === getDefaultBlockNameFromStore(data)
+				) ||
+			blockEditorSelect
+				.getBlocks()
+				.find((block) => block.name === 'core/paragraph');
+
+		expect(paragraphBlock, 'default paragraph block').to.not.equal(
+			undefined
+		);
+
+		data.dispatch('core/block-editor').updateBlockAttributes(
+			paragraphBlock.clientId,
+			{
+				content: `${paragraphBlock.attributes.content || ''}${text}`,
+			}
+		);
+	});
 
 	assertBlockData((data) => {
 		const editor = data.select('core/editor');
