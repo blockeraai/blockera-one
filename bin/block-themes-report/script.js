@@ -8,7 +8,7 @@
 	const PAGE_DELAY_MS = 100;
 	const PATTERN_SCRAPE_DELAY_MS = 200;
 	const PATTERN_SCRAPE_MAX_ROUNDS = 3;
-	const STORAGE_KEY = 'blockera-one-popular-block-themes-columns-v7';
+	const STORAGE_KEY = 'blockera-one-block-themes-report-columns-v7';
 
 	// Background tabs throttle main-thread setTimeout; Worker timers keep scrape/fetch moving.
 	let delayWorker = null;
