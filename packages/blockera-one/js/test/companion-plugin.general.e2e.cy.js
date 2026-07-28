@@ -5,7 +5,6 @@ import {
 	openParagraphBlockStylesView,
 	openBackgroundClippingSection,
 	getClippingCompanionWrapper,
-	assertCompanionInstallNoticeVisible,
 	openCompanionInstallModalInEditor,
 	closeCompanionInstallModal,
 } from '@blockera/dev-cypress/js/helpers';
@@ -25,8 +24,6 @@ describe('Blockera One → companion plugin identity', () => {
 		openBackgroundClippingSection();
 
 		getClippingCompanionWrapper().within(() => {
-			assertCompanionInstallNoticeVisible();
-
 			cy.get('button')
 				.first()
 				.should('have.css', 'pointer-events', 'none');

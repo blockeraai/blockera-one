@@ -97,7 +97,10 @@ export function assertEditorHasNoUnsavedChanges() {
  * Scroll the Background → Clipping control into view in the styles panel.
  */
 export function openBackgroundClippingSection() {
-	cy.getParentContainer('Clipping').scrollIntoView();
+	cy.getParentContainer('Clipping').scrollIntoView({
+		offset: { top: -300 },
+		duration: 0,
+	});
 }
 
 /**
