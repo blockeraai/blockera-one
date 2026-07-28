@@ -115,5 +115,5 @@ playwright-env.json
 # Docs temporary for ai assistant
 docs-temp-ai/
 
-# Popular block themes report cache
-bin/popular-block-themes/cache.json
+# Block themes report cache
+bin/block-themes-report/cache.json

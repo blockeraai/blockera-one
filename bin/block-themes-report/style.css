@@ -4,6 +4,11 @@
 	box-sizing: border-box;
 }
 
+:root {
+	/* Fallback until JS measures .header; keeps thead below sticky page header. */
+	--btr-sticky-header-height: 160px;
+}
+
 body {
 	font-family:
 		-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
@@ -260,7 +265,7 @@ body {
 }
 
 .table-section {
-	scroll-margin-top: 180px;
+	scroll-margin-top: calc(var(--btr-sticky-header-height) + 16px);
 	margin-bottom: 40px;
 }
 
@@ -281,7 +286,9 @@ body {
 
 .data-table {
 	width: 100%;
-	border-collapse: collapse;
+	/* separate + 0 spacing keeps sticky thead reliable across browsers */
+	border-collapse: separate;
+	border-spacing: 0;
 	font-size: 13px;
 	min-width: 900px;
 }
@@ -299,10 +306,12 @@ body {
 	color: #ffffff;
 	font-weight: 600;
 	position: sticky;
-	top: 0;
-	z-index: 2;
+	/* Sit just under the sticky page .header */
+	top: var(--btr-sticky-header-height);
+	z-index: 5;
 	white-space: nowrap;
 	user-select: none;
+	box-shadow: 0 1px 0 #1d2327;
 }
 
 .data-table tfoot td {

@@ -8,7 +8,42 @@
 	const PAGE_DELAY_MS = 100;
 	const PATTERN_SCRAPE_DELAY_MS = 200;
 	const PATTERN_SCRAPE_MAX_ROUNDS = 3;
-	const STORAGE_KEY = 'blockera-one-popular-block-themes-columns-v7';
+	const STORAGE_KEY = 'blockera-one-block-themes-report-columns-v7';
+
+	// Background tabs throttle main-thread setTimeout; Worker timers keep scrape/fetch moving.
+	let delayWorker = null;
+	let delaySeq = 0;
+	const delayPending = new Map();
+
+	function getDelayWorker() {
+		if (delayWorker) {
+			return delayWorker;
+		}
+		const src =
+			'self.onmessage=function(e){var d=e.data;setTimeout(function(){self.postMessage(d.id);},d.ms);};';
+		const blob = new Blob([src], { type: 'application/javascript' });
+		delayWorker = new Worker(URL.createObjectURL(blob));
+		delayWorker.onmessage = function (e) {
+			const resolve = delayPending.get(e.data);
+			if (resolve) {
+				delayPending.delete(e.data);
+				resolve();
+			}
+		};
+		return delayWorker;
+	}
+
+	function delay(ms) {
+		return new Promise((resolve) => {
+			try {
+				const id = ++delaySeq;
+				delayPending.set(id, resolve);
+				getDelayWorker().postMessage({ id: id, ms: ms });
+			} catch (err) {
+				window.setTimeout(resolve, ms);
+			}
+		});
+	}
 
 	const QUERY_FIELDS = {
 		active_installs: true,
@@ -1322,6 +1357,18 @@
 		renderAuthorsTable(authors);
 		updateHeaderStats(filtered, authors, progressLabel);
 		refreshTagsList();
+		syncStickyHeaderOffset();
+	}
+
+	// Skip expensive DOM rebuilds while the tab is hidden; progress label still updates.
+	function maybeRefreshTables(progressLabel) {
+		if (document.hidden) {
+			if (progressLabel != null) {
+				els.statProgress.textContent = progressLabel;
+			}
+			return;
+		}
+		refreshTables(progressLabel);
 	}
 
 	function refreshTagsList() {
@@ -1573,7 +1620,7 @@
 							theme.slug +
 							')';
 						setProgressUI(true, label);
-						refreshTables(
+						maybeRefreshTables(
 							isFetching ? els.statProgress.textContent : label
 						);
 
@@ -1592,9 +1639,7 @@
 						);
 					}
 
-					await new Promise((r) =>
-						setTimeout(r, PATTERN_SCRAPE_DELAY_MS)
-					);
+					await delay(PATTERN_SCRAPE_DELAY_MS);
 				}
 
 				pending = failed;
@@ -1692,11 +1737,11 @@
 					(totalResults ? ' / ' + totalResults : '') +
 					')';
 				setProgressUI(true, 'Fetching… ' + label);
-				refreshTables(label);
+				maybeRefreshTables(label);
 
 				page += 1;
 				if (page <= pages) {
-					await new Promise((r) => setTimeout(r, PAGE_DELAY_MS));
+					await delay(PAGE_DELAY_MS);
 				}
 			} while (page <= pages);
 
@@ -1718,6 +1763,17 @@
 	}
 
 	function bindEvents() {
+		document.addEventListener('visibilitychange', () => {
+			if (document.hidden) {
+				return;
+			}
+			refreshTables(
+				isFetching || isScrapingPatterns
+					? els.statProgress.textContent
+					: '100%'
+			);
+		});
+
 		els.themesTbody.addEventListener('click', (e) => {
 			const btn = e.target.closest('.js-scroll-to-theme');
 			if (!btn) {
@@ -1849,7 +1905,51 @@
 		});
 	}
 
+	/**
+	 * Keep table thead sticky offset synced with the sticky page header height
+	 * so column headers remain visible below .header while scrolling.
+	 */
+	function syncStickyHeaderOffset() {
+		const header = document.querySelector('.header');
+		if (!header) {
+			return;
+		}
+		const height = Math.ceil(header.getBoundingClientRect().height);
+		const topPx = height + 'px';
+		document.documentElement.style.setProperty(
+			'--btr-sticky-header-height',
+			topPx
+		);
+		// Inline top keeps offset correct after thead rebuilds and avoids stale CSS cache.
+		const thNodes = document.querySelectorAll('.data-table thead th');
+		for (let i = 0; i < thNodes.length; i++) {
+			thNodes[i].style.top = topPx;
+			thNodes[i].style.position = 'sticky';
+			thNodes[i].style.zIndex = '5';
+		}
+	}
+
+	function bindStickyHeaderOffset() {
+		const header = document.querySelector('.header');
+		if (!header) {
+			return;
+		}
+
+		syncStickyHeaderOffset();
+
+		if (typeof ResizeObserver !== 'undefined') {
+			const observer = new ResizeObserver(() => {
+				syncStickyHeaderOffset();
+			});
+			observer.observe(header);
+			return;
+		}
+
+		window.addEventListener('resize', syncStickyHeaderOffset);
+	}
+
 	function init() {
+		bindStickyHeaderOffset();
 		bindEvents();
 		renderColumnsPicker();
 
