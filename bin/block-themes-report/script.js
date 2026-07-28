@@ -1022,6 +1022,11 @@
 		}
 	}
 
+	function columnAlignClass(col) {
+		// Keep header/body/footer alignment in sync (.num → text-align: right).
+		return col.type === 'num' || col.type === 'ratings' ? ' num' : '';
+	}
+
 	function renderThemesTable(filteredThemes) {
 		const cols = THEME_COLUMNS;
 		const sorted = sortThemes(filteredThemes);
@@ -1036,6 +1041,7 @@
 						: ' sorted-desc'
 					: '';
 			const sortableClass = col.sortable ? ' sortable' : '';
+			const alignClass = columnAlignClass(col);
 			const indicator = col.sortable
 				? '<span class="sort-indicator">' +
 					(themeSort.key === col.sortKey
@@ -1049,6 +1055,7 @@
 				'<th class="' +
 				escapeHtml(col.id) +
 				hidden +
+				alignClass +
 				sortableClass +
 				sortedClass +
 				'" data-col="' +
@@ -1238,6 +1245,7 @@
 						: ' sorted-desc'
 					: '';
 			const sortableClass = col.sortable ? ' sortable' : '';
+			const alignClass = columnAlignClass(col);
 			const indicator = col.sortable
 				? '<span class="sort-indicator">' +
 					(authorSort.key === col.sortKey
@@ -1249,6 +1257,7 @@
 				: '';
 			head +=
 				'<th class="' +
+				alignClass +
 				sortableClass +
 				sortedClass +
 				'" data-sort-key="' +
