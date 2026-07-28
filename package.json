@@ -28,6 +28,7 @@
 	},
 	"dependencies": {
 		"@blockera/blockera": "file:packages/blockera",
+		"@blockera/blockera-one": "file:packages/blockera-one",
 		"@blockera/blockera-admin": "file:packages/blockera-admin",
 		"@blockera/blocks-core": "file:packages/blocks-core",
 		"@blockera/bootstrap": "file:packages/bootstrap",

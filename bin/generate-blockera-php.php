@@ -81,25 +81,8 @@ while ( true ) {
 			$inside_block = true;
 			echo $line;
 			echo <<<'PHP'
-add_filter(
-	'blockera/autoloader-coordinator/plugins/dependencies',
-	static function ( array $repos ): array {
-		$repos['blockera-one'] = [
-			'dir' => __DIR__,
-			'priority' => 10,
-			'default' => true,
-		];
-
-		return $repos;
-	}
-);
-
-require_once __DIR__ . '/inc/class-shared-autoload-coordinator.php';
-\Blockera\SharedAutoload\Coordinator::getInstance()->registerPlugin();
-\Blockera\SharedAutoload\Coordinator::getInstance()->bootstrap();
-
-// Fallback Composer autoloader for non-Blockera vendor packages.
-require __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/inc/bootstrap.php';
+blockera_bootstrap_shared_autoloader('blockera-one', __DIR__, 10, true);
 
 PHP;
 			break;

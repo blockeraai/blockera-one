@@ -15,12 +15,12 @@ let env = {
 	muPluginActivateMaxAttempts: isCi ? 3 : 1,
 	e2e: {
 		specPattern: [
-			'packages/**/*.e2e.cy.js',
-			'tests/**/*.e2e.cy.js',
-			'packages/**/*.visual.cy.js',
-			'tests/**/*.visual.cy.js',
+			'packages/**-one/**/*.e2e.cy.js',
+			'tests/**-one/**/*.e2e.cy.js',
+			'packages/**-one/**/*.visual.cy.js',
+			'tests/**-one/**/*.visual.cy.js',
 		],
-		excludeSpecPattern: ['packages/**/*.build.e2e.js'],
+		excludeSpecPattern: ['packages/**-one/**/*.build.e2e.js'],
 	},
 };
 
@@ -96,8 +96,11 @@ module.exports = defineConfig({
 			bundler: 'webpack',
 			webpackConfig: require('./packages/dev-cypress/js/webpack.config.js'),
 		},
-		specPattern: 'packages/**/test/*.cy.js',
-		excludeSpecPattern: ['**/*.e2e.cy.js', '**/*.visual.cy.js'],
+		specPattern: 'packages/**-one/**/test/*.cy.js',
+		excludeSpecPattern: [
+			'**-one/**/*.e2e.cy.js',
+			'**-one/**/*.visual.cy.js',
+		],
 		supportFile: 'packages/dev-cypress/js/support/component.js',
 		viewportHeight: 900,
 		viewportWidth: 1280,
