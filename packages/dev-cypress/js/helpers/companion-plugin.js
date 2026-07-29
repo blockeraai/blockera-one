@@ -925,3 +925,75 @@ export function openCompanionInstallModalFromCustomCss() {
 
 	assertCompanionInstallModalVisible();
 }
+
+/**
+ * Open a style variation row context menu and click Duplicate.
+ *
+ * @param {string} [styleSlug='section-1'] Style variation slug.
+ */
+export function clickDuplicateStyleVariationFromContextMenu(
+	styleSlug = 'section-1'
+) {
+	cy.getByDataTest(`open-${styleSlug}-contextmenu`)
+		.filter(':visible')
+		.first()
+		.click();
+	cy.get('.variations-settings-popover')
+		.filter(':visible')
+		.last()
+		.contains('button', 'Duplicate')
+		.click();
+}
+
+/**
+ * Assert duplicating a style variation opens the companion install modal.
+ *
+ * @param {string} [styleSlug='section-1'] Style variation slug.
+ */
+export function assertDuplicateStyleVariationOpensCompanionModal(
+	styleSlug = 'section-1'
+) {
+	clickDuplicateStyleVariationFromContextMenu(styleSlug);
+	assertCompanionInstallModalVisible();
+	cy.contains('[role="dialog"]', 'Duplicate style variation').should(
+		'not.exist'
+	);
+	cy.contains('[role="dialog"]', 'Duplicate size variation').should(
+		'not.exist'
+	);
+}
+
+/**
+ * Open a size variation row context menu and click Duplicate.
+ *
+ * @param {string} styleSlug Size variation slug.
+ */
+export function clickDuplicateSizeVariationFromContextMenu(styleSlug) {
+	withinGlobalStylesSizeVariationsPanel(() => {
+		cy.getByDataTest(`open-${styleSlug}-contextmenu`)
+			.filter(':visible')
+			.first()
+			.click();
+	});
+	cy.get('.variations-settings-popover.is-variation-ui-size')
+		.filter(':visible')
+		.last()
+		.contains('button', 'Duplicate')
+		.click();
+}
+
+/**
+ * Assert duplicating a size variation opens the companion install modal.
+ *
+ * @param {string} styleSlug Size variation slug.
+ */
+export function assertDuplicateSizeVariationOpensCompanionModal(styleSlug) {
+	clickDuplicateSizeVariationFromContextMenu(styleSlug);
+	assertCompanionInstallModalVisible();
+	cy.contains('[role="dialog"]', 'Duplicate size variation').should(
+		'not.exist'
+	);
+	cy.contains('[role="dialog"]', 'Duplicate style variation').should(
+		'not.exist'
+	);
+}
