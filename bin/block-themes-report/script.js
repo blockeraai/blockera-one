@@ -388,6 +388,13 @@
 		authorsThead: document.getElementById('authors-thead'),
 		authorsTbody: document.getElementById('authors-tbody'),
 		authorsTfoot: document.getElementById('authors-tfoot'),
+		themeModal: document.getElementById('theme-modal'),
+		themeModalTitle: document.getElementById('theme-modal-title'),
+		themeModalBody: document.getElementById('theme-modal-body'),
+		themeModalClose: document.getElementById('theme-modal-close'),
+		themeModalDialog: document.querySelector(
+			'#theme-modal .theme-modal-dialog'
+		),
 	};
 
 	let themes = [];
@@ -402,6 +409,7 @@
 	let minActiveInstalls = 0;
 	let createdAfter = '';
 	let updatedAfter = '';
+	let themeModalLastFocus = null;
 	const visibleColumns = loadVisibleColumns();
 	const themeSort = { key: 'active_installs', dir: 'desc' };
 	const authorSort = { key: 'theme_count', dir: 'desc' };
@@ -897,6 +905,11 @@
 						: '';
 
 				const hoverParts = [];
+				hoverParts.push(
+					'<button type="button" class="js-theme-details theme-name-hover-btn" data-theme-slug="' +
+						escapeHtml(theme.slug || '') +
+						'">Details</button>'
+				);
 				if (previewUrl) {
 					hoverParts.push(
 						'<a href="' +
@@ -1225,6 +1238,422 @@
 		els.themesTfoot.innerHTML = html;
 	}
 
+	function modalExternalLink(url, label) {
+		if (!url || url === true || url === false) {
+			return '';
+		}
+		const href = String(url);
+		if (!href) {
+			return '';
+		}
+		return (
+			'<a class="control-btn" href="' +
+			escapeHtml(href) +
+			'" target="_blank" rel="noopener noreferrer">' +
+			escapeHtml(label) +
+			'</a>'
+		);
+	}
+
+	function modalTableRow(label, valueHtml) {
+		if (valueHtml == null || valueHtml === '') {
+			return '';
+		}
+		return (
+			'<tr>' +
+			'<th scope="row">' +
+			escapeHtml(label) +
+			'</th>' +
+			'<td>' +
+			valueHtml +
+			'</td>' +
+			'</tr>'
+		);
+	}
+
+	function modalImage(url, alt) {
+		if (!url || url === true || url === false) {
+			return '';
+		}
+		const href = String(url);
+		if (!href) {
+			return '';
+		}
+		return (
+			'<a href="' +
+			escapeHtml(href) +
+			'" target="_blank" rel="noopener noreferrer">' +
+			'<img class="theme-modal-img" src="' +
+			escapeHtml(href) +
+			'" alt="' +
+			escapeHtml(alt || '') +
+			'" decoding="async">' +
+			'</a>'
+		);
+	}
+
+	function modalTextLink(url, label) {
+		if (!url || url === true || url === false) {
+			return '';
+		}
+		const href = String(url);
+		if (!href) {
+			return '';
+		}
+		return (
+			'<a href="' +
+			escapeHtml(href) +
+			'" target="_blank" rel="noopener noreferrer">' +
+			escapeHtml(label || href) +
+			'</a>'
+		);
+	}
+
+	function renderThemeDetailsModal(theme) {
+		const childCount = theme.slug
+			? childCountByParent.get(theme.slug) || 0
+			: 0;
+		const author = theme.author;
+		const authorName = theme.authorName || '';
+		const authorProfile = theme.authorProfile || '';
+		const authorAvatar =
+			author && typeof author === 'object' ? author.avatar || '' : '';
+		const authorUrl =
+			author && typeof author === 'object' ? author.author_url || '' : '';
+
+		let authorHtml = escapeHtml(authorName || '—');
+		if (authorProfile) {
+			authorHtml =
+				'<a href="' +
+				escapeHtml(authorProfile) +
+				'" target="_blank" rel="noopener noreferrer">' +
+				escapeHtml(authorName || authorProfile) +
+				'</a>';
+		}
+
+		const parentSlugVal = theme.parentSlug || '';
+		let parentHtml = '—';
+		if (parentSlugVal) {
+			const pName =
+				theme.parentName || parentDisplayName(theme) || parentSlugVal;
+			parentHtml =
+				'<button type="button" class="js-scroll-to-theme parent-theme-link" data-theme-slug="' +
+				escapeHtml(parentSlugVal) +
+				'" data-close-modal="1" title="Scroll to parent theme">' +
+				escapeHtml(pName) +
+				'</button>' +
+				' <span class="theme-modal-muted">(' +
+				escapeHtml(parentSlugVal) +
+				')</span>';
+		}
+
+		const badges = [];
+		if (theme.is_commercial) {
+			badges.push(
+				'<span class="theme-modal-badge is-on">Commercial</span>'
+			);
+		}
+		if (theme.is_community) {
+			badges.push(
+				'<span class="theme-modal-badge is-on">Community</span>'
+			);
+		}
+		if (parentSlugVal) {
+			badges.push('<span class="theme-modal-badge">Child theme</span>');
+		}
+		if (childCount > 0) {
+			badges.push(
+				'<span class="theme-modal-badge is-on">Parent of ' +
+					formatNumber(childCount) +
+					'</span>'
+			);
+		}
+
+		const actions = [
+			modalExternalLink(theme.preview_url, 'Preview'),
+			modalExternalLink(theme.homepage, 'Home'),
+			modalExternalLink(theme.download_link, 'Download'),
+			modalExternalLink(theme.external_repository_url, 'Repository'),
+			modalExternalLink(theme.external_support_url, 'Support'),
+		]
+			.filter(Boolean)
+			.join('');
+
+		const ratingsTotal =
+			(theme.rating_1 || 0) +
+			(theme.rating_2 || 0) +
+			(theme.rating_3 || 0) +
+			(theme.rating_4 || 0) +
+			(theme.rating_5 || 0);
+		const ratingRows = [5, 4, 3, 2, 1]
+			.map((star) => {
+				const n = theme['rating_' + star] || 0;
+				const pct = ratingsTotal
+					? Math.round((n / ratingsTotal) * 100)
+					: 0;
+				return (
+					'<div class="theme-modal-rating-row">' +
+					'<span>★' +
+					star +
+					'</span>' +
+					'<div class="theme-modal-rating-bar"><div class="theme-modal-rating-fill" style="width:' +
+					pct +
+					'%"></div></div>' +
+					'<span>' +
+					formatNumber(n) +
+					'</span>' +
+					'</div>'
+				);
+			})
+			.join('');
+
+		const tags = theme.tagLabels || [];
+		const tagsHtml = tags.length
+			? '<div class="theme-modal-tags">' +
+				tags
+					.map(
+						(tag) =>
+							'<span class="theme-modal-tag">' +
+							escapeHtml(tag) +
+							'</span>'
+					)
+					.join('') +
+				'</div>'
+			: '<span class="theme-modal-muted">No tags</span>';
+
+		const shot = theme.screenshot_url
+			? '<img class="theme-modal-shot" src="' +
+				escapeHtml(theme.screenshot_url) +
+				'" alt="" decoding="async">'
+			: '<div class="theme-modal-shot-empty">No screenshot</div>';
+
+		const childThemes = getChildThemesForParent(theme.slug || '');
+		let childrenHtml = '<span class="theme-modal-muted">None</span>';
+		if (childThemes.length) {
+			const childLinks = [];
+			let childrenInstalls = 0;
+			for (let i = 0; i < childThemes.length; i++) {
+				const child = childThemes[i];
+				const childSlug = child.slug || '';
+				if (!childSlug) {
+					continue;
+				}
+				const childInstalls = child.active_installs || 0;
+				childrenInstalls += childInstalls;
+				childLinks.push(
+					'<li>' +
+						'<button type="button" class="js-scroll-to-theme parent-theme-link" data-theme-slug="' +
+						escapeHtml(childSlug) +
+						'" data-close-modal="1" title="Scroll to child theme">' +
+						escapeHtml(child.name || childSlug) +
+						'</button>' +
+						' <span class="theme-modal-muted">(' +
+						escapeHtml(childSlug) +
+						')</span>' +
+						' <span class="theme-modal-child-installs">' +
+						formatNumber(childInstalls) +
+						' installs</span>' +
+						'</li>'
+				);
+			}
+			const familyInstalls =
+				(theme.active_installs || 0) + childrenInstalls;
+			childrenHtml =
+				'<ul class="theme-modal-children-list">' +
+				childLinks.join('') +
+				'</ul>' +
+				'<div class="theme-modal-children-total">' +
+				'Family active installs: ' +
+				'<strong>' +
+				formatNumber(familyInstalls) +
+				'</strong>' +
+				' <span class="theme-modal-muted">(parent ' +
+				formatNumber(theme.active_installs || 0) +
+				' + children ' +
+				formatNumber(childrenInstalls) +
+				')</span>' +
+				'</div>';
+		}
+
+		const detailRows = [
+			modalTableRow('Slug', escapeHtml(theme.slug || '—')),
+			modalTableRow('Version', escapeHtml(theme.version || '—')),
+			modalTableRow('Author', authorHtml),
+			authorAvatar
+				? modalTableRow(
+						'Author avatar',
+						modalImage(authorAvatar, authorName || 'Author')
+					)
+				: '',
+			authorUrl
+				? modalTableRow(
+						'Author URL',
+						modalTextLink(authorUrl, authorUrl)
+					)
+				: '',
+			modalTableRow('Created', escapeHtml(theme.creation_time || '—')),
+			modalTableRow('Updated', escapeHtml(theme.last_updated || '—')),
+			theme.last_updated_time &&
+			theme.last_updated_time !== theme.last_updated
+				? modalTableRow(
+						'Updated at',
+						escapeHtml(String(theme.last_updated_time))
+					)
+				: '',
+			modalTableRow('Requires WP', escapeHtml(theme.requires || '—')),
+			modalTableRow(
+				'Requires PHP',
+				escapeHtml(theme.requires_php || '—')
+			),
+			modalTableRow('Template', escapeHtml(theme.template || '—')),
+			modalTableRow('Parent', parentHtml),
+			modalTableRow('Children', childrenHtml),
+			modalTableRow('Commercial', theme.is_commercial ? 'Yes' : 'No'),
+			modalTableRow('Community', theme.is_community ? 'Yes' : 'No'),
+			modalTableRow(
+				'Screenshot URL',
+				modalTextLink(theme.screenshot_url, theme.screenshot_url) || '—'
+			),
+			modalTableRow(
+				'Homepage',
+				modalTextLink(theme.homepage, theme.homepage) || '—'
+			),
+			modalTableRow(
+				'Preview URL',
+				modalTextLink(theme.preview_url, theme.preview_url) || '—'
+			),
+			modalTableRow(
+				'Download link',
+				modalTextLink(theme.download_link, theme.download_link) || '—'
+			),
+			modalTableRow(
+				'External support',
+				modalTextLink(
+					theme.external_support_url,
+					theme.external_support_url
+				) || '—'
+			),
+			modalTableRow(
+				'External repo',
+				modalTextLink(
+					theme.external_repository_url,
+					theme.external_repository_url
+				) || '—'
+			),
+		]
+			.filter(Boolean)
+			.join('');
+
+		els.themeModalTitle.textContent =
+			theme.name || theme.slug || 'Theme details';
+		els.themeModalBody.innerHTML =
+			'<div class="theme-modal-hero">' +
+			shot +
+			'<div class="theme-modal-hero-main">' +
+			'<h3>' +
+			escapeHtml(theme.name || theme.slug || 'Untitled') +
+			'</h3>' +
+			'<div class="theme-modal-meta">' +
+			'<span>v' +
+			escapeHtml(theme.version || '—') +
+			'</span>' +
+			'<span>' +
+			escapeHtml(theme.slug || '') +
+			'</span>' +
+			'</div>' +
+			(badges.length
+				? '<div class="theme-modal-badges">' +
+					badges.join('') +
+					'</div>'
+				: '') +
+			(actions
+				? '<div class="theme-modal-actions">' + actions + '</div>'
+				: '') +
+			'</div>' +
+			'</div>' +
+			'<div class="theme-modal-stats">' +
+			'<div class="theme-modal-stat"><span class="theme-modal-stat-label">Active installs</span><span class="theme-modal-stat-value">' +
+			formatNumber(theme.active_installs) +
+			'</span></div>' +
+			'<div class="theme-modal-stat"><span class="theme-modal-stat-label">Downloads</span><span class="theme-modal-stat-value">' +
+			formatNumber(theme.downloaded) +
+			'</span></div>' +
+			'<div class="theme-modal-stat"><span class="theme-modal-stat-label">Rating</span><span class="theme-modal-stat-value">' +
+			formatNumber(theme.rating) +
+			'%</span></div>' +
+			'<div class="theme-modal-stat"><span class="theme-modal-stat-label">Ratings</span><span class="theme-modal-stat-value">' +
+			formatNumber(theme.num_ratings) +
+			'</span></div>' +
+			'<div class="theme-modal-stat"><span class="theme-modal-stat-label">Patterns</span><span class="theme-modal-stat-value">' +
+			(theme.patterns_count == null
+				? '…'
+				: formatNumber(theme.patterns_count)) +
+			'</span></div>' +
+			'<div class="theme-modal-stat"><span class="theme-modal-stat-label">Style variations</span><span class="theme-modal-stat-value">' +
+			(theme.style_variations_count == null
+				? '…'
+				: formatNumber(theme.style_variations_count)) +
+			'</span></div>' +
+			'</div>' +
+			(theme.description
+				? '<section class="theme-modal-section"><h4 class="theme-modal-section-title">Description</h4><p class="theme-modal-description">' +
+					escapeHtml(theme.description) +
+					'</p></section>'
+				: '') +
+			'<section class="theme-modal-section">' +
+			'<h4 class="theme-modal-section-title">Details</h4>' +
+			'<table class="theme-modal-table">' +
+			'<tbody>' +
+			detailRows +
+			'</tbody>' +
+			'</table>' +
+			'</section>' +
+			'<section class="theme-modal-section">' +
+			'<h4 class="theme-modal-section-title">Ratings breakdown</h4>' +
+			'<div class="theme-modal-ratings">' +
+			ratingRows +
+			'</div>' +
+			'</section>' +
+			'<section class="theme-modal-section">' +
+			'<h4 class="theme-modal-section-title">Tags</h4>' +
+			tagsHtml +
+			'</section>';
+	}
+
+	function openThemeDetailsModal(theme) {
+		if (!theme || !els.themeModal) {
+			return;
+		}
+		themeModalLastFocus = document.activeElement;
+		renderThemeDetailsModal(theme);
+		els.themeModal.hidden = false;
+		document.body.classList.add('theme-modal-open');
+		window.requestAnimationFrame(() => {
+			if (els.themeModalClose) {
+				els.themeModalClose.focus();
+			} else if (els.themeModalDialog) {
+				els.themeModalDialog.focus();
+			}
+		});
+	}
+
+	function closeThemeDetailsModal() {
+		if (!els.themeModal || els.themeModal.hidden) {
+			return;
+		}
+		els.themeModal.hidden = true;
+		document.body.classList.remove('theme-modal-open');
+		els.themeModalBody.innerHTML = '';
+		els.themeModalTitle.textContent = 'Theme details';
+		if (
+			themeModalLastFocus &&
+			typeof themeModalLastFocus.focus === 'function'
+		) {
+			themeModalLastFocus.focus();
+		}
+		themeModalLastFocus = null;
+	}
+
 	function scrollToThemeRow(slug) {
 		if (!slug) {
 			return;
@@ -1414,6 +1843,24 @@
 			counts.set(slug, (counts.get(slug) || 0) + 1);
 		}
 		childCountByParent = counts;
+	}
+
+	function getChildThemesForParent(parentSlugVal) {
+		if (!parentSlugVal) {
+			return [];
+		}
+		const children = [];
+		for (let i = 0; i < themes.length; i++) {
+			if (themes[i].parentSlug === parentSlugVal) {
+				children.push(themes[i]);
+			}
+		}
+		children.sort((a, b) =>
+			String(a.name || a.slug || '').localeCompare(
+				String(b.name || b.slug || '')
+			)
+		);
+		return children;
 	}
 
 	function updateFilterCountBadge(badge, button, count, label) {
@@ -1889,12 +2336,48 @@
 		});
 
 		els.themesTbody.addEventListener('click', (e) => {
+			const detailsBtn = e.target.closest('.js-theme-details');
+			if (detailsBtn) {
+				e.preventDefault();
+				const theme = findThemeBySlug(
+					detailsBtn.getAttribute('data-theme-slug')
+				);
+				if (theme) {
+					openThemeDetailsModal(theme);
+				}
+				return;
+			}
+
 			const btn = e.target.closest('.js-scroll-to-theme');
 			if (!btn) {
 				return;
 			}
 			e.preventDefault();
 			scrollToThemeRow(btn.getAttribute('data-theme-slug'));
+		});
+
+		if (els.themeModal) {
+			els.themeModal.addEventListener('click', (e) => {
+				if (e.target.closest('[data-theme-modal-close]')) {
+					e.preventDefault();
+					closeThemeDetailsModal();
+					return;
+				}
+
+				const parentBtn = e.target.closest('.js-scroll-to-theme');
+				if (parentBtn) {
+					e.preventDefault();
+					const slug = parentBtn.getAttribute('data-theme-slug');
+					closeThemeDetailsModal();
+					scrollToThemeRow(slug);
+				}
+			});
+		}
+
+		document.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape') {
+				closeThemeDetailsModal();
+			}
 		});
 
 		document.querySelectorAll('.nav-btn').forEach((btn) => {

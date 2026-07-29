@@ -495,13 +495,21 @@ body {
 	color: #646970;
 }
 
-.theme-name-hover-links a {
+.theme-name-hover-links a,
+.theme-name-hover-links .theme-name-hover-btn {
 	color: #2271b1;
 	text-decoration: none;
 	font-weight: 500;
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	font: inherit;
+	cursor: pointer;
 }
 
-.theme-name-hover-links a:hover {
+.theme-name-hover-links a:hover,
+.theme-name-hover-links .theme-name-hover-btn:hover {
 	text-decoration: underline;
 }
 
@@ -561,4 +569,352 @@ body {
 	text-align: center;
 	color: #646970;
 	padding: 24px;
+}
+
+/* Theme details modal — WordPress admin-style */
+.theme-modal {
+	position: fixed;
+	inset: 0;
+	z-index: 1000;
+	display: flex;
+	align-items: flex-start;
+	justify-content: center;
+	padding: 40px 20px;
+	overflow: auto;
+}
+
+.theme-modal[hidden] {
+	display: none;
+}
+
+.theme-modal-backdrop {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.55);
+}
+
+.theme-modal-dialog {
+	position: relative;
+	z-index: 1;
+	width: min(920px, 100%);
+	max-height: calc(100vh - 80px);
+	display: flex;
+	flex-direction: column;
+	background: #ffffff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22);
+	outline: none;
+}
+
+.theme-modal-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 14px 18px;
+	border-bottom: 1px solid #dcdcde;
+	background: #f0f0f1;
+	flex-shrink: 0;
+}
+
+.theme-modal-title {
+	margin: 0;
+	font-size: 16px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.theme-modal-close {
+	width: 32px;
+	height: 32px;
+	border: 1px solid #c3c4c7;
+	border-radius: 3px;
+	background: #ffffff;
+	color: #1d2327;
+	font-size: 22px;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.theme-modal-close:hover {
+	background: #f0f0f1;
+	border-color: #8c8f94;
+}
+
+.theme-modal-body {
+	padding: 18px;
+	overflow: auto;
+}
+
+.theme-modal-hero {
+	display: grid;
+	grid-template-columns: 180px 1fr;
+	gap: 18px;
+	margin-bottom: 18px;
+}
+
+@media (max-width: 640px) {
+	.theme-modal-hero {
+		grid-template-columns: 1fr;
+	}
+}
+
+.theme-modal-shot {
+	width: 180px;
+	max-width: 100%;
+	aspect-ratio: 4 / 3;
+	object-fit: cover;
+	border: 1px solid #dcdcde;
+	border-radius: 3px;
+	background: #f6f7f7;
+}
+
+.theme-modal-shot-empty {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 180px;
+	max-width: 100%;
+	aspect-ratio: 4 / 3;
+	border: 1px dashed #c3c4c7;
+	border-radius: 3px;
+	background: #f6f7f7;
+	color: #646970;
+	font-size: 12px;
+}
+
+.theme-modal-hero-main h3 {
+	margin: 0 0 6px;
+	font-size: 20px;
+	color: #1d2327;
+}
+
+.theme-modal-img {
+	display: block;
+	max-height: 50px;
+	width: auto;
+	height: auto;
+	border: 1px solid #dcdcde;
+	border-radius: 3px;
+	background: #f6f7f7;
+}
+
+.theme-modal-stats {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+	gap: 10px;
+	margin-bottom: 18px;
+}
+
+.theme-modal-stat {
+	padding: 10px 12px;
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 3px;
+}
+
+.theme-modal-stat-label {
+	display: block;
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: 0.4px;
+	color: #646970;
+	margin-bottom: 2px;
+}
+
+.theme-modal-stat-value {
+	display: block;
+	font-size: 16px;
+	font-weight: 600;
+	color: #2271b1;
+	font-variant-numeric: tabular-nums;
+}
+
+.theme-modal-meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 10px;
+	margin-bottom: 10px;
+	font-size: 13px;
+	color: #646970;
+}
+
+.theme-modal-badges {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin-bottom: 12px;
+}
+
+.theme-modal-badge {
+	display: inline-flex;
+	align-items: center;
+	padding: 2px 8px;
+	border-radius: 3px;
+	background: #f0f0f1;
+	border: 1px solid #dcdcde;
+	font-size: 12px;
+	font-weight: 500;
+	color: #1d2327;
+}
+
+.theme-modal-badge.is-on {
+	background: #e5f2ff;
+	border-color: #c5d9ed;
+	color: #135e96;
+}
+
+.theme-modal-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.theme-modal-actions a,
+.theme-modal-actions .control-btn {
+	text-decoration: none;
+}
+
+.theme-modal-section {
+	margin-bottom: 18px;
+}
+
+.theme-modal-section:last-child {
+	margin-bottom: 0;
+}
+
+.theme-modal-section-title {
+	margin: 0 0 8px;
+	font-size: 13px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.4px;
+	color: #646970;
+}
+
+.theme-modal-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 13px;
+}
+
+.theme-modal-table th,
+.theme-modal-table td {
+	padding: 8px 10px;
+	border-bottom: 1px solid #dcdcde;
+	vertical-align: top;
+	text-align: left;
+}
+
+.theme-modal-table tr:last-child th,
+.theme-modal-table tr:last-child td {
+	border-bottom: none;
+}
+
+.theme-modal-table th {
+	width: 160px;
+	color: #646970;
+	font-weight: 600;
+	background: #f6f7f7;
+	white-space: nowrap;
+}
+
+.theme-modal-table td {
+	color: #1d2327;
+	overflow-wrap: anywhere;
+}
+
+.theme-modal-table tr:nth-child(even) td {
+	background: #fbfbfb;
+}
+
+.theme-modal-description {
+	margin: 0;
+	font-size: 13px;
+	line-height: 1.55;
+	color: #1d2327;
+	white-space: pre-wrap;
+}
+
+.theme-modal-tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.theme-modal-tag {
+	display: inline-flex;
+	padding: 2px 8px;
+	border-radius: 3px;
+	background: #ffffff;
+	border: 1px solid #c3c4c7;
+	font-size: 12px;
+	color: #1d2327;
+}
+
+.theme-modal-ratings {
+	display: grid;
+	gap: 6px;
+}
+
+.theme-modal-rating-row {
+	display: grid;
+	grid-template-columns: 28px 1fr 48px;
+	gap: 8px;
+	align-items: center;
+	font-size: 12px;
+	color: #646970;
+}
+
+.theme-modal-rating-bar {
+	height: 8px;
+	background: #f0f0f1;
+	border-radius: 999px;
+	overflow: hidden;
+}
+
+.theme-modal-rating-fill {
+	height: 100%;
+	background: #2271b1;
+}
+
+.theme-modal-muted {
+	color: #646970;
+}
+
+.theme-modal-children-list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	display: grid;
+	gap: 4px;
+}
+
+.theme-modal-children-list li {
+	line-height: 1.4;
+}
+
+.theme-modal-child-installs {
+	color: #2271b1;
+	font-variant-numeric: tabular-nums;
+	font-weight: 500;
+	white-space: nowrap;
+}
+
+.theme-modal-children-total {
+	margin-top: 8px;
+	padding-top: 8px;
+	border-top: 1px solid #dcdcde;
+	font-size: 13px;
+	color: #1d2327;
+}
+
+.theme-modal-children-total strong {
+	color: #2271b1;
+	font-variant-numeric: tabular-nums;
+}
+
+body.theme-modal-open {
+	overflow: hidden;
 }
