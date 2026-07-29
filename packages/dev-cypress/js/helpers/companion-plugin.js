@@ -997,3 +997,51 @@ export function assertDuplicateSizeVariationOpensCompanionModal(styleSlug) {
 		'not.exist'
 	);
 }
+
+/**
+ * Click add on the global styles custom color preset repeater.
+ */
+export function clickAddCustomColorPreset() {
+	cy.getParentContainer('Custom variables').within(() => {
+		cy.getByDataTest('global-styles-preset-add-color-presets-custom').click(
+			{
+				force: true,
+			}
+		);
+	});
+}
+
+/**
+ * Assert adding a custom color preset opens the companion install modal (theme mode).
+ */
+export function assertAddCustomColorPresetOpensCompanionModal() {
+	clickAddCustomColorPreset();
+	assertCompanionInstallModalVisible();
+	cy.get('.blockera-component-upgrade-prompt').should('not.exist');
+	cy.getByDataTest('global-styles-preset-name-field').should('not.exist');
+}
+
+/**
+ * Click clone on a custom color preset repeater row.
+ *
+ * @param {number} [index=0] Repeater row index.
+ */
+export function clickDuplicateCustomColorPreset(index = 0) {
+	cy.getParentContainer('Custom variables').within(() => {
+		cy.get('[data-cy="repeater-item"]')
+			.eq(index)
+			.trigger('mouseover', { force: true });
+		cy.get('[class*="btn-clone"]').first().click({ force: true });
+	});
+}
+
+/**
+ * Assert duplicating a custom color preset opens the companion install modal.
+ *
+ * @param {number} [index=0] Repeater row index.
+ */
+export function assertDuplicateCustomColorPresetOpensCompanionModal(index = 0) {
+	clickDuplicateCustomColorPreset(index);
+	assertCompanionInstallModalVisible();
+	cy.get('.blockera-component-upgrade-prompt').should('not.exist');
+}
