@@ -284,6 +284,7 @@ $script_ver     = (string) filemtime(__DIR__ . '/script.js');
 				<div class="control-group dropdown-group">
 					<button type="button" class="control-btn" id="tags-toggle" aria-expanded="false" aria-controls="tags-panel">
 						Tags
+						<span class="filter-count-badge" id="tags-count-badge" hidden aria-hidden="true"></span>
 					</button>
 					<div class="dropdown-panel" id="tags-panel" hidden>
 						<div class="dropdown-actions">
@@ -296,6 +297,7 @@ $script_ver     = (string) filemtime(__DIR__ . '/script.js');
 				<div class="control-group dropdown-group">
 					<button type="button" class="control-btn" id="columns-toggle" aria-expanded="false" aria-controls="columns-panel">
 						Columns
+						<span class="filter-count-badge" id="columns-count-badge" hidden aria-hidden="true"></span>
 					</button>
 					<div class="dropdown-panel" id="columns-panel" hidden>
 						<div class="dropdown-actions">
