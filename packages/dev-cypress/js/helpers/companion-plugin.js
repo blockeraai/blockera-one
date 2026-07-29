@@ -672,3 +672,92 @@ export function waitForCompanionInstallToFinish() {
 		timeout: 20000,
 	}).should('not.exist');
 }
+
+export const BUTTON_BLOCK_FOR_ICON_CONTROL = `<!-- wp:buttons -->
+<div class="wp-block-buttons"><!-- wp:button -->
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button">Test btn 1</a></div>
+<!-- /wp:button --></div>
+<!-- /wp:buttons -->`;
+
+/**
+ * Open Blockera icon settings for the selected core/button block.
+ */
+export function openButtonBlockIconSettings() {
+	cy.getBlock('core/button').click();
+	cy.getByAriaControls('settings-view').click();
+}
+
+/**
+ * Open the icon picker on the custom SVG tab.
+ */
+export function openIconPickerCustomTab() {
+	cy.getByDataCy('upload-svg-btn').first().click({ force: true });
+	cy.get('.blockera-control-icon-picker-custom-icon-tab').should(
+		'be.visible'
+	);
+}
+
+/**
+ * Assert custom SVG upload controls are gated in theme mode.
+ */
+export function assertCustomIconUploadCompanionGateVisible() {
+	cy.get('.blockera-control-icon-picker-custom-icon-tab').within(() => {
+		cy.getByDataTest(FEATURE_WRAPPER_TEST_ID.root('companion')).should(
+			'have.length',
+			2
+		);
+		assertCompanionInstallNoticeVisible();
+		cy.get('.blockera-control-icon-picker-custom-icon-textarea').should(
+			'be.disabled'
+		);
+	});
+}
+
+/**
+ * Open the companion install modal from the custom icon tab gate.
+ */
+export function openCompanionInstallModalFromCustomIconTab() {
+	cy.get('.blockera-control-icon-picker-custom-icon-dropzone-wrapper').within(
+		() => {
+			clickCompanionInstallNotice();
+		}
+	);
+
+	assertCompanionInstallModalVisible();
+}
+
+/**
+ * Dispatch a fixture SVG drop on a container (DropZone or modal root).
+ *
+ * @param {string} selector Cypress selector for the drop target container.
+ * @param {string} [fixture='home.svg'] Fixture filename in dev-cypress/js/fixtures.
+ */
+export function dropSvgFixtureOnElement(selector, fixture = 'home.svg') {
+	cy.get(selector)
+		.should('be.visible')
+		.then(($container) => {
+			const $dropZone = $container.find('.components-drop-zone');
+			const $target = $dropZone.length ? $dropZone.first() : $container;
+
+			cy.fixture(fixture, 'utf8').then((content) => {
+				cy.window().then((win) => {
+					const dataTransfer = new win.DataTransfer();
+					const file = new win.File([content], fixture, {
+						type: 'image/svg+xml',
+					});
+
+					dataTransfer.items.add(file);
+
+					['dragenter', 'dragover', 'drop'].forEach((type) => {
+						$target[0].dispatchEvent(
+							new win.DragEvent(type, {
+								bubbles: true,
+								cancelable: true,
+								dataTransfer,
+							})
+						);
+					});
+				});
+			});
+		});
+}
