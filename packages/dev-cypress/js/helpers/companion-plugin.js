@@ -2,10 +2,10 @@
  * Cypress helpers for blockera-one companion plugin identity in the theme.
  */
 
-import { goTo } from './site-navigation';
+import { goTo, openSiteEditor } from './site-navigation';
 // eslint-disable-next-line import/no-unresolved
 import { FEATURE_WRAPPER_TEST_ID } from 'blockera-controls-feature-wrapper-test-ids';
-import { assertBlockData } from './editor';
+import { assertBlockData, closeWelcomeGuide } from './editor';
 
 export { FEATURE_WRAPPER_TEST_ID };
 
@@ -760,4 +760,55 @@ export function dropSvgFixtureOnElement(selector, fixture = 'home.svg') {
 				});
 			});
 		});
+}
+
+/**
+ * Open global styles → style variations for a block type in the site editor.
+ *
+ * @param {string} [blockName='core/paragraph'] Block name (e.g. core/paragraph).
+ */
+export function openGlobalStylesBlockStyleVariations(
+	blockName = 'core/paragraph'
+) {
+	openSiteEditor();
+	cy.openGlobalStylesPanel();
+	closeWelcomeGuide();
+	cy.getByDataTest('block-style-variations', { timeout: 20000 }).click();
+	cy.get(`button[id="/blocks/${encodeURIComponent(blockName)}"]`, {
+		timeout: 20000,
+	})
+		.first()
+		.click();
+}
+
+/**
+ * Click an add style variation button in global styles.
+ *
+ * @param {number} [index=0] Zero-based index among add buttons on the screen.
+ */
+export function clickAddStyleVariationButton(index = 0) {
+	cy.getByDataTest('add-new-block-style-variation').eq(index).click();
+}
+
+/**
+ * Open the companion install modal by clicking add style variation.
+ *
+ * @param {number} [index=0] Zero-based index among add buttons on the screen.
+ */
+export function openCompanionInstallModalFromAddStyleVariation(index = 0) {
+	clickAddStyleVariationButton(index);
+	assertCompanionInstallModalVisible();
+}
+
+/**
+ * Assert clicking add style variation opens the companion install modal.
+ *
+ * @param {number} [index=0] Zero-based index among add buttons on the screen.
+ */
+export function assertAddStyleVariationOpensCompanionModal(index = 0) {
+	clickAddStyleVariationButton(index);
+	assertCompanionInstallModalVisible();
+	cy.contains('[role="dialog"]', 'Add new style variation').should(
+		'not.exist'
+	);
 }
