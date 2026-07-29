@@ -20,6 +20,7 @@ import { classNames, controlInnerClassNames } from '@blockera/classnames';
 import { AddNewStyleModal } from './add-new-style-modal';
 import { useBlockStylesPickerContext } from '../context';
 import { useUserCan } from '../../../../hooks/use-user-can';
+import { VARIATION_SURFACE_SIZE } from '../variation-surfaces';
 
 export const AddNewStyleButton = ({
 	label,
@@ -51,6 +52,10 @@ export const AddNewStyleButton = ({
 		'blockera.products.isCompanionPlugin',
 		false
 	);
+	const isSizeSurface = variationSurface === VARIATION_SURFACE_SIZE;
+	const addVariationTestId = isSizeSurface
+		? 'add-new-block-size-variation'
+		: 'add-new-block-style-variation';
 
 	const handleAddClick = () => {
 		if (!isCompanionPlugin) {
@@ -95,7 +100,7 @@ export const AddNewStyleButton = ({
 									gap: '2px',
 								}
 					}
-					data-test={'add-new-block-style-variation'}
+					data-test={addVariationTestId}
 				>
 					<Icon icon="plus" iconSize="20" />
 
