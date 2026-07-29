@@ -343,6 +343,25 @@ $script_ver     = (string) filemtime(__DIR__ . '/script.js');
 		</section>
 	</div>
 
+	<div class="theme-modal" id="theme-modal" hidden>
+		<div class="theme-modal-backdrop" data-theme-modal-close></div>
+		<div
+			class="theme-modal-dialog"
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="theme-modal-title"
+			tabindex="-1"
+		>
+			<div class="theme-modal-header">
+				<h2 class="theme-modal-title" id="theme-modal-title">Theme details</h2>
+				<button type="button" class="theme-modal-close" id="theme-modal-close" aria-label="Close" data-theme-modal-close>
+					×
+				</button>
+			</div>
+			<div class="theme-modal-body" id="theme-modal-body"></div>
+		</div>
+	</div>
+
 	<script>
 		const bootstrapThemes = <?php echo $themes_json ? $themes_json : '[]'; ?>;
 		const bootstrapCachedAt = <?php echo $cached_at_json ? $cached_at_json : 'null'; ?>;
