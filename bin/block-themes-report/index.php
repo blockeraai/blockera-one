@@ -271,6 +271,16 @@ $script_ver     = (string) filemtime(__DIR__ . '/script.js');
 					<input type="number" id="min-installs-input" class="control-input control-input-num" min="0" step="1" placeholder="0" inputmode="numeric">
 				</div>
 
+				<div class="control-group">
+					<label class="control-label" for="created-after-input">Created after</label>
+					<input type="date" id="created-after-input" class="control-input control-input-date">
+				</div>
+
+				<div class="control-group">
+					<label class="control-label" for="updated-after-input">Updated after</label>
+					<input type="date" id="updated-after-input" class="control-input control-input-date">
+				</div>
+
 				<div class="control-group dropdown-group">
 					<button type="button" class="control-btn" id="tags-toggle" aria-expanded="false" aria-controls="tags-panel">
 						Tags

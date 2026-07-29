@@ -143,6 +143,11 @@ body {
 	width: 110px;
 }
 
+.control-input-date {
+	min-width: 0;
+	width: 150px;
+}
+
 .control-input:focus {
 	outline: none;
 	border-color: #2271b1;

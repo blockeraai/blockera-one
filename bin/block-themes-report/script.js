@@ -366,6 +366,8 @@
 		statCached: document.getElementById('stat-cached'),
 		searchInput: document.getElementById('search-input'),
 		minInstallsInput: document.getElementById('min-installs-input'),
+		createdAfterInput: document.getElementById('created-after-input'),
+		updatedAfterInput: document.getElementById('updated-after-input'),
 		tagsToggle: document.getElementById('tags-toggle'),
 		tagsPanel: document.getElementById('tags-panel'),
 		tagsList: document.getElementById('tags-list'),
@@ -396,6 +398,8 @@
 	const selectedTags = new Set();
 	let searchQuery = '';
 	let minActiveInstalls = 0;
+	let createdAfter = '';
+	let updatedAfter = '';
 	const visibleColumns = loadVisibleColumns();
 	const themeSort = { key: 'active_installs', dir: 'desc' };
 	const authorSort = { key: 'theme_count', dir: 'desc' };
@@ -652,16 +656,42 @@
 		return n;
 	}
 
+	/** Normalize date-input value to YYYY-MM-DD, or '' when empty/invalid. */
+	function parseDateFilter(raw) {
+		const str = String(raw == null ? '' : raw).trim();
+		if (!/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+			return '';
+		}
+		return str;
+	}
+
 	function getFilteredThemes() {
 		const q = searchQuery.trim().toLowerCase();
 		const tagList = Array.from(selectedTags);
 		const minInstalls = minActiveInstalls;
+		const createdMin = createdAfter;
+		const updatedMin = updatedAfter;
 
 		const out = [];
 		for (let i = 0; i < themes.length; i++) {
 			const theme = themes[i];
 
 			if (minInstalls > 0 && (theme.active_installs || 0) < minInstalls) {
+				continue;
+			}
+
+			// Dates are YYYY-MM-DD — lexicographic compare matches chronological order.
+			if (
+				createdMin &&
+				(!theme.creation_time || theme.creation_time < createdMin)
+			) {
+				continue;
+			}
+
+			if (
+				updatedMin &&
+				(!theme.last_updated || theme.last_updated < updatedMin)
+			) {
 				continue;
 			}
 
@@ -1235,7 +1265,7 @@
 			return;
 		}
 
-		// Parent may be hidden by search/tags/min installs — clear filters and try again.
+		// Parent may be hidden by active filters — clear them and try again.
 		const parentTheme = findThemeBySlug(slug);
 		if (!parentTheme) {
 			return;
@@ -1245,6 +1275,10 @@
 		els.searchInput.value = '';
 		minActiveInstalls = 0;
 		els.minInstallsInput.value = '';
+		createdAfter = '';
+		els.createdAfterInput.value = '';
+		updatedAfter = '';
+		els.updatedAfterInput.value = '';
 		selectedTags.clear();
 		refreshTables(isFetching ? els.statProgress.textContent : '100%');
 		window.requestAnimationFrame(() => {
@@ -1839,6 +1873,16 @@
 			minActiveInstalls = parseMinActiveInstalls(
 				els.minInstallsInput.value
 			);
+			refreshTables(isFetching ? els.statProgress.textContent : '100%');
+		});
+
+		els.createdAfterInput.addEventListener('change', () => {
+			createdAfter = parseDateFilter(els.createdAfterInput.value);
+			refreshTables(isFetching ? els.statProgress.textContent : '100%');
+		});
+
+		els.updatedAfterInput.addEventListener('change', () => {
+			updatedAfter = parseDateFilter(els.updatedAfterInput.value);
 			refreshTables(isFetching ? els.statProgress.textContent : '100%');
 		});
 
