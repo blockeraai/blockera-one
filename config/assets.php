@@ -51,6 +51,7 @@ return [
 			'telemetry',
 			'bootstrap',
 			'wordpress',
+			'blockera-one',
 			'blockera-admin',
 			'controls-styles',
 			'wordpress-styles',
