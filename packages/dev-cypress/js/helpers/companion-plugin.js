@@ -853,6 +853,40 @@ export function assertAddSizeVariationOpensCompanionModal(index = 0) {
 }
 
 /**
+ * Assert every add size variation button opens the companion install modal.
+ *
+ * Companion modals render in a portal, so modal assertions must run outside
+ * `withinGlobalStylesSizeVariationsPanel`.
+ */
+export function assertEachAddSizeVariationButtonOpensCompanionModal() {
+	cy.get('.blockera-global-styles-panel-aside', { timeout: 20000 })
+		.should('be.visible')
+		.find('[data-test="add-new-block-size-variation"]')
+		.its('length')
+		.then((count) => {
+			const assertAtIndex = (index) => {
+				if (index >= count) {
+					return;
+				}
+
+				if (index > 0) {
+					closeCompanionInstallModal();
+				}
+
+				clickAddSizeVariationButton(index);
+				assertCompanionInstallModalVisible();
+				cy.contains('[role="dialog"]', 'Add new size variation').should(
+					'not.exist'
+				);
+
+				assertAtIndex(index + 1);
+			};
+
+			assertAtIndex(0);
+		});
+}
+
+/**
  * Click an add style variation button in global styles.
  *
  * @param {number} [index=0] Zero-based index among add buttons on the screen.
@@ -882,6 +916,36 @@ export function assertAddStyleVariationOpensCompanionModal(index = 0) {
 	cy.contains('[role="dialog"]', 'Add new style variation').should(
 		'not.exist'
 	);
+}
+
+/**
+ * Assert every add style variation button opens the companion install modal.
+ */
+export function assertEachAddStyleVariationButtonOpensCompanionModal() {
+	cy.getByDataTest('add-new-block-style-variation')
+		.its('length')
+		.then((count) => {
+			const assertAtIndex = (index) => {
+				if (index >= count) {
+					return;
+				}
+
+				if (index > 0) {
+					closeCompanionInstallModal();
+				}
+
+				clickAddStyleVariationButton(index);
+				assertCompanionInstallModalVisible();
+				cy.contains(
+					'[role="dialog"]',
+					'Add new style variation'
+				).should('not.exist');
+
+				assertAtIndex(index + 1);
+			};
+
+			assertAtIndex(0);
+		});
 }
 
 /**

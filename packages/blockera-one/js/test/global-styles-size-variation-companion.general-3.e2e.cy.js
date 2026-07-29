@@ -2,11 +2,10 @@ import {
 	assertCompanionPluginFilter,
 	assertBlockeraOneCompanionFilterRegistered,
 	assertAddSizeVariationOpensCompanionModal,
-	assertCompanionInstallModalVisible,
+	assertEachAddSizeVariationButtonOpensCompanionModal,
 	openGlobalStylesBlockSizeVariations,
 	openCompanionInstallModalFromAddSizeVariation,
 	closeCompanionInstallModal,
-	withinGlobalStylesSizeVariationsPanel,
 } from '@blockera/dev-cypress/js/helpers';
 
 describe('Blockera One → global styles add size variation companion gate', () => {
@@ -29,21 +28,6 @@ describe('Blockera One → global styles add size variation companion gate', () 
 	});
 
 	it('opens the companion modal from each add size variation button', () => {
-		withinGlobalStylesSizeVariationsPanel(() => {
-			cy.getByDataTest('add-new-block-size-variation').each(
-				($button, index) => {
-					if (index > 0) {
-						closeCompanionInstallModal();
-					}
-
-					cy.wrap($button).click();
-					assertCompanionInstallModalVisible();
-					cy.contains(
-						'[role="dialog"]',
-						'Add new size variation'
-					).should('not.exist');
-				}
-			);
-		});
+		assertEachAddSizeVariationButtonOpensCompanionModal();
 	});
 });

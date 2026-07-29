@@ -2,7 +2,7 @@ import {
 	assertCompanionPluginFilter,
 	assertBlockeraOneCompanionFilterRegistered,
 	assertAddStyleVariationOpensCompanionModal,
-	assertCompanionInstallModalVisible,
+	assertEachAddStyleVariationButtonOpensCompanionModal,
 	openGlobalStylesBlockStyleVariations,
 	openCompanionInstallModalFromAddStyleVariation,
 	closeCompanionInstallModal,
@@ -28,19 +28,6 @@ describe('Blockera One → global styles add style variation companion gate', ()
 	});
 
 	it('opens the companion modal from each add style variation button', () => {
-		cy.getByDataTest('add-new-block-style-variation').each(
-			($button, index) => {
-				if (index > 0) {
-					closeCompanionInstallModal();
-				}
-
-				cy.wrap($button).click();
-				assertCompanionInstallModalVisible();
-				cy.contains(
-					'[role="dialog"]',
-					'Add new style variation'
-				).should('not.exist');
-			}
-		);
+		assertEachAddStyleVariationButtonOpensCompanionModal();
 	});
 });
