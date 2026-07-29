@@ -369,10 +369,12 @@
 		createdAfterInput: document.getElementById('created-after-input'),
 		updatedAfterInput: document.getElementById('updated-after-input'),
 		tagsToggle: document.getElementById('tags-toggle'),
+		tagsCountBadge: document.getElementById('tags-count-badge'),
 		tagsPanel: document.getElementById('tags-panel'),
 		tagsList: document.getElementById('tags-list'),
 		tagsClear: document.getElementById('tags-clear'),
 		columnsToggle: document.getElementById('columns-toggle'),
+		columnsCountBadge: document.getElementById('columns-count-badge'),
 		columnsPanel: document.getElementById('columns-panel'),
 		columnsList: document.getElementById('columns-list'),
 		columnsReset: document.getElementById('columns-reset'),
@@ -1414,6 +1416,51 @@
 		childCountByParent = counts;
 	}
 
+	function updateFilterCountBadge(badge, button, count, label) {
+		if (!badge || !button) {
+			return;
+		}
+		if (count > 0) {
+			badge.textContent = String(count);
+			badge.hidden = false;
+			badge.setAttribute('aria-hidden', 'false');
+			button.setAttribute('aria-label', label + ', ' + count + ' active');
+		} else {
+			badge.textContent = '';
+			badge.hidden = true;
+			badge.setAttribute('aria-hidden', 'true');
+			button.removeAttribute('aria-label');
+		}
+	}
+
+	function updateTagsFilterBadge() {
+		updateFilterCountBadge(
+			els.tagsCountBadge,
+			els.tagsToggle,
+			selectedTags.size,
+			'Tags'
+		);
+	}
+
+	function countActiveColumns() {
+		let count = 0;
+		for (let i = 0; i < THEME_COLUMNS.length; i++) {
+			if (visibleColumns[THEME_COLUMNS[i].id]) {
+				count += 1;
+			}
+		}
+		return count;
+	}
+
+	function updateColumnsFilterBadge() {
+		updateFilterCountBadge(
+			els.columnsCountBadge,
+			els.columnsToggle,
+			countActiveColumns(),
+			'Columns'
+		);
+	}
+
 	function refreshTables(progressLabel) {
 		rebuildChildCountByParent();
 		const filtered = getFilteredThemes();
@@ -1422,6 +1469,8 @@
 		renderAuthorsTable(authors);
 		updateHeaderStats(filtered, authors, progressLabel);
 		refreshTagsList();
+		updateTagsFilterBadge();
+		updateColumnsFilterBadge();
 		syncStickyHeaderOffset();
 	}
 
