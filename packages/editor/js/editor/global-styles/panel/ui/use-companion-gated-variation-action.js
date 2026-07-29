@@ -18,6 +18,7 @@ import { CompanionPluginModal } from '@blockera/controls';
 export function useCompanionGatedVariationAction(): {
 	gateVariationAction: (onAllowed: () => void) => void,
 	companionInstallModal: MixedElement | null,
+	isCompanionModalOpen: boolean,
 } {
 	const [isCompanionModalOpen, setIsCompanionModalOpen] = useState(false);
 	const isCompanionPlugin = applyFilters(
@@ -47,5 +48,6 @@ export function useCompanionGatedVariationAction(): {
 	return {
 		gateVariationAction,
 		companionInstallModal,
+		isCompanionModalOpen,
 	};
 }
