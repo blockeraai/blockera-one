@@ -3,6 +3,7 @@ import {
 	getArialLabelSuffix,
 	isClickInsideOpenInspectorRepeaterPopover,
 	isRepeaterPromoActive,
+	isRepeaterCompanionGateActive,
 	shouldApplyRepeaterItemNativeStyle,
 	shouldGateRepeaterItemHeaderForPromo,
 	shouldPreserveRepeaterPopoverForNestedOpen,
@@ -370,5 +371,61 @@ describe('repeater promo helpers', () => {
 				true
 			)
 		).toBe(true);
+	});
+});
+
+describe('repeater companion gate helpers', () => {
+	it('isRepeaterCompanionGateActive returns false when companion plugin is installed', () => {
+		expect(
+			isRepeaterCompanionGateActive(
+				{ 0: { isVisible: true }, 1: { isVisible: true } },
+				true
+			)
+		).toBe(false);
+	});
+
+	it('isRepeaterCompanionGateActive returns false for the first visible item without companion', () => {
+		expect(
+			isRepeaterCompanionGateActive({ 0: { isVisible: true } }, false)
+		).toBe(false);
+	});
+
+	it('isRepeaterCompanionGateActive returns false when repeater is empty without companion', () => {
+		expect(isRepeaterCompanionGateActive({}, false)).toBe(false);
+	});
+
+	it('isRepeaterCompanionGateActive returns true when gate-all is enabled without companion', () => {
+		expect(isRepeaterCompanionGateActive({}, false, true)).toBe(true);
+	});
+
+	it('isRepeaterCompanionGateActive returns false when gate-all is enabled with companion', () => {
+		expect(
+			isRepeaterCompanionGateActive(
+				{ 0: { isVisible: true } },
+				true,
+				true
+			)
+		).toBe(false);
+	});
+
+	it('isRepeaterCompanionGateActive returns true when adding a second item without companion', () => {
+		expect(
+			isRepeaterCompanionGateActive(
+				{ 0: { isVisible: true }, 1: { isVisible: true } },
+				false
+			)
+		).toBe(true);
+	});
+
+	it('isRepeaterCompanionGateActive ignores hidden items when counting', () => {
+		expect(
+			isRepeaterCompanionGateActive(
+				{
+					0: { isVisible: true },
+					1: { isVisible: false },
+				},
+				false
+			)
+		).toBe(false);
 	});
 });
