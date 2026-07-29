@@ -1045,3 +1045,52 @@ export function assertDuplicateCustomColorPresetOpensCompanionModal(index = 0) {
 	assertCompanionInstallModalVisible();
 	cy.get('.blockera-component-upgrade-prompt').should('not.exist');
 }
+
+/**
+ * Open a style variation row context menu and click Share with other blocks.
+ *
+ * @param {string} [styleSlug='section-1'] Style variation slug.
+ */
+export function clickShareStyleVariationWithOtherBlocksFromContextMenu(
+	styleSlug = 'section-1'
+) {
+	cy.getByDataTest(`open-${styleSlug}-contextmenu`)
+		.filter(':visible')
+		.first()
+		.click();
+	cy.get('.variations-settings-popover')
+		.filter(':visible')
+		.last()
+		.contains('button', 'Share with other blocks')
+		.click();
+}
+
+/**
+ * Open Share with other blocks and wait for the usage modal.
+ *
+ * @param {string} [styleSlug='section-1'] Style variation slug.
+ */
+export function openShareStyleVariationWithOtherBlocksModal(
+	styleSlug = 'section-1'
+) {
+	clickShareStyleVariationWithOtherBlocksFromContextMenu(styleSlug);
+	cy.getByDataTest('save-usage-for-multiple-blocks-button', {
+		timeout: 20000,
+	})
+		.first()
+		.should('be.visible');
+}
+
+/**
+ * Assert a gated action inside the share modal opens the companion install modal.
+ *
+ * @param {string} [styleSlug='section-1'] Style variation slug.
+ */
+export function assertShareStyleVariationModalActionOpensCompanionModal(
+	styleSlug = 'section-1'
+) {
+	openShareStyleVariationWithOtherBlocksModal(styleSlug);
+	cy.getByDataTest('core/heading').first().click({ force: true });
+	assertCompanionInstallModalVisible();
+	cy.getByDataTest('save-usage-for-multiple-blocks-button').should('exist');
+}
