@@ -384,10 +384,10 @@ describe('repeater companion gate helpers', () => {
 		).toBe(false);
 	});
 
-	it('isRepeaterCompanionGateActive returns false for the first visible item without companion', () => {
+	it('isRepeaterCompanionGateActive returns true when one visible item exists without companion', () => {
 		expect(
 			isRepeaterCompanionGateActive({ 0: { isVisible: true } }, false)
-		).toBe(false);
+		).toBe(true);
 	});
 
 	it('isRepeaterCompanionGateActive returns false when repeater is empty without companion', () => {
@@ -417,11 +417,21 @@ describe('repeater companion gate helpers', () => {
 		).toBe(true);
 	});
 
-	it('isRepeaterCompanionGateActive ignores hidden items when counting', () => {
+	it('isRepeaterCompanionGateActive ignores hidden items when counting visible items', () => {
 		expect(
 			isRepeaterCompanionGateActive(
 				{
 					0: { isVisible: true },
+					1: { isVisible: false },
+				},
+				false
+			)
+		).toBe(true);
+
+		expect(
+			isRepeaterCompanionGateActive(
+				{
+					0: { isVisible: false },
 					1: { isVisible: false },
 				},
 				false
