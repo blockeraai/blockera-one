@@ -1,11 +1,12 @@
 import {
 	assertCompanionPluginFilter,
 	assertBlockeraOneCompanionFilterRegistered,
+	assertCompanionInstallModalVisible,
 	assertShareStyleVariationModalActionOpensCompanionModal,
+	openGlobalStylesBlockStyleVariations,
 	openShareStyleVariationWithOtherBlocksModal,
 	closeCompanionInstallModal,
 } from '@blockera/dev-cypress/js/helpers';
-import { openGlobalStylesBlockStyleVariations } from '@blockera/dev-cypress/js/helpers';
 
 describe('Blockera One → global styles share variation companion gate', () => {
 	beforeEach(() => {
