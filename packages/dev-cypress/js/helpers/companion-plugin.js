@@ -782,6 +782,73 @@ export function openGlobalStylesBlockStyleVariations(
 }
 
 /**
+ * Open global styles → size variations for a block type in the site editor.
+ *
+ * Requires a block with `hasSizeVariations` (e.g. core/button).
+ *
+ * @param {string} [blockName='core/button'] Block name.
+ */
+export function openGlobalStylesBlockSizeVariations(blockName = 'core/button') {
+	openSiteEditor();
+	cy.openGlobalStylesPanel();
+	closeWelcomeGuide();
+	cy.getByDataTest('block-style-variations', { timeout: 20000 }).click();
+	cy.get(`button[id="/blocks/${encodeURIComponent(blockName)}"]`, {
+		timeout: 20000,
+	})
+		.first()
+		.click({ force: true });
+	cy.get('.blockera-global-styles-panel-aside', { timeout: 20000 }).should(
+		'be.visible'
+	);
+}
+
+/**
+ * Scope Cypress commands to the global styles size-variations aside.
+ *
+ * @param {Function} callback Cypress chain callback.
+ */
+export function withinGlobalStylesSizeVariationsPanel(callback) {
+	cy.get('.blockera-global-styles-panel-aside', { timeout: 20000 })
+		.should('be.visible')
+		.within(callback);
+}
+
+/**
+ * Click an add size variation button in global styles.
+ *
+ * @param {number} [index=0] Zero-based index among size add buttons.
+ */
+export function clickAddSizeVariationButton(index = 0) {
+	withinGlobalStylesSizeVariationsPanel(() => {
+		cy.getByDataTest('add-new-block-size-variation').eq(index).click();
+	});
+}
+
+/**
+ * Open the companion install modal by clicking add size variation.
+ *
+ * @param {number} [index=0] Zero-based index among size add buttons.
+ */
+export function openCompanionInstallModalFromAddSizeVariation(index = 0) {
+	clickAddSizeVariationButton(index);
+	assertCompanionInstallModalVisible();
+}
+
+/**
+ * Assert clicking add size variation opens the companion install modal.
+ *
+ * @param {number} [index=0] Zero-based index among size add buttons.
+ */
+export function assertAddSizeVariationOpensCompanionModal(index = 0) {
+	clickAddSizeVariationButton(index);
+	assertCompanionInstallModalVisible();
+	cy.contains('[role="dialog"]', 'Add new size variation').should(
+		'not.exist'
+	);
+}
+
+/**
  * Click an add style variation button in global styles.
  *
  * @param {number} [index=0] Zero-based index among add buttons on the screen.
