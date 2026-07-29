@@ -42,9 +42,10 @@ describe('Blockera One → icon control custom SVG companion gate', () => {
 
 		dropSvgFixtureOnElement('.blockera-control-icon-picker-modal');
 		assertCompanionInstallModalVisible();
-
-		cy.get('.blockera-control-icon-picker-modal').should('be.visible');
 		closeCompanionInstallModal();
+
+		// Companion modal covers the picker while open; assert picker survives after close.
+		cy.get('.blockera-control-icon-picker-modal').should('be.visible');
 	});
 
 	it('opens the companion install modal when an SVG is dropped on the icon preview', () => {
