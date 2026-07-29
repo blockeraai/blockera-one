@@ -5,7 +5,11 @@
 import { goTo, openSiteEditor } from './site-navigation';
 // eslint-disable-next-line import/no-unresolved
 import { FEATURE_WRAPPER_TEST_ID } from 'blockera-controls-feature-wrapper-test-ids';
-import { assertBlockData, closeWelcomeGuide } from './editor';
+import {
+	assertBlockData,
+	closeWelcomeGuide,
+	openSettingsPanel,
+} from './editor';
 
 export { FEATURE_WRAPPER_TEST_ID };
 
@@ -878,4 +882,46 @@ export function assertAddStyleVariationOpensCompanionModal(index = 0) {
 	cy.contains('[role="dialog"]', 'Add new style variation').should(
 		'not.exist'
 	);
+}
+
+/**
+ * Open the Custom CSS extension panel for the selected block.
+ */
+export function openCustomCssSettingsPanel() {
+	openSettingsPanel('Custom CSS');
+	cy.getParentContainer('Custom CSS Code').scrollIntoView({
+		offset: { top: -300 },
+		duration: 0,
+	});
+}
+
+/**
+ * Locate the companion FeatureWrapper on the Custom CSS Code control.
+ */
+export function getCustomCssCompanionWrapper() {
+	return cy
+		.getParentContainer('Custom CSS Code')
+		.parents(COMPANION_EDITOR_WRAPPER_SELECTOR)
+		.first();
+}
+
+/**
+ * Assert Custom CSS controls are gated in theme mode.
+ */
+export function assertCustomCssCompanionGateVisible() {
+	getCustomCssCompanionWrapper().within(() => {
+		assertCompanionInstallNoticeVisible();
+		cy.get('.monaco-editor').should('have.css', 'pointer-events', 'none');
+	});
+}
+
+/**
+ * Open the companion install modal from the Custom CSS gate.
+ */
+export function openCompanionInstallModalFromCustomCss() {
+	getCustomCssCompanionWrapper().within(() => {
+		clickCompanionInstallNotice();
+	});
+
+	assertCompanionInstallModalVisible();
 }
