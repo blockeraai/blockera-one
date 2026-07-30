@@ -788,9 +788,32 @@ $script_ver            = (string) filemtime(__DIR__ . '/script.js');
 					</div>
 				</div>
 
-				<button type="button" class="control-btn danger" id="clear-themes-cache-btn">Clear Themes</button>
-				<button type="button" class="control-btn danger" id="clear-patterns-cache-btn">Clear Patterns</button>
-				<button type="button" class="control-btn danger" id="clear-reviews-cache-btn">Clear Reviews</button>
+				<div class="control-group dropdown-group">
+					<button
+						type="button"
+						class="control-btn cache-menu-toggle"
+						id="cache-menu-toggle"
+						aria-expanded="false"
+						aria-controls="cache-menu-panel"
+						aria-label="Cache actions"
+						title="Cache actions"
+					>
+						<span class="cache-menu-dots" aria-hidden="true">
+							<span></span><span></span><span></span>
+						</span>
+					</button>
+					<div class="dropdown-panel cache-menu-panel" id="cache-menu-panel" hidden>
+						<button type="button" class="cache-menu-item danger" id="clear-themes-cache-btn">
+							Clear Themes
+						</button>
+						<button type="button" class="cache-menu-item danger" id="clear-patterns-cache-btn">
+							Clear Patterns
+						</button>
+						<button type="button" class="cache-menu-item danger" id="clear-reviews-cache-btn">
+							Clear Reviews
+						</button>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
