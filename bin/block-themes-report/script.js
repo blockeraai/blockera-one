@@ -444,6 +444,212 @@
 	const visibleColumns = loadVisibleColumns();
 	const themeSort = { key: 'active_installs', dir: 'desc' };
 	const authorSort = { key: 'theme_count', dir: 'desc' };
+	const THEME_SORT_KEYS = new Set(
+		THEME_COLUMNS.filter((col) => col.sortable && col.sortKey).map(
+			(col) => col.sortKey
+		)
+	);
+	const AUTHOR_SORT_KEYS = new Set(
+		AUTHOR_COLUMNS.filter((col) => col.sortable && col.sortKey).map(
+			(col) => col.sortKey
+		)
+	);
+	let syncingFromUrl = false;
+	let urlPushTimer = null;
+
+	function getDefaultVisibleColumnIds() {
+		const ids = [];
+		for (let i = 0; i < THEME_COLUMNS.length; i++) {
+			if (THEME_COLUMNS[i].defaultVisible) {
+				ids.push(THEME_COLUMNS[i].id);
+			}
+		}
+		return ids;
+	}
+
+	function getVisibleColumnIds() {
+		const ids = [];
+		for (let i = 0; i < THEME_COLUMNS.length; i++) {
+			if (visibleColumns[THEME_COLUMNS[i].id]) {
+				ids.push(THEME_COLUMNS[i].id);
+			}
+		}
+		return ids;
+	}
+
+	function columnsMatchDefaults(ids) {
+		const defaults = getDefaultVisibleColumnIds();
+		if (ids.length !== defaults.length) {
+			return false;
+		}
+		const set = new Set(ids);
+		for (let i = 0; i < defaults.length; i++) {
+			if (!set.has(defaults[i])) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	function buildFilterSearchParams() {
+		const params = new URLSearchParams();
+		const q = String(searchQuery || '').trim();
+		if (q) {
+			params.set('q', q);
+		}
+		if (minActiveInstalls > 0) {
+			params.set('min', String(minActiveInstalls));
+		}
+		if (createdAfter) {
+			params.set('created', createdAfter);
+		}
+		if (updatedAfter) {
+			params.set('updated', updatedAfter);
+		}
+		if (selectedTags.size) {
+			params.set('tags', Array.from(selectedTags).sort().join(','));
+		}
+		if (themeSort.key !== 'active_installs') {
+			params.set('sort', themeSort.key);
+		}
+		if (themeSort.dir !== 'desc') {
+			params.set('dir', themeSort.dir);
+		}
+		if (authorSort.key !== 'theme_count') {
+			params.set('asort', authorSort.key);
+		}
+		if (authorSort.dir !== 'desc') {
+			params.set('adir', authorSort.dir);
+		}
+		const colIds = getVisibleColumnIds();
+		if (!columnsMatchDefaults(colIds)) {
+			params.set('cols', colIds.join(','));
+		}
+		return params;
+	}
+
+	function pushFilterStateToUrl() {
+		if (syncingFromUrl) {
+			return;
+		}
+		const params = buildFilterSearchParams();
+		const qs = params.toString();
+		const next =
+			window.location.pathname +
+			(qs ? '?' + qs : '') +
+			window.location.hash;
+		const current =
+			window.location.pathname +
+			window.location.search +
+			window.location.hash;
+		if (next === current) {
+			return;
+		}
+		window.history.pushState(null, '', next);
+	}
+
+	function schedulePushFilterStateToUrl() {
+		if (syncingFromUrl) {
+			return;
+		}
+		window.clearTimeout(urlPushTimer);
+		urlPushTimer = window.setTimeout(() => {
+			urlPushTimer = null;
+			pushFilterStateToUrl();
+		}, 300);
+	}
+
+	function applyVisibleColumnsFromIds(ids) {
+		const allowed = new Set(THEME_COLUMNS.map((col) => col.id));
+		THEME_COLUMNS.forEach((col) => {
+			visibleColumns[col.id] = false;
+		});
+		for (let i = 0; i < ids.length; i++) {
+			if (allowed.has(ids[i])) {
+				visibleColumns[ids[i]] = true;
+			}
+		}
+		saveVisibleColumns();
+	}
+
+	function syncFilterControlsFromState() {
+		if (els.searchInput) {
+			els.searchInput.value = searchQuery || '';
+		}
+		if (els.minInstallsInput) {
+			els.minInstallsInput.value =
+				minActiveInstalls > 0 ? String(minActiveInstalls) : '';
+		}
+		if (els.createdAfterInput) {
+			els.createdAfterInput.value = createdAfter || '';
+		}
+		if (els.updatedAfterInput) {
+			els.updatedAfterInput.value = updatedAfter || '';
+		}
+	}
+
+	function readFilterStateFromUrl() {
+		const params = new URLSearchParams(window.location.search);
+
+		searchQuery = params.has('q') ? String(params.get('q') || '') : '';
+		minActiveInstalls = params.has('min')
+			? parseMinActiveInstalls(params.get('min'))
+			: 0;
+		createdAfter = params.has('created')
+			? parseDateFilter(params.get('created'))
+			: '';
+		updatedAfter = params.has('updated')
+			? parseDateFilter(params.get('updated'))
+			: '';
+
+		selectedTags.clear();
+		if (params.has('tags')) {
+			const rawTags = String(params.get('tags') || '')
+				.split(',')
+				.map((t) => t.trim())
+				.filter(Boolean);
+			for (let i = 0; i < rawTags.length; i++) {
+				selectedTags.add(rawTags[i]);
+			}
+		}
+
+		const sort = params.get('sort');
+		themeSort.key =
+			sort && THEME_SORT_KEYS.has(sort) ? sort : 'active_installs';
+		const dir = String(params.get('dir') || '').toLowerCase();
+		themeSort.dir = dir === 'asc' || dir === 'desc' ? dir : 'desc';
+
+		const asort = params.get('asort');
+		authorSort.key =
+			asort && AUTHOR_SORT_KEYS.has(asort) ? asort : 'theme_count';
+		const adir = String(params.get('adir') || '').toLowerCase();
+		authorSort.dir = adir === 'asc' || adir === 'desc' ? adir : 'desc';
+
+		if (params.has('cols')) {
+			const colIds = String(params.get('cols') || '')
+				.split(',')
+				.map((id) => id.trim())
+				.filter(Boolean);
+			applyVisibleColumnsFromIds(colIds);
+		}
+
+		syncFilterControlsFromState();
+	}
+
+	function applyStateFromUrlAndRefresh() {
+		syncingFromUrl = true;
+		try {
+			readFilterStateFromUrl();
+			renderColumnsPicker();
+			refreshTables(
+				isFetching || isScrapingPatterns || isScrapingReviews
+					? els.statProgress.textContent
+					: '100%'
+			);
+		} finally {
+			syncingFromUrl = false;
+		}
+	}
 
 	function loadVisibleColumns() {
 		const defaults = {};
@@ -2030,6 +2236,7 @@
 		els.updatedAfterInput.value = '';
 		selectedTags.clear();
 		refreshTables(isFetching ? els.statProgress.textContent : '100%');
+		pushFilterStateToUrl();
 		window.requestAnimationFrame(() => {
 			revealAndScroll();
 		});
@@ -2292,6 +2499,7 @@
 				refreshTables(
 					isFetching ? els.statProgress.textContent : '100%'
 				);
+				pushFilterStateToUrl();
 			});
 			label.appendChild(input);
 			label.appendChild(
@@ -2319,6 +2527,7 @@
 				refreshTables(
 					isFetching ? els.statProgress.textContent : '100%'
 				);
+				pushFilterStateToUrl();
 			});
 			label.appendChild(input);
 			label.appendChild(document.createTextNode(' ' + col.label));
@@ -3076,6 +3285,7 @@
 		els.searchInput.addEventListener('input', () => {
 			searchQuery = els.searchInput.value || '';
 			refreshTables(isFetching ? els.statProgress.textContent : '100%');
+			schedulePushFilterStateToUrl();
 		});
 
 		els.minInstallsInput.addEventListener('input', () => {
@@ -3083,16 +3293,19 @@
 				els.minInstallsInput.value
 			);
 			refreshTables(isFetching ? els.statProgress.textContent : '100%');
+			schedulePushFilterStateToUrl();
 		});
 
 		els.createdAfterInput.addEventListener('change', () => {
 			createdAfter = parseDateFilter(els.createdAfterInput.value);
 			refreshTables(isFetching ? els.statProgress.textContent : '100%');
+			pushFilterStateToUrl();
 		});
 
 		els.updatedAfterInput.addEventListener('change', () => {
 			updatedAfter = parseDateFilter(els.updatedAfterInput.value);
 			refreshTables(isFetching ? els.statProgress.textContent : '100%');
+			pushFilterStateToUrl();
 		});
 
 		els.tagsToggle.addEventListener('click', (e) => {
@@ -3125,6 +3338,7 @@
 		els.tagsClear.addEventListener('click', () => {
 			selectedTags.clear();
 			refreshTables(isFetching ? els.statProgress.textContent : '100%');
+			pushFilterStateToUrl();
 		});
 
 		els.columnsReset.addEventListener('click', () => {
@@ -3134,6 +3348,7 @@
 			saveVisibleColumns();
 			renderColumnsPicker();
 			refreshTables(isFetching ? els.statProgress.textContent : '100%');
+			pushFilterStateToUrl();
 		});
 
 		async function clearThemesCache() {
@@ -3245,6 +3460,7 @@
 						: 'desc';
 			}
 			refreshTables(isFetching ? els.statProgress.textContent : '100%');
+			pushFilterStateToUrl();
 		});
 
 		els.authorsThead.addEventListener('click', (e) => {
@@ -3263,6 +3479,11 @@
 				authorSort.dir = key === 'name' ? 'asc' : 'desc';
 			}
 			refreshTables(isFetching ? els.statProgress.textContent : '100%');
+			pushFilterStateToUrl();
+		});
+
+		window.addEventListener('popstate', () => {
+			applyStateFromUrlAndRefresh();
 		});
 	}
 
@@ -3311,6 +3532,7 @@
 
 	function init() {
 		bindStickyHeaderOffset();
+		readFilterStateFromUrl();
 		bindEvents();
 		renderColumnsPicker();
 
