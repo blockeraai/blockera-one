@@ -257,6 +257,19 @@ body {
 	margin-bottom: 8px;
 }
 
+.filters-check {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 13px;
+	color: #1d2327;
+	cursor: pointer;
+}
+
+.filters-check input {
+	margin: 0;
+}
+
 .filters-field {
 	display: flex;
 	flex-direction: column;
