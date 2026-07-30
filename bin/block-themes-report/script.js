@@ -1,4 +1,4 @@
-/* global bootstrapThemes, bootstrapCachedAt, bootstrapPatternsBySlug, bootstrapPatternsCachedAt, bootstrapReviewsBySlug, bootstrapReviewsCachedAt */
+/* global bootstrapThemes, bootstrapCachedAt, bootstrapPatternsBySlug, bootstrapPatternsCachedAt, bootstrapReviewsBySlug, bootstrapReviewsCachedAt, bootstrapNotesBySlug */
 
 (function () {
 	'use strict';
@@ -440,6 +440,15 @@
 		typeof bootstrapReviewsCachedAt !== 'undefined'
 			? bootstrapReviewsCachedAt || null
 			: null;
+	let notesBySlug = Object.assign(
+		{},
+		typeof bootstrapNotesBySlug !== 'undefined' && bootstrapNotesBySlug
+			? bootstrapNotesBySlug
+			: {}
+	);
+	let notesSaveTimer = null;
+	let notesSavePending = false;
+	let notesSaveInFlight = false;
 	let isFetching = false;
 	let childCountByParent = new Map();
 	let fetchAbort = false;
@@ -767,6 +776,96 @@
 			return 'https:' + url;
 		}
 		return url;
+	}
+
+	/**
+	 * Return a usable external URL string, ignoring API booleans / empties.
+	 *
+	 * @param {*} url
+	 * @return {string}
+	 */
+	function usableExternalUrl(url) {
+		if (!url || url === true || url === false) {
+			return '';
+		}
+		const href = String(url).trim();
+		return href || '';
+	}
+
+	/**
+	 * Normalize a forge URL down to https://host/owner/repo.
+	 *
+	 * @param {string} href
+	 * @return {string}
+	 */
+	function normalizeForgeRepositoryUrl(href) {
+		const cleaned = String(href || '')
+			.trim()
+			.replace(/[)\].,;:'"”’]+$/g, '');
+		const match = cleaned.match(
+			/^https?:\/\/(?:www\.)?(github\.com|gitlab\.com|bitbucket\.org)\/([^/\s?#]+)\/([^/\s?#]+)/i
+		);
+		if (!match) {
+			return '';
+		}
+		const host = match[1].toLowerCase();
+		const owner = match[2];
+		const repo = match[3].replace(/\.git$/i, '');
+		if (!owner || !repo) {
+			return '';
+		}
+		return 'https://' + host + '/' + owner + '/' + repo;
+	}
+
+	/**
+	 * Some themes put the repo in the description but leave external_repository_url empty.
+	 *
+	 * @param {string} description
+	 * @return {string}
+	 */
+	function extractRepositoryUrlFromDescription(description) {
+		const text = String(description || '');
+		if (!text) {
+			return '';
+		}
+
+		// Prefer an explicitly labeled repository link when present.
+		const labeled = text.match(
+			/\[?\s*repository\s*\]?\s*[:\-]?\s*(https?:\/\/(?:www\.)?(?:github\.com|gitlab\.com|bitbucket\.org)\/[^\s<]+)/i
+		);
+		if (labeled && labeled[1]) {
+			const fromLabel = normalizeForgeRepositoryUrl(labeled[1]);
+			if (fromLabel) {
+				return fromLabel;
+			}
+		}
+
+		const re =
+			/https?:\/\/(?:www\.)?(?:github\.com|gitlab\.com|bitbucket\.org)\/[^\s<]+/gi;
+		let match;
+		while ((match = re.exec(text)) !== null) {
+			const normalized = normalizeForgeRepositoryUrl(match[0]);
+			if (normalized) {
+				return normalized;
+			}
+		}
+		return '';
+	}
+
+	/**
+	 * Prefer API external_repository_url; fall back to a forge URL in the description.
+	 *
+	 * @param {Object} theme
+	 * @return {string}
+	 */
+	function resolveExternalRepositoryUrl(theme) {
+		const fromField = usableExternalUrl(
+			theme && theme.external_repository_url
+		);
+		if (fromField) {
+			return fromField;
+		}
+		return extractRepositoryUrlFromDescription(theme && theme.description);
 	}
 
 	function authorInfo(theme) {
@@ -1144,7 +1243,15 @@
 		const dir = themeSort.dir;
 		const sorted = list.slice();
 		sorted.sort((a, b) => {
-			let cmp = compareValues(a[key], b[key], dir);
+			const aVal =
+				key === 'external_repository_url'
+					? resolveExternalRepositoryUrl(a)
+					: a[key];
+			const bVal =
+				key === 'external_repository_url'
+					? resolveExternalRepositoryUrl(b)
+					: b[key];
+			let cmp = compareValues(aVal, bVal, dir);
 			if (cmp === 0 && key !== 'downloaded') {
 				cmp = compareValues(a.downloaded, b.downloaded, 'desc');
 			}
@@ -1259,6 +1366,22 @@
 				const commercialMark = theme.is_commercial
 					? ' <span class="theme-commercial-mark" title="Commercial version available">$</span>'
 					: '';
+				const slugSafe = escapeHtml(theme.slug || '');
+				const hasNote = Boolean(getThemeNote(theme.slug));
+				const noteBtn =
+					'<button type="button" class="js-theme-note theme-note-btn' +
+					(hasNote ? ' has-note' : '') +
+					'" data-theme-slug="' +
+					slugSafe +
+					'" title="' +
+					(hasNote ? 'Edit note' : 'Add note') +
+					'" aria-label="' +
+					(hasNote ? 'Edit note' : 'Add note') +
+					'">' +
+					'<svg class="theme-note-icon" width="12" height="12" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
+					'<path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z"/>' +
+					'</svg>' +
+					'</button>';
 				const nameLink =
 					'<a class="theme-name-link" href="' +
 					escapeHtml(theme.homepage || '#') +
@@ -1269,17 +1392,12 @@
 
 				const previewUrl = theme.preview_url || '';
 				const homeUrl = theme.homepage || '';
-				const repoUrl =
-					theme.external_repository_url &&
-					theme.external_repository_url !== true &&
-					theme.external_repository_url !== false
-						? String(theme.external_repository_url)
-						: '';
+				const repoUrl = resolveExternalRepositoryUrl(theme);
 
 				const hoverParts = [];
 				hoverParts.push(
 					'<button type="button" class="js-theme-details theme-name-hover-btn" data-theme-slug="' +
-						escapeHtml(theme.slug || '') +
+						slugSafe +
 						'">Details</button>'
 				);
 				if (previewUrl) {
@@ -1354,6 +1472,7 @@
 					'<td class="theme-name-cell">' +
 					'<div class="theme-name-line">' +
 					nameLink +
+					noteBtn +
 					'</div>' +
 					parentLine +
 					parentOfLine +
@@ -1464,15 +1583,25 @@
 			case 'homepage':
 			case 'download_link':
 			case 'screenshot_url':
-			case 'external_support_url':
-			case 'external_repository_url': {
-				const url = theme[col.id];
-				if (!url || url === true || url === false) {
+			case 'external_support_url': {
+				const url = usableExternalUrl(theme[col.id]);
+				if (!url) {
 					return '<td>—</td>';
 				}
 				return (
 					'<td><a href="' +
-					escapeHtml(String(url)) +
+					escapeHtml(url) +
+					'" target="_blank" rel="noopener noreferrer">Open</a></td>'
+				);
+			}
+			case 'external_repository_url': {
+				const url = resolveExternalRepositoryUrl(theme);
+				if (!url) {
+					return '<td>—</td>';
+				}
+				return (
+					'<td><a href="' +
+					escapeHtml(url) +
 					'" target="_blank" rel="noopener noreferrer">Open</a></td>'
 				);
 			}
@@ -1642,10 +1771,7 @@
 	}
 
 	function modalExternalLink(url, label) {
-		if (!url || url === true || url === false) {
-			return '';
-		}
-		const href = String(url);
+		const href = usableExternalUrl(url);
 		if (!href) {
 			return '';
 		}
@@ -1723,6 +1849,7 @@
 			author && typeof author === 'object' ? author.avatar || '' : '';
 		const authorUrl =
 			author && typeof author === 'object' ? author.author_url || '' : '';
+		const repositoryUrl = resolveExternalRepositoryUrl(theme);
 
 		let authorHtml = escapeHtml(authorName || '—');
 		if (authorProfile) {
@@ -1776,7 +1903,7 @@
 			modalExternalLink(theme.preview_url, 'Preview'),
 			modalExternalLink(theme.homepage, 'Home'),
 			modalExternalLink(theme.download_link, 'Download'),
-			modalExternalLink(theme.external_repository_url, 'Repository'),
+			modalExternalLink(repositoryUrl, 'Repository'),
 			modalExternalLink(theme.external_support_url, 'Support'),
 		]
 			.filter(Boolean)
@@ -1938,10 +2065,7 @@
 			),
 			modalTableRow(
 				'External repo',
-				modalTextLink(
-					theme.external_repository_url,
-					theme.external_repository_url
-				) || '—'
+				modalTextLink(repositoryUrl, repositoryUrl) || '—'
 			),
 		]
 			.filter(Boolean)
@@ -2003,6 +2127,14 @@
 					escapeHtml(theme.description) +
 					'</p></section>'
 				: '') +
+			'<section class="theme-modal-section" id="theme-modal-notes">' +
+			'<h4 class="theme-modal-section-title">Notes</h4>' +
+			'<textarea class="theme-modal-note" id="theme-modal-note" data-theme-slug="' +
+			escapeHtml(theme.slug || '') +
+			'" rows="4" placeholder="Add a private note for this theme…">' +
+			escapeHtml(getThemeNote(theme.slug)) +
+			'</textarea>' +
+			'</section>' +
 			'<section class="theme-modal-section">' +
 			'<h4 class="theme-modal-section-title">Details</h4>' +
 			'<table class="theme-modal-table">' +
@@ -2191,7 +2323,9 @@
 		document.body.classList.add('theme-modal-open');
 		window.requestAnimationFrame(() => {
 			let scrollTarget = null;
-			if (opts.scrollToReviews) {
+			if (opts.focusNote) {
+				scrollTarget = '#theme-modal-notes';
+			} else if (opts.scrollToReviews) {
 				scrollTarget = '#theme-modal-reviews';
 			} else if (opts.scrollToPatterns) {
 				scrollTarget = '#theme-modal-patterns';
@@ -2206,6 +2340,20 @@
 						0,
 						section.offsetTop - 12
 					);
+				}
+				if (opts.focusNote) {
+					const noteField =
+						els.themeModalBody.querySelector('#theme-modal-note');
+					if (noteField && typeof noteField.focus === 'function') {
+						noteField.focus();
+						const len = noteField.value.length;
+						if (typeof noteField.setSelectionRange === 'function') {
+							noteField.setSelectionRange(len, len);
+						}
+						return;
+					}
+				}
+				if (section) {
 					return;
 				}
 			}
@@ -2220,6 +2368,11 @@
 	function closeThemeDetailsModal() {
 		if (!els.themeModal || els.themeModal.hidden) {
 			return;
+		}
+		const noteField = els.themeModalBody.querySelector('#theme-modal-note');
+		if (noteField) {
+			applyThemeNoteFromTextarea(noteField);
+			scheduleSaveNotes(true);
 		}
 		els.themeModal.hidden = true;
 		document.body.classList.remove('theme-modal-open');
@@ -2787,6 +2940,99 @@
 		reviewsCachedAt = await saveCacheTyped('reviews', payload);
 	}
 
+	function getThemeNote(slug) {
+		if (!slug || !notesBySlug[slug]) {
+			return '';
+		}
+		return String(notesBySlug[slug]);
+	}
+
+	function syncThemeNoteButton(slug) {
+		if (!slug || !els.themesTbody) {
+			return;
+		}
+		const safe =
+			typeof CSS !== 'undefined' && CSS.escape
+				? CSS.escape(slug)
+				: String(slug).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+		const btn = els.themesTbody.querySelector(
+			'.js-theme-note[data-theme-slug="' + safe + '"]'
+		);
+		if (!btn) {
+			return;
+		}
+		const hasNote = Boolean(getThemeNote(slug));
+		btn.classList.toggle('has-note', hasNote);
+		const label = hasNote ? 'Edit note' : 'Add note';
+		btn.setAttribute('title', label);
+		btn.setAttribute('aria-label', label);
+	}
+
+	function applyThemeNoteFromTextarea(textarea) {
+		if (!textarea) {
+			return;
+		}
+		const slug = textarea.getAttribute('data-theme-slug') || '';
+		if (!slug) {
+			return;
+		}
+		const next = String(textarea.value || '').trim();
+		const prev = getThemeNote(slug);
+		if (next === prev) {
+			return;
+		}
+		if (next) {
+			notesBySlug[slug] = next;
+		} else {
+			delete notesBySlug[slug];
+		}
+		syncThemeNoteButton(slug);
+		scheduleSaveNotes();
+	}
+
+	function scheduleSaveNotes(immediate) {
+		notesSavePending = true;
+		if (notesSaveTimer) {
+			window.clearTimeout(notesSaveTimer);
+			notesSaveTimer = null;
+		}
+		if (immediate) {
+			flushSaveNotes();
+			return;
+		}
+		notesSaveTimer = window.setTimeout(() => {
+			notesSaveTimer = null;
+			flushSaveNotes();
+		}, 400);
+	}
+
+	async function flushSaveNotes() {
+		if (!notesSavePending || notesSaveInFlight) {
+			return;
+		}
+		notesSavePending = false;
+		notesSaveInFlight = true;
+		const by_slug = {};
+		Object.keys(notesBySlug).forEach((slug) => {
+			const note = String(notesBySlug[slug] || '').trim();
+			if (note) {
+				by_slug[slug] = note;
+			}
+		});
+		notesBySlug = by_slug;
+		try {
+			await saveCacheTyped('notes', { by_slug: by_slug });
+		} catch (err) {
+			console.error(err);
+			setProgressUI(false, 'Failed to save notes');
+		} finally {
+			notesSaveInFlight = false;
+			if (notesSavePending) {
+				flushSaveNotes();
+			}
+		}
+	}
+
 	async function clearCacheOnServer(type) {
 		const response = await fetch(
 			'index.php?action=clear-cache&type=' + encodeURIComponent(type),
@@ -3249,6 +3495,18 @@
 		});
 
 		els.themesTbody.addEventListener('click', (e) => {
+			const noteBtn = e.target.closest('.js-theme-note');
+			if (noteBtn) {
+				e.preventDefault();
+				const theme = findThemeBySlug(
+					noteBtn.getAttribute('data-theme-slug')
+				);
+				if (theme) {
+					openThemeDetailsModal(theme, { focusNote: true });
+				}
+				return;
+			}
+
 			const reviewsBtn = e.target.closest('.js-theme-details-reviews');
 			if (reviewsBtn) {
 				e.preventDefault();
@@ -3321,6 +3579,29 @@
 					scrollToThemeRow(slug);
 				}
 			});
+
+			els.themeModal.addEventListener('input', (e) => {
+				const noteField = e.target.closest('#theme-modal-note');
+				if (!noteField) {
+					return;
+				}
+				applyThemeNoteFromTextarea(noteField);
+			});
+
+			els.themeModal.addEventListener(
+				'blur',
+				(e) => {
+					const noteField = e.target.closest
+						? e.target.closest('#theme-modal-note')
+						: null;
+					if (!noteField) {
+						return;
+					}
+					applyThemeNoteFromTextarea(noteField);
+					scheduleSaveNotes(true);
+				},
+				true
+			);
 		}
 
 		document.addEventListener('keydown', (e) => {
