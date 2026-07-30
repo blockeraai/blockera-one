@@ -72,15 +72,17 @@
 			id: 'screenshot',
 			label: 'Screenshot',
 			defaultVisible: true,
-			sortable: false,
+			sortable: true,
 			type: 'screenshot',
+			sortKey: 'screenshot_url',
 		},
 		{
 			id: 'rank',
 			label: '#',
 			defaultVisible: true,
-			sortable: false,
+			sortable: true,
 			type: 'num',
+			sortKey: 'active_installs',
 		},
 		{
 			id: 'name',
@@ -182,7 +184,7 @@
 			id: 'homepage',
 			label: 'Homepage',
 			defaultVisible: false,
-			sortable: false,
+			sortable: true,
 			type: 'url',
 			sortKey: 'homepage',
 		},
@@ -206,8 +208,9 @@
 			id: 'tags',
 			label: 'Tags',
 			defaultVisible: false,
-			sortable: false,
+			sortable: true,
 			type: 'tags',
+			sortKey: 'tagLabels',
 		},
 		{
 			id: 'template',
@@ -237,7 +240,7 @@
 			id: 'preview_url',
 			label: 'Preview URL',
 			defaultVisible: false,
-			sortable: false,
+			sortable: true,
 			type: 'url',
 			sortKey: 'preview_url',
 		},
@@ -245,7 +248,7 @@
 			id: 'download_link',
 			label: 'Download link',
 			defaultVisible: false,
-			sortable: false,
+			sortable: true,
 			type: 'url',
 			sortKey: 'download_link',
 		},
@@ -253,7 +256,7 @@
 			id: 'screenshot_url',
 			label: 'Screenshot URL',
 			defaultVisible: false,
-			sortable: false,
+			sortable: true,
 			type: 'url',
 			sortKey: 'screenshot_url',
 		},
@@ -261,7 +264,7 @@
 			id: 'external_support_url',
 			label: 'External support',
 			defaultVisible: false,
-			sortable: false,
+			sortable: true,
 			type: 'url',
 			sortKey: 'external_support_url',
 		},
@@ -269,7 +272,7 @@
 			id: 'external_repository_url',
 			label: 'External repo',
 			defaultVisible: false,
-			sortable: false,
+			sortable: true,
 			type: 'url',
 			sortKey: 'external_repository_url',
 		},
@@ -277,8 +280,9 @@
 			id: 'description',
 			label: 'Description',
 			defaultVisible: false,
-			sortable: false,
+			sortable: true,
 			type: 'desc',
+			sortKey: 'description',
 		},
 		{
 			id: 'rating_1',
@@ -323,7 +327,13 @@
 	];
 
 	const AUTHOR_COLUMNS = [
-		{ id: 'rank', label: '#', sortable: false, type: 'num' },
+		{
+			id: 'rank',
+			label: '#',
+			sortable: true,
+			type: 'num',
+			sortKey: 'theme_count',
+		},
 		{
 			id: 'author',
 			label: 'Author',
@@ -1071,18 +1081,62 @@
 		if (b == null) {
 			return -1;
 		}
+		if (typeof a === 'boolean' && typeof b === 'boolean') {
+			if (a === b) {
+				return 0;
+			}
+			return (a ? 1 : 0) < (b ? 1 : 0) ? -1 * mul : 1 * mul;
+		}
 		if (typeof a === 'number' && typeof b === 'number') {
 			if (a === b) {
 				return 0;
 			}
 			return a < b ? -1 * mul : 1 * mul;
 		}
-		const as = String(a).toLowerCase();
-		const bs = String(b).toLowerCase();
+		const as = Array.isArray(a)
+			? a.join(', ').toLowerCase()
+			: String(a).toLowerCase();
+		const bs = Array.isArray(b)
+			? b.join(', ').toLowerCase()
+			: String(b).toLowerCase();
 		if (as === bs) {
 			return 0;
 		}
 		return as < bs ? -1 * mul : 1 * mul;
+	}
+
+	function defaultDirForThemeSortKey(key) {
+		for (let i = 0; i < THEME_COLUMNS.length; i++) {
+			const col = THEME_COLUMNS[i];
+			if (col.sortKey !== key) {
+				continue;
+			}
+			if (
+				col.type === 'text' ||
+				col.type === 'url' ||
+				col.type === 'tags' ||
+				col.type === 'desc' ||
+				col.type === 'screenshot'
+			) {
+				return 'asc';
+			}
+			return 'desc';
+		}
+		return 'desc';
+	}
+
+	function defaultDirForAuthorSortKey(key) {
+		for (let i = 0; i < AUTHOR_COLUMNS.length; i++) {
+			const col = AUTHOR_COLUMNS[i];
+			if (col.sortKey !== key) {
+				continue;
+			}
+			if (col.type === 'text') {
+				return 'asc';
+			}
+			return 'desc';
+		}
+		return 'desc';
 	}
 
 	function sortThemes(list) {
@@ -3479,10 +3533,7 @@
 				themeSort.dir = themeSort.dir === 'asc' ? 'desc' : 'asc';
 			} else {
 				themeSort.key = key;
-				themeSort.dir =
-					key === 'name' || key === 'slug' || key === 'authorName'
-						? 'asc'
-						: 'desc';
+				themeSort.dir = defaultDirForThemeSortKey(key);
 			}
 			refreshTables(isFetching ? els.statProgress.textContent : '100%');
 			pushFilterStateToUrl();
@@ -3501,7 +3552,7 @@
 				authorSort.dir = authorSort.dir === 'asc' ? 'desc' : 'asc';
 			} else {
 				authorSort.key = key;
-				authorSort.dir = key === 'name' ? 'asc' : 'desc';
+				authorSort.dir = defaultDirForAuthorSortKey(key);
 			}
 			refreshTables(isFetching ? els.statProgress.textContent : '100%');
 			pushFilterStateToUrl();
