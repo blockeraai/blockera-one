@@ -1,4 +1,4 @@
-/* global bootstrapThemes, bootstrapCachedAt */
+/* global bootstrapThemes, bootstrapCachedAt, bootstrapPatternsBySlug, bootstrapPatternsCachedAt, bootstrapReviewsBySlug, bootstrapReviewsCachedAt */
 
 (function () {
 	'use strict';
@@ -8,6 +8,8 @@
 	const PAGE_DELAY_MS = 100;
 	const PATTERN_SCRAPE_DELAY_MS = 200;
 	const PATTERN_SCRAPE_MAX_ROUNDS = 3;
+	const REVIEW_SCRAPE_DELAY_MS = 400;
+	const REVIEW_SCRAPE_MAX_ROUNDS = 3;
 	const STORAGE_KEY = 'blockera-one-block-themes-report-columns-v7';
 
 	// Background tabs throttle main-thread setTimeout; Worker timers keep scrape/fetch moving.
@@ -378,7 +380,13 @@
 		columnsPanel: document.getElementById('columns-panel'),
 		columnsList: document.getElementById('columns-list'),
 		columnsReset: document.getElementById('columns-reset'),
-		clearCacheBtn: document.getElementById('clear-cache-btn'),
+		clearThemesCacheBtn: document.getElementById('clear-themes-cache-btn'),
+		clearPatternsCacheBtn: document.getElementById(
+			'clear-patterns-cache-btn'
+		),
+		clearReviewsCacheBtn: document.getElementById(
+			'clear-reviews-cache-btn'
+		),
 		progressIndicator: document.getElementById('progress-indicator'),
 		progressText: document.getElementById('progress-text'),
 		progressLog: document.getElementById('progress-log'),
@@ -399,11 +407,34 @@
 
 	let themes = [];
 	let cachedAt = null;
+	let patternsBySlug = Object.assign(
+		{},
+		typeof bootstrapPatternsBySlug !== 'undefined' &&
+			bootstrapPatternsBySlug
+			? bootstrapPatternsBySlug
+			: {}
+	);
+	let patternsCachedAt =
+		typeof bootstrapPatternsCachedAt !== 'undefined'
+			? bootstrapPatternsCachedAt || null
+			: null;
+	let reviewsBySlug = Object.assign(
+		{},
+		typeof bootstrapReviewsBySlug !== 'undefined' && bootstrapReviewsBySlug
+			? bootstrapReviewsBySlug
+			: {}
+	);
+	let reviewsCachedAt =
+		typeof bootstrapReviewsCachedAt !== 'undefined'
+			? bootstrapReviewsCachedAt || null
+			: null;
 	let isFetching = false;
 	let childCountByParent = new Map();
 	let fetchAbort = false;
 	let isScrapingPatterns = false;
+	let isScrapingReviews = false;
 	let scrapeAbort = false;
+	let reviewScrapeAbort = false;
 	const selectedTags = new Set();
 	let searchQuery = '';
 	let minActiveInstalls = 0;
@@ -597,7 +628,7 @@
 			pName = raw.parent.name || '';
 		}
 
-		return {
+		return mergeSatelliteFields({
 			...raw,
 			authorName: a.name,
 			authorKey: a.key,
@@ -623,16 +654,65 @@
 			tagLabels: Object.values(tags),
 			is_commercial: !!raw.is_commercial,
 			is_community: !!raw.is_community,
-			patterns_count:
-				raw.patterns_count == null || raw.patterns_count === ''
+			patterns_count: null,
+			style_variations_count: null,
+			reviews: null,
+		});
+	}
+
+	/**
+	 * Apply patterns/reviews satellite caches onto a theme (by slug).
+	 *
+	 * @param {Object} theme
+	 * @return {Object}
+	 */
+	function mergeSatelliteFields(theme) {
+		const slug = theme && theme.slug ? String(theme.slug) : '';
+		if (!slug) {
+			theme.patterns_count = null;
+			theme.style_variations_count = null;
+			theme.reviews = null;
+			return theme;
+		}
+
+		const p = patternsBySlug[slug];
+		if (p && typeof p === 'object') {
+			theme.patterns_count =
+				p.patterns_count == null || p.patterns_count === ''
 					? null
-					: Number(raw.patterns_count),
-			style_variations_count:
-				raw.style_variations_count == null ||
-				raw.style_variations_count === ''
+					: Number(p.patterns_count);
+			theme.style_variations_count =
+				p.style_variations_count == null ||
+				p.style_variations_count === ''
 					? null
-					: Number(raw.style_variations_count),
-		};
+					: Number(p.style_variations_count);
+		} else {
+			theme.patterns_count = null;
+			theme.style_variations_count = null;
+		}
+
+		const r = reviewsBySlug[slug];
+		if (r && typeof r === 'object' && Array.isArray(r.reviews)) {
+			const cachedCount = Number(r.num_ratings);
+			const currentCount = Number(theme.num_ratings) || 0;
+			// Cache is valid only when stored review count still matches theme API.
+			// Also invalidate old capped scrapes (max 100) that are incomplete.
+			const isStaleCap = r.reviews.length === 100 && currentCount > 100;
+			if (
+				Number.isFinite(cachedCount) &&
+				cachedCount === currentCount &&
+				!isStaleCap
+			) {
+				theme.reviews = r.reviews;
+			} else {
+				theme.reviews = null;
+				delete reviewsBySlug[slug];
+			}
+		} else {
+			theme.reviews = null;
+		}
+
+		return theme;
 	}
 
 	function logProgress(message) {
@@ -1006,14 +1086,25 @@
 					escapeHtml((theme.tagLabels || []).join(', ')) +
 					'</td>'
 				);
-			case 'ratings':
-				return (
-					'<td class="num">' +
+			case 'ratings': {
+				const label =
 					formatNumber(theme.num_ratings) +
 					' (' +
 					formatNumber(theme.rating) +
-					'%)</td>'
-				);
+					'%)';
+				if (theme.reviews != null) {
+					return (
+						'<td class="num">' +
+						'<button type="button" class="js-theme-details-reviews ratings-reviews-link" data-theme-slug="' +
+						escapeHtml(theme.slug) +
+						'" title="Open reviews">' +
+						escapeHtml(label) +
+						'</button>' +
+						'</td>'
+					);
+				}
+				return '<td class="num">' + escapeHtml(label) + '</td>';
+			}
 			case 'description': {
 				const desc = theme.description || '';
 				const short =
@@ -1617,18 +1708,112 @@
 			'<section class="theme-modal-section">' +
 			'<h4 class="theme-modal-section-title">Tags</h4>' +
 			tagsHtml +
+			'</section>' +
+			'<section class="theme-modal-section" id="theme-modal-reviews">' +
+			'<h4 class="theme-modal-section-title">Reviews' +
+			(theme.reviews != null
+				? ' (' + formatNumber(theme.reviews.length) + ')'
+				: '') +
+			'</h4>' +
+			renderThemeReviewsSection(theme) +
 			'</section>';
 	}
 
-	function openThemeDetailsModal(theme) {
+	function formatReviewDate(value) {
+		if (!value) {
+			return '—';
+		}
+		const d = new Date(value);
+		if (Number.isNaN(d.getTime())) {
+			return String(value);
+		}
+		return formatDateOnly(d.toISOString());
+	}
+
+	function renderStars(rating) {
+		const n = Number(rating);
+		if (!Number.isFinite(n) || n < 1) {
+			return '<span class="theme-modal-muted">No rating</span>';
+		}
+		const filled = Math.max(1, Math.min(5, Math.round(n)));
+		let html =
+			'<span class="theme-modal-review-stars" aria-label="' +
+			filled +
+			' out of 5 stars">';
+		for (let i = 1; i <= 5; i++) {
+			html +=
+				'<span class="' +
+				(i <= filled ? 'is-on' : 'is-off') +
+				'">★</span>';
+		}
+		html += '</span>';
+		return html;
+	}
+
+	function renderThemeReviewsSection(theme) {
+		if (theme.reviews == null) {
+			return '<p class="theme-modal-muted">Not scraped yet</p>';
+		}
+		if (!theme.reviews.length) {
+			return '<p class="theme-modal-muted">No reviews</p>';
+		}
+
+		const items = [];
+		for (let i = 0; i < theme.reviews.length; i++) {
+			const r = theme.reviews[i] || {};
+			const link = r.link ? modalExternalLink(r.link, 'Open review') : '';
+			items.push(
+				'<article class="theme-modal-review">' +
+					'<div class="theme-modal-review-head">' +
+					renderStars(r.rating) +
+					'<strong class="theme-modal-review-title">' +
+					escapeHtml(r.title || 'Untitled review') +
+					'</strong>' +
+					'</div>' +
+					'<div class="theme-modal-review-meta">' +
+					'<span>' +
+					escapeHtml(r.author || 'Anonymous') +
+					'</span>' +
+					'<span>' +
+					escapeHtml(formatReviewDate(r.date)) +
+					'</span>' +
+					(link ? '<span>' + link + '</span>' : '') +
+					'</div>' +
+					(r.content
+						? '<p class="theme-modal-review-body">' +
+							escapeHtml(r.content) +
+							'</p>'
+						: '') +
+					'</article>'
+			);
+		}
+		return '<div class="theme-modal-reviews">' + items.join('') + '</div>';
+	}
+
+	function openThemeDetailsModal(theme, options) {
 		if (!theme || !els.themeModal) {
 			return;
 		}
+		const opts = options && typeof options === 'object' ? options : {};
 		themeModalLastFocus = document.activeElement;
 		renderThemeDetailsModal(theme);
 		els.themeModal.hidden = false;
 		document.body.classList.add('theme-modal-open');
 		window.requestAnimationFrame(() => {
+			if (opts.scrollToReviews) {
+				const reviewsSection = els.themeModalBody.querySelector(
+					'#theme-modal-reviews'
+				);
+				if (reviewsSection) {
+					// Scroll modal body (overflow:auto) to the Reviews section.
+					els.themeModalBody.scrollTop = Math.max(
+						0,
+						reviewsSection.offsetTop - 12
+					);
+					reviewsSection.focus?.();
+					return;
+				}
+			}
 			if (els.themeModalClose) {
 				els.themeModalClose.focus();
 			} else if (els.themeModalDialog) {
@@ -2044,11 +2229,31 @@
 		return params;
 	}
 
-	async function saveCache() {
-		const payload = {
+	function setClearButtonsDisabled(disabled) {
+		if (els.clearThemesCacheBtn) {
+			els.clearThemesCacheBtn.disabled = !!disabled;
+		}
+		if (els.clearPatternsCacheBtn) {
+			els.clearPatternsCacheBtn.disabled = !!disabled;
+		}
+		if (els.clearReviewsCacheBtn) {
+			els.clearReviewsCacheBtn.disabled = !!disabled;
+		}
+	}
+
+	async function waitForScrapersIdle() {
+		let spins = 0;
+		while ((isScrapingPatterns || isScrapingReviews) && spins < 200) {
+			await delay(50);
+			spins += 1;
+		}
+	}
+
+	function buildThemesCachePayload() {
+		return {
 			cached_at: new Date().toISOString(),
 			themes: themes.map((t) => {
-				// Strip derived fields before caching.
+				// Strip derived + satellite fields before caching themes.
 				const {
 					authorName,
 					authorKey,
@@ -2062,32 +2267,115 @@
 					rating_3,
 					rating_4,
 					rating_5,
+					patterns_count,
+					style_variations_count,
+					reviews,
 					...rest
 				} = t;
 				return rest;
 			}),
 		};
+	}
 
-		const response = await fetch('index.php?action=save-cache', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(payload),
+	function buildPatternsCachePayload() {
+		const by_slug = {};
+		for (let i = 0; i < themes.length; i++) {
+			const t = themes[i];
+			if (
+				!t.slug ||
+				t.patterns_count == null ||
+				t.style_variations_count == null
+			) {
+				continue;
+			}
+			by_slug[t.slug] = {
+				patterns_count: t.patterns_count,
+				style_variations_count: t.style_variations_count,
+			};
+		}
+		// Keep previously scraped slugs that may not be in current themes list.
+		Object.keys(patternsBySlug).forEach((slug) => {
+			if (!by_slug[slug] && patternsBySlug[slug]) {
+				by_slug[slug] = patternsBySlug[slug];
+			}
 		});
+		return {
+			cached_at: new Date().toISOString(),
+			by_slug: by_slug,
+		};
+	}
+
+	function buildReviewsCachePayload() {
+		const by_slug = {};
+		const themeSlugs = {};
+		for (let i = 0; i < themes.length; i++) {
+			const t = themes[i];
+			if (!t.slug) {
+				continue;
+			}
+			themeSlugs[t.slug] = true;
+			if (t.reviews == null) {
+				continue;
+			}
+			by_slug[t.slug] = {
+				reviews: t.reviews,
+				num_ratings: Number(t.num_ratings) || 0,
+			};
+		}
+		// Keep orphan entries for slugs not in the current themes list.
+		Object.keys(reviewsBySlug).forEach((slug) => {
+			if (!by_slug[slug] && !themeSlugs[slug] && reviewsBySlug[slug]) {
+				by_slug[slug] = reviewsBySlug[slug];
+			}
+		});
+		return {
+			cached_at: new Date().toISOString(),
+			by_slug: by_slug,
+		};
+	}
+
+	async function saveCacheTyped(type, payload) {
+		const response = await fetch(
+			'index.php?action=save-cache&type=' + encodeURIComponent(type),
+			{
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(payload),
+			}
+		);
 		const data = await response.json();
 		if (!data.success) {
-			throw new Error(data.error || 'Failed to save cache');
+			throw new Error(data.error || 'Failed to save ' + type + ' cache');
 		}
-		cachedAt = data.cached_at || payload.cached_at;
+		return data.cached_at || payload.cached_at;
+	}
+
+	async function saveThemesCache() {
+		const payload = buildThemesCachePayload();
+		cachedAt = await saveCacheTyped('themes', payload);
 		els.statCached.textContent = formatCachedAt(cachedAt);
 	}
 
-	async function clearCacheOnServer() {
-		const response = await fetch('index.php?action=clear-cache', {
-			method: 'POST',
-		});
+	async function savePatternsCache() {
+		const payload = buildPatternsCachePayload();
+		patternsBySlug = payload.by_slug;
+		patternsCachedAt = await saveCacheTyped('patterns', payload);
+	}
+
+	async function saveReviewsCache() {
+		const payload = buildReviewsCachePayload();
+		reviewsBySlug = payload.by_slug;
+		reviewsCachedAt = await saveCacheTyped('reviews', payload);
+	}
+
+	async function clearCacheOnServer(type) {
+		const response = await fetch(
+			'index.php?action=clear-cache&type=' + encodeURIComponent(type),
+			{ method: 'POST' }
+		);
 		const data = await response.json();
 		if (!data.success) {
-			throw new Error(data.error || 'Failed to clear cache');
+			throw new Error(data.error || 'Failed to clear ' + type + ' cache');
 		}
 	}
 
@@ -2108,6 +2396,20 @@
 		};
 	}
 
+	async function scrapeThemeReviews(slug) {
+		const response = await fetch(
+			'index.php?action=scrape-reviews&slug=' + encodeURIComponent(slug),
+			{ method: 'GET' }
+		);
+		const data = await response.json();
+		if (!response.ok || !data.success) {
+			throw new Error(
+				(data && data.error) || 'Reviews scrape failed for ' + slug
+			);
+		}
+		return Array.isArray(data.reviews) ? data.reviews : [];
+	}
+
 	function themesMissingPatterns() {
 		const out = [];
 		for (let i = 0; i < themes.length; i++) {
@@ -2122,6 +2424,167 @@
 		return out;
 	}
 
+	function themesMissingReviews() {
+		const out = [];
+		for (let i = 0; i < themes.length; i++) {
+			const t = themes[i];
+			if (t.slug && t.reviews == null) {
+				out.push(t);
+			}
+		}
+		// Highest review counts first (unlike patterns scrape order).
+		out.sort(
+			(a, b) =>
+				(Number(b.num_ratings) || 0) - (Number(a.num_ratings) || 0)
+		);
+		return out;
+	}
+
+	async function scrapeReviewsQueue() {
+		if (isScrapingReviews) {
+			return;
+		}
+
+		let pending = themesMissingReviews();
+		if (!pending.length) {
+			return;
+		}
+
+		isScrapingReviews = true;
+		reviewScrapeAbort = false;
+		setProgressUI(true, 'Scraping reviews…');
+		logProgress(
+			'Scraping reviews (high→low ratings) for ' +
+				pending.length +
+				' themes…'
+		);
+
+		let round = 1;
+		let scrapedSinceSave = 0;
+		let aborted = false;
+
+		try {
+			while (pending.length && round <= REVIEW_SCRAPE_MAX_ROUNDS) {
+				if (reviewScrapeAbort) {
+					aborted = true;
+					break;
+				}
+
+				const failed = [];
+				logProgress(
+					'Reviews scrape round ' +
+						round +
+						': ' +
+						pending.length +
+						' theme(s)'
+				);
+
+				for (let i = 0; i < pending.length; i++) {
+					if (reviewScrapeAbort) {
+						aborted = true;
+						break;
+					}
+
+					const theme = pending[i];
+					const expectedCount = Number(theme.num_ratings) || 0;
+					try {
+						let reviews;
+						if (expectedCount === 0) {
+							// No remote call when theme reports 0 ratings.
+							reviews = [];
+						} else {
+							reviews = await scrapeThemeReviews(theme.slug);
+						}
+						theme.reviews = reviews;
+						reviewsBySlug[theme.slug] = {
+							reviews: reviews,
+							num_ratings: expectedCount,
+						};
+						scrapedSinceSave += 1;
+
+						const done =
+							themes.length - themesMissingReviews().length;
+						const label =
+							'Reviews ' +
+							done +
+							' / ' +
+							themes.length +
+							' (' +
+							theme.slug +
+							', ' +
+							expectedCount +
+							')';
+						setProgressUI(true, label);
+						maybeRefreshTables(
+							isFetching || isScrapingPatterns
+								? els.statProgress.textContent
+								: label
+						);
+
+						if (scrapedSinceSave >= 5) {
+							await saveReviewsCache();
+							scrapedSinceSave = 0;
+						}
+					} catch (error) {
+						failed.push(theme);
+						logProgress(
+							'Reviews scrape failed for ' +
+								theme.slug +
+								': ' +
+								error.message +
+								' (retry later)'
+						);
+					}
+
+					if (expectedCount > 0) {
+						await delay(REVIEW_SCRAPE_DELAY_MS);
+					}
+				}
+
+				pending = failed;
+				if (pending.length && round < REVIEW_SCRAPE_MAX_ROUNDS) {
+					logProgress(
+						'Retrying ' +
+							pending.length +
+							' failed review scrape(s) after round ' +
+							round
+					);
+				}
+				round += 1;
+			}
+
+			if (scrapedSinceSave > 0 || !themesMissingReviews().length) {
+				await saveReviewsCache();
+			}
+
+			const stillMissing = themesMissingReviews().length;
+			if (aborted) {
+				logProgress('Reviews scrape aborted.');
+			} else if (stillMissing) {
+				logProgress(
+					'Reviews scrape finished with ' +
+						stillMissing +
+						' remaining unscraped theme(s)'
+				);
+				setProgressUI(
+					true,
+					'Reviews incomplete (' + stillMissing + ' left)'
+				);
+			} else {
+				logProgress('Reviews scrape complete.');
+				if (!isFetching && !isScrapingPatterns) {
+					setProgressUI(false, 'Ready');
+				}
+			}
+		} catch (error) {
+			logProgress('Reviews scrape ERROR: ' + error.message);
+			setProgressUI(true, 'Reviews scrape error');
+		} finally {
+			isScrapingReviews = false;
+			reviewScrapeAbort = false;
+		}
+	}
+
 	async function scrapePatternsQueue() {
 		if (isScrapingPatterns) {
 			return;
@@ -2129,6 +2592,7 @@
 
 		let pending = themesMissingPatterns();
 		if (!pending.length) {
+			await scrapeReviewsQueue();
 			return;
 		}
 
@@ -2141,10 +2605,12 @@
 
 		let round = 1;
 		let scrapedSinceSave = 0;
+		let aborted = false;
 
 		try {
 			while (pending.length && round <= PATTERN_SCRAPE_MAX_ROUNDS) {
 				if (scrapeAbort) {
+					aborted = true;
 					break;
 				}
 
@@ -2159,6 +2625,7 @@
 
 				for (let i = 0; i < pending.length; i++) {
 					if (scrapeAbort) {
+						aborted = true;
 						break;
 					}
 
@@ -2168,6 +2635,11 @@
 						theme.patterns_count = counts.patterns_count;
 						theme.style_variations_count =
 							counts.style_variations_count;
+						patternsBySlug[theme.slug] = {
+							patterns_count: counts.patterns_count,
+							style_variations_count:
+								counts.style_variations_count,
+						};
 						scrapedSinceSave += 1;
 
 						const done =
@@ -2186,7 +2658,7 @@
 						);
 
 						if (scrapedSinceSave >= 5) {
-							await saveCache();
+							await savePatternsCache();
 							scrapedSinceSave = 0;
 						}
 					} catch (error) {
@@ -2216,11 +2688,13 @@
 			}
 
 			if (scrapedSinceSave > 0 || !themesMissingPatterns().length) {
-				await saveCache();
+				await savePatternsCache();
 			}
 
 			const stillMissing = themesMissingPatterns().length;
-			if (stillMissing) {
+			if (aborted) {
+				logProgress('Patterns scrape aborted.');
+			} else if (stillMissing) {
 				logProgress(
 					'Patterns scrape finished with ' +
 						stillMissing +
@@ -2232,14 +2706,18 @@
 				);
 			} else {
 				logProgress('Patterns scrape complete.');
-				setProgressUI(false, 'Patterns complete');
-				refreshTables('100%');
 			}
 		} catch (error) {
 			logProgress('Patterns scrape ERROR: ' + error.message);
+			setProgressUI(true, 'Patterns scrape error');
+			aborted = true;
 		} finally {
 			isScrapingPatterns = false;
 			scrapeAbort = false;
+		}
+
+		if (!aborted) {
+			await scrapeReviewsQueue();
 		}
 	}
 
@@ -2252,10 +2730,11 @@
 		isFetching = true;
 		fetchAbort = false;
 		scrapeAbort = true;
+		reviewScrapeAbort = true;
 		themes = [];
 		cachedAt = null;
 		els.progressLog.innerHTML = '';
-		els.clearCacheBtn.disabled = true;
+		setClearButtonsDisabled(true);
 		setProgressUI(true, 'Fetching themes…');
 		updateHeaderStats([], [], '0%');
 		refreshTables('0%');
@@ -2306,11 +2785,13 @@
 				}
 			} while (page <= pages);
 
-			logProgress('Saving cache…');
-			await saveCache();
+			logProgress('Saving themes cache…');
+			await saveThemesCache();
 			setProgressUI(true, 'Completed: ' + themes.length + ' themes');
 			refreshTables('100%');
 			logProgress('Done.');
+			scrapeAbort = false;
+			reviewScrapeAbort = false;
 			await scrapePatternsQueue();
 		} catch (error) {
 			logProgress('ERROR: ' + error.message);
@@ -2319,7 +2800,7 @@
 		} finally {
 			isFetching = false;
 			fetchAbort = false;
-			els.clearCacheBtn.disabled = false;
+			setClearButtonsDisabled(false);
 		}
 	}
 
@@ -2329,13 +2810,25 @@
 				return;
 			}
 			refreshTables(
-				isFetching || isScrapingPatterns
+				isFetching || isScrapingPatterns || isScrapingReviews
 					? els.statProgress.textContent
 					: '100%'
 			);
 		});
 
 		els.themesTbody.addEventListener('click', (e) => {
+			const reviewsBtn = e.target.closest('.js-theme-details-reviews');
+			if (reviewsBtn) {
+				e.preventDefault();
+				const theme = findThemeBySlug(
+					reviewsBtn.getAttribute('data-theme-slug')
+				);
+				if (theme) {
+					openThemeDetailsModal(theme, { scrollToReviews: true });
+				}
+				return;
+			}
+
 			const detailsBtn = e.target.closest('.js-theme-details');
 			if (detailsBtn) {
 				e.preventDefault();
@@ -2459,25 +2952,93 @@
 			refreshTables(isFetching ? els.statProgress.textContent : '100%');
 		});
 
-		els.clearCacheBtn.addEventListener('click', async () => {
+		async function clearThemesCache() {
 			if (isFetching) {
 				fetchAbort = true;
 			}
-			if (isScrapingPatterns) {
-				scrapeAbort = true;
-			}
-			els.clearCacheBtn.disabled = true;
+			scrapeAbort = true;
+			reviewScrapeAbort = true;
+			setClearButtonsDisabled(true);
 			try {
-				await clearCacheOnServer();
+				await waitForScrapersIdle();
+				await clearCacheOnServer('themes');
 				cachedAt = null;
 				themes = [];
 				refreshTables('0%');
+				logProgress('Themes cache cleared. Re-fetching…');
 				await fetchAllThemes();
 			} catch (error) {
 				logProgress('ERROR: ' + error.message);
-				els.clearCacheBtn.disabled = false;
+				setClearButtonsDisabled(false);
 			}
-		});
+		}
+
+		async function clearPatternsCache() {
+			scrapeAbort = true;
+			reviewScrapeAbort = true;
+			setClearButtonsDisabled(true);
+			try {
+				await waitForScrapersIdle();
+				await clearCacheOnServer('patterns');
+				patternsBySlug = {};
+				patternsCachedAt = null;
+				for (let i = 0; i < themes.length; i++) {
+					themes[i].patterns_count = null;
+					themes[i].style_variations_count = null;
+				}
+				refreshTables(
+					isFetching ? els.statProgress.textContent : '100%'
+				);
+				logProgress('Patterns cache cleared. Re-scraping…');
+				scrapeAbort = false;
+				reviewScrapeAbort = false;
+				await scrapePatternsQueue();
+			} catch (error) {
+				logProgress('ERROR: ' + error.message);
+			} finally {
+				setClearButtonsDisabled(false);
+			}
+		}
+
+		async function clearReviewsCache() {
+			reviewScrapeAbort = true;
+			setClearButtonsDisabled(true);
+			try {
+				await waitForScrapersIdle();
+				await clearCacheOnServer('reviews');
+				reviewsBySlug = {};
+				reviewsCachedAt = null;
+				for (let i = 0; i < themes.length; i++) {
+					themes[i].reviews = null;
+				}
+				refreshTables(
+					isFetching ? els.statProgress.textContent : '100%'
+				);
+				logProgress('Reviews cache cleared. Re-scraping…');
+				reviewScrapeAbort = false;
+				await scrapeReviewsQueue();
+			} catch (error) {
+				logProgress('ERROR: ' + error.message);
+			} finally {
+				setClearButtonsDisabled(false);
+			}
+		}
+
+		if (els.clearThemesCacheBtn) {
+			els.clearThemesCacheBtn.addEventListener('click', clearThemesCache);
+		}
+		if (els.clearPatternsCacheBtn) {
+			els.clearPatternsCacheBtn.addEventListener(
+				'click',
+				clearPatternsCache
+			);
+		}
+		if (els.clearReviewsCacheBtn) {
+			els.clearReviewsCacheBtn.addEventListener(
+				'click',
+				clearReviewsCache
+			);
+		}
 
 		els.themesThead.addEventListener('click', (e) => {
 			const th = e.target.closest('th[data-sort-key]');
