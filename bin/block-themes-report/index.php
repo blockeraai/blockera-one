@@ -341,6 +341,184 @@ if ($action === 'save-cache') {
 	);
 }
 
+/**
+ * Decode a data-wp-context JSON attribute value.
+ *
+ * @param string $raw Encoded attribute value.
+ * @return array
+ */
+function btr_decode_wp_context($raw) {
+	$json = html_entity_decode((string) $raw, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+	$data = json_decode($json, true);
+	return is_array($data) ? $data : [];
+}
+
+/**
+ * Normalize a preview URL from scraped HTML.
+ *
+ * @param string $url Raw URL.
+ * @return string
+ */
+function btr_normalize_preview_url($url) {
+	$url = html_entity_decode((string) $url, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+	$url = str_replace('&amp;', '&', $url);
+	if ($url !== '' && str_starts_with($url, '//')) {
+		$url = 'https:' . $url;
+	}
+	return $url;
+}
+
+/**
+ * Humanize a style variation slug for display.
+ *
+ * @param string $id Style slug.
+ * @return string
+ */
+function btr_style_variation_label($id) {
+	$id = (string) $id;
+	if ($id === '' || strtolower($id) === 'default') {
+		return 'Default';
+	}
+	$label = str_replace(['-', '_'], ' ', $id);
+	return ucwords($label);
+}
+
+/**
+ * Extract pattern details from a theme directory HTML page.
+ *
+ * @param string $body HTML body.
+ * @return array{patterns: array<int, array>, patterns_count: int}
+ */
+function btr_extract_theme_patterns($body) {
+	$patterns = [];
+	$seen     = [];
+
+	if (preg_match_all(
+		'/<li[^>]*\bdata-pattern_name="([^"]+)"[^>]*>([\s\S]*?)<\/li>/i',
+		$body,
+		$matches,
+		PREG_SET_ORDER
+	)) {
+		foreach ($matches as $row) {
+			$id = (string) $row[1];
+			if ($id === '' || isset($seen[ $id ])) {
+				continue;
+			}
+			$seen[ $id ] = true;
+			$inner       = $row[2];
+			$name        = '';
+			$preview     = '';
+
+			if (preg_match(
+				'/wp-block-wporg-screenshot-preview[^>]*data-wp-context="([^"]+)"/i',
+				$inner,
+				$ctx_m
+			)) {
+				$ctx     = btr_decode_wp_context($ctx_m[1]);
+				$preview = btr_normalize_preview_url($ctx['src'] ?? '');
+				$alt     = isset($ctx['alt']) ? (string) $ctx['alt'] : '';
+				if ($alt !== '') {
+					$name = preg_replace('/^Pattern:\s*/i', '', $alt);
+					$name = trim((string) $name);
+				}
+			}
+
+			if ($name === '') {
+				$parts = explode('/', $id);
+				$slug  = end($parts);
+				$name  = $slug !== false ? btr_style_variation_label($slug) : $id;
+			}
+
+			$patterns[] = [
+				'id'      => $id,
+				'name'    => $name,
+				'preview' => $preview,
+			];
+		}
+	}
+
+	$patterns_count = count($patterns);
+
+	// Prefer declared totalCount when present (may differ if markup is truncated).
+	if (preg_match(
+		'/wp-block-wporg-theme-patterns[^>]*data-initial-state="([^"]+)"/',
+		$body,
+		$m
+	)) {
+		$state = btr_decode_wp_context($m[1]);
+		if (isset($state['totalCount'])) {
+			$declared = (int) $state['totalCount'];
+			if ($declared > $patterns_count) {
+				$patterns_count = $declared;
+			}
+		}
+	}
+
+	return [
+		'patterns'       => $patterns,
+		'patterns_count' => $patterns_count,
+	];
+}
+
+/**
+ * Extract style variation details from a theme directory HTML page.
+ *
+ * @param string $body HTML body.
+ * @return array{style_variations: array<int, array>, style_variations_count: int}
+ */
+function btr_extract_theme_style_variations($body) {
+	$styles = [];
+	$seen   = [];
+
+	$chunk = $body;
+	if (preg_match(
+		'/wp-block-wporg-theme-style-variations([\s\S]*?)(?=wp-block-wporg-theme-patterns|$)/i',
+		$body,
+		$styles_m
+	)) {
+		$chunk = $styles_m[1];
+	}
+
+	if (preg_match_all(
+		'/data-wp-context="(\{&quot;style&quot;:&quot;([^&]+)&quot;\})"([\s\S]{0,4000})/i',
+		$chunk,
+		$matches,
+		PREG_SET_ORDER
+	)) {
+		foreach ($matches as $row) {
+			$id = strtolower((string) $row[2]);
+			if ($id === '' || isset($seen[ $id ])) {
+				continue;
+			}
+			$seen[ $id ] = true;
+			$block       = $row[0];
+			$preview     = '';
+
+			if (preg_match(
+				'/wp-block-wporg-screenshot-preview[^>]*data-wp-context="([^"]+)"/i',
+				$block,
+				$ctx_m
+			)) {
+				$ctx     = btr_decode_wp_context($ctx_m[1]);
+				$preview = btr_normalize_preview_url($ctx['src'] ?? '');
+			} elseif (preg_match('/<img[^>]+src="([^"]+)"/i', $block, $img_m)) {
+				$preview = btr_normalize_preview_url($img_m[1]);
+			}
+
+			$styles[] = [
+				'id'      => $id,
+				'name'    => btr_style_variation_label($id),
+				'preview' => $preview,
+			];
+		}
+	}
+
+	return [
+		'style_variations'       => $styles,
+		'style_variations_count' => count($styles),
+	];
+}
+
 if ($action === 'scrape-patterns') {
 	$slug = isset($_REQUEST['slug']) ? sanitize_title(wp_unslash($_REQUEST['slug'])) : '';
 	if ($slug === '') {
@@ -375,61 +553,17 @@ if ($action === 'scrape-patterns') {
 		);
 	}
 
-	$patterns_count = null;
-
-	// Prefer totalCount from the theme-patterns block initial state.
-	if (preg_match(
-		'/wp-block-wporg-theme-patterns[^>]*data-initial-state="([^"]+)"/',
-		$body,
-		$m
-	) || preg_match(
-		'/data-initial-state="([^"]*totalCount[^"]*)"/',
-		$body,
-		$m
-	)) {
-		$state_json = html_entity_decode($m[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
-		$state      = json_decode($state_json, true);
-		if (is_array($state) && array_key_exists('totalCount', $state)) {
-			$patterns_count = (int) $state['totalCount'];
-		}
-	}
-
-	// Fallback: count pattern items on the page.
-	if ($patterns_count === null) {
-		$match_count    = preg_match_all('/data-pattern_name="/', $body);
-		$patterns_count = false === $match_count ? 0 : (int) $match_count;
-	}
-
-	// Style variations: unique style_variation= slugs inside the style-variations block.
-	$style_variations_count = 0;
-	$styles_chunk           = $body;
-	if (preg_match(
-		'/wp-block-wporg-theme-style-variations([\s\S]*?)(?=wp-block-wporg-theme-patterns|$)/',
-		$body,
-		$styles_m
-	)) {
-		$styles_chunk = $styles_m[1];
-	}
-
-	$style_slugs = [];
-	if (preg_match_all('/style_variation%3D([a-z0-9_-]+)/i', $styles_chunk, $sm)) {
-		foreach ($sm[1] as $style_slug) {
-			$style_slugs[ strtolower($style_slug) ] = true;
-		}
-	}
-	if (preg_match_all('/style_variation=([a-z0-9_-]+)/i', $styles_chunk, $sm2)) {
-		foreach ($sm2[1] as $style_slug) {
-			$style_slugs[ strtolower($style_slug) ] = true;
-		}
-	}
-	$style_variations_count = count($style_slugs);
+	$patterns_data = btr_extract_theme_patterns($body);
+	$styles_data   = btr_extract_theme_style_variations($body);
 
 	btr_json_response(
 		[
 			'success'                => true,
 			'slug'                   => $slug,
-			'patterns_count'         => $patterns_count,
-			'style_variations_count' => $style_variations_count,
+			'patterns_count'         => $patterns_data['patterns_count'],
+			'style_variations_count' => $styles_data['style_variations_count'],
+			'patterns'               => $patterns_data['patterns'],
+			'style_variations'       => $styles_data['style_variations'],
 		]
 	);
 }
