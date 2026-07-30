@@ -656,8 +656,35 @@
 			is_community: !!raw.is_community,
 			patterns_count: null,
 			style_variations_count: null,
+			patterns: null,
+			style_variations: null,
 			reviews: null,
 		});
+	}
+
+	/**
+	 * Whether a patterns cache entry has full pattern + style details.
+	 *
+	 * @param {Object|null|undefined} entry
+	 * @return {boolean}
+	 */
+	function isPatternsCacheComplete(entry) {
+		if (!entry || typeof entry !== 'object') {
+			return false;
+		}
+		if (
+			!Array.isArray(entry.patterns) ||
+			!Array.isArray(entry.style_variations)
+		) {
+			return false;
+		}
+		if (
+			entry.patterns_count == null ||
+			entry.style_variations_count == null
+		) {
+			return false;
+		}
+		return true;
 	}
 
 	/**
@@ -671,24 +698,27 @@
 		if (!slug) {
 			theme.patterns_count = null;
 			theme.style_variations_count = null;
+			theme.patterns = null;
+			theme.style_variations = null;
 			theme.reviews = null;
 			return theme;
 		}
 
 		const p = patternsBySlug[slug];
-		if (p && typeof p === 'object') {
-			theme.patterns_count =
-				p.patterns_count == null || p.patterns_count === ''
-					? null
-					: Number(p.patterns_count);
+		if (isPatternsCacheComplete(p)) {
+			theme.patterns_count = Number(p.patterns_count) || 0;
 			theme.style_variations_count =
-				p.style_variations_count == null ||
-				p.style_variations_count === ''
-					? null
-					: Number(p.style_variations_count);
+				Number(p.style_variations_count) || 0;
+			theme.patterns = p.patterns;
+			theme.style_variations = p.style_variations;
 		} else {
 			theme.patterns_count = null;
 			theme.style_variations_count = null;
+			theme.patterns = null;
+			theme.style_variations = null;
+			if (p) {
+				delete patternsBySlug[slug];
+			}
 		}
 
 		const r = reviewsBySlug[slug];
@@ -1127,22 +1157,42 @@
 				return (
 					'<td class="num">' + formatNumber(theme[col.id]) + '</td>'
 				);
-			case 'patterns_count':
-				return (
-					'<td class="num">' +
-					(theme.patterns_count == null
-						? '…'
-						: formatNumber(theme.patterns_count)) +
-					'</td>'
-				);
-			case 'style_variations_count':
-				return (
-					'<td class="num">' +
-					(theme.style_variations_count == null
-						? '…'
-						: formatNumber(theme.style_variations_count)) +
-					'</td>'
-				);
+			case 'patterns_count': {
+				if (theme.patterns_count == null) {
+					return '<td class="num">…</td>';
+				}
+				const label = formatNumber(theme.patterns_count);
+				if (theme.patterns != null) {
+					return (
+						'<td class="num">' +
+						'<button type="button" class="js-theme-details-patterns ratings-reviews-link" data-theme-slug="' +
+						escapeHtml(theme.slug) +
+						'" title="Open patterns">' +
+						escapeHtml(label) +
+						'</button>' +
+						'</td>'
+					);
+				}
+				return '<td class="num">' + escapeHtml(label) + '</td>';
+			}
+			case 'style_variations_count': {
+				if (theme.style_variations_count == null) {
+					return '<td class="num">…</td>';
+				}
+				const label = formatNumber(theme.style_variations_count);
+				if (theme.style_variations != null) {
+					return (
+						'<td class="num">' +
+						'<button type="button" class="js-theme-details-styles ratings-reviews-link" data-theme-slug="' +
+						escapeHtml(theme.slug) +
+						'" title="Open style variations">' +
+						escapeHtml(label) +
+						'</button>' +
+						'</td>'
+					);
+				}
+				return '<td class="num">' + escapeHtml(label) + '</td>';
+			}
 			case 'is_commercial':
 			case 'is_community':
 				return '<td>' + (theme[col.id] ? 'Yes' : 'No') + '</td>';
@@ -1709,6 +1759,22 @@
 			'<h4 class="theme-modal-section-title">Tags</h4>' +
 			tagsHtml +
 			'</section>' +
+			'<section class="theme-modal-section" id="theme-modal-patterns">' +
+			'<h4 class="theme-modal-section-title">Patterns' +
+			(theme.patterns != null
+				? ' (' + formatNumber(theme.patterns.length) + ')'
+				: '') +
+			'</h4>' +
+			renderThemePatternsSection(theme) +
+			'</section>' +
+			'<section class="theme-modal-section" id="theme-modal-styles">' +
+			'<h4 class="theme-modal-section-title">Style variations' +
+			(theme.style_variations != null
+				? ' (' + formatNumber(theme.style_variations.length) + ')'
+				: '') +
+			'</h4>' +
+			renderThemeStyleVariationsSection(theme) +
+			'</section>' +
 			'<section class="theme-modal-section" id="theme-modal-reviews">' +
 			'<h4 class="theme-modal-section-title">Reviews' +
 			(theme.reviews != null
@@ -1717,6 +1783,68 @@
 			'</h4>' +
 			renderThemeReviewsSection(theme) +
 			'</section>';
+	}
+
+	function renderPreviewCard(item) {
+		const preview = item && item.preview ? String(item.preview) : '';
+		const name = (item && item.name) || 'Untitled';
+		const id = (item && item.id) || '';
+		const img = preview
+			? '<img class="theme-modal-preview-img" src="' +
+				escapeHtml(preview) +
+				'" alt="' +
+				escapeHtml(name) +
+				'" loading="lazy" decoding="async">'
+			: '<div class="theme-modal-preview-empty">No preview</div>';
+		return (
+			'<article class="theme-modal-preview-card">' +
+			'<div class="theme-modal-preview-media">' +
+			img +
+			'</div>' +
+			'<div class="theme-modal-preview-meta">' +
+			'<strong class="theme-modal-preview-name">' +
+			escapeHtml(name) +
+			'</strong>' +
+			(id
+				? '<code class="theme-modal-preview-id">' +
+					escapeHtml(id) +
+					'</code>'
+				: '') +
+			'</div>' +
+			'</article>'
+		);
+	}
+
+	function renderThemePatternsSection(theme) {
+		if (theme.patterns == null) {
+			return '<p class="theme-modal-muted">Not scraped yet</p>';
+		}
+		if (!theme.patterns.length) {
+			return '<p class="theme-modal-muted">No patterns</p>';
+		}
+		const items = [];
+		for (let i = 0; i < theme.patterns.length; i++) {
+			items.push(renderPreviewCard(theme.patterns[i]));
+		}
+		return (
+			'<div class="theme-modal-preview-grid">' + items.join('') + '</div>'
+		);
+	}
+
+	function renderThemeStyleVariationsSection(theme) {
+		if (theme.style_variations == null) {
+			return '<p class="theme-modal-muted">Not scraped yet</p>';
+		}
+		if (!theme.style_variations.length) {
+			return '<p class="theme-modal-muted">No style variations</p>';
+		}
+		const items = [];
+		for (let i = 0; i < theme.style_variations.length; i++) {
+			items.push(renderPreviewCard(theme.style_variations[i]));
+		}
+		return (
+			'<div class="theme-modal-preview-grid">' + items.join('') + '</div>'
+		);
 	}
 
 	function formatReviewDate(value) {
@@ -1800,17 +1928,22 @@
 		els.themeModal.hidden = false;
 		document.body.classList.add('theme-modal-open');
 		window.requestAnimationFrame(() => {
+			let scrollTarget = null;
 			if (opts.scrollToReviews) {
-				const reviewsSection = els.themeModalBody.querySelector(
-					'#theme-modal-reviews'
-				);
-				if (reviewsSection) {
-					// Scroll modal body (overflow:auto) to the Reviews section.
+				scrollTarget = '#theme-modal-reviews';
+			} else if (opts.scrollToPatterns) {
+				scrollTarget = '#theme-modal-patterns';
+			} else if (opts.scrollToStyles) {
+				scrollTarget = '#theme-modal-styles';
+			}
+			if (scrollTarget) {
+				const section = els.themeModalBody.querySelector(scrollTarget);
+				if (section) {
+					// Scroll modal body (overflow:auto) to the target section.
 					els.themeModalBody.scrollTop = Math.max(
 						0,
-						reviewsSection.offsetTop - 12
+						section.offsetTop - 12
 					);
-					reviewsSection.focus?.();
 					return;
 				}
 			}
@@ -2269,6 +2402,8 @@
 					rating_5,
 					patterns_count,
 					style_variations_count,
+					patterns,
+					style_variations,
 					reviews,
 					...rest
 				} = t;
@@ -2279,10 +2414,16 @@
 
 	function buildPatternsCachePayload() {
 		const by_slug = {};
+		const themeSlugs = {};
 		for (let i = 0; i < themes.length; i++) {
 			const t = themes[i];
+			if (!t.slug) {
+				continue;
+			}
+			themeSlugs[t.slug] = true;
 			if (
-				!t.slug ||
+				t.patterns == null ||
+				t.style_variations == null ||
 				t.patterns_count == null ||
 				t.style_variations_count == null
 			) {
@@ -2291,11 +2432,17 @@
 			by_slug[t.slug] = {
 				patterns_count: t.patterns_count,
 				style_variations_count: t.style_variations_count,
+				patterns: t.patterns,
+				style_variations: t.style_variations,
 			};
 		}
 		// Keep previously scraped slugs that may not be in current themes list.
 		Object.keys(patternsBySlug).forEach((slug) => {
-			if (!by_slug[slug] && patternsBySlug[slug]) {
+			if (
+				!by_slug[slug] &&
+				!themeSlugs[slug] &&
+				isPatternsCacheComplete(patternsBySlug[slug])
+			) {
 				by_slug[slug] = patternsBySlug[slug];
 			}
 		});
@@ -2390,9 +2537,21 @@
 				(data && data.error) || 'Scrape failed for ' + slug
 			);
 		}
+		const patterns = Array.isArray(data.patterns) ? data.patterns : [];
+		const styleVariations = Array.isArray(data.style_variations)
+			? data.style_variations
+			: [];
 		return {
-			patterns_count: Number(data.patterns_count) || 0,
-			style_variations_count: Number(data.style_variations_count) || 0,
+			patterns_count:
+				data.patterns_count == null
+					? patterns.length
+					: Number(data.patterns_count) || 0,
+			style_variations_count:
+				data.style_variations_count == null
+					? styleVariations.length
+					: Number(data.style_variations_count) || 0,
+			patterns: patterns,
+			style_variations: styleVariations,
 		};
 	}
 
@@ -2414,10 +2573,7 @@
 		const out = [];
 		for (let i = 0; i < themes.length; i++) {
 			const t = themes[i];
-			if (
-				t.slug &&
-				(t.patterns_count == null || t.style_variations_count == null)
-			) {
+			if (t.slug && t.patterns == null) {
 				out.push(t);
 			}
 		}
@@ -2635,10 +2791,14 @@
 						theme.patterns_count = counts.patterns_count;
 						theme.style_variations_count =
 							counts.style_variations_count;
+						theme.patterns = counts.patterns;
+						theme.style_variations = counts.style_variations;
 						patternsBySlug[theme.slug] = {
 							patterns_count: counts.patterns_count,
 							style_variations_count:
 								counts.style_variations_count,
+							patterns: counts.patterns,
+							style_variations: counts.style_variations,
 						};
 						scrapedSinceSave += 1;
 
@@ -2829,6 +2989,30 @@
 				return;
 			}
 
+			const patternsBtn = e.target.closest('.js-theme-details-patterns');
+			if (patternsBtn) {
+				e.preventDefault();
+				const theme = findThemeBySlug(
+					patternsBtn.getAttribute('data-theme-slug')
+				);
+				if (theme) {
+					openThemeDetailsModal(theme, { scrollToPatterns: true });
+				}
+				return;
+			}
+
+			const stylesBtn = e.target.closest('.js-theme-details-styles');
+			if (stylesBtn) {
+				e.preventDefault();
+				const theme = findThemeBySlug(
+					stylesBtn.getAttribute('data-theme-slug')
+				);
+				if (theme) {
+					openThemeDetailsModal(theme, { scrollToStyles: true });
+				}
+				return;
+			}
+
 			const detailsBtn = e.target.closest('.js-theme-details');
 			if (detailsBtn) {
 				e.preventDefault();
@@ -2985,6 +3169,8 @@
 				for (let i = 0; i < themes.length; i++) {
 					themes[i].patterns_count = null;
 					themes[i].style_variations_count = null;
+					themes[i].patterns = null;
+					themes[i].style_variations = null;
 				}
 				refreshTables(
 					isFetching ? els.statProgress.textContent : '100%'
