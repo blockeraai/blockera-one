@@ -116,4 +116,6 @@ playwright-env.json
 docs-temp-ai/
 
 # Block themes report cache
-bin/block-themes-report/cache.json
+bin/block-themes-report/cache.jsonbin/block-themes-report/cache-themes.json
+bin/block-themes-report/cache-patterns.json
+bin/block-themes-report/cache-reviews.json
