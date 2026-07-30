@@ -452,6 +452,7 @@
 	let notesSaveInFlight = false;
 	let isFetching = false;
 	let childCountByParent = new Map();
+	let authorThemeCountByKey = new Map();
 	let fetchAbort = false;
 	let isScrapingPatterns = false;
 	let isScrapingReviews = false;
@@ -1495,17 +1496,42 @@
 					'</td>'
 				);
 			}
-			case 'author':
-				if (theme.authorProfile) {
-					return (
-						'<td><a href="' +
+			case 'author': {
+				const authorName = theme.authorName || '';
+				const authorCount = getAuthorThemeCount(theme);
+				const authorLabel = escapeHtml(authorName);
+				const nameHtml = theme.authorProfile
+					? '<a href="' +
 						escapeHtml(theme.authorProfile) +
 						'" target="_blank" rel="noopener noreferrer">' +
-						escapeHtml(theme.authorName || '') +
-						'</a></td>'
-					);
-				}
-				return '<td>' + escapeHtml(theme.authorName || '') + '</td>';
+						authorLabel +
+						'</a>'
+					: authorLabel;
+				const countBtn =
+					authorName && authorCount > 0
+						? '<button type="button" class="js-filter-author author-theme-count-btn" data-author-name="' +
+							escapeHtml(authorName) +
+							'" title="Filter themes by ' +
+							authorLabel +
+							' (' +
+							formatNumber(authorCount) +
+							')" aria-label="Filter themes by ' +
+							authorLabel +
+							', ' +
+							formatNumber(authorCount) +
+							' themes">' +
+							formatNumber(authorCount) +
+							'</button>'
+						: '';
+				return (
+					'<td class="theme-author-cell">' +
+					'<div class="theme-author-line">' +
+					nameHtml +
+					countBtn +
+					'</div>' +
+					'</td>'
+				);
+			}
 			case 'tags':
 				return (
 					'<td class="tags-cell">' +
@@ -2598,6 +2624,45 @@
 		childCountByParent = counts;
 	}
 
+	function rebuildAuthorThemeCounts() {
+		const counts = new Map();
+		for (let i = 0; i < themes.length; i++) {
+			const theme = themes[i];
+			const key = theme.authorKey || theme.authorName || '';
+			if (!key) {
+				continue;
+			}
+			counts.set(key, (counts.get(key) || 0) + 1);
+		}
+		authorThemeCountByKey = counts;
+	}
+
+	function getAuthorThemeCount(theme) {
+		if (!theme) {
+			return 0;
+		}
+		const key = theme.authorKey || theme.authorName || '';
+		if (!key) {
+			return 0;
+		}
+		return authorThemeCountByKey.get(key) || 0;
+	}
+
+	function filterThemesByAuthorName(authorName) {
+		const name = String(authorName || '').trim();
+		if (!name || !els.searchInput) {
+			return;
+		}
+		searchQuery = name;
+		els.searchInput.value = name;
+		refreshTables(
+			isFetching || isScrapingPatterns || isScrapingReviews
+				? els.statProgress.textContent
+				: '100%'
+		);
+		pushFilterStateToUrl();
+	}
+
 	function getChildThemesForParent(parentSlugVal) {
 		if (!parentSlugVal) {
 			return [];
@@ -2680,6 +2745,7 @@
 
 	function refreshTables(progressLabel) {
 		rebuildChildCountByParent();
+		rebuildAuthorThemeCounts();
 		const filtered = getFilteredThemes();
 		const authors = buildAuthors(filtered);
 		renderThemesTable(filtered);
@@ -3540,6 +3606,15 @@
 		});
 
 		els.themesTbody.addEventListener('click', (e) => {
+			const authorFilterBtn = e.target.closest('.js-filter-author');
+			if (authorFilterBtn) {
+				e.preventDefault();
+				filterThemesByAuthorName(
+					authorFilterBtn.getAttribute('data-author-name')
+				);
+				return;
+			}
+
 			const noteBtn = e.target.closest('.js-theme-note');
 			if (noteBtn) {
 				e.preventDefault();
