@@ -1201,6 +1201,28 @@ export const registerCommands = () => {
 		});
 	});
 
+	/**
+	 * Opens the WordPress core command palette (Cmd/Ctrl+K), not add-tab mode.
+	 * Prefer store `open()` so Electron/Cypress keyboard quirks do not matter.
+	 */
+	Cypress.Commands.add('tabsOpenCoreCommandBar', () => {
+		cy.window({ timeout: 20000 }).then((win) => {
+			const dispatch = win.wp?.data?.dispatch?.('core/commands');
+
+			if (!dispatch?.open) {
+				throw new Error(
+					'core/commands open() is required (command palette not loaded).'
+				);
+			}
+
+			dispatch.open();
+		});
+
+		cy.get('.commands-command-menu [cmdk-input]', {
+			timeout: 20000,
+		}).should('be.visible');
+	});
+
 	/** Click add tab without stubbing companion (theme-mode limit tests). */
 	Cypress.Commands.add('tabsOpenAddTabWithoutCompanionStub', () => {
 		cy.get(`[test-id="${WORKSPACE_TABS_TEST_ID.add}"]`)
