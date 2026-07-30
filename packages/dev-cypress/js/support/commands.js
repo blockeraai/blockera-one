@@ -1181,10 +1181,12 @@ export const registerCommands = () => {
 		});
 	});
 
-	/** Dispatch Ctrl/Cmd+T for the workspace add-tab shortcut. */
+	/**
+	 * Dispatch Ctrl+T for the workspace add-tab shortcut.
+	 * Matches `blockera/tabs/open-add-tab` which registers modifier `ctrl`
+	 * (literal Control), not WordPress `primary` (Cmd on macOS).
+	 */
 	Cypress.Commands.add('tabsPressAddTabShortcut', () => {
-		const isMac = Cypress.platform === 'darwin';
-
 		cy.window().then((win) => {
 			win.document.dispatchEvent(
 				new win.KeyboardEvent('keydown', {
@@ -1192,8 +1194,8 @@ export const registerCommands = () => {
 					code: 'KeyT',
 					bubbles: true,
 					cancelable: true,
-					metaKey: isMac,
-					ctrlKey: !isMac,
+					ctrlKey: true,
+					metaKey: false,
 				})
 			);
 		});
