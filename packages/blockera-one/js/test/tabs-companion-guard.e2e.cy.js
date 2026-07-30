@@ -1,6 +1,7 @@
 /**
  * Workspace tabs companion limit — theme mode allows one tab; navigation replaces
  * it on post.php, post-new.php, and site-editor.php; add-tab promotes companion.
+ * Cmd+K stays WordPress core (no tab wrap / Opens-in-Tab marker).
  */
 import {
 	createPost,
@@ -35,6 +36,107 @@ describe('Blockera One → workspace tabs companion guard', () => {
 			cy.tabsExpectCompanionLimitPrompt();
 			cy.get('.commands-command-menu [cmdk-input]').should('not.exist');
 			cy.tabsExpectUnpinnedCount(1);
+		});
+	});
+
+	describe('core command bar (theme mode)', () => {
+		beforeEach(() => {
+			cy.tabsResetWorkspaceStorage();
+			cy.tabsResetTabsRelatedStorage();
+			createPost({
+				postType: 'post',
+				postTitle: 'Companion CmdK source',
+			});
+
+			cy.window({ timeout: 20000 }).then((win) => {
+				const editorDispatch = win.wp.data.dispatch('core/editor');
+
+				if (
+					!win.wp.data
+						.select('core/editor')
+						.getEditedPostAttribute('title')
+				) {
+					editorDispatch.editPost({
+						title: 'Companion CmdK source',
+					});
+				}
+
+				return editorDispatch.savePost();
+			});
+
+			cy.location('pathname', { timeout: 60000 }).should((pathname) => {
+				expect(pathname).to.include('post.php');
+				expect(pathname).not.to.include('post-new.php');
+			});
+			cy.get('.blockera-tabs-bar', { timeout: 60000 }).should(
+				'be.visible'
+			);
+		});
+
+		it('navigates like WordPress core from Cmd+K without companion modal or Opens-in-Tab', () => {
+			assertCompanionPluginFilter(false);
+			cy.tabsExpectUnpinnedCount(1);
+			cy.tabsExpectNoCompanionLimitPrompt();
+
+			cy.tabsCreateDraftPostsViaRest(1).then((ids) => {
+				const targetId = ids[0];
+
+				cy.window()
+					.then((win) =>
+						win.wp.apiFetch({
+							path: `/wp/v2/posts/${targetId}`,
+						})
+					)
+					.then((post) => {
+						const searchTitle =
+							typeof post.title === 'string'
+								? post.title
+								: post.title?.rendered || '';
+
+						cy.tabsOpenCoreCommandBar();
+
+						cy.get(
+							'.commands-command-menu [cmdk-item][data-value$="⌘TAB"]'
+						).should('not.exist');
+						cy.tabsExpectNoCompanionLimitPrompt();
+
+						cy.get('.commands-command-menu [cmdk-input]', {
+							timeout: 20000,
+						})
+							.should('be.visible')
+							.type('{selectall}{backspace}' + searchTitle, {
+								delay: 40,
+							});
+
+						cy.get('.commands-command-menu [cmdk-item]', {
+							timeout: 20000,
+						})
+							.filter(':visible')
+							.not('[aria-disabled="true"]')
+							.should('have.length.at.least', 1);
+
+						cy.get(
+							'.commands-command-menu [cmdk-item][data-value$="⌘TAB"]'
+						).should('not.exist');
+
+						cy.get('.commands-command-menu [cmdk-item]')
+							.filter(':visible')
+							.not('[aria-disabled="true"]')
+							.first()
+							.click({ force: true });
+
+						cy.location('search', { timeout: 60000 }).should(
+							(search) => {
+								expect(search).to.include(`post=${targetId}`);
+							}
+						);
+						cy.get('.blockera-tabs-bar', { timeout: 60000 }).should(
+							'be.visible'
+						);
+						cy.tabsExpectNoCompanionLimitPrompt();
+						cy.tabsExpectUnpinnedCount(1, { timeout: 60000 });
+					});
+			});
 		});
 	});
 
