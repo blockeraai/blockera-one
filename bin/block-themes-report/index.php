@@ -804,6 +804,10 @@ $script_ver            = (string) filemtime(__DIR__ . '/script.js');
 							</div>
 							<div class="filters-panel-col filters-panel-col-fields">
 								<div class="filters-panel-heading">Other filters</div>
+								<label class="filters-check">
+									<input type="checkbox" id="has-note-filter">
+									<span>Has note</span>
+								</label>
 								<div class="filters-field">
 									<label class="control-label" for="min-installs-input">Min installs</label>
 									<input type="number" id="min-installs-input" class="control-input control-input-num" min="0" step="1" placeholder="0" inputmode="numeric">

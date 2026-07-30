@@ -380,6 +380,7 @@
 		minInstallsInput: document.getElementById('min-installs-input'),
 		createdAfterInput: document.getElementById('created-after-input'),
 		updatedAfterInput: document.getElementById('updated-after-input'),
+		hasNoteFilter: document.getElementById('has-note-filter'),
 		tagsToggle: document.getElementById('tags-toggle'),
 		tagsCountBadge: document.getElementById('tags-count-badge'),
 		tagsPanel: document.getElementById('tags-panel'),
@@ -461,6 +462,7 @@
 	let minActiveInstalls = 0;
 	let createdAfter = '';
 	let updatedAfter = '';
+	let filterHasNote = false;
 	let themeModalLastFocus = null;
 	const visibleColumns = loadVisibleColumns();
 	const themeSort = { key: 'active_installs', dir: 'desc' };
@@ -526,6 +528,9 @@
 		}
 		if (updatedAfter) {
 			params.set('updated', updatedAfter);
+		}
+		if (filterHasNote) {
+			params.set('note', '1');
 		}
 		if (selectedTags.size) {
 			params.set('tags', Array.from(selectedTags).sort().join(','));
@@ -607,6 +612,9 @@
 		if (els.updatedAfterInput) {
 			els.updatedAfterInput.value = updatedAfter || '';
 		}
+		if (els.hasNoteFilter) {
+			els.hasNoteFilter.checked = filterHasNote;
+		}
 	}
 
 	function readFilterStateFromUrl() {
@@ -622,6 +630,8 @@
 		updatedAfter = params.has('updated')
 			? parseDateFilter(params.get('updated'))
 			: '';
+		filterHasNote =
+			params.get('note') === '1' || params.get('note') === 'true';
 
 		selectedTags.clear();
 		if (params.has('tags')) {
@@ -1108,10 +1118,15 @@
 		const minInstalls = minActiveInstalls;
 		const createdMin = createdAfter;
 		const updatedMin = updatedAfter;
+		const onlyWithNote = filterHasNote;
 
 		const out = [];
 		for (let i = 0; i < themes.length; i++) {
 			const theme = themes[i];
+
+			if (onlyWithNote && !getThemeNote(theme.slug)) {
+				continue;
+			}
 
 			if (minInstalls > 0 && (theme.active_installs || 0) < minInstalls) {
 				continue;
@@ -2443,6 +2458,10 @@
 		els.createdAfterInput.value = '';
 		updatedAfter = '';
 		els.updatedAfterInput.value = '';
+		filterHasNote = false;
+		if (els.hasNoteFilter) {
+			els.hasNoteFilter.checked = false;
+		}
 		selectedTags.clear();
 		refreshTables(isFetching ? els.statProgress.textContent : '100%');
 		pushFilterStateToUrl();
@@ -2616,6 +2635,9 @@
 
 	function countActiveFilters() {
 		let count = selectedTags.size;
+		if (filterHasNote) {
+			count += 1;
+		}
 		if (minActiveInstalls > 0) {
 			count += 1;
 		}
@@ -2995,6 +3017,7 @@
 		if (next === prev) {
 			return;
 		}
+		const hadNote = Boolean(prev);
 		if (next) {
 			notesBySlug[slug] = next;
 		} else {
@@ -3002,6 +3025,14 @@
 		}
 		syncThemeNoteButton(slug);
 		scheduleSaveNotes();
+		// Keep the table in sync when the Has note filter is active.
+		if (filterHasNote && hadNote !== Boolean(next)) {
+			refreshTables(
+				isFetching || isScrapingPatterns || isScrapingReviews
+					? els.statProgress.textContent
+					: '100%'
+			);
+		}
 	}
 
 	function scheduleSaveNotes(immediate) {
@@ -3666,6 +3697,16 @@
 			pushFilterStateToUrl();
 		});
 
+		if (els.hasNoteFilter) {
+			els.hasNoteFilter.addEventListener('change', () => {
+				filterHasNote = Boolean(els.hasNoteFilter.checked);
+				refreshTables(
+					isFetching ? els.statProgress.textContent : '100%'
+				);
+				pushFilterStateToUrl();
+			});
+		}
+
 		els.tagsToggle.addEventListener('click', (e) => {
 			e.stopPropagation();
 			const open = els.tagsPanel.hidden;
@@ -3711,9 +3752,13 @@
 
 		els.tagsClear.addEventListener('click', () => {
 			selectedTags.clear();
+			filterHasNote = false;
 			minActiveInstalls = 0;
 			createdAfter = '';
 			updatedAfter = '';
+			if (els.hasNoteFilter) {
+				els.hasNoteFilter.checked = false;
+			}
 			if (els.minInstallsInput) {
 				els.minInstallsInput.value = '';
 			}
