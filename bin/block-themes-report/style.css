@@ -391,6 +391,22 @@ body {
 	white-space: nowrap;
 }
 
+.ratings-reviews-link {
+	color: #2271b1;
+	text-decoration: none;
+	font-weight: 500;
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	font: inherit;
+	cursor: pointer;
+}
+
+.ratings-reviews-link:hover {
+	text-decoration: underline;
+}
+
 .data-table a {
 	color: #2271b1;
 	text-decoration: none;
@@ -913,6 +929,63 @@ body {
 .theme-modal-children-total strong {
 	color: #2271b1;
 	font-variant-numeric: tabular-nums;
+}
+
+.theme-modal-reviews {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.theme-modal-review {
+	padding: 12px;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	background: #fff;
+}
+
+.theme-modal-review-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 6px;
+}
+
+.theme-modal-review-title {
+	font-size: 14px;
+	color: #1d2327;
+}
+
+.theme-modal-review-stars {
+	letter-spacing: 1px;
+	font-size: 14px;
+	line-height: 1;
+}
+
+.theme-modal-review-stars .is-on {
+	color: #dba617;
+}
+
+.theme-modal-review-stars .is-off {
+	color: #c3c4c7;
+}
+
+.theme-modal-review-meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	font-size: 12px;
+	color: #646970;
+	margin-bottom: 8px;
+}
+
+.theme-modal-review-body {
+	margin: 0;
+	font-size: 16px;
+	line-height: 1.5;
+	color: #2c3338;
+	white-space: pre-wrap;
 }
 
 body.theme-modal-open {
