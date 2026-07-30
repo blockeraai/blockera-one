@@ -788,31 +788,36 @@ $script_ver            = (string) filemtime(__DIR__ . '/script.js');
 					<input type="search" id="search-input" class="control-input" placeholder="Name, slug, author, parent…">
 				</div>
 
-				<div class="control-group">
-					<label class="control-label" for="min-installs-input">Min installs</label>
-					<input type="number" id="min-installs-input" class="control-input control-input-num" min="0" step="1" placeholder="0" inputmode="numeric">
-				</div>
-
-				<div class="control-group">
-					<label class="control-label" for="created-after-input">Created after</label>
-					<input type="date" id="created-after-input" class="control-input control-input-date">
-				</div>
-
-				<div class="control-group">
-					<label class="control-label" for="updated-after-input">Updated after</label>
-					<input type="date" id="updated-after-input" class="control-input control-input-date">
-				</div>
-
 				<div class="control-group dropdown-group">
 					<button type="button" class="control-btn" id="tags-toggle" aria-expanded="false" aria-controls="tags-panel">
-						Tags
+						Filters
 						<span class="filter-count-badge" id="tags-count-badge" hidden aria-hidden="true"></span>
 					</button>
-					<div class="dropdown-panel" id="tags-panel" hidden>
+					<div class="dropdown-panel filters-panel" id="tags-panel" hidden>
 						<div class="dropdown-actions">
-							<button type="button" class="link-btn" id="tags-clear">Clear tags</button>
+							<button type="button" class="link-btn" id="tags-clear">Clear filters</button>
 						</div>
-						<div class="checkbox-list" id="tags-list"></div>
+						<div class="filters-panel-grid">
+							<div class="filters-panel-col filters-panel-col-tags">
+								<div class="filters-panel-heading">Tags</div>
+								<div class="checkbox-list" id="tags-list"></div>
+							</div>
+							<div class="filters-panel-col filters-panel-col-fields">
+								<div class="filters-panel-heading">Other filters</div>
+								<div class="filters-field">
+									<label class="control-label" for="min-installs-input">Min installs</label>
+									<input type="number" id="min-installs-input" class="control-input control-input-num" min="0" step="1" placeholder="0" inputmode="numeric">
+								</div>
+								<div class="filters-field">
+									<label class="control-label" for="created-after-input">Created after</label>
+									<input type="date" id="created-after-input" class="control-input control-input-date">
+								</div>
+								<div class="filters-field">
+									<label class="control-label" for="updated-after-input">Updated after</label>
+									<input type="date" id="updated-after-input" class="control-input control-input-date">
+								</div>
+							</div>
+						</div>
 					</div>
 				</div>
 

@@ -2614,12 +2614,26 @@
 		}
 	}
 
+	function countActiveFilters() {
+		let count = selectedTags.size;
+		if (minActiveInstalls > 0) {
+			count += 1;
+		}
+		if (createdAfter) {
+			count += 1;
+		}
+		if (updatedAfter) {
+			count += 1;
+		}
+		return count;
+	}
+
 	function updateTagsFilterBadge() {
 		updateFilterCountBadge(
 			els.tagsCountBadge,
 			els.tagsToggle,
-			selectedTags.size,
-			'Tags'
+			countActiveFilters(),
+			'Filters'
 		);
 	}
 
@@ -3697,6 +3711,18 @@
 
 		els.tagsClear.addEventListener('click', () => {
 			selectedTags.clear();
+			minActiveInstalls = 0;
+			createdAfter = '';
+			updatedAfter = '';
+			if (els.minInstallsInput) {
+				els.minInstallsInput.value = '';
+			}
+			if (els.createdAfterInput) {
+				els.createdAfterInput.value = '';
+			}
+			if (els.updatedAfterInput) {
+				els.updatedAfterInput.value = '';
+			}
 			refreshTables(isFetching ? els.statProgress.textContent : '100%');
 			pushFilterStateToUrl();
 		});
