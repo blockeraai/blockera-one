@@ -380,6 +380,8 @@
 		columnsPanel: document.getElementById('columns-panel'),
 		columnsList: document.getElementById('columns-list'),
 		columnsReset: document.getElementById('columns-reset'),
+		cacheMenuToggle: document.getElementById('cache-menu-toggle'),
+		cacheMenuPanel: document.getElementById('cache-menu-panel'),
 		clearThemesCacheBtn: document.getElementById('clear-themes-cache-btn'),
 		clearPatternsCacheBtn: document.getElementById(
 			'clear-patterns-cache-btn'
@@ -2540,7 +2542,11 @@
 		[
 			{ btn: els.tagsToggle, panel: els.tagsPanel },
 			{ btn: els.columnsToggle, panel: els.columnsPanel },
+			{ btn: els.cacheMenuToggle, panel: els.cacheMenuPanel },
 		].forEach(({ btn, panel }) => {
+			if (!btn || !panel) {
+				return;
+			}
 			if (exceptId && panel.id === exceptId) {
 				return;
 			}
@@ -2572,6 +2578,9 @@
 	}
 
 	function setClearButtonsDisabled(disabled) {
+		if (els.cacheMenuToggle) {
+			els.cacheMenuToggle.disabled = !!disabled;
+		}
 		if (els.clearThemesCacheBtn) {
 			els.clearThemesCacheBtn.disabled = !!disabled;
 		}
@@ -3329,6 +3338,22 @@
 				open ? 'true' : 'false'
 			);
 		});
+
+		if (els.cacheMenuToggle && els.cacheMenuPanel) {
+			els.cacheMenuToggle.addEventListener('click', (e) => {
+				e.stopPropagation();
+				const open = els.cacheMenuPanel.hidden;
+				closeDropdowns(open ? 'cache-menu-panel' : null);
+				els.cacheMenuPanel.hidden = !open;
+				els.cacheMenuToggle.setAttribute(
+					'aria-expanded',
+					open ? 'true' : 'false'
+				);
+			});
+			els.cacheMenuPanel.addEventListener('click', (e) =>
+				e.stopPropagation()
+			);
+		}
 
 		els.tagsPanel.addEventListener('click', (e) => e.stopPropagation());
 		els.columnsPanel.addEventListener('click', (e) => e.stopPropagation());
