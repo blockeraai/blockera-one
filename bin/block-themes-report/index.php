@@ -18,6 +18,7 @@ $cache_dir           = __DIR__;
 $cache_themes_file   = $cache_dir . '/cache-themes.json';
 $cache_patterns_file = $cache_dir . '/cache-patterns.json';
 $cache_reviews_file  = $cache_dir . '/cache-reviews.json';
+$theme_notes_file    = $cache_dir . '/theme-notes.json';
 $cache_legacy_file   = $cache_dir . '/cache.json';
 
 /**
@@ -99,13 +100,13 @@ function btr_write_cache_file($path, array $payload) {
 }
 
 /**
- * Resolve cache file path for a cache type.
+ * Resolve cache/notes file path for a storage type.
  *
- * @param string $type themes|patterns|reviews
+ * @param string $type themes|patterns|reviews|notes
  * @return string|null
  */
 function btr_cache_path_for_type($type) {
-	global $cache_themes_file, $cache_patterns_file, $cache_reviews_file;
+	global $cache_themes_file, $cache_patterns_file, $cache_reviews_file, $theme_notes_file;
 
 	if ($type === 'themes') {
 		return $cache_themes_file;
@@ -115,6 +116,9 @@ function btr_cache_path_for_type($type) {
 	}
 	if ($type === 'reviews') {
 		return $cache_reviews_file;
+	}
+	if ($type === 'notes') {
+		return $theme_notes_file;
 	}
 	return null;
 }
@@ -316,6 +320,26 @@ if ($action === 'save-cache') {
 			'themes'    => $data['themes'],
 		];
 		$count = count($payload['themes']);
+	} elseif ($type === 'notes') {
+		if (!isset($data['by_slug']) || !is_array($data['by_slug'])) {
+			btr_json_response(['success' => false, 'error' => 'Invalid by_slug payload'], 400);
+		}
+		$by_slug = [];
+		foreach ($data['by_slug'] as $slug => $note) {
+			$slug = sanitize_key((string) $slug);
+			if ($slug === '') {
+				continue;
+			}
+			$note = sanitize_textarea_field((string) $note);
+			if ($note === '') {
+				continue;
+			}
+			$by_slug[ $slug ] = $note;
+		}
+		$payload = [
+			'by_slug' => $by_slug,
+		];
+		$count = count($payload['by_slug']);
 	} else {
 		if (!isset($data['by_slug']) || !is_array($data['by_slug'])) {
 			btr_json_response(['success' => false, 'error' => 'Invalid by_slug payload'], 400);
@@ -335,7 +359,7 @@ if ($action === 'save-cache') {
 		[
 			'success'   => true,
 			'type'      => $type,
-			'cached_at' => $payload['cached_at'],
+			'cached_at' => isset($payload['cached_at']) ? $payload['cached_at'] : null,
 			'count'     => $count,
 		]
 	);
@@ -674,6 +698,7 @@ if ($action === 'scrape-reviews') {
 $themes_cache   = btr_read_cache_file($cache_themes_file);
 $patterns_cache = btr_read_cache_file($cache_patterns_file);
 $reviews_cache  = btr_read_cache_file($cache_reviews_file);
+$notes_cache    = btr_read_cache_file($theme_notes_file);
 
 $themes    = [];
 $cached_at = null;
@@ -696,12 +721,28 @@ if (is_array($reviews_cache) && isset($reviews_cache['by_slug']) && is_array($re
 	$reviews_cached_at = isset($reviews_cache['cached_at']) ? (string) $reviews_cache['cached_at'] : null;
 }
 
+$notes_by_slug = [];
+if (is_array($notes_cache) && isset($notes_cache['by_slug']) && is_array($notes_cache['by_slug'])) {
+	foreach ($notes_cache['by_slug'] as $slug => $note) {
+		$slug = sanitize_key((string) $slug);
+		if ($slug === '') {
+			continue;
+		}
+		$note = is_string($note) ? trim($note) : '';
+		if ($note === '') {
+			continue;
+		}
+		$notes_by_slug[ $slug ] = $note;
+	}
+}
+
 $themes_json           = wp_json_encode($themes, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
 $cached_at_json        = wp_json_encode($cached_at, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
 $patterns_by_slug_json = wp_json_encode($patterns_by_slug, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
 $patterns_cached_json  = wp_json_encode($patterns_cached_at, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
 $reviews_by_slug_json  = wp_json_encode($reviews_by_slug, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
 $reviews_cached_json   = wp_json_encode($reviews_cached_at, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+$notes_by_slug_json    = wp_json_encode($notes_by_slug, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
 $style_ver             = (string) filemtime(__DIR__ . '/style.css');
 $script_ver            = (string) filemtime(__DIR__ . '/script.js');
 ?>
@@ -875,6 +916,7 @@ $script_ver            = (string) filemtime(__DIR__ . '/script.js');
 		const bootstrapPatternsCachedAt = <?php echo $patterns_cached_json ? $patterns_cached_json : 'null'; ?>;
 		const bootstrapReviewsBySlug = <?php echo $reviews_by_slug_json ? $reviews_by_slug_json : '{}'; ?>;
 		const bootstrapReviewsCachedAt = <?php echo $reviews_cached_json ? $reviews_cached_json : 'null'; ?>;
+		const bootstrapNotesBySlug = <?php echo $notes_by_slug_json ? $notes_by_slug_json : '{}'; ?>;
 	</script>
 	<script src="script.js?v=<?php echo esc_attr($script_ver); ?>"></script>
 </body>
