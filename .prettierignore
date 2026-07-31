@@ -5,6 +5,9 @@ vendor
 source-code-block-editor
 source-code-wordpress
 
+# Generated from theme-config/ via npm run theme-json:merge — keep merge output byte-stable.
+theme.json
+
 # Ignore test fixtures
 tests/**/input.html
 tests/**/*.css
