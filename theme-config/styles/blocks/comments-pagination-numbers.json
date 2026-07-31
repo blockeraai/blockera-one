@@ -1,0 +1,7 @@
+{
+	"core/comments-pagination-numbers": {
+		"typography": {
+			"fontSize": "var:preset|font-size|medium"
+		}
+	}
+}

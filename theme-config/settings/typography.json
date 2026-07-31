@@ -1,0 +1,83 @@
+{
+	"typography": {
+		"defaultFontSizes": false,
+		"fluid": true,
+		"writingMode": true,
+		"fontFamilies": [
+			{
+				"fontFamily": "Manrope, sans-serif",
+				"name": "Manrope",
+				"slug": "manrope",
+				"fontFace": [
+					{
+						"fontFamily": "Manrope",
+						"fontStyle": "normal",
+						"fontWeight": "200 800",
+						"src": [
+							"file:./assets/fonts/manrope/Manrope-VariableFont_wght.woff2"
+						]
+					}
+				]
+			},
+			{
+				"fontFamily": "\"Fira Code\", monospace",
+				"name": "Fira Code",
+				"slug": "fira-code",
+				"fontFace": [
+					{
+						"fontFamily": "\"Fira Code\"",
+						"fontStyle": "normal",
+						"fontWeight": "300 700",
+						"src": [
+							"file:./assets/fonts/fira-code/FiraCode-VariableFont_wght.woff2"
+						]
+					}
+				]
+			}
+		],
+		"fontSizes": [
+			{
+				"fluid": false,
+				"name": "Small",
+				"size": "0.875rem",
+				"slug": "small"
+			},
+			{
+				"name": "Medium",
+				"size": "1rem",
+				"slug": "medium",
+				"fluid": {
+					"max": "1.125rem",
+					"min": "1rem"
+				}
+			},
+			{
+				"name": "Large",
+				"size": "1.38rem",
+				"slug": "large",
+				"fluid": {
+					"max": "1.375rem",
+					"min": "1.125rem"
+				}
+			},
+			{
+				"name": "Extra Large",
+				"size": "1.75rem",
+				"slug": "x-large",
+				"fluid": {
+					"max": "2rem",
+					"min": "1.75rem"
+				}
+			},
+			{
+				"name": "Extra Extra Large",
+				"size": "2.15rem",
+				"slug": "xx-large",
+				"fluid": {
+					"max": "3rem",
+					"min": "2.15rem"
+				}
+			}
+		]
+	}
+}

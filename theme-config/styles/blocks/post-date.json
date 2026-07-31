@@ -1,0 +1,25 @@
+{
+	"core/post-date": {
+		"color": {
+			"text": "var:preset|color|accent-4"
+		},
+		"typography": {
+			"fontSize": "var:preset|font-size|small"
+		},
+		"elements": {
+			"link": {
+				"color": {
+					"text": "var:preset|color|accent-4"
+				},
+				"typography": {
+					"textDecoration": "none"
+				},
+				":hover": {
+					"typography": {
+						"textDecoration": "underline"
+					}
+				}
+			}
+		}
+	}
+}

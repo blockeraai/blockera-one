@@ -1,0 +1,20 @@
+{
+	"core/site-title": {
+		"typography": {
+			"fontWeight": "700",
+			"letterSpacing": "-.5px"
+		},
+		"elements": {
+			"link": {
+				"typography": {
+					"textDecoration": "none"
+				},
+				":hover": {
+					"typography": {
+						"textDecoration": "underline"
+					}
+				}
+			}
+		}
+	}
+}
