@@ -34,13 +34,5 @@ class Patterns {
 				'description' => __( 'A collection of full page layouts.', 'blockera-one' ),
 			)
 		);
-
-		register_block_pattern_category(
-			'blockera_one_post-format',
-			array(
-				'label'       => __( 'Post formats', 'blockera-one' ),
-				'description' => __( 'A collection of post format patterns.', 'blockera-one' ),
-			)
-		);
 	}
 }

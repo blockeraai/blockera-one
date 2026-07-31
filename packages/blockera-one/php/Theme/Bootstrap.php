@@ -31,11 +31,9 @@ class Bootstrap {
 
 		self::$booted = true;
 
-		( new Features() )->register();
 		( new EditorStyles() )->register();
 		( new FrontStyles() )->register();
 		( new BlockStyles() )->register();
 		( new Patterns() )->register();
-		( new BlockBindings() )->register();
 	}
 }
