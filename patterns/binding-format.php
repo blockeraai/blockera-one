@@ -2,7 +2,7 @@
 /**
  * Title: Post format name
  * Slug: twentytwentyfive/binding-format
- * Categories: twentytwentyfive_post-format
+ * Categories: blockera_one_post-format
  * Description: Prints the name of the post format with the help of the Block Bindings API.
  *
  * @package WordPress
@@ -11,6 +11,6 @@
  */
 
 ?>
-<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"twentytwentyfive/format"}}},"fontSize":"small"} -->
+<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"blockera-one/format"}}},"fontSize":"small"} -->
 <p class="has-small-font-size"></p>
 <!-- /wp:paragraph -->

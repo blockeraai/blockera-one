@@ -2,7 +2,7 @@
 /**
  * Title: Landing page for event
  * Slug: twentytwentyfive/page-landing-event
- * Categories: twentytwentyfive_page, featured
+ * Categories: blockera_one_page, featured
  * Keywords: starter
  * Block Types: core/post-content
  * Post Types: page, wp_template
