@@ -20,8 +20,12 @@ const DependencyExtractionWebpackPlugin = require('@wordpress/dependency-extract
  * Internal dependencies
  */
 const styleDependencies = require('./packages-styles');
+const MergeThemeJsonWebpackPlugin = require('./merge-theme-json-plugin');
 
 dotenv.config();
+
+/** Only theme products ship `theme-config/`; plugins skip the merge plugin. */
+const shouldMergeThemeJson = MergeThemeJsonWebpackPlugin.hasThemeConfig();
 
 /**
  * Removes all svg rules from WordPress webpack config because it brakes the SVGR and SVGO plugins
@@ -128,6 +132,8 @@ module.exports = (env, argv) => {
 		},
 		plugins: [
 			new DependencyExtractionWebpackPlugin({ injectPolyfill: true }),
+			// Theme projects only (theme-config/ present). Plugins skip this.
+			shouldMergeThemeJson ? new MergeThemeJsonWebpackPlugin() : null,
 			new CopyPlugin({
 				patterns: [
 					{
