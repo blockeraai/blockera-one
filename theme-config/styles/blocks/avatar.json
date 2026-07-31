@@ -1,0 +1,7 @@
+{
+	"core/avatar": {
+		"border": {
+			"radius": "100px"
+		}
+	}
+}

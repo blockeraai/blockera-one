@@ -1,0 +1,10 @@
+{
+	"h6": {
+		"typography": {
+			"fontSize": "var:preset|font-size|small",
+			"fontWeight": "700",
+			"letterSpacing": "1.4px",
+			"textTransform": "uppercase"
+		}
+	}
+}

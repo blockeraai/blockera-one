@@ -1,0 +1,7 @@
+{
+	"core/term-description": {
+		"typography": {
+			"fontSize": "var:preset|font-size|medium"
+		}
+	}
+}

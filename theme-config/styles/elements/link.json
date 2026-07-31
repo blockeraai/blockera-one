@@ -1,0 +1,12 @@
+{
+	"link": {
+		"color": {
+			"text": "currentColor"
+		},
+		":hover": {
+			"typography": {
+				"textDecoration": "none"
+			}
+		}
+	}
+}

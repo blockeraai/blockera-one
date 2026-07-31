@@ -1,0 +1,14 @@
+{
+	"core/post-comments-form": {
+		"spacing": {
+			"padding": {
+				"bottom": "var:preset|spacing|40",
+				"top": "var:preset|spacing|40"
+			}
+		},
+		"typography": {
+			"fontSize": "var:preset|font-size|medium"
+		},
+		"css": "& textarea, input:not([type=submit]){border-radius:.25rem; border-color: var(--wp--preset--color--accent-6) !important;} & input[type=checkbox]{margin:0 .2rem 0 0 !important;} & label {font-size: var(--wp--preset--font-size--small); }"
+	}
+}

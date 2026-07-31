@@ -1,0 +1,31 @@
+{
+	"core/comment-author-name": {
+		"color": {
+			"text": "var:preset|color|accent-4"
+		},
+		"spacing": {
+			"margin": {
+				"bottom": "0px",
+				"top": "5px"
+			}
+		},
+		"typography": {
+			"fontSize": "var:preset|font-size|small"
+		},
+		"elements": {
+			"link": {
+				"color": {
+					"text": "var:preset|color|accent-4"
+				},
+				"typography": {
+					"textDecoration": "none"
+				},
+				":hover": {
+					"typography": {
+						"textDecoration": "underline"
+					}
+				}
+			}
+		}
+	}
+}

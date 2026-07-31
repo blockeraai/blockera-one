@@ -1,0 +1,9 @@
+{
+	"heading": {
+		"typography": {
+			"fontWeight": "400",
+			"letterSpacing": "-0.1px",
+			"lineHeight": "1.125"
+		}
+	}
+}
