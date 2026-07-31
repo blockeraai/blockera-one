@@ -1,13 +1,13 @@
 <?php
 /**
  * Title: Hidden blog heading
- * Slug: twentytwentyfive/hidden-blog-heading
+ * Slug: blockera-one/hidden-blog-heading
  * Description: Hidden heading for the home page and index template.
  * Inserter: no
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>

@@ -1,13 +1,13 @@
 <?php
 /**
  * Title: Services, 3 columns
- * Slug: twentytwentyfive/services-3-col
+ * Slug: blockera-one/services-3-col
  * Categories: call-to-action, banner, services
  * Description: Three columns with images and text to showcase services.
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>

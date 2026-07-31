@@ -1,7 +1,7 @@
 <?php
 /**
  * Title: Landing page for podcast
- * Slug: twentytwentyfive/page-landing-podcast
+ * Slug: blockera-one/page-landing-podcast
  * Categories: blockera_one_page, featured
  * Keywords: starter
  * Block Types: core/post-content
@@ -10,14 +10,14 @@
  * Description: A landing page for the podcast with a hero section, description, logos, grid with videos and newsletter signup.
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>
 
-<!-- wp:pattern {"slug":"twentytwentyfive/hero-podcast"} /-->
-<!-- wp:pattern {"slug":"twentytwentyfive/heading-and-paragraph-with-image"} /-->
-<!-- wp:pattern {"slug":"twentytwentyfive/logos"} /-->
-<!-- wp:pattern {"slug":"twentytwentyfive/grid-videos"} /-->
-<!-- wp:pattern {"slug":"twentytwentyfive/cta-newsletter"} /-->
+<!-- wp:pattern {"slug":"blockera-one/hero-podcast"} /-->
+<!-- wp:pattern {"slug":"blockera-one/heading-and-paragraph-with-image"} /-->
+<!-- wp:pattern {"slug":"blockera-one/logos"} /-->
+<!-- wp:pattern {"slug":"blockera-one/grid-videos"} /-->
+<!-- wp:pattern {"slug":"blockera-one/cta-newsletter"} /-->

@@ -1,13 +1,13 @@
 <?php
 /**
  * Title: Pricing, 3 columns
- * Slug: twentytwentyfive/pricing-3-col
+ * Slug: blockera-one/pricing-3-col
  * Categories: call-to-action, banner, services
  * Description: A three-column boxed pricing table designed to showcase services, descriptions, and pricing options.
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>

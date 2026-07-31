@@ -1,14 +1,14 @@
 <?php
 /**
  * Title: Centered footer
- * Slug: twentytwentyfive/footer-centered
+ * Slug: blockera-one/footer-centered
  * Categories: footer
  * Block Types: core/template-part/footer
  * Description: Footer with centered site title and tagline.
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>
@@ -29,9 +29,9 @@
 	<p class="has-text-align-center has-small-font-size">
 		<?php
 		printf(
-			/* translators: Designed with WordPress. %s: WordPress link. */
+			/* translators: Designed with Blockera. %s: Blockera link. */
 			esc_html__( 'Designed with %s', 'blockera-one' ),
-			'<a href="' . esc_url( __( 'https://wordpress.org', 'blockera-one' ) ) . '" rel="nofollow">WordPress</a>'
+			'<a href="' . esc_url( 'https://blockera.ai/' ) . '" rel="nofollow">Blockera</a>'
 		);
 		?>
 	</p>

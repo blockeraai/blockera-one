@@ -1,13 +1,13 @@
 <?php
 /**
  * Title: Call to action with locations
- * Slug: twentytwentyfive/cta-book-locations
+ * Slug: blockera-one/cta-book-locations
  * Categories: call-to-action
  * Description: A call to action section with links to get the book in the most popular locations.
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>

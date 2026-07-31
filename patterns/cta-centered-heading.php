@@ -1,13 +1,13 @@
 <?php
 /**
  * Title: Centered heading
- * Slug: twentytwentyfive/cta-centered-heading
+ * Slug: blockera-one/cta-centered-heading
  * Categories: call-to-action
  * Description: A hero with a centered heading, paragraph and button.
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>

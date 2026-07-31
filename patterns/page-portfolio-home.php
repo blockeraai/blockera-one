@@ -1,7 +1,7 @@
 <?php
 /**
  * Title: Portfolio homepage
- * Slug: twentytwentyfive/page-portfolio-home
+ * Slug: blockera-one/page-portfolio-home
  * Categories: blockera_one_page, posts
  * Keywords: starter
  * Block Types: core/post-content
@@ -10,8 +10,8 @@
  * Description: A portfolio homepage pattern.
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>
@@ -223,7 +223,7 @@
 		<!-- wp:group {"align":"wide","layout":{"type":"default"}} -->
 		<div class="wp-block-group alignwide">
 			<!-- wp:paragraph {"fontSize":"small"} -->
-			<p class="has-small-font-size"><?php esc_html_e( 'Twenty Twenty-Five', 'blockera-one' ); ?></p>
+			<p class="has-small-font-size"><?php esc_html_e( 'Blockera One', 'blockera-one' ); ?></p>
 			<!-- /wp:paragraph -->
 			<!-- wp:paragraph {"fontSize":"small"} -->
 			<p class="has-small-font-size"><?php esc_html_e( 'email@example.com', 'blockera-one' ); ?><br><?php echo esc_html_x( '+1 555 349 1806', 'Phone number.', 'blockera-one' ); ?></p>

@@ -1,13 +1,13 @@
 <?php
 /**
  * Title: Short heading and paragraph and image on the left
- * Slug: twentytwentyfive/banner-intro-image
+ * Slug: blockera-one/banner-intro-image
  * Categories: banner, featured
  * Description: A Intro pattern with Short heading, paragraph and image on the left.
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>

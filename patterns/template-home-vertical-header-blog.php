@@ -1,14 +1,14 @@
 <?php
 /**
  * Title: Right-aligned home
- * Slug: twentytwentyfive/template-home-vertical-header-blog
+ * Slug: blockera-one/template-home-vertical-header-blog
  * Template Types: front-page, index, home
  * Viewport width: 1400
  * Inserter: no
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>
@@ -27,12 +27,12 @@
 			<!-- wp:spacer {"height":"var:preset|spacing|50"} -->
 			<div style="height:var(--wp--preset--spacing--50)" aria-hidden="true" class="wp-block-spacer"></div>
 			<!-- /wp:spacer -->
-			<!-- wp:pattern {"slug":"twentytwentyfive/hidden-blog-heading"} /-->
+			<!-- wp:pattern {"slug":"blockera-one/hidden-blog-heading"} /-->
 			<!-- wp:spacer {"height":"var:preset|spacing|50"} -->
 			<div style="height:var(--wp--preset--spacing--50)" aria-hidden="true" class="wp-block-spacer"></div>
 			<!-- /wp:spacer -->
 
-			<!-- wp:pattern {"slug":"twentytwentyfive/template-query-loop-vertical-header-blog"} /-->
+			<!-- wp:pattern {"slug":"blockera-one/template-query-loop-vertical-header-blog"} /-->
 
 			<!-- wp:spacer {"height":"var:preset|spacing|50"} -->
 			<div style="height:var(--wp--preset--spacing--50)" aria-hidden="true" class="wp-block-spacer"></div>

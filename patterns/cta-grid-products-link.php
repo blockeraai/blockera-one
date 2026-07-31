@@ -1,14 +1,14 @@
 <?php
 /**
  * Title: Call to action with grid layout with products and link
- * Slug: twentytwentyfive/cta-grid-products-link
+ * Slug: blockera-one/cta-grid-products-link
  * Categories: call-to-action, featured
  * Viewport width: 1400
  * Description: A call to action featuring product images.
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>

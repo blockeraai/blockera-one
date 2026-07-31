@@ -1,14 +1,14 @@
 <?php
 /**
  * Title: Photo blog single post
- * Slug: twentytwentyfive/template-single-photo-blog
+ * Slug: blockera-one/template-single-photo-blog
  * Template Types: posts, single
  * Viewport width: 1400
  * Inserter: no
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>
@@ -89,7 +89,7 @@
 
 	<!-- wp:group {"align":"wide","layout":{"type":"constrained","justifyContent":"left"}} -->
 	<div class="wp-block-group alignwide">
-		<!-- wp:pattern {"slug":"twentytwentyfive/comments"} /-->
+		<!-- wp:pattern {"slug":"blockera-one/comments"} /-->
 	</div>
 	<!-- /wp:group -->
 </main>

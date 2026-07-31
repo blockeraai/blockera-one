@@ -1,14 +1,14 @@
 <?php
 /**
  * Title: Pricing, 2 columns
- * Slug: twentytwentyfive/pricing-2-col
+ * Slug: blockera-one/pricing-2-col
  * Categories: call-to-action
  * Viewport width: 1400
  * Description: Pricing section with two columns, pricing plan, description, and call-to-action buttons.
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>

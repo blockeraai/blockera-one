@@ -1,14 +1,14 @@
 <?php
 /**
  * Title: Comments
- * Slug: twentytwentyfive/comments
+ * Slug: blockera-one/comments
  * Description: Comments area with comments list, pagination, and comment form.
  * Categories: text
  * Block Types: core/comments
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>
