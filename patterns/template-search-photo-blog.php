@@ -1,14 +1,14 @@
 <?php
 /**
  * Title: Photo blog search results
- * Slug: twentytwentyfive/template-search-photo-blog
+ * Slug: blockera-one/template-search-photo-blog
  * Template Types: search
  * Viewport width: 1400
  * Inserter: no
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>
@@ -19,10 +19,10 @@
 	<!-- wp:query-title {"type":"search","textAlign":"center","align":"wide"} /-->
 	<!-- wp:group {"align":"wide","layout":{"type":"default"}} -->
 	<div class="wp-block-group alignwide">
-		<!-- wp:pattern {"slug":"twentytwentyfive/hidden-search"} /-->
+		<!-- wp:pattern {"slug":"blockera-one/hidden-search"} /-->
 	</div>
 	<!-- /wp:group -->
-	<!-- wp:pattern {"slug":"twentytwentyfive/template-query-loop-photo-blog"} /-->
+	<!-- wp:pattern {"slug":"blockera-one/template-query-loop-photo-blog"} /-->
 </main>
 <!-- /wp:group -->
 

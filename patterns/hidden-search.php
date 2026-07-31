@@ -1,12 +1,12 @@
 <?php
 /**
  * Title: Search
- * Slug: twentytwentyfive/hidden-search
+ * Slug: blockera-one/hidden-search
  * Inserter: no
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>

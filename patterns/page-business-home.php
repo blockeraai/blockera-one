@@ -1,7 +1,7 @@
 <?php
 /**
  * Title: Business homepage
- * Slug: twentytwentyfive/page-business-home
+ * Slug: blockera-one/page-business-home
  * Categories: blockera_one_page, featured
  * Keywords: starter
  * Block Types: core/post-content
@@ -10,15 +10,15 @@
  * Description: A business homepage pattern.
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>
 
-<!-- wp:pattern {"slug":"twentytwentyfive/cta-centered-heading"} /-->
-<!-- wp:pattern {"slug":"twentytwentyfive/overlapped-images"} /-->
-<!-- wp:pattern {"slug":"twentytwentyfive/services-3-col"} /-->
-<!-- wp:pattern {"slug":"twentytwentyfive/testimonials-large"} /-->
-<!-- wp:pattern {"slug":"twentytwentyfive/pricing-2-col"} /-->
-<!-- wp:pattern {"slug":"twentytwentyfive/cta-newsletter"} /-->
+<!-- wp:pattern {"slug":"blockera-one/cta-centered-heading"} /-->
+<!-- wp:pattern {"slug":"blockera-one/overlapped-images"} /-->
+<!-- wp:pattern {"slug":"blockera-one/services-3-col"} /-->
+<!-- wp:pattern {"slug":"blockera-one/testimonials-large"} /-->
+<!-- wp:pattern {"slug":"blockera-one/pricing-2-col"} /-->
+<!-- wp:pattern {"slug":"blockera-one/cta-newsletter"} /-->

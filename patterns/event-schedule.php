@@ -1,14 +1,14 @@
 <?php
 /**
  * Title: Event schedule
- * Slug: twentytwentyfive/event-schedule
+ * Slug: blockera-one/event-schedule
  * Categories: about
  * Description: A section with specified dates and times for an event.
  * Keywords: events, agenda, schedule, lectures
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>

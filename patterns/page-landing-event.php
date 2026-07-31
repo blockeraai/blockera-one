@@ -1,7 +1,7 @@
 <?php
 /**
  * Title: Landing page for event
- * Slug: twentytwentyfive/page-landing-event
+ * Slug: blockera-one/page-landing-event
  * Categories: blockera_one_page, featured
  * Keywords: starter
  * Block Types: core/post-content
@@ -10,14 +10,14 @@
  * Description: A landing page for the event with a hero section, description, FAQs and call to action.
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>
 
-<!-- wp:pattern {"slug":"twentytwentyfive/hero-full-width-image"} /-->
-<!-- wp:pattern {"slug":"twentytwentyfive/heading-and-paragraph-with-image"} /-->
-<!-- wp:pattern {"slug":"twentytwentyfive/banner-description-images-grid"} /-->
-<!-- wp:pattern {"slug":"twentytwentyfive/text-faqs"} /-->
-<!-- wp:pattern {"slug":"twentytwentyfive/contact-centered-social-link"} /-->
+<!-- wp:pattern {"slug":"blockera-one/hero-full-width-image"} /-->
+<!-- wp:pattern {"slug":"blockera-one/heading-and-paragraph-with-image"} /-->
+<!-- wp:pattern {"slug":"blockera-one/banner-description-images-grid"} /-->
+<!-- wp:pattern {"slug":"blockera-one/text-faqs"} /-->
+<!-- wp:pattern {"slug":"blockera-one/contact-centered-social-link"} /-->

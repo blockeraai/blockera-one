@@ -1,14 +1,14 @@
 <?php
 /**
  * Title: List of posts, 1 column
- * Slug: twentytwentyfive/template-query-loop
+ * Slug: blockera-one/template-query-loop
  * Categories: query
  * Block Types: core/query
  * Description: A list of posts, 1 column, with featured image and post date.
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>

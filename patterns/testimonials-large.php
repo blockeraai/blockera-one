@@ -1,14 +1,14 @@
 <?php
 /**
  * Title: Review with large image on right
- * Slug: twentytwentyfive/testimonials-large
+ * Slug: blockera-one/testimonials-large
  * Keywords: testimonial
  * Categories: testimonials
  * Description: A testimonial with a large image on the right.
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>

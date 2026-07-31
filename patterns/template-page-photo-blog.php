@@ -1,13 +1,13 @@
 <?php
 /**
  * Title: Photo blog page
- * Slug: twentytwentyfive/template-page-photo-blog
+ * Slug: blockera-one/template-page-photo-blog
  * Template Types: page
  * Viewport width: 1400
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>

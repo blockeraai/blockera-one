@@ -1,15 +1,15 @@
 <?php
 /**
  * Title: Photo blog posts
- * Slug: twentytwentyfive/template-query-loop-photo-blog
+ * Slug: blockera-one/template-query-loop-photo-blog
  * Categories: query
  * Block Types: core/query
  * Viewport width: 1400
  * Description: A list of posts, 3 columns, with only featured images.
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>

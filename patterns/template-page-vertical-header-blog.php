@@ -1,13 +1,13 @@
 <?php
 /**
  * Title: Right-aligned page
- * Slug: twentytwentyfive/template-page-vertical-header-blog
+ * Slug: blockera-one/template-page-vertical-header-blog
  * Template Types: page
  * Viewport width: 1400
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>

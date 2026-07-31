@@ -1,15 +1,15 @@
 <?php
 /**
  * Title: Vertical site header
- * Slug: twentytwentyfive/vertical-header
+ * Slug: blockera-one/vertical-header
  * Categories: header
  * Block Types: core/template-part/vertical-header
  * Description: Vertical site header with site title and navigation.
  * Viewport width: 300
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>

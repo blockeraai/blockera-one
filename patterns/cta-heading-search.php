@@ -1,13 +1,13 @@
 <?php
 /**
  * Title: Heading and search form
- * Slug: twentytwentyfive/cta-heading-search
+ * Slug: blockera-one/cta-heading-search
  * Categories: call-to-action
  * Description: Large heading with a search form for quick navigation.
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>

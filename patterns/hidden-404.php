@@ -1,12 +1,12 @@
 <?php
 /**
  * Title: 404
- * Slug: twentytwentyfive/hidden-404
+ * Slug: blockera-one/hidden-404
  * Inserter: no
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>
@@ -35,7 +35,7 @@
 				<!-- wp:paragraph -->
 				<p><?php echo esc_html_x( 'The page you are looking for doesn\'t exist, or it has been moved. Please try searching using the form below.', '404 error message', 'blockera-one' ); ?></p>
 				<!-- /wp:paragraph -->
-				<!-- wp:pattern {"slug":"twentytwentyfive/hidden-search"} /-->
+				<!-- wp:pattern {"slug":"blockera-one/hidden-search"} /-->
 			</div>
 			<!-- /wp:group -->
 		</div>
