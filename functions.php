@@ -6,7 +6,7 @@
  *
  * @package blockeraai
  * @subpackage blockera-one
- * @since Twenty Twenty-Five 1.0
+ * @since Blockera One 0.1.0
  */
 
 if ( ! function_exists( 'blockera_one_should_load_embedded_blockera' ) ) :
