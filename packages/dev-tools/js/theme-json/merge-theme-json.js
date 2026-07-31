@@ -184,7 +184,9 @@ function printUnifiedDiff(expected, actual) {
 	const max = Math.max(expectedLines.length, actualLines.length);
 	let printed = 0;
 
+	// @debug-ignore — CLI status output for theme-json:check
 	console.error('--- theme.json (committed)');
+	// @debug-ignore — CLI status output for theme-json:check
 	console.error('+++ theme.json (from theme-config)');
 
 	for (let i = 0; i < max && printed < 80; i++) {
@@ -194,16 +196,19 @@ function printUnifiedDiff(expected, actual) {
 			continue;
 		}
 		if (e !== undefined) {
+			// @debug-ignore — CLI status output for theme-json:check
 			console.error(`- ${e}`);
 			printed++;
 		}
 		if (a !== undefined) {
+			// @debug-ignore — CLI status output for theme-json:check
 			console.error(`+ ${a}`);
 			printed++;
 		}
 	}
 
 	if (printed >= 80) {
+		// @debug-ignore — CLI status output for theme-json:check
 		console.error('… (diff truncated)');
 	}
 }
@@ -215,11 +220,14 @@ function main() {
 		if (checkMode) {
 			const result = checkThemeJson();
 			if (result.ok) {
+				// @debug-ignore — CLI status output for theme-json:check
 				console.log('✅ theme.json matches theme-config/');
 				process.exit(0);
 			}
 
+			// @debug-ignore — CLI status output for theme-json:check
 			console.error(`❌ ${result.reason}`);
+			// @debug-ignore — CLI status output for theme-json:check
 			console.error(
 				'Run `npm run theme-json:merge` and commit the updated theme.json.'
 			);
@@ -235,8 +243,10 @@ function main() {
 		}
 
 		const { outputPath } = mergeThemeJson();
+		// @debug-ignore — CLI status output for theme-json:merge
 		console.log(`✅ theme.json successfully merged: ${outputPath}`);
 	} catch (error) {
+		// @debug-ignore — CLI status output for theme-json:merge
 		console.error(`❌ theme.json merge failed: ${error.message}`);
 		process.exit(1);
 	}
