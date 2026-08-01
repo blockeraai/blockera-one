@@ -43,8 +43,10 @@
 		"editor.formatOnSave": true
 	},
 	"prettier.enable": true,
+	"prettier.prettierPath": "./node_modules/prettier",
 	"prettier.configPath": ".prettierrc.js",
 	"prettier.requireConfig": true,
+	"prettier.resolveGlobalModules": false,
 	"prettier.documentSelectors": [
 		"**/*.{js,jsx,ts,tsx,json,jsonc,css,scss,less,yaml,yml,svg,xml}"
 	],

@@ -1,0 +1,11 @@
+{
+	"customTemplates": [
+		{
+			"name": "page-no-title",
+			"title": "Page No Title",
+			"postTypes": [
+				"page"
+			]
+		}
+	]
+}

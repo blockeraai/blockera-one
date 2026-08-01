@@ -1,8 +1,8 @@
 <?php
 /**
  * Title: Shop homepage
- * Slug: twentytwentyfive/page-shop-home
- * Categories: twentytwentyfive_page
+ * Slug: blockera-one/page-shop-home
+ * Categories: blockera_one_page
  * Keywords: starter
  * Block Types: core/post-content
  * Post Types: page, wp_template
@@ -10,12 +10,12 @@
  * Description: A shop homepage pattern.
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>
 
-<!-- wp:pattern {"slug":"twentytwentyfive/banner-intro-image"} /-->
-<!-- wp:pattern {"slug":"twentytwentyfive/grid-with-categories"} /-->
-<!-- wp:pattern {"slug":"twentytwentyfive/media-instagram-grid"} /-->
+<!-- wp:pattern {"slug":"blockera-one/banner-intro-image"} /-->
+<!-- wp:pattern {"slug":"blockera-one/grid-with-categories"} /-->
+<!-- wp:pattern {"slug":"blockera-one/media-instagram-grid"} /-->

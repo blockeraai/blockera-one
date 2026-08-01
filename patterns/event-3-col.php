@@ -1,14 +1,14 @@
 <?php
 /**
  * Title: Events, 3 columns with event images and titles
- * Slug: twentytwentyfive/event-3-col
+ * Slug: blockera-one/event-3-col
  * Categories: banner
  * Description: A header with title and text and three columns that show 3 events with their images and titles.
  * Keywords: events, columns, images
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>

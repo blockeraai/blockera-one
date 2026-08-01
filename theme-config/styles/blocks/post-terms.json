@@ -1,0 +1,9 @@
+{
+	"core/post-terms": {
+		"typography": {
+			"fontSize": "var:preset|font-size|small",
+			"fontWeight": "600"
+		},
+		"css": "& a { white-space: nowrap; }"
+	}
+}

@@ -1,14 +1,14 @@
 <?php
 /**
  * Title: Photo blog home
- * Slug: twentytwentyfive/template-home-photo-blog
+ * Slug: blockera-one/template-home-photo-blog
  * Template Types: front-page, index, home
  * Viewport width: 1400
  * Inserter: no
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>
@@ -26,7 +26,7 @@
 	<!-- wp:heading {"textAlign":"center","align":"wide","fontSize":"xx-large"} -->
 	<h2 class="wp-block-heading alignwide has-text-align-center has-xx-large-font-size"><?php esc_html_e( 'Tell your story', 'blockera-one' ); ?></h2>
 	<!-- /wp:heading -->
-	<!-- wp:pattern {"slug":"twentytwentyfive/template-query-loop-photo-blog"} /-->
+	<!-- wp:pattern {"slug":"blockera-one/template-query-loop-photo-blog"} /-->
 </main>
 <!-- /wp:group -->
 

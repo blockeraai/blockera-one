@@ -1,14 +1,14 @@
 <?php
 /**
  * Title: Instagram grid
- * Slug: twentytwentyfive/media-instagram-grid
+ * Slug: blockera-one/media-instagram-grid
  * Categories: media, gallery, featured
  * Viewport width: 1440
  * Description: A grid section with photos and a link to an Instagram profile.
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>

@@ -1,14 +1,14 @@
 <?php
 /**
  * Title: Post navigation
- * Slug: twentytwentyfive/post-navigation
+ * Slug: blockera-one/post-navigation
  * Categories: text
  * Description: Next and previous post links.
  * Block Types: core/post-navigation-link
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>

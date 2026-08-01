@@ -1,0 +1,7 @@
+{
+	"core/buttons": {
+		"spacing": {
+			"blockGap": "16px"
+		}
+	}
+}

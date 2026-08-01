@@ -1,14 +1,14 @@
 <?php
 /**
  * Title: Text blog home
- * Slug: twentytwentyfive/template-home-text-blog
+ * Slug: blockera-one/template-home-text-blog
  * Template Types: front-page, home
  * Viewport width: 1400
  * Inserter: no
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>
@@ -22,7 +22,7 @@
 	<!-- wp:spacer {"height":"var:preset|spacing|50"} -->
 	<div style="height:var(--wp--preset--spacing--50)" aria-hidden="true" class="wp-block-spacer"></div>
 	<!-- /wp:spacer -->
-	<!-- wp:pattern {"slug":"twentytwentyfive/template-query-loop-text-blog"} /-->
+	<!-- wp:pattern {"slug":"blockera-one/template-query-loop-text-blog"} /-->
 </main>
 <!-- /wp:group -->
 

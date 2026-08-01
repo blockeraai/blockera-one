@@ -1,14 +1,14 @@
 <?php
 /**
  * Title: News blog single post with sidebar
- * Slug: twentytwentyfive/template-single-news-blog
+ * Slug: blockera-one/template-single-news-blog
  * Template Types: posts, single
  * Viewport width: 1400
  * Inserter: no
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>
@@ -113,7 +113,7 @@
 			<div class="wp-block-column" style="padding-top:0;padding-bottom:0;flex-basis:65%">
 				<!-- wp:group {"style":{"spacing":{"padding":{"top":"0","bottom":"0","left":"0","right":"0"}}},"layout":{"type":"default"}} -->
 				<div class="wp-block-group" style="padding-top:0;padding-right:0;padding-bottom:0;padding-left:0">
-					<!-- wp:pattern {"slug":"twentytwentyfive/comments"} /-->
+					<!-- wp:pattern {"slug":"blockera-one/comments"} /-->
 				</div>
 				<!-- /wp:group -->
 			</div>

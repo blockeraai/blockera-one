@@ -1,0 +1,24 @@
+{
+	"core/pullquote": {
+		"spacing": {
+			"padding": {
+				"bottom": "var:preset|spacing|30",
+				"top": "var:preset|spacing|30"
+			}
+		},
+		"typography": {
+			"fontSize": "var:preset|font-size|xx-large",
+			"fontWeight": "300",
+			"lineHeight": "1.2"
+		},
+		"css": "& p:last-of-type {margin-bottom: var(--wp--preset--spacing--30);}",
+		"elements": {
+			"cite": {
+				"typography": {
+					"fontSize": "var:preset|font-size|small",
+					"fontStyle": "normal"
+				}
+			}
+		}
+	}
+}

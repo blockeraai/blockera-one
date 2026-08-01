@@ -1,0 +1,21 @@
+{
+	"core/code": {
+		"color": {
+			"background": "var:preset|color|accent-5",
+			"text": "var:preset|color|contrast"
+		},
+		"spacing": {
+			"padding": {
+				"bottom": "var:preset|spacing|40",
+				"left": "var:preset|spacing|40",
+				"right": "var:preset|spacing|40",
+				"top": "var:preset|spacing|40"
+			}
+		},
+		"typography": {
+			"fontFamily": "var:preset|font-family|fira-code",
+			"fontSize": "var:preset|font-size|medium",
+			"fontWeight": "300"
+		}
+	}
+}

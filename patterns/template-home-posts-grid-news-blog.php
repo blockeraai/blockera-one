@@ -1,13 +1,13 @@
 <?php
 /**
  * Title: News blog with featured posts grid
- * Slug: twentytwentyfive/template-home-posts-grid-news-blog
+ * Slug: blockera-one/template-home-posts-grid-news-blog
  * Template Types: front-page, index, home
  * Inserter: no
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>
@@ -131,6 +131,6 @@
 </main>
 <!-- /wp:group -->
 
-<!-- wp:pattern {"slug":"twentytwentyfive/cta-newsletter"} /-->
+<!-- wp:pattern {"slug":"blockera-one/cta-newsletter"} /-->
 
 <!-- wp:template-part {"slug":"footer-columns"} /-->

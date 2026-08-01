@@ -1,0 +1,7 @@
+{
+	"core/columns": {
+		"spacing": {
+			"blockGap": "var:preset|spacing|50"
+		}
+	}
+}

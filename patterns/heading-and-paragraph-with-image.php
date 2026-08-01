@@ -1,13 +1,13 @@
 <?php
 /**
  * Title: Heading and paragraph with image on the right
- * Slug: twentytwentyfive/heading-and-paragraph-with-image
+ * Slug: blockera-one/heading-and-paragraph-with-image
  * Categories: about
  * Description: A two-column section with a heading and paragraph on the left, and an image on the right.
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>

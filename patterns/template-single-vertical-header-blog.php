@@ -1,14 +1,14 @@
 <?php
 /**
  * Title: Right-aligned single post
- * Slug: twentytwentyfive/template-single-vertical-header-blog
+ * Slug: blockera-one/template-single-vertical-header-blog
  * Template Types: posts, single
  * Viewport width: 1400
  * Inserter: no
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>
@@ -89,7 +89,7 @@
 		<!-- /wp:group -->
 		<!-- wp:group {"tagName":"aside","align":"wide","layout":{"type":"constrained","justifyContent":"left"},"style":{"spacing":{"padding":{"top":"0","bottom":"0","left":"0","right":"0"}}}} -->
 		<aside class="wp-block-group alignwide" style="padding-top:0;padding-right:0;padding-bottom:0;padding-left:0">
-			<!-- wp:pattern {"slug":"twentytwentyfive/comments"} /-->
+			<!-- wp:pattern {"slug":"blockera-one/comments"} /-->
 		</aside>
 		<!-- /wp:group -->
 	</div>

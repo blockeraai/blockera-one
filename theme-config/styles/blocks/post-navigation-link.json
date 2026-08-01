@@ -1,0 +1,7 @@
+{
+	"core/post-navigation-link": {
+		"typography": {
+			"fontSize": "var:preset|font-size|medium"
+		}
+	}
+}

@@ -1,0 +1,7 @@
+{
+	"h3": {
+		"typography": {
+			"fontSize": "var:preset|font-size|large"
+		}
+	}
+}

@@ -1,0 +1,8 @@
+{
+	"core/query-pagination": {
+		"typography": {
+			"fontSize": "var:preset|font-size|medium",
+			"fontWeight": "500"
+		}
+	}
+}

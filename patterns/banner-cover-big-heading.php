@@ -1,13 +1,13 @@
 <?php
 /**
  * Title: Cover with big heading
- * Slug: twentytwentyfive/banner-cover-big-heading
+ * Slug: blockera-one/banner-cover-big-heading
  * Categories: banner, about, featured
  * Description: A full-width cover section with a large background image and an oversized heading.
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>
