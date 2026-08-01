@@ -21,11 +21,16 @@ const DependencyExtractionWebpackPlugin = require('@wordpress/dependency-extract
  */
 const styleDependencies = require('./packages-styles');
 const MergeThemeJsonWebpackPlugin = require('./merge-theme-json-plugin');
+const LocalizePatternsWebpackPlugin = require('./localize-patterns-plugin');
 
 dotenv.config();
 
 /** Only theme products ship `theme-config/`; plugins skip the merge plugin. */
 const shouldMergeThemeJson = MergeThemeJsonWebpackPlugin.hasThemeConfig();
+
+/** Localize patterns when `.patterns.config.js` points at PHP pattern files. */
+const shouldLocalizePatterns =
+	LocalizePatternsWebpackPlugin.hasConfiguredPatterns();
 
 /**
  * Removes all svg rules from WordPress webpack config because it brakes the SVGR and SVGO plugins
@@ -134,6 +139,8 @@ module.exports = (env, argv) => {
 			new DependencyExtractionWebpackPlugin({ injectPolyfill: true }),
 			// Theme projects only (theme-config/ present). Plugins skip this.
 			shouldMergeThemeJson ? new MergeThemeJsonWebpackPlugin() : null,
+			// Localize pattern PHP strings/URLs when patterns are present.
+			shouldLocalizePatterns ? new LocalizePatternsWebpackPlugin() : null,
 			new CopyPlugin({
 				patterns: [
 					{
