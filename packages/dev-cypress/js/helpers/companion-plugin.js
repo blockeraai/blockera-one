@@ -11,7 +11,6 @@ import {
 	openSettingsPanel,
 } from './editor';
 
-import { FEATURE_WRAPPER_TEST_ID } from '../../../controls/js/libs/feature-wrapper/constants/testIds';
 export { FEATURE_WRAPPER_TEST_ID };
 
 export const COMPANION_INSTALL_NOTICE = 'Install Companion Plugin to Unlock';
