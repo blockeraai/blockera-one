@@ -1,9 +1,9 @@
 /**
- * Webpack plugin: localize patterns/ PHP files on each compile,
- * and register the patterns directory as a watch dependency for `wp-scripts start`.
+ * Webpack plugin: localize patterns PHP files on each compile,
+ * and register the patterns directories as watch dependencies for `wp-scripts start`.
  *
  * Reads theme-root `.patterns.config.js`. No-ops when the configured patterns
- * directory has no PHP files.
+ * directories have no PHP files.
  */
 
 const fs = require('fs');
@@ -50,7 +50,7 @@ class LocalizePatternsWebpackPlugin {
 				throw error;
 			}
 
-			if (!hasPatternPhpFiles(config.patternsDir)) {
+			if (!hasPatternPhpFiles(config.patternsDirs)) {
 				return;
 			}
 
@@ -65,14 +65,16 @@ class LocalizePatternsWebpackPlugin {
 				return;
 			}
 
-			if (!fs.existsSync(config.patternsDir)) {
-				return;
-			}
-
-			compilation.contextDependencies.add(config.patternsDir);
 			compilation.fileDependencies.add(config.configPath);
 
-			addPatternPhpDependencies(compilation, config.patternsDir);
+			for (const patternsDir of config.patternsDirs) {
+				if (!fs.existsSync(patternsDir)) {
+					continue;
+				}
+
+				compilation.contextDependencies.add(patternsDir);
+				addPatternPhpDependencies(compilation, patternsDir);
+			}
 		});
 	}
 }
@@ -126,7 +128,7 @@ function hasConfiguredPatterns(overrides = {}) {
 			hasPatternPhpFiles,
 		} = require('../../../utils/js/patterns/localize-patterns');
 		const config = loadPatternsConfig({ ...overrides, quiet: true });
-		return hasPatternPhpFiles(config.patternsDir);
+		return hasPatternPhpFiles(config.patternsDirs);
 	} catch (error) {
 		return false;
 	}
