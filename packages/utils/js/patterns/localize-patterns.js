@@ -26,7 +26,8 @@ const DEFAULT_IMAGE_PATH_ROOTS = ['assets', 'patterns/images'];
 
 /**
  * @typedef {Object} LocalizePatternsOptions
- * @property {string} patternsDir Absolute path to the patterns directory.
+ * @property {string|string[]} [patternsDirs] Absolute path(s) to pattern directories.
+ * @property {string|string[]} [patternsDir] Legacy alias for patternsDirs.
  * @property {string} textDomain Text domain for i18n calls.
  * @property {string} [uriPhpExpression] PHP expression passed to esc_url().
  * @property {string[]} [imagePathRoots] Product-relative image path roots.
@@ -37,23 +38,51 @@ const DEFAULT_IMAGE_PATH_ROOTS = ['assets', 'patterns/images'];
  */
 
 /**
- * Whether a patterns directory contains at least one PHP file.
+ * Normalize patternsDir / patternsDirs into an absolute path array.
  *
- * @param {string} patternsDir Absolute patterns directory.
- * @return {boolean} True when PHP pattern files exist.
+ * @param {LocalizePatternsOptions} options Localize options.
+ * @return {string[]} Absolute pattern directory paths.
  */
-function hasPatternPhpFiles(patternsDir) {
-	if (!patternsDir || !fs.existsSync(patternsDir)) {
-		return false;
+function normalizePatternsDirs(options = {}) {
+	const raw = options.patternsDirs ?? options.patternsDir;
+
+	if (!raw) {
+		return [];
 	}
 
-	const matches = fg.sync('**/*.php', {
-		cwd: patternsDir,
-		onlyFiles: true,
-		absolute: false,
-	});
+	if (Array.isArray(raw)) {
+		return raw.filter(Boolean);
+	}
 
-	return matches.length > 0;
+	return [raw];
+}
+
+/**
+ * Whether a patterns directory (or list of dirs) contains at least one PHP file.
+ *
+ * @param {string|string[]} patternsDir Absolute patterns directory or list.
+ * @return {boolean} True when PHP pattern files exist in any directory.
+ */
+function hasPatternPhpFiles(patternsDir) {
+	const dirs = Array.isArray(patternsDir) ? patternsDir : [patternsDir];
+
+	for (const dir of dirs) {
+		if (!dir || !fs.existsSync(dir)) {
+			continue;
+		}
+
+		const matches = fg.sync('**/*.php', {
+			cwd: dir,
+			onlyFiles: true,
+			absolute: false,
+		});
+
+		if (matches.length > 0) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 /**
@@ -194,14 +223,14 @@ async function listPatternFiles(patternsDir) {
 }
 
 /**
- * Localize all pattern PHP files under options.patternsDir.
+ * Localize all pattern PHP files under one directory.
  *
- * @param {LocalizePatternsOptions} options Localize options.
- * @return {Promise<{ changedFiles: string[], ok: boolean, reason?: string }>} Result.
+ * @param {string} patternsDir Absolute patterns directory.
+ * @param {Object} shared Shared localize options (without patternsDir).
+ * @return {Promise<string[]>} Changed absolute file paths.
  */
-async function localizePatterns(options = {}) {
+async function localizePatternsInDirectory(patternsDir, shared) {
 	const {
-		patternsDir,
 		textDomain,
 		uriPhpExpression = 'get_template_directory_uri()',
 		imagePathRoots = DEFAULT_IMAGE_PATH_ROOTS,
@@ -209,15 +238,7 @@ async function localizePatterns(options = {}) {
 		quiet = false,
 		debug = false,
 		check = false,
-	} = options;
-
-	if (!patternsDir) {
-		throw new Error('localizePatterns: patternsDir is required.');
-	}
-
-	if (!textDomain) {
-		throw new Error('localizePatterns: textDomain is required.');
-	}
+	} = shared;
 
 	if (!hasPatternPhpFiles(patternsDir)) {
 		if (!quiet) {
@@ -228,7 +249,7 @@ async function localizePatterns(options = {}) {
 			);
 		}
 
-		return { changedFiles: [], ok: true };
+		return [];
 	}
 
 	const files = await listPatternFiles(patternsDir);
@@ -247,7 +268,7 @@ async function localizePatterns(options = {}) {
 		// @debug-ignore — CLI status output for patterns:localize
 		// eslint-disable-next-line no-console
 		console.log(
-			`Processing ${files.length} pattern file(s) with text domain "${textDomain}"...`
+			`Processing ${files.length} pattern file(s) in ${patternsDir} with text domain "${textDomain}"...`
 		);
 	}
 
@@ -318,6 +339,57 @@ async function localizePatterns(options = {}) {
 		}
 	}
 
+	return changedFiles;
+}
+
+/**
+ * Localize all pattern PHP files under options.patternsDirs / patternsDir.
+ *
+ * @param {LocalizePatternsOptions} options Localize options.
+ * @return {Promise<{ changedFiles: string[], ok: boolean, reason?: string }>} Result.
+ */
+async function localizePatterns(options = {}) {
+	const patternsDirs = normalizePatternsDirs(options);
+
+	if (!patternsDirs.length) {
+		throw new Error(
+			'localizePatterns: patternsDirs (or patternsDir) is required.'
+		);
+	}
+
+	if (!options.textDomain) {
+		throw new Error('localizePatterns: textDomain is required.');
+	}
+
+	const {
+		textDomain,
+		uriPhpExpression = 'get_template_directory_uri()',
+		imagePathRoots = DEFAULT_IMAGE_PATH_ROOTS,
+		force = false,
+		quiet = false,
+		debug = false,
+		check = false,
+	} = options;
+
+	const shared = {
+		textDomain,
+		uriPhpExpression,
+		imagePathRoots,
+		force,
+		quiet,
+		debug,
+		check,
+	};
+
+	const changedFiles = [];
+
+	for (const patternsDir of patternsDirs) {
+		const changed = await localizePatternsInDirectory(patternsDir, shared);
+		for (const file of changed) {
+			changedFiles.push(file);
+		}
+	}
+
 	if (check && changedFiles.length > 0) {
 		return {
 			changedFiles,
@@ -341,6 +413,7 @@ async function checkPatterns(options = {}) {
 
 module.exports = {
 	DEFAULT_IMAGE_PATH_ROOTS,
+	normalizePatternsDirs,
 	hasPatternPhpFiles,
 	needsTranslation,
 	localizePatternContent,

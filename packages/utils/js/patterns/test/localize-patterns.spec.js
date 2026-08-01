@@ -17,6 +17,7 @@ const {
 	checkPatterns,
 	hasPatternPhpFiles,
 	needsTranslation,
+	normalizePatternsDirs,
 } = require('../localize-patterns');
 
 describe('escapeText', () => {
@@ -324,5 +325,111 @@ describe('localizePatterns / checkPatterns', () => {
 
 		expect(result.ok).toBe(true);
 		expect(result.changedFiles).toHaveLength(0);
+	});
+
+	it('normalizePatternsDirs accepts legacy patternsDir string', () => {
+		expect(normalizePatternsDirs({ patternsDir: '/a/patterns' })).toEqual([
+			'/a/patterns',
+		]);
+	});
+
+	it('normalizePatternsDirs prefers patternsDirs array', () => {
+		expect(
+			normalizePatternsDirs({
+				patternsDirs: ['/a/patterns', '/a/patterns-woocommerce'],
+				patternsDir: '/legacy',
+			})
+		).toEqual(['/a/patterns', '/a/patterns-woocommerce']);
+	});
+
+	it('hasPatternPhpFiles is true when any directory in the array has PHP', () => {
+		const emptyDir = path.join(tempDir, 'empty');
+		const withPhp = path.join(tempDir, 'with-php');
+		fs.mkdirSync(emptyDir);
+		fs.mkdirSync(withPhp);
+		fs.writeFileSync(path.join(withPhp, 'a.php'), '<?php\n?>\n', 'utf8');
+
+		expect(hasPatternPhpFiles([emptyDir, withPhp])).toBe(true);
+		expect(hasPatternPhpFiles([emptyDir])).toBe(false);
+	});
+
+	it('localizes across patternsDirs (dirty + clean directories)', async () => {
+		const dirtyDir = path.join(tempDir, 'patterns');
+		const cleanDir = path.join(tempDir, 'patterns-woocommerce');
+		fs.mkdirSync(dirtyDir);
+		fs.mkdirSync(cleanDir);
+
+		fs.writeFileSync(
+			path.join(dirtyDir, 'dirty.php'),
+			`<?php
+/**
+ * Title: Dirty
+ */
+?>
+<!-- wp:paragraph -->
+<p>Needs work</p>
+<!-- /wp:paragraph -->
+`,
+			'utf8'
+		);
+
+		fs.writeFileSync(
+			path.join(cleanDir, 'clean.php'),
+			`<?php
+/**
+ * Title: Clean
+ */
+?>
+<!-- wp:heading -->
+<h2><?php esc_html_e( 'Already done', 'blockera-one' ); ?></h2>
+<!-- /wp:heading -->
+`,
+			'utf8'
+		);
+
+		const result = await localizePatterns({
+			patternsDirs: [dirtyDir, cleanDir],
+			textDomain: 'blockera-one',
+			uriPhpExpression: 'get_template_directory_uri()',
+			quiet: true,
+		});
+
+		expect(result.ok).toBe(true);
+		expect(result.changedFiles).toHaveLength(1);
+		expect(result.changedFiles[0]).toContain('dirty.php');
+		expect(fs.readFileSync(result.changedFiles[0], 'utf8')).toContain(
+			"esc_html_e( 'Needs work', 'blockera-one' )"
+		);
+		expect(
+			fs.readFileSync(path.join(cleanDir, 'clean.php'), 'utf8')
+		).toContain("esc_html_e( 'Already done', 'blockera-one' )");
+	});
+
+	it('legacy patternsDir string still localizes a single directory', async () => {
+		writePattern(
+			'legacy.php',
+			`<?php
+/**
+ * Title: Legacy
+ */
+?>
+<!-- wp:paragraph -->
+<p>Legacy text</p>
+<!-- /wp:paragraph -->
+`
+		);
+
+		const result = await localizePatterns({
+			patternsDir: tempDir,
+			textDomain: 'blockera-one',
+			uriPhpExpression: 'get_template_directory_uri()',
+			quiet: true,
+		});
+
+		expect(result.ok).toBe(true);
+		expect(result.changedFiles).toHaveLength(1);
+		expect(fs.readFileSync(result.changedFiles[0], 'utf8')).toContain(
+			"esc_html_e( 'Legacy text', 'blockera-one' )"
+		);
 	});
 });
