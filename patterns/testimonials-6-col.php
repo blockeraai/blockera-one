@@ -1,14 +1,14 @@
 <?php
 /**
  * Title: 3 column layout with 6 testimonials
- * Slug: twentytwentyfive/testimonials-6-col
+ * Slug: blockera-one/testimonials-6-col
  * Keywords: testimonial
  * Categories: testimonials
  * Description: A section with three columns and two rows, each containing a testimonial and citation.
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>

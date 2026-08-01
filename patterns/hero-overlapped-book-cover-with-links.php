@@ -1,13 +1,13 @@
 <?php
 /**
  * Title: Hero, overlapped book cover with links
- * Slug: twentytwentyfive/hero-overlapped-book-cover-with-links
+ * Slug: blockera-one/hero-overlapped-book-cover-with-links
  * Categories: banner
  * Description: A hero with an overlapped book cover and links.
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>

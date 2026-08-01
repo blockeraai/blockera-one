@@ -1,0 +1,13 @@
+{
+	"core/comment-content": {
+		"spacing": {
+			"margin": {
+				"bottom": "var:preset|spacing|30",
+				"top": "var:preset|spacing|30"
+			}
+		},
+		"typography": {
+			"fontSize": "var:preset|font-size|medium"
+		}
+	}
+}

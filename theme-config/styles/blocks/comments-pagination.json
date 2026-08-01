@@ -1,0 +1,13 @@
+{
+	"core/comments-pagination": {
+		"spacing": {
+			"margin": {
+				"bottom": "var:preset|spacing|40",
+				"top": "var:preset|spacing|40"
+			}
+		},
+		"typography": {
+			"fontSize": "var:preset|font-size|medium"
+		}
+	}
+}

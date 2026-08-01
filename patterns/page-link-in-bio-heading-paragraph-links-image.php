@@ -1,16 +1,16 @@
 <?php
 /**
  * Title: Link in bio heading, paragraph, links and full-height image
- * Slug: twentytwentyfive/page-link-in-bio-heading-paragraph-links-image
- * Categories: twentytwentyfive_page, banner, featured
+ * Slug: blockera-one/page-link-in-bio-heading-paragraph-links-image
+ * Categories: blockera_one_page, banner, featured
  * Keywords: starter
  * Block Types: core/post-content
  * Viewport width: 1400
  * Description: A link in bio landing page with a heading, paragraph, links and a full height image.
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>

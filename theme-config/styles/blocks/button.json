@@ -1,0 +1,21 @@
+{
+	"core/button": {
+		"variations": {
+			"outline": {
+				"border": {
+					"color": "currentColor",
+					"width": "1px"
+				},
+				"spacing": {
+					"padding": {
+						"bottom": "calc(1rem - 1px)",
+						"left": "calc(2.25rem - 1px)",
+						"right": "calc(2.25rem - 1px)",
+						"top": "calc(1rem - 1px)"
+					}
+				},
+				"css": ".wp-block-button__link:not(.has-background):hover {background-color:color-mix(in srgb, var(--wp--preset--color--contrast) 5%, transparent);}"
+			}
+		}
+	}
+}

@@ -1,0 +1,17 @@
+{
+	"core/comment-date": {
+		"color": {
+			"text": "var:preset|color|contrast"
+		},
+		"typography": {
+			"fontSize": "var:preset|font-size|small"
+		},
+		"elements": {
+			"link": {
+				"color": {
+					"text": "var:preset|color|contrast"
+				}
+			}
+		}
+	}
+}

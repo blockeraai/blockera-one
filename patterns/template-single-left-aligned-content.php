@@ -1,14 +1,14 @@
 <?php
 /**
  * Title: Post with left-aligned content
- * Slug: twentytwentyfive/post-with-left-aligned-content
+ * Slug: blockera-one/post-with-left-aligned-content
  * Template Types: posts, single
  * Viewport width: 1400
  * Inserter: no
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>
@@ -99,7 +99,7 @@
 				<!-- /wp:column -->
 				<!-- wp:column {"width":"60%","style":{"spacing":{"padding":{"top":"0","bottom":"0"}}}} -->
 				<div class="wp-block-column" style="padding-top:0;padding-bottom:0;flex-basis:60%">
-					<!-- wp:pattern {"slug":"twentytwentyfive/comments"} /-->
+					<!-- wp:pattern {"slug":"blockera-one/comments"} /-->
 				</div>
 				<!-- /wp:column -->
 			</div>

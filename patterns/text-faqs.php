@@ -1,15 +1,15 @@
 <?php
 /**
  * Title: FAQs
- * Slug: twentytwentyfive/text-faqs
+ * Slug: blockera-one/text-faqs
  * Categories: text, about
  * Keywords: faq, about, frequently asked questions
  * Viewport width: 1400
  * Description: A FAQs section with a FAQ heading and list of questions and answers.
  *
  * @package    WordPress
- * @subpackage Twenty_Twenty_Five
- * @since      Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>

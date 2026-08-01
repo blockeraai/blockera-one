@@ -1,13 +1,13 @@
 <?php
 /**
  * Title: Intro with left-aligned description
- * Slug: twentytwentyfive/banner-intro
+ * Slug: blockera-one/banner-intro
  * Categories: banner
  * Description: A large left-aligned heading with a brand name emphasized in bold.
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>

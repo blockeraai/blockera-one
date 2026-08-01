@@ -1,8 +1,8 @@
 <?php
 /**
  * Title: Link in bio with tight margins
- * Slug: twentytwentyfive/page-link-in-bio-with-tight-margins
- * Categories: twentytwentyfive_page, banner
+ * Slug: blockera-one/page-link-in-bio-with-tight-margins
+ * Categories: blockera_one_page, banner
  * Keywords: starter
  * Block Types: core/post-content
  * Post Types: page, wp_template
@@ -10,8 +10,8 @@
  * Description: A full-width, full-height link in bio section with an image, a paragraph and social links.
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>

@@ -65,11 +65,11 @@
         },
         {
             "name": "blockera/blockera-one",
-            "version": "1.3.3",
+            "version": "1.0.0",
             "dist": {
                 "type": "path",
                 "url": "packages/blockera-one",
-                "reference": "835c92adea4479daf6ed58e0336df01557f9974f"
+                "reference": "14b5d68384c299cb8a0e33c635a7840cf8470bc5"
             },
             "type": "library",
             "autoload": {
@@ -7870,5 +7870,5 @@
     "platform-overrides": {
         "php": "7.4"
     },
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }

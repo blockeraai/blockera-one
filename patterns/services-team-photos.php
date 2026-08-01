@@ -1,13 +1,13 @@
 <?php
 /**
  * Title: Services, team photos
- * Slug: twentytwentyfive/services-team-photos
+ * Slug: blockera-one/services-team-photos
  * Categories: banner, call-to-action, featured
  * Description: Display team photos in a services section with grid layout.
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>

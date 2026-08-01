@@ -1,0 +1,7 @@
+{
+	"core/site-tagline": {
+		"typography": {
+			"fontSize": "var:preset|font-size|medium"
+		}
+	}
+}

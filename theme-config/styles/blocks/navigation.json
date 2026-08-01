@@ -1,0 +1,19 @@
+{
+	"core/navigation": {
+		"typography": {
+			"fontSize": "var:preset|font-size|medium"
+		},
+		"elements": {
+			"link": {
+				"typography": {
+					"textDecoration": "none"
+				},
+				":hover": {
+					"typography": {
+						"textDecoration": "underline"
+					}
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,14 @@
+{
+	"core/comment-edit-link": {
+		"typography": {
+			"fontSize": "var:preset|font-size|small"
+		},
+		"elements": {
+			"link": {
+				"color": {
+					"text": "var:preset|color|contrast"
+				}
+			}
+		}
+	}
+}

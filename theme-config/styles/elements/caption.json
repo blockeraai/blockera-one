@@ -1,0 +1,8 @@
+{
+	"caption": {
+		"typography": {
+			"fontSize": "var:preset|font-size|small",
+			"lineHeight": "1.4"
+		}
+	}
+}

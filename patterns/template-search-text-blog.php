@@ -1,14 +1,14 @@
 <?php
 /**
  * Title: Text blog search results
- * Slug: twentytwentyfive/template-search-text-blog
+ * Slug: blockera-one/template-search-text-blog
  * Template Types: search
  * Viewport width: 1400
  * Inserter: no
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>
@@ -19,13 +19,13 @@
 	<!-- wp:group {"align":"wide","layout":{"type":"default"}} -->
 	<div class="wp-block-group alignwide">
 		<!-- wp:query-title {"type":"search","align":"wide","fontSize":"x-large"} /-->
-		<!-- wp:pattern {"slug":"twentytwentyfive/hidden-search"} /-->
+		<!-- wp:pattern {"slug":"blockera-one/hidden-search"} /-->
 	</div>
 	<!-- /wp:group -->
 	<!-- wp:spacer {"height":"var:preset|spacing|50"} -->
 	<div style="height:var(--wp--preset--spacing--50)" aria-hidden="true" class="wp-block-spacer"></div>
 	<!-- /wp:spacer -->
-	<!-- wp:pattern {"slug":"twentytwentyfive/template-query-loop-text-blog"} /-->
+	<!-- wp:pattern {"slug":"blockera-one/template-query-loop-text-blog"} /-->
 </main>
 <!-- /wp:group -->
 

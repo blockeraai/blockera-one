@@ -1,0 +1,7 @@
+{
+	"h4": {
+		"typography": {
+			"fontSize": "var:preset|font-size|medium"
+		}
+	}
+}

@@ -406,10 +406,14 @@ declare module '@wordpress/commands' {
 
 	export interface CommandLoaderOptions {
 		name: string;
-		hook: () => {
+		hook: (params?: { search?: string }) => {
 			commands: Command[];
 			isLoading: boolean;
 		};
+		context?: string;
+		category?: string;
+		/** When true, the loader is not registered (see @wordpress/commands useCommandLoader). */
+		disabled?: boolean;
 	}
 
 	export interface CommandsSelectors {

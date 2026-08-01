@@ -1,12 +1,12 @@
 <?php
 /**
  * Title: Right-aligned query loop
- * Slug: twentytwentyfive/template-query-loop-vertical-header-blog
+ * Slug: blockera-one/template-query-loop-vertical-header-blog
  * Inserter: no
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>

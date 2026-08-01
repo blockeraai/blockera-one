@@ -1,0 +1,55 @@
+{
+	"core/quote": {
+		"border": {
+			"color": "currentColor",
+			"style": "solid",
+			"width": "0 0 0 2px"
+		},
+		"spacing": {
+			"blockGap": "var:preset|spacing|30",
+			"margin": {
+				"left": "0",
+				"right": "0"
+			},
+			"padding": {
+				"bottom": "var:preset|spacing|30",
+				"left": "var:preset|spacing|40",
+				"right": "var:preset|spacing|40",
+				"top": "var:preset|spacing|30"
+			}
+		},
+		"typography": {
+			"fontSize": "var:preset|font-size|large",
+			"fontWeight": "300"
+		},
+		"variations": {
+			"plain": {
+				"border": {
+					"color": "transparent",
+					"radius": "0",
+					"style": "none",
+					"width": "0"
+				},
+				"spacing": {
+					"padding": {
+						"bottom": "0",
+						"left": "0",
+						"right": "0",
+						"top": "0"
+					}
+				}
+			}
+		},
+		"css": "&.has-text-align-right { border-width: 0 2px 0 0; } &.has-text-align-center { border-width: 0;border-inline: 0; padding-inline: 0; }",
+		"elements": {
+			"cite": {
+				"typography": {
+					"fontSize": "var:preset|font-size|small",
+					"fontStyle": "normal",
+					"fontWeight": "300"
+				},
+				"css": "& sub { font-size: 0.65em }"
+			}
+		}
+	}
+}

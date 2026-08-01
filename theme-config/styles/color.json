@@ -1,0 +1,6 @@
+{
+	"color": {
+		"background": "var:preset|color|base",
+		"text": "var:preset|color|contrast"
+	}
+}

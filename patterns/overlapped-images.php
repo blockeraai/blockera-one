@@ -1,13 +1,13 @@
 <?php
 /**
  * Title: Overlapping images and paragraph on right
- * Slug: twentytwentyfive/overlapped-images
+ * Slug: blockera-one/overlapped-images
  * Categories: about, featured
  * Description: A section with overlapping images, and a description.
  *
  * @package WordPress
- * @subpackage Twenty_Twenty_Five
- * @since Twenty Twenty-Five 1.0
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
  */
 
 ?>
