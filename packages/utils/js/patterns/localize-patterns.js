@@ -96,6 +96,7 @@ function createRewriter(options) {
 				const newSrc = escapeImagePath(originalSrc, imageOptions);
 
 				if (debug) {
+					// @debug-ignore — CLI debug output for patterns:localize --debug
 					// eslint-disable-next-line no-console
 					console.log('Processing image src:', {
 						originalSrc,
@@ -220,6 +221,7 @@ async function localizePatterns(options = {}) {
 
 	if (!hasPatternPhpFiles(patternsDir)) {
 		if (!quiet) {
+			// @debug-ignore — CLI status output for patterns:localize
 			// eslint-disable-next-line no-console
 			console.log(
 				`No PHP pattern files found in ${patternsDir}; skipping.`
@@ -242,6 +244,7 @@ async function localizePatterns(options = {}) {
 	};
 
 	if (!quiet) {
+		// @debug-ignore — CLI status output for patterns:localize
 		// eslint-disable-next-line no-console
 		console.log(
 			`Processing ${files.length} pattern file(s) with text domain "${textDomain}"...`
@@ -252,6 +255,7 @@ async function localizePatterns(options = {}) {
 		const relative = path.relative(patternsDir, file);
 
 		if (!quiet) {
+			// @debug-ignore — CLI status output for patterns:localize
 			// eslint-disable-next-line no-console
 			console.log(`  - ${relative}`);
 		}
@@ -260,9 +264,11 @@ async function localizePatterns(options = {}) {
 
 		if (debug) {
 			const imgMatches = [...originalContent.matchAll(/src="([^"]+)"/g)];
+			// @debug-ignore — CLI debug output for patterns:localize --debug
 			// eslint-disable-next-line no-console
 			console.log('Found image src attributes:');
 			imgMatches.forEach((match) => {
+				// @debug-ignore — CLI debug output for patterns:localize --debug
 				// eslint-disable-next-line no-console
 				console.log(`  - ${match[1]}`);
 			});
@@ -276,6 +282,7 @@ async function localizePatterns(options = {}) {
 
 		if (!needsI18n && !hasStaticImages && !force) {
 			if (!quiet) {
+				// @debug-ignore — CLI status output for patterns:localize
 				// eslint-disable-next-line no-console
 				console.log(
 					'    - Already has translations and dynamic image paths, skipping'
@@ -285,6 +292,7 @@ async function localizePatterns(options = {}) {
 		}
 
 		if (hasStaticImages && !quiet) {
+			// @debug-ignore — CLI status output for patterns:localize
 			// eslint-disable-next-line no-console
 			console.log('    - Found static image paths to update');
 		}
@@ -296,6 +304,7 @@ async function localizePatterns(options = {}) {
 
 		if (nextContent === originalContent) {
 			if (!quiet) {
+				// @debug-ignore — CLI status output for patterns:localize
 				// eslint-disable-next-line no-console
 				console.log('    - No content changes after transform');
 			}
