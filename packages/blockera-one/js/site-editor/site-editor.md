@@ -31,6 +31,7 @@ There is **no SlotFill** for Design sidebar items in `@wordpress/edit-site`. We 
 | `main-navigation.tsx` / `main-navigation.scss` | Design / Site / Resources UI |
 | `site-identity-panel.tsx` / `site-identity-panel.scss` | Secondary panel for logo / title / tagline |
 | `homepage-settings-panel.tsx` / `homepage-settings-panel.scss` | Secondary panel for `show_on_front` + pages |
+| `blockera-se-admin-ui-page.scss` | Independent copy of core Admin UI Page layout (`.blockera-se-admin-ui-page*`) |
 | `routes.tsx` | Identity override + homepage registration |
 | `constants.ts` | Paths, core `uid`s, Resource URLs, selectors |
 | `utils.ts` | Path helpers, dashboard URL, core-uid click, SPA navigate (`isSiteEditorUrl` from `@blockera/utils`) |

@@ -71,15 +71,15 @@ export default function SiteIdentityPanel() {
 
 	return (
 		<div
-			className="admin-ui-page blockera-site-editor-identity-panel"
+			className="blockera-se-admin-ui-page blockera-site-editor-identity-panel"
 			data-test="blockera-site-editor-identity-panel"
 		>
-			<div className="admin-ui-page__header">
-				<h2 className="admin-ui-page__header-title">
+			<div className="blockera-se-admin-ui-page__header">
+				<h2 className="blockera-se-admin-ui-page__header-title">
 					{__('Site Identity', 'blockera')}
 				</h2>
 			</div>
-			<div className="admin-ui-page__content has-padding">
+			<div className="blockera-se-admin-ui-page__content has-padding">
 				<VStack spacing={6}>
 					<div
 						className="blockera-site-editor-identity-panel__field"

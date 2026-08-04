@@ -90,15 +90,15 @@ export default function HomepageSettingsPanel() {
 
 	return (
 		<div
-			className="admin-ui-page blockera-site-editor-homepage-panel"
+			className="blockera-se-admin-ui-page blockera-site-editor-homepage-panel"
 			data-test="blockera-site-editor-homepage-panel"
 		>
-			<div className="admin-ui-page__header">
-				<h2 className="admin-ui-page__header-title">
+			<div className="blockera-se-admin-ui-page__header">
+				<h2 className="blockera-se-admin-ui-page__header-title">
 					{__('Homepage Settings', 'blockera')}
 				</h2>
 			</div>
-			<div className="admin-ui-page__content has-padding">
+			<div className="blockera-se-admin-ui-page__content has-padding">
 				<VStack spacing={4}>
 					<fieldset className="blockera-site-editor-homepage-panel__fieldset">
 						<legend className="blockera-site-editor-homepage-panel__legend">
