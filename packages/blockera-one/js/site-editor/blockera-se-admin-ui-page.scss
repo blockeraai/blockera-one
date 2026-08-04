@@ -11,10 +11,7 @@
 .blockera-se-admin-ui-page {
 	display: flex;
 	height: 100%;
-	background-color: var(
-		--wpds-color-background-surface-neutral,
-		#fcfcfc
-	);
+	background-color: var(--wpds-color-background-surface-neutral, #fcfcfc);
 	color: var(--wpds-color-foreground-content-neutral, #1e1e1e);
 	position: relative;
 	z-index: 1;
@@ -27,10 +24,7 @@
 		var(--wpds-dimension-padding-2xl, 24px);
 	border-block-end: var(--wpds-border-width-xs, 1px) solid
 		var(--wpds-color-stroke-surface-neutral-weak, #f0f0f0);
-	background: var(
-		--wpds-color-background-surface-neutral-strong,
-		#ffffff
-	);
+	background: var(--wpds-color-background-surface-neutral-strong, #ffffff);
 	position: sticky;
 	inset-block-start: 0;
 	z-index: 1;
@@ -58,8 +52,8 @@
 		"Helvetica Neue",
 		sans-serif
 	);
-	font-size: var(--wpds-typography-font-size-xl, 20px);
-	font-weight: var(--wpds-typography-font-weight-medium, 499);
+	font-size: var(--wpds-typography-font-size-lg, 16px);
+	font-weight: 600;
 	line-height: var(--wpds-typography-line-height-xl, 32px);
 	margin: 0;
 	overflow: hidden;
