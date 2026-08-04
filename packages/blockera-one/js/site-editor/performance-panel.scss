@@ -1,0 +1,39 @@
+/**
+ * Performance secondary panel.
+ * Layout/header/padding: `.blockera-se-admin-ui-page*` (see blockera-se-admin-ui-page.scss).
+ */
+
+.blockera-site-editor-performance-panel {
+	&__row {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 16px;
+	}
+
+	&__copy {
+		flex: 1 1 auto;
+		min-width: 0;
+	}
+
+	&__title {
+		display: block;
+		font-size: 13px;
+		font-weight: 500;
+		line-height: 1.4;
+		color: #1e1e1e;
+	}
+
+	&__help {
+		margin: 4px 0 0;
+		font-size: 12px;
+		font-style: italic;
+		line-height: 1.5;
+		color: #757575;
+	}
+
+	&__control {
+		flex: 0 0 auto;
+		padding-top: 2px;
+	}
+}
