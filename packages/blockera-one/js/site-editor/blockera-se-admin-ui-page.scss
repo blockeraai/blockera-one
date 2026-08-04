@@ -1,0 +1,118 @@
+/**
+ * Independent copy of core Admin UI Page layout styles.
+ *
+ * Source (Gutenberg):
+ * - source-code-block-editor/packages/admin-ui/src/page/style.module.css
+ * - edit-site dist BEM (`.admin-ui-page*`) for title typography / icon-labels
+ *
+ * Renamed to `.blockera-se-admin-ui-page*` so panels do not depend on core CSS.
+ */
+
+.blockera-se-admin-ui-page {
+	display: flex;
+	height: 100%;
+	background-color: var(--wpds-color-background-surface-neutral, #fcfcfc);
+	color: var(--wpds-color-foreground-content-neutral, #1e1e1e);
+	position: relative;
+	z-index: 1;
+	flex-flow: column;
+	text-wrap: pretty;
+}
+
+.blockera-se-admin-ui-page__header {
+	padding: var(--wpds-dimension-padding-lg, 16px)
+		var(--wpds-dimension-padding-2xl, 24px);
+	border-block-end: var(--wpds-border-width-xs, 1px) solid
+		var(--wpds-color-stroke-surface-neutral-weak, #f0f0f0);
+	background: var(--wpds-color-background-surface-neutral-strong, #ffffff);
+	position: sticky;
+	inset-block-start: 0;
+	z-index: 1;
+}
+
+.blockera-se-admin-ui-page__header-content {
+	min-height: var(--wpds-dimension-size-md, 32px);
+}
+
+.blockera-se-admin-ui-page__header-actions {
+	flex-shrink: 0;
+}
+
+/* Title typography mirrors edit-site’s resolved Admin UI Page heading styles. */
+.blockera-se-admin-ui-page__header-title {
+	font-family: var(
+		--wpds-typography-font-family-heading,
+		-apple-system,
+		system-ui,
+		"Segoe UI",
+		"Roboto",
+		"Oxygen-Sans",
+		"Ubuntu",
+		"Cantarell",
+		"Helvetica Neue",
+		sans-serif
+	);
+	font-size: var(--wpds-typography-font-size-lg, 16px);
+	font-weight: 600;
+	line-height: var(--wpds-typography-line-height-xl, 32px);
+	margin: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.blockera-se-admin-ui-page__header-visual {
+	display: grid;
+	grid-template-columns: 1fr;
+	grid-template-rows: 1fr;
+	flex-shrink: 0;
+	width: var(--wpds-dimension-size-sm, 24px);
+	height: var(--wpds-dimension-size-sm, 24px);
+
+	> * {
+		grid-column: 1 / -1;
+		grid-row: 1 / -1;
+		max-width: 100%;
+		max-height: 100%;
+	}
+}
+
+.blockera-se-admin-ui-page__sidebar-toggle-slot:empty {
+	display: none;
+}
+
+.blockera-se-admin-ui-page__header-subtitle {
+	padding-block-end: var(--wpds-dimension-padding-xs, 4px);
+	color: var(--wpds-color-foreground-content-neutral-weak, #707070);
+	font-size: var(--wpds-typography-font-size-md, 13px);
+	line-height: var(--wpds-typography-line-height-md, 24px);
+	margin: 0;
+}
+
+.blockera-se-admin-ui-page__content {
+	flex-grow: 1;
+	overflow: auto;
+	display: flex;
+	flex-direction: column;
+
+	&.has-padding {
+		padding: var(--wpds-dimension-padding-lg, 16px)
+			var(--wpds-dimension-padding-2xl, 24px);
+	}
+}
+
+.show-icon-labels
+	.blockera-se-admin-ui-page__header-actions
+	.components-button.has-icon {
+	width: auto;
+	padding: 0 var(--wpds-dimension-padding-xs, 4px);
+
+	svg {
+		display: none;
+	}
+
+	&::after {
+		content: attr(aria-label);
+		font-size: var(--wpds-typography-font-size-sm, 12px);
+	}
+}

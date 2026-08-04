@@ -4,6 +4,12 @@
  * External dependencies
  */
 import { addFilter, applyFilters } from '@wordpress/hooks';
+import { registerPlugin } from '@wordpress/plugins';
+
+/**
+ * Internal dependencies
+ */
+import SiteEditorMainPanel from './site-editor/index.tsx';
 
 /**
  * This plugin defines the companion (Blockera Site Builder) plugin as installed.
@@ -50,3 +56,31 @@ addFilter(
 		name: 'Blockera Site Builder',
 	})
 );
+
+function registerSiteEditorMainPanel(): void {
+	// Idempotent — after.bootstrap + immediate path may both run.
+	if (window.__blockeraOneSiteEditorMainPanelRegistered) {
+		return;
+	}
+	window.__blockeraOneSiteEditorMainPanelRegistered = true;
+
+	registerPlugin('blockera-one-site-editor-main-panel', {
+		render: SiteEditorMainPanel,
+		icon: null,
+	});
+}
+
+/**
+ * Prefer after.bootstrap when available; also register immediately so companion
+ * mode still works if this script loads after plugin bootstrap already ran.
+ */
+addFilter(
+	'blockera.after.bootstrap',
+	'blockera-one/site-editor-main-panel',
+	(previous) => {
+		registerSiteEditorMainPanel();
+		return previous;
+	}
+);
+
+registerSiteEditorMainPanel();
