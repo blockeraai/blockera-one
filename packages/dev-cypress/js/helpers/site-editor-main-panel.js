@@ -22,6 +22,7 @@ export const SITE_EDITOR_TEST_IDS = {
 	navPatterns: 'blockera-site-editor-nav-patterns',
 	navIdentity: 'blockera-site-editor-nav-identity',
 	navHomepage: 'blockera-site-editor-nav-homepage',
+	navPerformance: 'blockera-site-editor-nav-performance',
 	navCommunity: 'blockera-site-editor-nav-community',
 	navRoadmap: 'blockera-site-editor-nav-roadmap',
 	navFeatureRequests: 'blockera-site-editor-nav-feature-requests',
@@ -34,7 +35,11 @@ export const SITE_EDITOR_TEST_IDS = {
 	homepageStatic: 'blockera-site-editor-homepage-static',
 	homepagePage: 'blockera-site-editor-homepage-page',
 	homepagePostsPage: 'blockera-site-editor-homepage-posts-page',
+	performancePanel: 'blockera-site-editor-performance-panel',
+	performanceDisableEmojis: 'blockera-site-editor-performance-disable-emojis',
 };
+
+export const DISABLE_EMOJIS_SETTING = 'blockera_one_disable_emojis';
 
 /**
  * Open Site Editor in view mode (sidebar chrome visible).
@@ -98,6 +103,7 @@ export function assertSiteEditorMainNav() {
 		SITE_EDITOR_TEST_IDS.navPatterns,
 		SITE_EDITOR_TEST_IDS.navIdentity,
 		SITE_EDITOR_TEST_IDS.navHomepage,
+		SITE_EDITOR_TEST_IDS.navPerformance,
 		SITE_EDITOR_TEST_IDS.navCommunity,
 		SITE_EDITOR_TEST_IDS.navRoadmap,
 		SITE_EDITOR_TEST_IDS.navFeatureRequests,
@@ -117,5 +123,92 @@ export function assertEditedSiteRecord(assertFn) {
 			.select('core')
 			.getEditedEntityRecord('root', 'site');
 		assertFn(site || {});
+	});
+}
+
+/**
+ * Persist dirty `root/site` edits (Save Hub equivalent for site settings).
+ * Note: `saveSiteEditorDirtyEntities` intentionally skips `root/site`.
+ *
+ * @return {Cypress.Chainable}
+ */
+export function saveEditedSiteRecord() {
+	return cy.window().then((win) => {
+		return win.wp.data
+			.dispatch('core')
+			.saveEditedEntityRecord('root', 'site');
+	});
+}
+
+/**
+ * Update a Site Editor settings field via authenticated REST `/wp/v2/settings`.
+ *
+ * @param {Object} body Settings payload.
+ * @return {Cypress.Chainable}
+ */
+export function updateSiteSettingsViaRest(body) {
+	const testURL = (Cypress.env('testURL') || '').replace(/\/$/, '');
+	// wp-env may not expose pretty `/wp-json` routes to the host; use rest_route.
+	const url = `${testURL}/?rest_route=/wp/v2/settings`;
+
+	return cy.window().then((win) => {
+		const nonce = win.wpApiSettings?.nonce;
+		expect(nonce, 'wpApiSettings.nonce').to.be.a('string').and.not.be.empty;
+
+		return cy.request({
+			method: 'POST',
+			url,
+			headers: {
+				'X-WP-Nonce': nonce,
+			},
+			body,
+		});
+	});
+}
+
+/**
+ * Toggle the Disable Emojis Script control in the Performance panel.
+ *
+ * @param {boolean} enabled Desired checked state.
+ */
+export function setDisableEmojisToggle(enabled) {
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.performanceDisableEmojis)
+		.find('.components-form-toggle input[type="checkbox"]')
+		.then(($input) => {
+			const isChecked = $input.prop('checked');
+			if (isChecked !== enabled) {
+				cy.wrap($input).click({ force: true });
+			}
+		});
+}
+
+/**
+ * Assert WP emoji detection script / styles on the front end.
+ *
+ * @param {{ present: boolean }} options
+ */
+export function assertFrontEndEmojiAssets({ present }) {
+	const testURL = Cypress.env('testURL') || '';
+	const frontUrl = testURL.replace(/\/$/, '') + '/';
+
+	cy.visit(frontUrl, { failOnStatusCode: false });
+
+	cy.document().then((doc) => {
+		const html = doc.documentElement ? doc.documentElement.innerHTML : '';
+		const hasAssets =
+			html.includes('wp-emoji-release') ||
+			html.includes('wp-emoji-loader') ||
+			html.includes('wp-emoji-styles') ||
+			html.includes('wp-emoji-settings') ||
+			!!doc.querySelector(
+				'script[src*="wp-emoji"], #wp-emoji-styles-inline-css, #wp-emoji-styles-css'
+			);
+
+		expect(
+			hasAssets,
+			present
+				? 'expected WP emoji assets on the front end'
+				: 'expected WP emoji assets to be removed from the front end'
+		).to.equal(present);
 	});
 }
