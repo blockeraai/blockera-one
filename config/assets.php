@@ -30,6 +30,7 @@ return [
 			'blockera-one',
 			'blockera',
 			'editor-styles',
+			'blockera-one-styles',
 			'telemetry-styles',
 			'controls-styles',
 			'value-addons-styles',
