@@ -1,0 +1,202 @@
+/**
+ * Blockera SiteHub — self-contained styles (no core edit-site class coupling).
+ * Hide core hub; own layout / toggle / title / command button.
+ */
+
+body.has-blockera-site-editor-main-panel {
+	/* Always hide core site hub — Blockera replacement portals in its place. */
+	.edit-site-layout__sidebar > .edit-site-site-hub {
+		display: none !important;
+	}
+}
+
+.blockera-site-editor-site-hub-mount {
+	flex: 0 0 auto;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.blockera-site-editor-site-hub {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding-right: 12px;
+	height: 64px;
+	border-bottom: 1px solid #2f2f2f;
+
+	&__actions {
+		flex-shrink: 0;
+	}
+
+	&__toggle-container {
+		position: relative;
+		height: 64px;
+		width: 64px;
+		flex-shrink: 0;
+	}
+
+	&__toggle.components-button {
+		position: relative;
+		overflow: hidden;
+		color: #ffffff;
+		height: 64px;
+		width: 64px;
+		padding: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: #1e1e1e;
+		/* Match core hub visual offset inside the 64px slot. */
+		transform: scale(0.5333) translateX(-4px);
+		border-radius: 4px;
+
+		&:hover,
+		&:active {
+			color: #ffffff;
+		}
+
+		&:focus,
+		&:focus-visible {
+			box-shadow:
+				0 0 0 3px #1e1e1e,
+				0 0 0 6px var(--wp-admin-theme-color);
+			outline: 4px solid rgba(0, 0, 0, 0);
+			outline-offset: 4px;
+		}
+	}
+
+	&__toggle-icon {
+		display: flex;
+		height: 64px;
+		width: 64px;
+		justify-content: center;
+		align-items: center;
+	}
+
+	&__toggle-face {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		height: 100%;
+		transition:
+			opacity 0.15s ease,
+			transform 0.15s ease;
+	}
+
+	&__toggle-face--site {
+		opacity: 1;
+		transform: scale(1);
+	}
+
+	&__toggle-face--back {
+		position: absolute;
+		inset: 0;
+		opacity: 0;
+		transform: scale(0.2);
+		pointer-events: none;
+		color: #ffffff;
+		background: hsl(0, 0%, 35%);
+		border-radius: 4px;
+	}
+
+	&__toggle:hover &__toggle-face--site,
+	&__toggle:focus-visible &__toggle-face--site {
+		opacity: 0;
+		transform: scale(0.2);
+	}
+
+	&__toggle:hover &__toggle-face--back,
+	&__toggle:focus-visible &__toggle-face--back {
+		opacity: 1;
+		transform: scale(1);
+	}
+
+	&__icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		height: 100%;
+	}
+
+	&__icon-mark {
+		fill: currentColor;
+		width: 100%;
+		height: 100%;
+	}
+
+	&__icon-image {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		background: #333333;
+		aspect-ratio: 1 / 1;
+	}
+
+	&__title .components-button {
+		color: #e0e0e0;
+		display: block;
+		flex-grow: 1;
+		font-size: 15px;
+		font-weight: 499;
+		overflow: hidden;
+		padding-right: 16px;
+		margin-left: -4px;
+		position: relative;
+		text-decoration: none;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+
+		&:hover,
+		&:focus,
+		&:active {
+			color: #e0e0e0;
+		}
+
+		&:focus {
+			box-shadow: none;
+			outline: none;
+		}
+
+		&:focus-visible {
+			box-shadow:
+				0 0 0 var(--wp-admin-border-width-focus) #1e1e1e,
+				0 0 0 calc(2 * var(--wp-admin-border-width-focus))
+					var(--wp-admin-theme-color);
+			outline: 2px solid transparent;
+			outline-offset: 2px;
+		}
+
+		&::after {
+			content: '↗';
+			font-weight: 400;
+			opacity: 0;
+			position: absolute;
+			right: 0;
+		}
+
+		@media not (prefers-reduced-motion) {
+			&::after {
+				transition: opacity 0.1s linear;
+			}
+		}
+
+		&:hover::after,
+		&:focus::after,
+		&:active::after {
+			opacity: 1;
+		}
+	}
+
+	&__command-center {
+		color: #e0e0e0;
+
+		&:hover svg,
+		&:active svg {
+			fill: #f0f0f0;
+		}
+	}
+}
