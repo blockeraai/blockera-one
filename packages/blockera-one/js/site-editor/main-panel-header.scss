@@ -1,0 +1,61 @@
+/**
+ * Blockera One branding header — self-contained (no core edit-site class coupling).
+ */
+
+.blockera-site-editor-main-panel-header {
+	flex: 0 0 auto;
+	padding: 16px 12px 12px 15px;
+	box-sizing: border-box;
+	color: #ffffff;
+
+	&__row {
+		width: 100%;
+	}
+
+	&__brand {
+		min-width: 0;
+		flex: 1 1 auto;
+	}
+
+	&__brand-mark {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		flex: 0 0 32px;
+		width: 32px;
+		height: 32px;
+		border-radius: 50%;
+		background: #2f9e5b;
+		color: #ffffff;
+
+		svg {
+			fill: currentColor;
+		}
+	}
+
+	h1.blockera-site-editor-main-panel-header__title {
+		margin: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		color: #ffffff;
+	}
+
+	&__more {
+		flex: 0 0 auto;
+		opacity: 0.7;
+
+		&:hover {
+			opacity: 1;
+		}
+
+		.components-button {
+			color: #cccccc;
+
+			&:hover,
+			&:focus {
+				color: #ffffff;
+			}
+		}
+	}
+}
