@@ -1,5 +1,5 @@
 /**
- * Register / override Site Editor routes for identity + homepage.
+ * Register / override Site Editor routes for identity, homepage, performance.
  *
  * Uses Redux `REGISTER_ROUTE` / `UNREGISTER_ROUTE` on `core/edit-site`
  * (same pattern as SiteEditorPostItemRouteRegistration). Do not import
@@ -13,6 +13,7 @@ import { useLayoutEffect } from '@wordpress/element';
 
 import { CONTENT_PANEL_WIDTH, EDIT_SITE_STORE_NAME } from './constants';
 import HomepageSettingsPanel from './homepage-settings-panel';
+import PerformancePanel from './performance-panel';
 import SiteIdentityPanel from './site-identity-panel';
 import { isSiteEditorUrl } from './utils';
 
@@ -112,9 +113,11 @@ export default function SiteEditorMainPanelRoutes(): null {
 				},
 			});
 
-			const alreadyHasHomepage = (
-				reduxStore.getState?.()?.routes ?? []
-			).some((r) => r?.name === 'homepage');
+			const currentRoutes = reduxStore.getState?.()?.routes ?? [];
+
+			const alreadyHasHomepage = currentRoutes.some(
+				(r) => r?.name === 'homepage'
+			);
 
 			if (!alreadyHasHomepage) {
 				reduxStore.dispatch({
@@ -127,6 +130,29 @@ export default function SiteEditorMainPanelRoutes(): null {
 							content: <HomepageSettingsPanel />,
 							preview,
 							mobileContent: <HomepageSettingsPanel />,
+						},
+						widths: {
+							content: CONTENT_PANEL_WIDTH,
+						},
+					},
+				});
+			}
+
+			const alreadyHasPerformance = (
+				reduxStore.getState?.()?.routes ?? []
+			).some((r) => r?.name === 'performance');
+
+			if (!alreadyHasPerformance) {
+				reduxStore.dispatch({
+					type: 'REGISTER_ROUTE',
+					route: {
+						name: 'performance',
+						path: '/performance',
+						areas: {
+							sidebar,
+							content: <PerformancePanel />,
+							preview,
+							mobileContent: <PerformancePanel />,
 						},
 						widths: {
 							content: CONTENT_PANEL_WIDTH,
