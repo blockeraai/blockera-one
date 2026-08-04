@@ -21,6 +21,7 @@ import {
 	RESOURCE_LINKS,
 	ROUTES,
 	type DesignNavKey,
+	type FeaturesNavKey,
 	type MainNavKey,
 	type SiteNavKey,
 } from './constants';
@@ -200,6 +201,22 @@ const SITE_ITEMS: Array<{
 	},
 ];
 
+const FEATURES_ITEMS: Array<{
+	key: FeaturesNavKey;
+	label: string;
+	icon: string;
+	iconLibrary?: 'wp' | 'ui';
+	showChevron?: boolean;
+}> = [
+	{
+		key: 'performance',
+		label: __('Performance', 'blockera'),
+		icon: 'zap-fast',
+		iconLibrary: 'ui',
+		showChevron: false,
+	},
+];
+
 export default function MainNavigation() {
 	const [activeKey, setActiveKey] = useState<MainNavKey | null>(() =>
 		getActiveMainNavKey()
@@ -225,6 +242,13 @@ export default function MainNavigation() {
 		const path = key === 'identity' ? ROUTES.identity : ROUTES.homepage;
 		// Core may not expose Identity uid/route — navigate via `p` like homepage.
 		navigateToSiteEditorPath(path);
+		setActiveKey(key);
+	};
+
+	const onFeaturesClick = (key: FeaturesNavKey) => {
+		if (key === 'performance') {
+			navigateToSiteEditorPath(ROUTES.performance);
+		}
 		setActiveKey(key);
 	};
 
@@ -257,6 +281,21 @@ export default function MainNavigation() {
 						isActive={activeKey === item.key}
 						showChevron={item.showChevron !== false}
 						onClick={() => onSiteClick(item.key)}
+						data-test={`blockera-site-editor-nav-${item.key}`}
+					/>
+				))}
+			</NavCategory>
+
+			<NavCategory title={__('Features', 'blockera')}>
+				{FEATURES_ITEMS.map((item) => (
+					<NavItem
+						key={item.key}
+						label={item.label}
+						icon={item.icon}
+						iconLibrary={item.iconLibrary}
+						isActive={activeKey === item.key}
+						showChevron={item.showChevron !== false}
+						onClick={() => onFeaturesClick(item.key)}
 						data-test={`blockera-site-editor-nav-${item.key}`}
 					/>
 				))}
