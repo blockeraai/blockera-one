@@ -211,7 +211,7 @@ const FEATURES_ITEMS: Array<{
 	{
 		key: 'performance',
 		label: __('Performance', 'blockera'),
-		icon: 'zap-fast',
+		icon: 'zap-fast-flat',
 		iconLibrary: 'ui',
 		showChevron: false,
 	},
