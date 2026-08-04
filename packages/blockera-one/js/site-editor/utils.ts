@@ -78,7 +78,9 @@ export function isDesignRootPath(path: string = getSiteEditorPath()): boolean {
 		normalized === ROUTES.identity ||
 		normalized.startsWith(`${ROUTES.identity}/`) ||
 		normalized === ROUTES.homepage ||
-		normalized.startsWith(`${ROUTES.homepage}/`)
+		normalized.startsWith(`${ROUTES.homepage}/`) ||
+		normalized === ROUTES.performance ||
+		normalized.startsWith(`${ROUTES.performance}/`)
 	);
 }
 
@@ -109,6 +111,13 @@ export function getActiveMainNavKey(
 		normalized.startsWith(`${ROUTES.homepage}/`)
 	) {
 		return 'homepage';
+	}
+
+	if (
+		normalized === ROUTES.performance ||
+		normalized.startsWith(`${ROUTES.performance}/`)
+	) {
+		return 'performance';
 	}
 
 	if (

@@ -6,7 +6,7 @@ export const EDIT_SITE_STORE_NAME = 'core/edit-site';
 
 export const BODY_CLASS = 'has-blockera-site-editor-main-panel';
 
-/** Toggled while Design-root routes are active (home / styles / identity / homepage). */
+/** Toggled while Design-root routes are active (home / styles / identity / homepage / performance). */
 export const DESIGN_ROOT_BODY_CLASS = 'has-blockera-site-editor-design-root';
 
 export const COMPONENT_SELECTOR = '.blockera-site-editor-main-navigation';
@@ -46,14 +46,20 @@ export const ROUTES = {
 	patterns: '/pattern',
 	identity: '/identity',
 	homepage: '/homepage',
+	performance: '/performance',
 } as const;
+
+/** Site entity / REST setting: disable WP emoji scripts (default enabled when missing). */
+export const DISABLE_EMOJIS_SETTING = 'blockera_one_disable_emojis';
 
 export type DesignNavKey =
 	'styles' | 'navigation' | 'pages' | 'templates' | 'patterns';
 
 export type SiteNavKey = 'identity' | 'homepage';
 
-export type MainNavKey = DesignNavKey | SiteNavKey;
+export type FeaturesNavKey = 'performance';
+
+export type MainNavKey = DesignNavKey | SiteNavKey | FeaturesNavKey;
 
 /**
  * Resource links — same destinations as blockera-admin dashboard,
