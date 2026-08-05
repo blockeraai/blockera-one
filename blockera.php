@@ -7,7 +7,30 @@
 
 ### BEGIN AUTO-GENERATED AUTOLOADER
 require_once __DIR__ . '/packages/autoloader-coordinator/bootstrap.php';
-blockera_bootstrap_shared_autoloader('blockera-one', __DIR__, 10, true);
+blockera_bootstrap_shared_autoloader(
+	'blockera-one',
+	__DIR__,
+	[
+		'priority'         => 10,
+		'default'          => true,
+		'file'             => __FILE__,
+		'type'             => 'theme',
+		'theme_stylesheet' => 'blockera-one',
+		'entry_constant'   => 'BLOCKERA_SB_FILE',
+		'companions'       => [
+			[
+				'slug'           => 'blockera',
+				'plugin_file'    => 'blockera/blockera.php',
+				'entry_constant' => 'BLOCKERA_SB_FILE',
+			],
+			[
+				'slug'           => 'blockera-pro',
+				'plugin_file'    => 'blockera-pro/blockera-pro.php',
+				'entry_constant' => 'BLOCKERA_PRO_FILE',
+			],
+		],
+	]
+);
 ### END AUTO-GENERATED AUTOLOADER
 
 if (! defined('BLOCKERA_SB_FILE')) {
