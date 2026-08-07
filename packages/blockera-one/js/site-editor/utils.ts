@@ -66,17 +66,13 @@ export function getSiteEditorPath(): string {
 }
 
 /**
- * Routes that keep the Design list chrome (vs drill-down Pages/Templates/…).
- * Identity / Homepage / Performance collapse the main nav like Templates.
+ * Routes that keep the Design list chrome (vs drill-down Styles / Pages / …).
+ * Styles / Identity / Homepage / Performance collapse the main nav like Templates.
  */
 export function isDesignRootPath(path: string = getSiteEditorPath()): boolean {
 	const normalized = path.split('?')[0] || ROUTES.home;
 
-	return (
-		normalized === ROUTES.home ||
-		normalized === ROUTES.styles ||
-		normalized.startsWith(`${ROUTES.styles}/`)
-	);
+	return normalized === ROUTES.home;
 }
 
 /**
