@@ -1,0 +1,155 @@
+/**
+ * Sidebar Admin UI card — single override for core `.admin-ui-page*`.
+ *
+ * Core Page chrome is sized for the second content column (padding-lg / 2xl,
+ * 20px title). Wrap with `.blockera-se-admin-ui-card` to retarget it as a
+ * tight white card in the dark Site Editor sidebar.
+ *
+ * Usage:
+ * - Styles: wrap core `<Page className="edit-site-styles" />` output
+ * - Custom panels: root = `blockera-se-admin-ui-card admin-ui-page` + same
+ *   BEM children (`__header`, `__content`, …)
+ *
+ * Source reference:
+ * - source-code-block-editor/packages/admin-ui/src/page/style.module.css
+ * - wp-includes edit-site dist `.admin-ui-page*`
+ */
+
+.blockera-se-admin-ui-card {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	min-height: 0;
+	max-height: 100%;
+	overflow: hidden;
+	box-sizing: border-box;
+
+	/* Card root — same element or nested core Page */
+	&.admin-ui-page,
+	.admin-ui-page {
+		display: flex;
+		flex-flow: column;
+		flex: 1 1 auto;
+		min-height: 0;
+		height: auto;
+		max-height: 100%;
+		overflow: hidden;
+		position: relative;
+		z-index: 1;
+		text-wrap: pretty;
+		background-color: var(--wpds-color-background-surface-neutral, #fcfcfc);
+		color: var(--wpds-color-foreground-content-neutral, #1e1e1e);
+		border-radius: 8px;
+		box-shadow: 0 0 0 1px
+			var(
+				--wpds-color-stroke-surface-neutral-weak,
+				rgba(255, 255, 255, 0.08)
+			);
+	}
+
+	.admin-ui-page__header {
+		padding: 14px 18px;
+		border-block-end: 1px solid #f0f0f0;
+		background: #ffffff;
+		position: sticky;
+		inset-block-start: 0;
+		z-index: 1;
+	}
+
+	.admin-ui-page__header-content {
+		min-height: 20px;
+		width: 100%;
+	}
+
+	.admin-ui-page__header-actions {
+		flex-shrink: 0;
+	}
+
+	.admin-ui-page__header-title {
+		font-family: var(
+			--wpds-typography-font-family-heading,
+			-apple-system,
+			system-ui,
+			"Segoe UI",
+			"Roboto",
+			"Oxygen-Sans",
+			"Ubuntu",
+			"Cantarell",
+			"Helvetica Neue",
+			sans-serif
+		);
+		font-size: 15px;
+		font-weight: 600;
+		line-height: 20px;
+		margin: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		min-width: 0;
+	}
+
+	/* Blockera extension (PoweredBy) — not always present in core Page. */
+	.admin-ui-page__header-visual {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+		width: var(--wpds-dimension-size-sm, 24px);
+		height: var(--wpds-dimension-size-sm, 24px);
+		color: #757575;
+
+		.blockera-powered-by {
+			display: inline-flex;
+			line-height: 0;
+		}
+
+		svg {
+			display: block;
+			max-width: 100%;
+			max-height: 100%;
+		}
+	}
+
+	.admin-ui-page__sidebar-toggle-slot:empty {
+		display: none;
+	}
+
+	.admin-ui-page__header-subtitle {
+		padding-block-end: var(--wpds-dimension-padding-xs, 4px);
+		color: var(--wpds-color-foreground-content-neutral-weak, #707070);
+		font-size: var(--wpds-typography-font-size-md, 13px);
+		line-height: var(--wpds-typography-line-height-md, 24px);
+		margin: 0;
+	}
+
+	.admin-ui-page__content {
+		flex-grow: 1;
+		min-height: 0;
+		overflow: auto;
+		display: flex;
+		flex-direction: column;
+		background: var(--wpds-color-background-surface-neutral-strong, #ffffff);
+		padding: 0;
+
+		&.has-padding {
+			padding: 18px;
+		}
+	}
+}
+
+.show-icon-labels
+	.blockera-se-admin-ui-card
+	.admin-ui-page__header-actions
+	.components-button.has-icon {
+	width: auto;
+	padding: 0 var(--wpds-dimension-padding-xs, 4px);
+
+	svg {
+		display: none;
+	}
+
+	&::after {
+		content: attr(aria-label);
+		font-size: var(--wpds-typography-font-size-sm, 12px);
+	}
+}

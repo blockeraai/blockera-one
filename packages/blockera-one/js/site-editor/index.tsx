@@ -27,7 +27,7 @@ import MainPanelHeader from './main-panel-header';
 import SiteEditorMainPanelRoutes from './routes';
 import SiteHub from './site-hub';
 import { getSiteEditorPath, isDesignRootPath, isSiteEditorUrl } from './utils';
-import './blockera-se-admin-ui-page.scss';
+import './admin-ui-card.scss';
 import './style.scss';
 
 const NAVIGATE_EVENT = 'blockera-site-editor-navigate';
