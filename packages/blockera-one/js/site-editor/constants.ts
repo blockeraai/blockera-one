@@ -6,7 +6,7 @@ export const EDIT_SITE_STORE_NAME = 'core/edit-site';
 
 export const BODY_CLASS = 'has-blockera-site-editor-main-panel';
 
-/** Toggled while Design-root routes are active (home / styles). */
+/** Toggled while Design-root routes are active (home only). */
 export const DESIGN_ROOT_BODY_CLASS = 'has-blockera-site-editor-design-root';
 
 export const COMPONENT_SELECTOR = '.blockera-site-editor-main-navigation';
