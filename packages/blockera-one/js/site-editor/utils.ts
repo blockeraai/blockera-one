@@ -67,6 +67,7 @@ export function getSiteEditorPath(): string {
 
 /**
  * Routes that keep the Design list chrome (vs drill-down Pages/Templates/…).
+ * Identity / Homepage / Performance collapse the main nav like Templates.
  */
 export function isDesignRootPath(path: string = getSiteEditorPath()): boolean {
 	const normalized = path.split('?')[0] || ROUTES.home;
@@ -74,13 +75,7 @@ export function isDesignRootPath(path: string = getSiteEditorPath()): boolean {
 	return (
 		normalized === ROUTES.home ||
 		normalized === ROUTES.styles ||
-		normalized.startsWith(`${ROUTES.styles}/`) ||
-		normalized === ROUTES.identity ||
-		normalized.startsWith(`${ROUTES.identity}/`) ||
-		normalized === ROUTES.homepage ||
-		normalized.startsWith(`${ROUTES.homepage}/`) ||
-		normalized === ROUTES.performance ||
-		normalized.startsWith(`${ROUTES.performance}/`)
+		normalized.startsWith(`${ROUTES.styles}/`)
 	);
 }
 
@@ -176,10 +171,23 @@ export function navigateViaCoreUid(key: keyof typeof CORE_NAV_UIDS): void {
  * the URL with pushState and dispatching `popstate` so the `history` package
  * instance inside `@wordpress/router` re-reads location and rematches routes
  * (when no navigation blockers are active).
+ *
+ * @param path     Site Editor `p` path.
+ * @param options.direction  Pending enter animation for the destination screen
+ *                           (`forward` / `back`). Mirrors core
+ *                           `SidebarNavigationContext.navigate()` — we cannot
+ *                           call that context without edit-site unlock.
  */
-export function navigateToSiteEditorPath(path: string): void {
+export function navigateToSiteEditorPath(
+	path: string,
+	options?: { direction?: SidebarNavDirection }
+): void {
 	if (typeof window === 'undefined') {
 		return;
+	}
+
+	if (options?.direction) {
+		setPendingSidebarNavDirection(options.direction);
 	}
 
 	const absoluteUrl = addQueryArgs(window.location.href, { p: path });
@@ -212,4 +220,51 @@ export function navigateToSiteEditorPath(path: string): void {
 		nextUrl
 	);
 	window.dispatchEvent(new PopStateEvent('popstate'));
+}
+
+/** Direction for Blockera sidebar enter animations (matches core slide classes). */
+export type SidebarNavDirection = 'forward' | 'back';
+
+let pendingSidebarNavDirection: SidebarNavDirection | null = null;
+
+/**
+ * Record the next sidebar screen enter animation.
+ * Consumed once by the destination screen on mount.
+ */
+export function setPendingSidebarNavDirection(
+	direction: SidebarNavDirection | null
+): void {
+	pendingSidebarNavDirection = direction;
+}
+
+/**
+ * Read and clear the pending sidebar enter animation direction.
+ */
+export function consumePendingSidebarNavDirection(): SidebarNavDirection | null {
+	const direction = pendingSidebarNavDirection;
+	pendingSidebarNavDirection = null;
+	return direction;
+}
+
+/**
+ * Strip core slide classes from the screen wrapper.
+ *
+ * Core `SidebarContentWrapper` may apply a stale
+ * `SidebarNavigationContext` direction when `shouldAnimate` is true
+ * (homepage / performance). We animate Blockera screens ourselves instead.
+ */
+export function clearCoreSidebarSlideClasses(): void {
+	if (typeof document === 'undefined') {
+		return;
+	}
+
+	const wrapper = document.querySelector(
+		'.edit-site-layout__sidebar .edit-site-sidebar__screen-wrapper'
+	);
+
+	if (!(wrapper instanceof HTMLElement)) {
+		return;
+	}
+
+	wrapper.classList.remove('slide-from-right', 'slide-from-left');
 }
