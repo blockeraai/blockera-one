@@ -1,5 +1,5 @@
 /**
- * Custom Site Identity secondary panel (logo, title, tagline).
+ * Custom Site Identity panel (logo, title, tagline) — sidebar drill-down card.
  * Edits `root/site` via public core-data APIs — no site icon.
  */
 
@@ -16,7 +16,7 @@ import { __ } from '@wordpress/i18n';
 /**
  * Blockera dependencies
  */
-import { MediaUploader } from '@blockera/controls';
+import { MediaUploader, PoweredByOne } from '@blockera/controls';
 
 /**
  * Internal dependencies
@@ -75,9 +75,19 @@ export default function SiteIdentityPanel() {
 			data-test="blockera-site-editor-identity-panel"
 		>
 			<div className="blockera-se-admin-ui-page__header">
-				<h2 className="blockera-se-admin-ui-page__header-title">
-					{__('Site Identity', 'blockera')}
-				</h2>
+				<HStack
+					spacing={2}
+					alignment="center"
+					justify="space-between"
+					className="blockera-se-admin-ui-page__header-content"
+				>
+					<h2 className="blockera-se-admin-ui-page__header-title">
+						{__('Identity', 'blockera')}
+					</h2>
+					<span className="blockera-se-admin-ui-page__header-visual">
+						<PoweredByOne />
+					</span>
+				</HStack>
 			</div>
 			<div className="blockera-se-admin-ui-page__content has-padding">
 				<VStack spacing={6}>
