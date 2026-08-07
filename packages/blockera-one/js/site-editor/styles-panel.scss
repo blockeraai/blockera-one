@@ -1,0 +1,37 @@
+/**
+ * Styles drill-down — Global Styles–specific tweaks only.
+ * Card chrome: `.blockera-se-admin-ui-card` (see admin-ui-card.scss).
+ * Style Book is DOM-moved into DrillDownScreen (see styles-drill-down.tsx).
+ */
+
+.blockera-site-editor-styles-panel {
+	/* Duplicate “Styles” title lives on DrillDownScreen — drop the Page header. */
+	.admin-ui-page__header {
+		display: none;
+	}
+
+	/*
+	 * Global Styles navigator — slightly tighter than core content-column
+	 * padding when nested in the narrow sidebar card.
+	 */
+	.edit-site-styles .global-styles-ui-sidebar__navigator-provider,
+	.edit-site-styles .edit-site-global-styles-sidebar__navigator-provider {
+		.edit-site-global-styles-sidebar__navigator-screen {
+			padding: 16px;
+		}
+
+		.global-styles-ui-sidebar__navigator-screen {
+			padding: 0;
+		}
+	}
+
+	.components-surface.components-card.global-styles-ui-screen-root
+		.blockera-extension-navigation
+		.blockera-extension-navigation-category {
+		--padding-size: 10px;
+
+		&:last-child {
+			border-bottom: none;
+		}
+	}
+}
