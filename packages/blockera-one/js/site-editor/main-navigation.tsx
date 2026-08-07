@@ -27,6 +27,7 @@ import {
 } from './constants';
 import './main-navigation.scss';
 import {
+	clearCoreSidebarSlideClasses,
 	getActiveMainNavKey,
 	navigateToSiteEditorPath,
 	navigateViaCoreUid,
@@ -40,7 +41,7 @@ type NavItemProps = {
 	onClick?: () => void;
 	href?: string;
 	external?: boolean;
-	/** False for secondary-panel items (Styles / Identity / Homepage). */
+	/** False for items that stay on Design-root (Styles). */
 	showChevron?: boolean;
 	'data-test'?: string;
 };
@@ -185,19 +186,16 @@ const SITE_ITEMS: Array<{
 	key: SiteNavKey;
 	label: string;
 	icon: string;
-	showChevron?: boolean;
 }> = [
 	{
 		key: 'identity',
 		label: __('Site Identity', 'blockera'),
 		icon: 'site-logo',
-		showChevron: false,
 	},
 	{
 		key: 'homepage',
 		label: __('Homepage Settings', 'blockera'),
 		icon: 'home',
-		showChevron: false,
 	},
 ];
 
@@ -206,14 +204,12 @@ const FEATURES_ITEMS: Array<{
 	label: string;
 	icon: string;
 	iconLibrary?: 'wp' | 'ui';
-	showChevron?: boolean;
 }> = [
 	{
 		key: 'performance',
 		label: __('Performance', 'blockera'),
 		icon: 'zap-fast-flat',
 		iconLibrary: 'ui',
-		showChevron: false,
 	},
 ];
 
@@ -233,6 +229,16 @@ export default function MainNavigation() {
 		};
 	}, []);
 
+	// No enter animation on the main list — strip stale core slide classes
+	// (SidebarNavigationContext) that can linger after Patterns / our drill-downs.
+	useEffect(() => {
+		clearCoreSidebarSlideClasses();
+		const id = window.requestAnimationFrame(() => {
+			clearCoreSidebarSlideClasses();
+		});
+		return () => window.cancelAnimationFrame(id);
+	}, []);
+
 	const onDesignClick = (key: DesignNavKey) => {
 		navigateViaCoreUid(key);
 		setActiveKey(key);
@@ -241,13 +247,15 @@ export default function MainNavigation() {
 	const onSiteClick = (key: SiteNavKey) => {
 		const path = key === 'identity' ? ROUTES.identity : ROUTES.homepage;
 		// Core may not expose Identity uid/route — navigate via `p` like homepage.
-		navigateToSiteEditorPath(path);
+		navigateToSiteEditorPath(path, { direction: 'forward' });
 		setActiveKey(key);
 	};
 
 	const onFeaturesClick = (key: FeaturesNavKey) => {
 		if (key === 'performance') {
-			navigateToSiteEditorPath(ROUTES.performance);
+			navigateToSiteEditorPath(ROUTES.performance, {
+				direction: 'forward',
+			});
 		}
 		setActiveKey(key);
 	};
@@ -279,7 +287,6 @@ export default function MainNavigation() {
 						label={item.label}
 						icon={item.icon}
 						isActive={activeKey === item.key}
-						showChevron={item.showChevron !== false}
 						onClick={() => onSiteClick(item.key)}
 						data-test={`blockera-site-editor-nav-${item.key}`}
 					/>
@@ -294,7 +301,6 @@ export default function MainNavigation() {
 						icon={item.icon}
 						iconLibrary={item.iconLibrary}
 						isActive={activeKey === item.key}
-						showChevron={item.showChevron !== false}
 						onClick={() => onFeaturesClick(item.key)}
 						data-test={`blockera-site-editor-nav-${item.key}`}
 					/>
