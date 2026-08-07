@@ -1,6 +1,6 @@
 # Site Editor Main Panel (Blockera One)
 
-Custom Design / Site / Features / Resources navigation for the WordPress Site Editor main sidebar, plus Site Identity, Homepage Settings, and Performance **sidebar drill-down** panels.
+Custom Design / Site / Features / Resources navigation for the WordPress Site Editor main sidebar, plus Styles, Site Identity, Homepage Settings, and Performance **sidebar drill-down** panels.
 
 ## Goals
 
@@ -8,11 +8,11 @@ Custom Design / Site / Features / Resources navigation for the WordPress Site Ed
 - Replace core `.edit-site-site-hub` on all Site Editor view-mode pages (logo hover → arrow-up-left / dashboard).
 - Show Blockera One branding (`MainPanelHeader`) under the hub on all view-mode pages.
 - Render Blockera nav with Design, Site, Features, and Resources categories (no Starter sites).
-- Keep core routes for Styles, Navigation, Pages, Templates, Patterns.
+- Keep core routes for Styles, Navigation, Pages, Templates, Patterns — Styles uses core Global Styles UI + canvas, but as a sidebar drill-down.
 - Custom Site Identity content (logo, title, tagline — no site icon).
 - Homepage Settings route (`/homepage`) for Reading-style homepage display options.
 - Features → Performance (`/performance`) for site performance toggles (Disable Emojis Script first).
-- Identity / Homepage / Performance collapse the main nav (like Templates / Pages / Patterns) and render inside the primary sidebar — **no** second `edit-site-layout__area` column.
+- Styles / Identity / Homepage / Performance collapse the main nav (like Templates / Pages / Patterns) and render inside the primary sidebar — **no** second `edit-site-layout__area` column.
 
 ## Approach
 
@@ -33,12 +33,14 @@ Drill-down screens use a Blockera-owned `DrillDownScreen` (back → `/` + title 
 | `site-hub.tsx` / `site-hub.scss` | Blockera SiteHub (dashboard / title / command palette) |
 | `main-panel-header.tsx` / `main-panel-header.scss` | Blockera One branding + More menu (Reset styles) |
 | `main-navigation.tsx` / `main-navigation.scss` | Design / Site / Features / Resources UI |
-| `drill-down-screen.tsx` / `drill-down-screen.scss` | Back + title chrome for Site / Features settings |
+| `drill-down-screen.tsx` / `drill-down-screen.scss` | Back + title (+ optional actions) chrome for Styles / Site / Features settings |
+| `styles-drill-down.tsx` | Styles wrapper: portals Style Book into drill-down title row |
+| `admin-ui-card.scss` | `.blockera-se-admin-ui-card` wrapper — single tighter override for core `.admin-ui-page*` |
+| `styles-panel.scss` | Styles-only tweaks (hide Page header, GS navigator padding) |
 | `site-identity-panel.tsx` / `site-identity-panel.scss` | Identity card (logo / title / tagline) |
 | `homepage-settings-panel.tsx` / `homepage-settings-panel.scss` | Homepage card (`show_on_front` + pages) |
 | `performance-panel.tsx` / `performance-panel.scss` | Features → Performance toggles |
-| `blockera-se-admin-ui-page.scss` | White card layout (`.blockera-se-admin-ui-page*`) |
-| `routes.tsx` | Identity / homepage / performance registration (sidebar-only) |
+| `routes.tsx` | Styles / identity / homepage / performance registration (sidebar-only) |
 | `constants.ts` | Paths, core `uid`s, Resource URLs, selectors, setting keys |
 | `utils.ts` | Path helpers, dashboard URL, core-uid click, SPA navigate (`isSiteEditorUrl` from `@blockera/utils`) |
 | `style.scss` | Shared layout glue only (hide core ItemGroup / design-root flex) |
@@ -49,8 +51,10 @@ Registered from `packages/blockera-one/js/index.js` via `blockera.after.bootstra
 
 ## Navigation mechanics
 
-- **Design items:** click hidden core nav nodes by stable `uid` / `id` (SPA-safe, no router private API). Styles stays on Design-root (main nav visible). Navigation / Pages / Templates / Patterns drill down via core screens.
-- **Site Identity + Homepage + Performance:** SPA navigate via `history.pushState` + `popstate` with `p=/identity`, `p=/homepage`, or `p=/performance`. Routes register `areas.sidebar` (+ `mobileSidebar`) only — clone `home.areas.preview` (fallback navigation/styles) so the canvas `Editor` stays mounted; no `areas.content`. Main nav unmounts; `DrillDownScreen` shows back + title; settings card renders in the sidebar.
+- **Design-root** is `/` only. Main nav portals there; Styles and other drill-downs unmount it.
+- **Design items:** click hidden core nav nodes by stable `uid` / `id` (SPA-safe, no router private API). Styles / Navigation / Pages / Templates / Patterns all drill down (Styles via Blockera route override; others via core screens).
+- **Styles:** override `styles` route — wrap core `areas.content` in `StylesDrillDown` (DrillDownScreen + `.blockera-se-admin-ui-card`). Hide core `.admin-ui-page__header`; DOM-move `.admin-ui-page__header-actions` (Style Book; fallback `.edit-site-styles__header-actions`) into the drill-down title row and hide the core More menu. Keep core `areas.preview`; omit `areas.content`. Top Back always → `/`. Nested Global Styles backs stay core behavior.
+- **Site Identity + Homepage + Performance:** SPA navigate via `history.pushState` + `popstate` with `p=/identity`, `p=/homepage`, or `p=/performance`. Routes register `areas.sidebar` (+ `mobileSidebar`) only — clone `home.areas.preview` (fallback navigation/styles) so the canvas `Editor` stays mounted; no `areas.content`. Main nav unmounts; `DrillDownScreen` shows back + title; settings use the same `.blockera-se-admin-ui-card` + `.admin-ui-page*` card chrome as Styles.
 - **Resources:** external links from blockera-admin destinations with `utm_source=blockera-one-site-editor`.
 
 ## Performance setting
@@ -62,10 +66,12 @@ Registered from `packages/blockera-one/js/index.js` via `blockera.after.bootstra
 ## Pitfalls
 
 1. **Do not** import `@wordpress/edit-site/build-module/*` (lock-unlock double opt-in).
-2. `REGISTER_ROUTE` **appends** — always `UNREGISTER_ROUTE` before registering Blockera’s identity / homepage / performance.
-3. Clone `home.areas.preview` (not `styles` — StylesPreviewArea remounts the iframe); do not rebuild Editor from edit-site.
+2. `REGISTER_ROUTE` **appends** — always `UNREGISTER_ROUTE` before registering Blockera’s styles / identity / homepage / performance.
+3. For Identity / Homepage / Performance, clone `home.areas.preview` (not `styles` — StylesPreviewArea remounts the iframe); do not rebuild Editor from edit-site. Styles keeps core `styles.areas.preview`.
 4. Core Design nav `uid`s live in `constants.ts` — if WordPress renames them, Design clicks break first.
-5. Hub + branding portal while `.edit-site-layout__sidebar` exists (view mode). Nav portal mounts on Design-root routes only (`/` + `/styles`); Site / Features settings use drill-down like Pages / Templates.
+5. Hub + branding portal while `.edit-site-layout__sidebar` exists (view mode). Nav portal mounts on Design-root (`/`) only; Styles / Site / Features settings use drill-down like Pages / Templates.
+6. Hard-refresh after changing route registration (`didRegister` module flag) so overrides re-apply.
+7. Styles actions portal moves React-owned DOM (restore on cleanup). Core More menu is CSS-hidden in the title row (Reset styles stays on branding More). Core still skips rendering Style Book below the `medium` viewport — nothing to portal on small screens.
 
 ## E2E (CI category: `site-editor`)
 
@@ -86,11 +92,11 @@ npm run test:e2e -- --spec 'packages/**-one(-**|)/**/*.site-editor.e2e.cy.js'
 
 - Site Editor view mode: Blockera site hub (not core); logo hover shows arrow-up-left; click goes to Dashboard.
 - Blockera One branding appears under the hub on all view-mode routes (including Pages / Templates drill-downs).
-- Design-root shows Design / Site / Features / Resources under branding.
+- Design-root (`/`) shows Design / Site / Features / Resources under branding.
 - Core `.edit-site-site-hub` stays hidden; Blockera hub shows on all view-mode sidebar routes.
-- Styles keeps main nav; Navigation / Pages / Templates / Patterns open the same core screens as before.
+- Styles / Navigation / Pages / Templates / Patterns open drill-downs; Styles shows core Global Styles UI in the sidebar + core Style Book / Editor canvas; **no** second column.
 - Site Identity / Homepage / Performance: main nav collapses; back + title in sidebar; white settings card; **no** second column; Save persists `root/site` edits.
-- Back on those screens returns to Design root (`/`) and restores main nav.
+- Top Back on Styles / Identity / Homepage / Performance returns to Design root (`/`) and restores main nav.
 - Features → Performance: Disable Emojis Script defaults ON; Save removes front-end emoji assets; OFF restores them.
 - Resources open Community / Roadmap / Feature Requests in a new tab.
 - Hub search opens the command palette; site title opens the front end in a new tab.
