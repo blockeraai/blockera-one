@@ -9,7 +9,10 @@ import {
 	DISABLE_EMOJIS_SETTING,
 	openSiteEditorViewMode,
 	assertSiteEditorChrome,
+	assertSiteEditorDrillDown,
+	assertSiteEditorMainNav,
 	clickSiteEditorNav,
+	clickSiteEditorDrillDownBack,
 	assertEditedSiteRecord,
 	saveEditedSiteRecord,
 	setDisableEmojisToggle,
@@ -18,9 +21,10 @@ import {
 } from '@blockera/dev-cypress/js/helpers';
 
 describe('Blockera One → Site Editor Performance (Disable Emojis)', () => {
-	it('defaults ON, removes emoji assets, and restores them when disabled', () => {
+	it('defaults ON, toggles emoji assets, and Back from Performance restores main nav', () => {
 		openSiteEditorViewMode('/');
 		assertSiteEditorChrome();
+		assertSiteEditorMainNav();
 
 		// Known starting state via REST (avoids flaky wp-env CLI in hooks).
 		updateSiteSettingsViaRest({ [DISABLE_EMOJIS_SETTING]: true }).then(
@@ -33,12 +37,14 @@ describe('Blockera One → Site Editor Performance (Disable Emojis)', () => {
 		clickSiteEditorNav(SITE_EDITOR_TEST_IDS.navPerformance);
 
 		cy.location('search').should('include', 'performance');
-		cy.getByDataTest(SITE_EDITOR_TEST_IDS.performancePanel, {
-			timeout: 20000,
-		}).should('be.visible');
+		assertSiteEditorDrillDown();
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.performancePanel).should(
+			'be.visible'
+		);
 
 		// Reload panel route so root/site picks up REST value.
 		openSiteEditorViewMode('/performance');
+		assertSiteEditorDrillDown();
 		cy.getByDataTest(SITE_EDITOR_TEST_IDS.performancePanel, {
 			timeout: 20000,
 		}).should('be.visible');
@@ -50,6 +56,7 @@ describe('Blockera One → Site Editor Performance (Disable Emojis)', () => {
 		assertFrontEndEmojiAssets({ present: false });
 
 		openSiteEditorViewMode('/performance');
+		assertSiteEditorDrillDown();
 		cy.getByDataTest(SITE_EDITOR_TEST_IDS.performancePanel, {
 			timeout: 20000,
 		}).should('be.visible');
@@ -65,6 +72,7 @@ describe('Blockera One → Site Editor Performance (Disable Emojis)', () => {
 		assertFrontEndEmojiAssets({ present: true });
 
 		openSiteEditorViewMode('/performance');
+		assertSiteEditorDrillDown();
 		cy.getByDataTest(SITE_EDITOR_TEST_IDS.performancePanel, {
 			timeout: 20000,
 		}).should('be.visible');
@@ -80,5 +88,13 @@ describe('Blockera One → Site Editor Performance (Disable Emojis)', () => {
 		cy.wait(1500);
 
 		assertFrontEndEmojiAssets({ present: false });
+
+		// Return to Performance drill-down, then Back to Design-root main nav.
+		openSiteEditorViewMode('/performance');
+		assertSiteEditorDrillDown();
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.performancePanel, {
+			timeout: 20000,
+		}).should('be.visible');
+		clickSiteEditorDrillDownBack('performance');
 	});
 });
