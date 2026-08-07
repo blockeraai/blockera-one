@@ -71,25 +71,25 @@ export default function SiteIdentityPanel() {
 
 	return (
 		<div
-			className="blockera-se-admin-ui-page blockera-site-editor-identity-panel"
+			className="blockera-se-admin-ui-card admin-ui-page blockera-site-editor-identity-panel"
 			data-test="blockera-site-editor-identity-panel"
 		>
-			<div className="blockera-se-admin-ui-page__header">
+			<div className="admin-ui-page__header">
 				<HStack
 					spacing={2}
 					alignment="center"
 					justify="space-between"
-					className="blockera-se-admin-ui-page__header-content"
+					className="admin-ui-page__header-content"
 				>
-					<h2 className="blockera-se-admin-ui-page__header-title">
+					<h2 className="admin-ui-page__header-title">
 						{__('Identity', 'blockera')}
 					</h2>
-					<span className="blockera-se-admin-ui-page__header-visual">
+					<span className="admin-ui-page__header-visual">
 						<PoweredByOne />
 					</span>
 				</HStack>
 			</div>
-			<div className="blockera-se-admin-ui-page__content has-padding">
+			<div className="admin-ui-page__content has-padding">
 				<VStack spacing={6}>
 					<div
 						className="blockera-site-editor-identity-panel__field"
