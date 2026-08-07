@@ -37,6 +37,8 @@ export const SITE_EDITOR_TEST_IDS = {
 	homepagePostsPage: 'blockera-site-editor-homepage-posts-page',
 	performancePanel: 'blockera-site-editor-performance-panel',
 	performanceDisableEmojis: 'blockera-site-editor-performance-disable-emojis',
+	drillDown: 'blockera-site-editor-drill-down',
+	drillDownBack: 'blockera-site-editor-drill-down-back',
 };
 
 export const DISABLE_EMOJIS_SETTING = 'blockera_one_disable_emojis';
@@ -71,6 +73,37 @@ export function getSiteEditorNav() {
 
 export function clickSiteEditorNav(testId) {
 	return cy.getByDataTest(testId).should('be.visible').click();
+}
+
+/**
+ * Assert Identity / Homepage / Performance drill-down chrome:
+ * hub + branding stay, main nav collapses, no second column, back control present.
+ */
+export function assertSiteEditorDrillDown() {
+	assertSiteEditorChrome();
+	getSiteEditorNav().should('not.exist');
+	cy.get('.edit-site-layout__area').should('not.exist');
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.drillDown, {
+		timeout: 20000,
+	}).should('be.visible');
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.drillDownBack).should('be.visible');
+}
+
+/**
+ * Click drill-down Back and assert Design-root main nav is restored.
+ *
+ * @param {string} [routeFragment] Optional `p` path fragment that must leave the URL (e.g. `identity`).
+ */
+export function clickSiteEditorDrillDownBack(routeFragment) {
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.drillDownBack)
+		.should('be.visible')
+		.click();
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.drillDown).should('not.exist');
+	if (routeFragment) {
+		cy.location('search').should('not.include', routeFragment);
+	}
+	assertSiteEditorChrome();
+	assertSiteEditorMainNav();
 }
 
 /**
