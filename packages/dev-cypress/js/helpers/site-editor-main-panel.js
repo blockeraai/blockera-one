@@ -37,6 +37,8 @@ export const SITE_EDITOR_TEST_IDS = {
 	homepagePostsPage: 'blockera-site-editor-homepage-posts-page',
 	performancePanel: 'blockera-site-editor-performance-panel',
 	performanceDisableEmojis: 'blockera-site-editor-performance-disable-emojis',
+	stylesPanel: 'blockera-site-editor-styles-panel',
+	stylesActions: 'blockera-site-editor-styles-actions',
 	drillDown: 'blockera-site-editor-drill-down',
 	drillDownBack: 'blockera-site-editor-drill-down-back',
 };
@@ -76,7 +78,7 @@ export function clickSiteEditorNav(testId) {
 }
 
 /**
- * Assert Identity / Homepage / Performance drill-down chrome:
+ * Assert Styles / Identity / Homepage / Performance drill-down chrome:
  * hub + branding stay, main nav collapses, no second column, back control present.
  */
 export function assertSiteEditorDrillDown() {
