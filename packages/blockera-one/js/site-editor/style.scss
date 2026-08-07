@@ -5,6 +5,7 @@
  * - site-hub.scss
  * - main-panel-header.scss
  * - main-navigation.scss
+ * - drill-down-screen.scss
  * - blockera-se-admin-ui-page.scss
  * - site-identity-panel.scss
  * - homepage-settings-panel.scss
@@ -23,7 +24,7 @@ body.has-blockera-site-editor-main-panel {
 	}
 }
 
-/* Secondary panel title row (Identity / Homepage) — core chrome spacing. */
+/* Core drill-down title row (Pages / Templates / Patterns / …). */
 .edit-site-sidebar-navigation-screen__title-icon {
 	padding-top: 20px !important;
 	margin-right: -13px !important;
