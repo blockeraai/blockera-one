@@ -1,16 +1,22 @@
 /**
- * Homepage Settings secondary panel — Reading settings style UI.
+ * Homepage Settings panel — Reading settings style UI in a sidebar drill-down card.
  * Edits show_on_front / page_on_front / page_for_posts on root/site.
  */
 
 import {
 	SelectControl,
 	__experimentalVStack as VStack,
+	__experimentalHStack as HStack,
 } from '@wordpress/components';
 import { store as coreStore, useEntityRecords } from '@wordpress/core-data';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { decodeEntities } from '@wordpress/html-entities';
 import { __ } from '@wordpress/i18n';
+
+/**
+ * Blockera dependencies
+ */
+import { PoweredByOne } from '@blockera/controls';
 
 /**
  * Internal dependencies
@@ -94,9 +100,19 @@ export default function HomepageSettingsPanel() {
 			data-test="blockera-site-editor-homepage-panel"
 		>
 			<div className="blockera-se-admin-ui-page__header">
-				<h2 className="blockera-se-admin-ui-page__header-title">
-					{__('Homepage Settings', 'blockera')}
-				</h2>
+				<HStack
+					spacing={2}
+					alignment="center"
+					justify="space-between"
+					className="blockera-se-admin-ui-page__header-content"
+				>
+					<h2 className="blockera-se-admin-ui-page__header-title">
+						{__('Home', 'blockera')}
+					</h2>
+					<span className="blockera-se-admin-ui-page__header-visual">
+						<PoweredByOne />
+					</span>
+				</HStack>
 			</div>
 			<div className="blockera-se-admin-ui-page__content has-padding">
 				<VStack spacing={4}>
