@@ -1,12 +1,20 @@
 /**
- * Performance secondary panel — Site Editor Features route.
+ * Performance panel — Features drill-down card.
  * Persists toggles on `root/site` (same Save Hub as Identity / Homepage).
  */
 
-import { FormToggle } from '@wordpress/components';
+import {
+	FormToggle,
+	__experimentalHStack as HStack,
+} from '@wordpress/components';
 import { store as coreStore } from '@wordpress/core-data';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
+
+/**
+ * Blockera dependencies
+ */
+import { PoweredByOne } from '@blockera/controls';
 
 /**
  * Internal dependencies
@@ -62,9 +70,19 @@ export default function PerformancePanel() {
 			data-test="blockera-site-editor-performance-panel"
 		>
 			<div className="blockera-se-admin-ui-page__header">
-				<h2 className="blockera-se-admin-ui-page__header-title">
-					{__('Performance', 'blockera')}
-				</h2>
+				<HStack
+					spacing={2}
+					alignment="center"
+					justify="space-between"
+					className="blockera-se-admin-ui-page__header-content"
+				>
+					<h2 className="blockera-se-admin-ui-page__header-title">
+						{__('Performance', 'blockera')}
+					</h2>
+					<span className="blockera-se-admin-ui-page__header-visual">
+						<PoweredByOne />
+					</span>
+				</HStack>
 			</div>
 			<div className="blockera-se-admin-ui-page__content has-padding">
 				<div
