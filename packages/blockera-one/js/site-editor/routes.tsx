@@ -1,19 +1,24 @@
 /**
- * Register / override Site Editor routes for identity, homepage, performance.
+ * Register / override Site Editor routes for styles, identity, homepage,
+ * performance.
  *
  * Uses Redux `REGISTER_ROUTE` / `UNREGISTER_ROUTE` on `core/edit-site`
  * (same pattern as SiteEditorPostItemRouteRegistration). Do not import
  * `@wordpress/edit-site` internals.
  *
  * These routes are sidebar-only drill-downs (like Navigation): main Design
- * nav collapses; settings render inside the primary sidebar — no second
- * `edit-site-layout__area` content column.
+ * nav collapses; settings / Global Styles render inside the primary sidebar —
+ * no second `edit-site-layout__area` content column.
  */
 
 import type { ReactNode } from 'react';
 
 import { useRegistry } from '@wordpress/data';
-import { useLayoutEffect } from '@wordpress/element';
+import {
+	cloneElement,
+	isValidElement,
+	useLayoutEffect,
+} from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 import { EDIT_SITE_STORE_NAME } from './constants';
@@ -21,7 +26,9 @@ import DrillDownScreen from './drill-down-screen';
 import HomepageSettingsPanel from './homepage-settings-panel';
 import PerformancePanel from './performance-panel';
 import SiteIdentityPanel from './site-identity-panel';
+import StylesDrillDown from './styles-drill-down';
 import { isSiteEditorUrl } from './utils';
+import './styles-panel.scss';
 
 let didRegister = false;
 
@@ -77,8 +84,22 @@ function unregisterIfPresent(
 }
 
 /**
- * Bootstrap identity / homepage / performance drill-down routes once core
- * routes are ready.
+ * Duplicate a route area node so sidebar + mobileSidebar each get an instance.
+ */
+function duplicateAreaNode(node: ReactNode): ReactNode {
+	if (isValidElement(node)) {
+		return cloneElement(node);
+	}
+	return node;
+}
+
+function wrapStylesDrillDown(content: ReactNode): ReactNode {
+	return <StylesDrillDown>{content}</StylesDrillDown>;
+}
+
+/**
+ * Bootstrap styles / identity / homepage / performance drill-down routes once
+ * core routes are ready.
  */
 export default function SiteEditorMainPanelRoutes(): null {
 	const registry = useRegistry();
@@ -96,21 +117,48 @@ export default function SiteEditorMainPanelRoutes(): null {
 			}
 
 			const routes = reduxStore?.getState?.()?.routes ?? [];
-			// Prefer `home` preview (`Editor`) so Design-root `/` → our panels keeps
-			// the same canvas tree. Cloning `styles` preview (StylesPreviewArea)
-			// remounts the iframe and flashes the canvas.
-			const home = routes.find((r) => r?.name === 'home');
 			const styles = routes.find((r) => r?.name === 'styles');
-			const navigation = routes.find((r) => r?.name === 'navigation');
 
-			const preview =
-				home?.areas?.preview ??
-				navigation?.areas?.preview ??
-				styles?.areas?.preview;
-
-			if (!preview) {
+			// Styles needs its own content + preview (Style Book / Editor).
+			if (!styles?.areas?.content || !styles?.areas?.preview) {
 				return false;
 			}
+
+			const home = routes.find((r) => r?.name === 'home');
+			const navigation = routes.find((r) => r?.name === 'navigation');
+
+			// Site settings panels prefer `home` preview to avoid canvas remount.
+			const settingsPreview =
+				home?.areas?.preview ??
+				navigation?.areas?.preview ??
+				styles.areas.preview;
+
+			if (!settingsPreview) {
+				return false;
+			}
+
+			const stylesContent = styles.areas.content;
+			const stylesPreview = styles.areas.preview;
+			const stylesMobileContent =
+				styles.areas.mobileContent ?? styles.areas.content;
+
+			unregisterIfPresent(reduxStore, 'styles');
+			reduxStore.dispatch({
+				type: 'REGISTER_ROUTE',
+				route: {
+					name: 'styles',
+					path: '/styles',
+					areas: {
+						sidebar: wrapStylesDrillDown(
+							duplicateAreaNode(stylesContent)
+						),
+						preview: stylesPreview,
+						mobileSidebar: wrapStylesDrillDown(
+							duplicateAreaNode(stylesMobileContent)
+						),
+					},
+				},
+			});
 
 			const identityScreen = (
 				<DrillDownScreen title={__('Site Identity', 'blockera')}>
@@ -126,7 +174,7 @@ export default function SiteEditorMainPanelRoutes(): null {
 					path: '/identity',
 					areas: {
 						sidebar: identityScreen,
-						preview,
+						preview: settingsPreview,
 						mobileSidebar: (
 							<DrillDownScreen
 								title={__('Site Identity', 'blockera')}
@@ -152,7 +200,7 @@ export default function SiteEditorMainPanelRoutes(): null {
 					path: '/homepage',
 					areas: {
 						sidebar: homepageScreen,
-						preview,
+						preview: settingsPreview,
 						mobileSidebar: (
 							<DrillDownScreen
 								title={__('Homepage Settings', 'blockera')}
@@ -178,7 +226,7 @@ export default function SiteEditorMainPanelRoutes(): null {
 								<PerformancePanel />
 							</DrillDownScreen>
 						),
-						preview,
+						preview: settingsPreview,
 						mobileSidebar: (
 							<DrillDownScreen
 								title={__('Performance', 'blockera')}
