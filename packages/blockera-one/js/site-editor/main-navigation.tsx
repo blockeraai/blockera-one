@@ -31,6 +31,7 @@ import {
 	getActiveMainNavKey,
 	navigateToSiteEditorPath,
 	navigateViaCoreUid,
+	setPendingSidebarNavDirection,
 } from './utils';
 
 type NavItemProps = {
@@ -41,7 +42,7 @@ type NavItemProps = {
 	onClick?: () => void;
 	href?: string;
 	external?: boolean;
-	/** False for items that stay on Design-root (Styles). */
+	/** False for items that stay on Design-root (none currently — Styles drills down). */
 	showChevron?: boolean;
 	'data-test'?: string;
 };
@@ -147,14 +148,12 @@ const DESIGN_ITEMS: Array<{
 	label: string;
 	icon: string;
 	coreUidKey: DesignNavKey;
-	showChevron?: boolean;
 }> = [
 	{
 		key: 'styles',
 		label: __('Styles', 'blockera'),
 		icon: 'styles',
 		coreUidKey: 'styles',
-		showChevron: false,
 	},
 	{
 		key: 'navigation',
@@ -240,6 +239,9 @@ export default function MainNavigation() {
 	}, []);
 
 	const onDesignClick = (key: DesignNavKey) => {
+		if (key === 'styles') {
+			setPendingSidebarNavDirection('forward');
+		}
 		navigateViaCoreUid(key);
 		setActiveKey(key);
 	};
@@ -273,7 +275,6 @@ export default function MainNavigation() {
 						label={item.label}
 						icon={item.icon}
 						isActive={activeKey === item.key}
-						showChevron={item.showChevron !== false}
 						onClick={() => onDesignClick(item.coreUidKey)}
 						data-test={`blockera-site-editor-nav-${item.key}`}
 					/>
