@@ -4,14 +4,20 @@
  * Uses Redux `REGISTER_ROUTE` / `UNREGISTER_ROUTE` on `core/edit-site`
  * (same pattern as SiteEditorPostItemRouteRegistration). Do not import
  * `@wordpress/edit-site` internals.
+ *
+ * These routes are sidebar-only drill-downs (like Navigation): main Design
+ * nav collapses; settings render inside the primary sidebar — no second
+ * `edit-site-layout__area` content column.
  */
 
 import type { ReactNode } from 'react';
 
 import { useRegistry } from '@wordpress/data';
 import { useLayoutEffect } from '@wordpress/element';
+import { __ } from '@wordpress/i18n';
 
-import { CONTENT_PANEL_WIDTH, EDIT_SITE_STORE_NAME } from './constants';
+import { EDIT_SITE_STORE_NAME } from './constants';
+import DrillDownScreen from './drill-down-screen';
 import HomepageSettingsPanel from './homepage-settings-panel';
 import PerformancePanel from './performance-panel';
 import SiteIdentityPanel from './site-identity-panel';
@@ -57,8 +63,22 @@ function getEditSiteReduxStore(registry: unknown) {
 		?.store;
 }
 
+function unregisterIfPresent(
+	reduxStore: NonNullable<ReturnType<typeof getEditSiteReduxStore>>,
+	name: string
+): void {
+	const routes = reduxStore?.getState?.()?.routes ?? [];
+	if (routes.some((r) => r?.name === name)) {
+		reduxStore.dispatch?.({
+			type: 'UNREGISTER_ROUTE',
+			name,
+		});
+	}
+}
+
 /**
- * Bootstrap identity override + homepage route once core routes are ready.
+ * Bootstrap identity / homepage / performance drill-down routes once core
+ * routes are ready.
  */
 export default function SiteEditorMainPanelRoutes(): null {
 	const registry = useRegistry();
@@ -76,90 +96,99 @@ export default function SiteEditorMainPanelRoutes(): null {
 			}
 
 			const routes = reduxStore?.getState?.()?.routes ?? [];
-			// Runtime WP may not ship a core `identity` route.
-			// Clone sidebar/preview from `styles`, which always exists for block themes.
+			// Prefer `home` preview (`Editor`) so Design-root `/` → our panels keeps
+			// the same canvas tree. Cloning `styles` preview (StylesPreviewArea)
+			// remounts the iframe and flashes the canvas.
+			const home = routes.find((r) => r?.name === 'home');
 			const styles = routes.find((r) => r?.name === 'styles');
+			const navigation = routes.find((r) => r?.name === 'navigation');
 
-			if (!styles?.areas?.sidebar || !styles?.areas?.preview) {
+			const preview =
+				home?.areas?.preview ??
+				navigation?.areas?.preview ??
+				styles?.areas?.preview;
+
+			if (!preview) {
 				return false;
 			}
 
-			const sidebar = styles.areas.sidebar;
-			const preview = styles.areas.preview;
-			const coreIdentity = routes.find((r) => r?.name === 'identity');
+			const identityScreen = (
+				<DrillDownScreen title={__('Site Identity', 'blockera')}>
+					<SiteIdentityPanel />
+				</DrillDownScreen>
+			);
 
-			// Override core identity when present; otherwise register fresh.
-			if (coreIdentity) {
-				reduxStore.dispatch({
-					type: 'UNREGISTER_ROUTE',
-					name: 'identity',
-				});
-			}
-
+			unregisterIfPresent(reduxStore, 'identity');
 			reduxStore.dispatch({
 				type: 'REGISTER_ROUTE',
 				route: {
 					name: 'identity',
 					path: '/identity',
 					areas: {
-						sidebar,
-						content: <SiteIdentityPanel />,
+						sidebar: identityScreen,
 						preview,
-						mobileContent: <SiteIdentityPanel />,
-					},
-					widths: {
-						content: CONTENT_PANEL_WIDTH,
+						mobileSidebar: (
+							<DrillDownScreen
+								title={__('Site Identity', 'blockera')}
+							>
+								<SiteIdentityPanel />
+							</DrillDownScreen>
+						),
 					},
 				},
 			});
 
-			const currentRoutes = reduxStore.getState?.()?.routes ?? [];
-
-			const alreadyHasHomepage = currentRoutes.some(
-				(r) => r?.name === 'homepage'
+			const homepageScreen = (
+				<DrillDownScreen title={__('Homepage Settings', 'blockera')}>
+					<HomepageSettingsPanel />
+				</DrillDownScreen>
 			);
 
-			if (!alreadyHasHomepage) {
-				reduxStore.dispatch({
-					type: 'REGISTER_ROUTE',
-					route: {
-						name: 'homepage',
-						path: '/homepage',
-						areas: {
-							sidebar,
-							content: <HomepageSettingsPanel />,
-							preview,
-							mobileContent: <HomepageSettingsPanel />,
-						},
-						widths: {
-							content: CONTENT_PANEL_WIDTH,
-						},
+			unregisterIfPresent(reduxStore, 'homepage');
+			reduxStore.dispatch({
+				type: 'REGISTER_ROUTE',
+				route: {
+					name: 'homepage',
+					path: '/homepage',
+					areas: {
+						sidebar: homepageScreen,
+						preview,
+						mobileSidebar: (
+							<DrillDownScreen
+								title={__('Homepage Settings', 'blockera')}
+							>
+								<HomepageSettingsPanel />
+							</DrillDownScreen>
+						),
 					},
-				});
-			}
+				},
+			});
 
-			const alreadyHasPerformance = (
-				reduxStore.getState?.()?.routes ?? []
-			).some((r) => r?.name === 'performance');
-
-			if (!alreadyHasPerformance) {
-				reduxStore.dispatch({
-					type: 'REGISTER_ROUTE',
-					route: {
-						name: 'performance',
-						path: '/performance',
-						areas: {
-							sidebar,
-							content: <PerformancePanel />,
-							preview,
-							mobileContent: <PerformancePanel />,
-						},
-						widths: {
-							content: CONTENT_PANEL_WIDTH,
-						},
+			unregisterIfPresent(reduxStore, 'performance');
+			reduxStore.dispatch({
+				type: 'REGISTER_ROUTE',
+				route: {
+					name: 'performance',
+					path: '/performance',
+					areas: {
+						sidebar: (
+							<DrillDownScreen
+								title={__('Performance', 'blockera')}
+							>
+								<PerformancePanel />
+							</DrillDownScreen>
+						),
+						preview,
+						mobileSidebar: (
+							<DrillDownScreen
+								title={__('Performance', 'blockera')}
+							>
+								<PerformancePanel />
+							</DrillDownScreen>
+						),
 					},
-				});
-			}
+				},
+			});
 
 			didRegister = true;
 			return true;
