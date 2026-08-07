@@ -1,5 +1,5 @@
 /**
- * Drill-down sidebar screen for Site Identity / Homepage / Performance.
+ * Drill-down sidebar screen for Styles / Site Identity / Homepage / Performance.
  *
  * Mirrors core `SidebarNavigationScreen` (back + title + content) without
  * importing `@wordpress/edit-site` internals. Back always returns to Design root.
@@ -37,14 +37,21 @@ import {
 type DrillDownScreenProps = {
 	title: string;
 	children: ReactNode;
+	/** Optional trailing controls (e.g. Styles Style Book). */
+	actions?: ReactNode;
+	/** Skip content padding (e.g. full-bleed Global Styles UI). */
+	flush?: boolean;
 };
 
 /**
  * Collapsed main-panel screen: back control, title, and panel body.
+ * Back always navigates to Design root `/` (not styles navigator history).
  */
 export default function DrillDownScreen({
 	title,
 	children,
+	actions = null,
+	flush = false,
 }: DrillDownScreenProps) {
 	const icon = isRTL() ? chevronRight : chevronLeft;
 	const [enterClass] = useState(() => {
@@ -93,8 +100,16 @@ export default function DrillDownScreen({
 				>
 					{title}
 				</Heading>
+				{actions}
 			</HStack>
-			<div className="blockera-site-editor-drill-down__content">
+			<div
+				className={[
+					'blockera-site-editor-drill-down__content',
+					flush ? 'is-flush' : '',
+				]
+					.filter(Boolean)
+					.join(' ')}
+			>
 				{children}
 			</div>
 		</VStack>

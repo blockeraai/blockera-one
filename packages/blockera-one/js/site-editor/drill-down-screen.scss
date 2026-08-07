@@ -1,5 +1,5 @@
 /**
- * Drill-down sidebar chrome (back + title) for Site settings panels.
+ * Drill-down sidebar chrome (back + title) for Styles and Site settings panels.
  * Visual parity with core Templates / Pages / Patterns sidebar screens.
  *
  * Enter animation keyframes match
@@ -55,7 +55,7 @@
 		position: sticky;
 		top: 0;
 		z-index: 1;
-		padding: 20px 8px 10px 8px;
+		padding: 20px 0 10px 8px;
 		margin-bottom: 8px;
 		box-sizing: border-box;
 		color: #f0f0f0;
@@ -83,14 +83,48 @@
 		line-height: 32px;
 	}
 
+	/* Portaled Style Book (from core `.admin-ui-page__header-actions`). */
+	&__actions {
+		flex: 0 0 auto;
+		display: flex;
+		align-items: center;
+		gap: 0;
+		min-height: 32px;
+
+		/* Drop core GlobalStylesActionMenu (More) — Reset lives on branding More. */
+		.components-dropdown-menu {
+			display: none;
+		}
+
+		.components-button {
+			color: #cccccc;
+
+			&:hover,
+			&:focus {
+				color: #ffffff;
+			}
+
+			&.is-pressed {
+				color: #ffffff;
+				background: rgba(255, 255, 255, 0.08);
+			}
+		}
+	}
+
 	&__content {
 		flex-grow: 1;
 		min-height: 0;
 		overflow: auto;
-		padding: 0;
+		padding: 0 0 16px 4px;
 		box-sizing: border-box;
 		/* Keep form controls on the light card (do not inherit sidebar chrome color). */
 		color: var(--wpds-color-foreground-content-neutral, #1e1e1e);
+
+		&.is-flush {
+			padding: 0;
+			display: flex;
+			flex-direction: column;
+		}
 	}
 }
 
