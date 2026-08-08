@@ -845,6 +845,63 @@ module.exports = (on, config, testingType = config.testingType || 'e2e') => {
 			const result = runWpEval(php);
 			return { ok: true, message: result || `deleted:0` };
 		},
+		/**
+		 * Hide/show a theme template part by renaming `parts/{slug}.html`
+		 * ↔ `parts/-{slug}.html`.
+		 *
+		 * @param {{ slug: string, hidden: boolean }} options
+		 */
+		themePartSetHidden({ slug, hidden }) {
+			const safeSlug = String(slug || '').replace(/[^a-z0-9_-]/gi, '');
+			if (!safeSlug) {
+				throw new Error('themePartSetHidden requires slug');
+			}
+
+			const partsDir = path.join(BLOCKERA_PLUGIN_ROOT, 'parts');
+			const visible = path.join(partsDir, `${safeSlug}.html`);
+			const hiddenPath = path.join(partsDir, `-${safeSlug}.html`);
+
+			if (hidden) {
+				if (fs.existsSync(visible)) {
+					fs.renameSync(visible, hiddenPath);
+					return { ok: true, message: `hidden:${safeSlug}` };
+				}
+				if (fs.existsSync(hiddenPath)) {
+					return { ok: true, message: `already_hidden:${safeSlug}` };
+				}
+				return {
+					ok: false,
+					message: `missing:${safeSlug}.html`,
+				};
+			}
+
+			if (fs.existsSync(hiddenPath)) {
+				fs.renameSync(hiddenPath, visible);
+				return { ok: true, message: `shown:${safeSlug}` };
+			}
+			if (fs.existsSync(visible)) {
+				return { ok: true, message: `already_visible:${safeSlug}` };
+			}
+			return {
+				ok: false,
+				message: `missing:-${safeSlug}.html`,
+			};
+		},
+		/**
+		 * Delete custom `wp_template_part` posts by slug via WP-CLI eval.
+		 *
+		 * @param {{ slug: string }} options
+		 */
+		wpTemplatePartDeleteBySlug({ slug }) {
+			const safeSlug = String(slug || '').replace(/[^a-z0-9_-]/gi, '');
+			if (!safeSlug) {
+				throw new Error('wpTemplatePartDeleteBySlug requires slug');
+			}
+
+			const php = `$posts = get_posts(array('post_type'=>'wp_template_part','name'=>'${safeSlug}','post_status'=>'any','numberposts'=>-1,'suppress_filters'=>true)); $n=0; foreach ($posts as $p) { wp_delete_post($p->ID, true); $n++; } echo 'deleted:'.$n;`;
+			const result = runWpEval(php);
+			return { ok: true, message: result || `deleted:0` };
+		},
 		simulateLegacyBlockeraFree() {
 			return mutateFreeRequiresProHeader('simulate');
 		},

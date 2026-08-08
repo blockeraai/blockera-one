@@ -62,7 +62,12 @@ export const SITE_EDITOR_TEST_IDS = {
 	templatesNavHomepageIndexStatus:
 		'blockera-site-editor-templates-nav-homepage-fallback:index-status',
 	templatesNavHeader: 'blockera-site-editor-templates-nav-parts-header',
-	templatesParts: 'blockera-site-editor-templates-parts',
+	templatesNavFooter: 'blockera-site-editor-templates-nav-parts-footer',
+	templatesNavSidebar: 'blockera-site-editor-templates-nav-parts-sidebar',
+	templatesAreaHub: 'blockera-site-editor-templates-area-hub',
+	templatesAreaHubBanner: 'blockera-site-editor-templates-area-hub-banner',
+	templatesAreaHubEmpty: 'blockera-site-editor-templates-area-hub-empty',
+	templatesAreaHubManage: 'blockera-site-editor-templates-area-hub-manage',
 	drillDown: 'blockera-site-editor-drill-down',
 	drillDownBack: 'blockera-site-editor-drill-down-back',
 };
@@ -417,6 +422,210 @@ export function openTemplatesPurposeNav() {
 	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should('be.visible');
 }
 
+const TEMPLATES_PART_AREA_NAV = {
+	header: SITE_EDITOR_TEST_IDS.templatesNavHeader,
+	footer: SITE_EDITOR_TEST_IDS.templatesNavFooter,
+	sidebar: SITE_EDITOR_TEST_IDS.templatesNavSidebar,
+};
+
+const TEMPLATES_PART_AREA_LABELS = {
+	header: {
+		banner: 'Global site header',
+		manage: 'Manage all headers',
+		empty: 'No site header yet.',
+	},
+	footer: {
+		banner: 'Global site footer',
+		manage: 'Manage all footers',
+		empty: 'No site footer yet.',
+	},
+	sidebar: {
+		banner: 'Global site sidebar',
+		manage: 'Manage all sidebars',
+		empty: 'No site sidebar yet.',
+	},
+};
+
+/**
+ * Assert Header / Footer / Sidebar rows in Templates purpose-nav.
+ *
+ * @param {{ sidebarVisible?: boolean }} options
+ */
+export function assertTemplatesPartsNav({ sidebarVisible = true } = {}) {
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavHeader).should(
+		'be.visible'
+	);
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavFooter).should(
+		'be.visible'
+	);
+
+	if (sidebarVisible) {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavSidebar).should(
+			'be.visible'
+		);
+	} else {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavSidebar).should(
+			'not.exist'
+		);
+	}
+}
+
+/**
+ * Open a General Area Hub part from Templates purpose-nav.
+ *
+ * @param {'header' | 'footer' | 'sidebar'} area
+ */
+export function openTemplatesPartArea(area) {
+	const testId = TEMPLATES_PART_AREA_NAV[area];
+	expect(testId, `known templates part area: ${area}`).to.be.a('string');
+	cy.getByDataTest(testId).should('be.visible').click();
+}
+
+/**
+ * Assert Area Hub chrome for a part area.
+ *
+ * @param {{
+ *   area: 'header' | 'footer' | 'sidebar',
+ *   mode?: 'preview' | 'empty' | 'edit',
+ * }} options
+ */
+export function assertTemplatesAreaHub({ area, mode = 'preview' }) {
+	const labels = TEMPLATES_PART_AREA_LABELS[area];
+	expect(labels, `known templates part area: ${area}`).to.exist;
+
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesAreaHub, {
+		timeout: 20000,
+	})
+		.should('be.visible')
+		.and('have.attr', 'data-area', area);
+
+	if (mode !== 'edit') {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should(
+			'be.visible'
+		);
+		cy.getByDataTest(TEMPLATES_PART_AREA_NAV[area]).should(
+			'have.class',
+			'is-active'
+		);
+	}
+
+	if (mode === 'empty') {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesAreaHubEmpty)
+			.should('be.visible')
+			.and('contain.text', labels.empty);
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesAreaHubBanner).should(
+			'not.exist'
+		);
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesAreaHubManage)
+			.should('be.visible')
+			.and('contain.text', labels.manage);
+		cy.location('search').should('include', `partsArea=${area}`);
+		return;
+	}
+
+	if (mode === 'edit') {
+		// Full-canvas edit hides the Templates sidebar; only assert hub chrome.
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesAreaHub).should(
+			'have.attr',
+			'data-canvas',
+			'edit'
+		);
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesAreaHubBanner).should(
+			'not.exist'
+		);
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesAreaHubManage).should(
+			'not.exist'
+		);
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesAreaHubEmpty).should(
+			'not.exist'
+		);
+		cy.location('search').should('include', 'wp_template_part');
+		cy.location('search').should('include', `partsArea=${area}`);
+		cy.location('search').should('include', 'canvas=edit');
+		return;
+	}
+
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesAreaHubBanner)
+		.should('be.visible')
+		.and('contain.text', labels.banner)
+		.and(
+			'contain.text',
+			'Editing this updates it everywhere this part is used.'
+		);
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesAreaHubEmpty).should(
+		'not.exist'
+	);
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesAreaHubManage)
+		.should('be.visible')
+		.and('contain.text', labels.manage);
+	cy.location('search').should('include', 'wp_template_part');
+	cy.location('search').should('include', `partsArea=${area}`);
+}
+
+/**
+ * Assert navigation landed on Patterns template-parts area list.
+ *
+ * @param {'header' | 'footer' | 'sidebar'} area
+ */
+export function assertNavigatedToPatternsTemplatePartArea(area) {
+	cy.location('search', { timeout: 20000 }).should((search) => {
+		const decoded = decodeURIComponent(String(search));
+		expect(decoded).to.include('pattern');
+		expect(decoded).to.include('postType=wp_template_part');
+		expect(decoded).to.include(`categoryId=${area}`);
+		expect(decoded).to.not.include('partsArea=');
+	});
+}
+
+/**
+ * Toggle Site Editor `canvas` query via history (patched pushState emits navigate).
+ *
+ * @param {'edit' | 'view'} mode
+ */
+export function setSiteEditorCanvasMode(mode) {
+	cy.window().then((win) => {
+		const url = new URL(win.location.href);
+		if (mode === 'edit') {
+			url.searchParams.set('canvas', 'edit');
+		} else {
+			url.searchParams.delete('canvas');
+		}
+		win.history.pushState(
+			typeof win.history.state === 'object' && win.history.state
+				? { ...win.history.state }
+				: {},
+			'',
+			`${url.pathname}${url.search}${url.hash}`
+		);
+		win.dispatchEvent(new PopStateEvent('popstate'));
+	});
+}
+
+/**
+ * Enter canvas edit the same way users do: click the view-mode Editor iframe.
+ * Core sets `canvas=edit` via router history.navigate (pushState).
+ */
+export function enterSiteEditorCanvasEditFromPreview() {
+	cy.get(
+		'iframe.edit-site-visual-editor__editor-canvas[aria-label="Edit"], .edit-site-visual-editor__editor-canvas[aria-label="Edit"], iframe.edit-site-visual-editor__editor-canvas',
+		{ timeout: 20000 }
+	)
+		.first()
+		.should('be.visible')
+		.click({ force: true });
+
+	cy.location('search', { timeout: 20000 }).should('include', 'canvas=edit');
+}
+
+/**
+ * Click core “Open Navigation” (exit full-canvas edit back to navigator).
+ */
+export function clickSiteEditorOpenNavigation() {
+	cy.get('button[aria-label="Open Navigation"]', { timeout: 20000 })
+		.should('be.visible')
+		.click();
+}
+
 /**
  * Expand Homepage branch and assert section / inline fallback state.
  *
@@ -526,6 +735,64 @@ export function assertStatusTooltip(statusTestId, { heading, bodyIncludes }) {
  */
 export function setThemeTemplateHidden(slug, hidden) {
 	return cy.task('themeTemplateSetHidden', { slug, hidden });
+}
+
+/**
+ * Hide or restore a theme template part (`parts/{slug}.html` ↔ `parts/-{slug}.html`).
+ *
+ * @param {string} slug Part slug without extension.
+ * @param {boolean} hidden
+ * @return {Cypress.Chainable}
+ */
+export function setThemePartHidden(slug, hidden) {
+	return cy.task('themePartSetHidden', { slug, hidden });
+}
+
+/**
+ * Ensure a canonical template part is unavailable (theme file + custom DB posts).
+ *
+ * @param {string} slug
+ * @return {Cypress.Chainable}
+ */
+export function ensureNoTemplatePart(slug) {
+	return cy
+		.task('themePartSetHidden', { slug, hidden: true })
+		.then((result) => {
+			expect(result?.ok, result?.message || `hide part ${slug}`).to.eq(
+				true
+			);
+		})
+		.then(() => cy.task('wpTemplatePartDeleteBySlug', { slug }))
+		.then(() => {
+			cy.window({ log: false }).then((win) => {
+				const invalidate =
+					win.wp?.data?.dispatch('core')?.invalidateResolution;
+				if (typeof invalidate !== 'function') {
+					return;
+				}
+				invalidate('getEntityRecords', [
+					'postType',
+					'wp_template_part',
+					{ per_page: -1 },
+				]);
+			});
+		});
+}
+
+/**
+ * Restore a previously hidden theme template part file.
+ *
+ * @param {string} slug
+ * @return {Cypress.Chainable}
+ */
+export function restoreThemePart(slug) {
+	return cy
+		.task('themePartSetHidden', { slug, hidden: false })
+		.then((result) => {
+			expect(result?.ok, result?.message || `restore part ${slug}`).to.eq(
+				true
+			);
+		});
 }
 
 /**
