@@ -171,6 +171,7 @@ function NavRow({
 						<Tooltip
 							text={statusTooltip}
 							width="200px"
+							delay={200}
 							hideOnClick={false}
 							style={{
 								'--tooltip-bg': '#2f9e5b',
