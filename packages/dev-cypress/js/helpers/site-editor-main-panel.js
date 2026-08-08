@@ -222,36 +222,177 @@ export function saveEditedSiteRecord() {
 }
 
 /**
- * Update a Site Editor settings field via authenticated REST `/wp/v2/settings`.
+ * Authenticated REST helper using `wpApiSettings.nonce` + `rest_route`.
  *
- * @param {Object} body Settings payload.
+ * @param {string} route Route after `/wp/v2/` (e.g. `settings`, `pages`).
+ * @param {Object} [options] Cypress request options (`method`, `body`, …).
  * @return {Cypress.Chainable}
  */
-export function updateSiteSettingsViaRest(body) {
+export function siteEditorRestRequest(route, options = {}) {
 	const testURL = (Cypress.env('testURL') || '').replace(/\/$/, '');
-	// wp-env may not expose pretty `/wp-json` routes to the host; use rest_route.
-	const url = `${testURL}/?rest_route=/wp/v2/settings`;
+	const path = String(route || '').replace(/^\//, '');
+	const url = `${testURL}/?rest_route=/wp/v2/${path}`;
 
 	return cy.window().then((win) => {
 		const nonce = win.wpApiSettings?.nonce;
 		expect(nonce, 'wpApiSettings.nonce').to.be.a('string').and.not.be.empty;
 
 		return cy.request({
-			method: 'POST',
 			url,
 			headers: {
 				'X-WP-Nonce': nonce,
+				...(options.headers || {}),
 			},
-			body,
+			...options,
 		});
 	});
 }
 
 /**
- * Toggle the Disable Emojis Script control in the Performance panel.
+ * Update a Site Editor settings field via authenticated REST `/wp/v2/settings`.
  *
- * @param {boolean} enabled Desired checked state.
+ * @param {Object} body Settings payload.
+ * @return {Cypress.Chainable}
  */
+export function updateSiteSettingsViaRest(body) {
+	return siteEditorRestRequest('settings', {
+		method: 'POST',
+		body,
+	});
+}
+
+/**
+ * Set Reading settings used by Templates Homepage purpose-nav.
+ *
+ * @param {{
+ *   showOnFront: 'posts' | 'page',
+ *   pageOnFront?: number | null,
+ *   pageForPosts?: number | null,
+ * }} options
+ * @return {Cypress.Chainable}
+ */
+export function setReadingSettings({
+	showOnFront,
+	pageOnFront = null,
+	pageForPosts = null,
+}) {
+	const body = {
+		show_on_front: showOnFront,
+	};
+
+	if (showOnFront === 'page') {
+		body.page_on_front = pageOnFront || 0;
+		body.page_for_posts = pageForPosts || 0;
+	} else {
+		body.page_on_front = 0;
+		body.page_for_posts = 0;
+	}
+
+	return updateSiteSettingsViaRest(body);
+}
+
+/**
+ * Create a published page via REST.
+ *
+ * @param {{ title?: string, content?: string }} [options]
+ * @return {Cypress.Chainable<number>} Resolves to the page id.
+ */
+export function createSiteEditorPage({
+	title = `E2E Page ${Date.now()}`,
+	content = '<!-- wp:paragraph --><p>E2E page</p><!-- /wp:paragraph -->',
+} = {}) {
+	return siteEditorRestRequest('pages', {
+		method: 'POST',
+		body: {
+			title,
+			content,
+			status: 'publish',
+		},
+	}).then((response) => {
+		expect(response.status).to.be.oneOf([200, 201]);
+		const id = response.body?.id;
+		expect(id, 'created page id').to.be.a('number');
+		return id;
+	});
+}
+
+/**
+ * Delete a page via REST (force).
+ *
+ * @param {number|string} pageId
+ * @return {Cypress.Chainable}
+ */
+export function deleteSiteEditorPage(pageId) {
+	if (!pageId) {
+		return cy.wrap(null);
+	}
+
+	return siteEditorRestRequest(`pages/${pageId}?force=true`, {
+		method: 'DELETE',
+		failOnStatusCode: false,
+	});
+}
+
+/**
+ * Create a custom `wp_template` via REST (e.g. slug `front-page`).
+ *
+ * @param {{ slug: string, title?: string, content?: string }} options
+ * @return {Cypress.Chainable<{ id: string|number, slug: string }>}
+ */
+export function createWpTemplate({
+	slug,
+	title,
+	content = '<!-- wp:paragraph --><p>E2E template</p><!-- /wp:paragraph -->',
+}) {
+	expect(slug, 'template slug').to.be.a('string').and.not.be.empty;
+
+	return siteEditorRestRequest('templates', {
+		method: 'POST',
+		body: {
+			slug,
+			title: title || slug,
+			content,
+			status: 'publish',
+		},
+	}).then((response) => {
+		expect(response.status).to.be.oneOf([200, 201]);
+		const id = response.body?.id;
+		expect(id, 'created template id').to.exist;
+		return { id, slug: response.body?.slug || slug };
+	});
+}
+
+/**
+ * Delete a `wp_template` via REST / data store (force).
+ *
+ * @param {string|number} templateId Theme-style id (`theme//slug`) or numeric.
+ * @return {Cypress.Chainable}
+ */
+export function deleteWpTemplate(templateId) {
+	if (!templateId) {
+		return cy.wrap(null);
+	}
+
+	const id = String(templateId);
+
+	return cy.window().then((win) => {
+		const deleteRecord = win.wp?.data?.dispatch('core')?.deleteEntityRecord;
+
+		if (typeof deleteRecord === 'function') {
+			return deleteRecord('postType', 'wp_template', id, {
+				force: true,
+			}).catch(() => null);
+		}
+
+		// Encode the full id so `theme//slug` does not collapse in rest_route.
+		const encoded = encodeURIComponent(id);
+		return siteEditorRestRequest(`templates/${encoded}?force=true`, {
+			method: 'DELETE',
+			failOnStatusCode: false,
+		});
+	});
+}
+
 export function setDisableEmojisToggle(enabled) {
 	cy.getByDataTest(SITE_EDITOR_TEST_IDS.performanceDisableEmojis)
 		.find('.components-form-toggle input[type="checkbox"]')
