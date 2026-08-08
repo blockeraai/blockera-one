@@ -56,10 +56,12 @@ Drill-down screens use a Blockera-owned `DrillDownScreen` (back → `/` + title 
 | `templates-homepage-resolve.ts` | Homepage / Blog·Posts + fallback badges from Reading settings |
 | `templates-matchers.ts` | Slug / custom / author matchers |
 | `use-templates-data.ts` | Entity fetch, counts, dynamic CPT/author/homepage rows |
-| `templates-drill-down.tsx` | DrillDownScreen + menu ↔ parts sub-screen |
+| `templates-drill-down.tsx` | DrillDownScreen + purpose-nav (General Area Hub) |
 | `templates-nav.tsx` | Parent/child purpose menu UI |
-| `templates-parts-screen.tsx` | Templates-owned parts list by area |
-| `style.scss` | Nav / parts styles |
+| `templates-hub-parts.ts` | Canonical header/footer/sidebar helpers |
+| `templates-area-hub.tsx` | Live Editor banner for global site parts (+ Patterns link) |
+| `templates-browse-content.tsx` | Browse gate (core / filtered / missing-base / hub empty) |
+| `style.scss` | Nav + Area Hub styles |
 
 PHP: `packages/blockera-one/php/Theme/Performance.php` — registers `blockera_one_disable_emojis` on `/wp/v2/settings` and removes WP emoji hooks when enabled.
 
@@ -70,7 +72,7 @@ Registered from `packages/blockera-one/js/index.js` via `blockera.after.bootstra
 - **Design-root** is `/` only. Main nav portals there; Styles / Templates and other drill-downs unmount it.
 - **Design items:** click hidden core nav nodes by stable `uid` / `id`. Styles / Templates set forward enter animation before the uid click.
 - **Styles:** override `styles` route — wrap core `areas.content` in `StylesDrillDown`. Keep core `areas.preview`; omit `areas.content`.
-- **Templates:** override `templates`, `template-item`, and `template-part-item` sidebars with `TemplatesDrillDown`. Browse `/template` keeps **core PageTemplates DataViews** via `TemplatesBrowseContent`, except when a purpose filter’s **base** template is missing — then the right pane shows a missing-base card (hierarchy fallback link + Add specific template). Purpose-nav sets `activeView` for Other tabs. Selecting a purpose filter whose base exists navigates to `/wp_template/{id}` (view). Template parts: active parts only; click → live preview. **Homepage** section: one **Homepage** row (latest posts: first of `front-page → home → index`; static front: `front-page` or the selected homepage page), optional **Blog Home** → `/page/{page_for_posts}` (not `home.html`), and collapsed inline fallbacks with status badges.
+- **Templates:** override `templates`, `template-item`, and `template-part-item` sidebars with `TemplatesDrillDown`. Browse `/template` keeps **core PageTemplates DataViews** via `TemplatesBrowseContent`, except when a purpose filter’s **base** template is missing — then the right pane shows a missing-base card (hierarchy fallback link + Add specific template). Purpose-nav sets `activeView` for Other tabs. Selecting a purpose filter whose base exists navigates to `/wp_template/{id}` (view). **Header / Footer / Sidebar** open the site-wide part in Area Hub (banner + live Editor); **Manage all …** jumps to Patterns (`categoryId`). **Homepage** section: one **Homepage** row (latest posts: first of `front-page → home → index`; static front: `front-page` or the selected homepage page), optional **Blog Home** → `/page/{page_for_posts}` (not `home.html`), and collapsed inline fallbacks with status badges.
 - **Site Identity + Homepage + Performance:** SPA navigate via `history.pushState` + `popstate`.
 - **Resources:** external links with `utm_source=blockera-one-site-editor`.
 
@@ -88,5 +90,5 @@ Registered from `packages/blockera-one/js/index.js` via `blockera.after.bootstra
 
 ## Manual verification
 
-- **Templates:** purpose sections; Homepage collapsed until selected (then inline Front Page / Blog Home / Index fallbacks with status badges); Blog Home when posts page is set; Header opens parts sub-screen; Back from parts returns to Templates menu; Back from Templates returns to Design root; clicking a category with a base template opens canvas preview.
+- **Templates:** purpose sections; Homepage collapsed until selected (then inline Front Page / Blog Home / Index fallbacks with status badges); Blog Home when posts page is set; Header/Footer/Sidebar open Area Hub for the global part; Manage all … opens Patterns; Back from Templates returns to Design root; clicking a category with a base template opens canvas preview.
 - Styles / Identity / Homepage / Performance drill-downs still work as before.
