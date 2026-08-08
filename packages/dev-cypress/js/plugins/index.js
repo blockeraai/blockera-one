@@ -743,6 +743,21 @@ module.exports = (on, config, testingType = config.testingType || 'e2e') => {
 
 			return { ok: true, message: `already_absent:${safeSlug}` };
 		},
+		/**
+		 * Delete custom `wp_template` posts by slug via WP-CLI eval (DB cleanup).
+		 *
+		 * @param {{ slug: string }} options
+		 */
+		wpTemplateDeleteBySlug({ slug }) {
+			const safeSlug = String(slug || '').replace(/[^a-z0-9_-]/gi, '');
+			if (!safeSlug) {
+				throw new Error('wpTemplateDeleteBySlug requires slug');
+			}
+
+			const php = `$posts = get_posts(array('post_type'=>'wp_template','name'=>'${safeSlug}','post_status'=>'any','numberposts'=>-1,'suppress_filters'=>true)); $n=0; foreach ($posts as $p) { wp_delete_post($p->ID, true); $n++; } echo 'deleted:'.$n;`;
+			const result = runWpEval(php);
+			return { ok: true, message: result || `deleted:0` };
+		},
 	});
 
 	on('before:browser:launch', (browser = {}, launchOptions) => {
