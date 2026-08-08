@@ -58,8 +58,9 @@ describe('Blockera One → Site Editor main panel chrome', () => {
 		clickSiteEditorNav(SITE_EDITOR_TEST_IDS.navTemplates);
 
 		cy.location('search').should('include', 'template');
+		/* Expands Homepage then restores All browse (preview has no DataViews). */
 		assertSiteEditorTemplatesNav();
-		/* Core PageTemplates DataViews (not a Blockera custom list). */
+		/* Core PageTemplates DataViews on All browse (not a Blockera custom list). */
 		cy.get(
 			'.edit-site-page-templates, .dataviews-wrapper, .dataviews-view-grid, .dataviews-view-table',
 			{ timeout: 20000 }
