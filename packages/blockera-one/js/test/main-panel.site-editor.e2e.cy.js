@@ -66,15 +66,7 @@ describe('Blockera One → Site Editor main panel chrome', () => {
 			{ timeout: 20000 }
 		).should('exist');
 
-		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavHeader).click();
-		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesParts, {
-			timeout: 20000,
-		}).should('be.visible');
-		cy.getByDataTest(SITE_EDITOR_TEST_IDS.drillDownBack).click();
-		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should(
-			'be.visible'
-		);
-
+		/* Header/Footer/Sidebar Area Hub coverage: templates-parts.templates.e2e.cy.js */
 		clickSiteEditorDrillDownBack('template');
 	});
 
