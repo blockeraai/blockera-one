@@ -21,13 +21,20 @@ import {
 } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
+import { getQueryArg } from '@wordpress/url';
+
 import { EDIT_SITE_STORE_NAME } from './constants';
 import DrillDownScreen from './drill-down-screen';
 import HomepageSettingsPanel from './homepage-settings-panel';
 import PerformancePanel from './performance-panel';
 import SiteIdentityPanel from './site-identity-panel';
 import StylesDrillDown from './styles-drill-down';
-import { TemplatesBrowseContent, TemplatesDrillDown } from './templates';
+import {
+	TEMPLATES_FILTER_QUERY,
+	TemplatesBrowseContent,
+	TemplatesDrillDown,
+	isTemplatesOwnedPagePreview,
+} from './templates';
 import { isSiteEditorUrl } from './utils';
 import './styles-panel.scss';
 
@@ -256,6 +263,52 @@ export default function SiteEditorMainPanelRoutes(): null {
 							sidebar: <TemplatesDrillDown />,
 							preview: templatePartItem.areas.preview,
 							mobileSidebar: <TemplatesDrillDown />,
+						},
+					},
+				});
+			}
+
+			// Homepage / Blog·Posts preview pages via `/page/{id}` but keep
+			// Templates purpose-nav when `boFilter` marks a Templates-owned preview.
+			const pageItem = routes.find((r) => r?.name === 'page-item');
+			if (pageItem?.areas?.preview) {
+				const corePageSidebar = pageItem.areas.sidebar;
+				const corePageMobileSidebar =
+					pageItem.areas.mobileSidebar ?? pageItem.areas.sidebar;
+
+				const templatesOrPagesSidebar = (
+					coreSidebar: ReactNode | ((args: unknown) => ReactNode)
+				): RouteAreaFn => {
+					return (args: unknown) => {
+						const boFilter = getQueryArg(
+							typeof window !== 'undefined'
+								? window.location.href
+								: '',
+							TEMPLATES_FILTER_QUERY
+						);
+						const keepTemplates = isTemplatesOwnedPagePreview(
+							typeof boFilter === 'string' ? boFilter : null
+						);
+
+						if (keepTemplates) {
+							return <TemplatesDrillDown />;
+						}
+						return resolveAreaNode(coreSidebar, args);
+					};
+				};
+
+				unregisterIfPresent(reduxStore, 'page-item');
+				reduxStore.dispatch({
+					type: 'REGISTER_ROUTE',
+					route: {
+						name: 'page-item',
+						path: pageItem.path || '/page/:postId',
+						areas: {
+							sidebar: templatesOrPagesSidebar(corePageSidebar),
+							preview: pageItem.areas.preview,
+							mobileSidebar: templatesOrPagesSidebar(
+								corePageMobileSidebar
+							),
 						},
 					},
 				});
