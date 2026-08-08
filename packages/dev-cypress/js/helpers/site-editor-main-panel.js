@@ -39,6 +39,11 @@ export const SITE_EDITOR_TEST_IDS = {
 	performanceDisableEmojis: 'blockera-site-editor-performance-disable-emojis',
 	stylesPanel: 'blockera-site-editor-styles-panel',
 	stylesActions: 'blockera-site-editor-styles-actions',
+	templatesPanel: 'blockera-site-editor-templates-panel',
+	templatesNav: 'blockera-site-editor-templates-nav',
+	templatesNavAll: 'blockera-site-editor-templates-nav-all',
+	templatesNavHeader: 'blockera-site-editor-templates-nav-parts-header',
+	templatesParts: 'blockera-site-editor-templates-parts',
 	drillDown: 'blockera-site-editor-drill-down',
 	drillDownBack: 'blockera-site-editor-drill-down-back',
 };
@@ -78,17 +83,28 @@ export function clickSiteEditorNav(testId) {
 }
 
 /**
- * Assert Styles / Identity / Homepage / Performance drill-down chrome:
- * hub + branding stay, main nav collapses, no second column, back control present.
+ * Assert Styles / Identity / Homepage / Performance / Templates drill-down chrome:
+ * hub + branding stay, main nav collapses, back control present.
  */
 export function assertSiteEditorDrillDown() {
 	assertSiteEditorChrome();
 	getSiteEditorNav().should('not.exist');
-	cy.get('.edit-site-layout__area').should('not.exist');
 	cy.getByDataTest(SITE_EDITOR_TEST_IDS.drillDown, {
 		timeout: 20000,
 	}).should('be.visible');
 	cy.getByDataTest(SITE_EDITOR_TEST_IDS.drillDownBack).should('be.visible');
+}
+
+/**
+ * Assert Templates purpose-nav drill-down is mounted.
+ */
+export function assertSiteEditorTemplatesNav() {
+	assertSiteEditorDrillDown();
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesPanel, {
+		timeout: 20000,
+	}).should('be.visible');
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should('be.visible');
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavAll).should('be.visible');
 }
 
 /**

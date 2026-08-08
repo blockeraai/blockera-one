@@ -10,6 +10,7 @@ import {
 	assertSiteEditorChrome,
 	assertSiteEditorMainNav,
 	assertSiteEditorDrillDown,
+	assertSiteEditorTemplatesNav,
 	clickSiteEditorNav,
 	clickSiteEditorDrillDownBack,
 	getSiteEditorNav,
@@ -51,6 +52,29 @@ describe('Blockera One → Site Editor main panel chrome', () => {
 		getSiteEditorNav().should('not.exist');
 
 		cy.location('search').should('include', 'page');
+	});
+
+	it('opens Templates purpose-nav drill-down then Back restores main nav', () => {
+		clickSiteEditorNav(SITE_EDITOR_TEST_IDS.navTemplates);
+
+		cy.location('search').should('include', 'template');
+		assertSiteEditorTemplatesNav();
+		/* Core PageTemplates DataViews (not a Blockera custom list). */
+		cy.get(
+			'.edit-site-page-templates, .dataviews-wrapper, .dataviews-view-grid, .dataviews-view-table',
+			{ timeout: 20000 }
+		).should('exist');
+
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavHeader).click();
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesParts, {
+			timeout: 20000,
+		}).should('be.visible');
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.drillDownBack).click();
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should(
+			'be.visible'
+		);
+
+		clickSiteEditorDrillDownBack('template');
 	});
 
 	it('opens Styles as sidebar drill-down then Back restores main nav', () => {
