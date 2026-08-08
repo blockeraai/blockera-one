@@ -190,14 +190,14 @@ function NavRow({
 
 /**
  * True when clicking the row navigates to a single-template live canvas preview.
- * Browse / DataViews / parts-list destinations return false (those keep a count).
+ * Browse / DataViews destinations return false (those keep a count).
  */
 function opensLivePreview(
 	item: TemplatesNavItemConfig,
 	findBySlug: (slug: string) => TemplateLike | undefined
 ): boolean {
 	if (item.partsArea) {
-		return false;
+		return true;
 	}
 
 	if (item.entityPath) {

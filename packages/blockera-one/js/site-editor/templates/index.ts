@@ -5,6 +5,7 @@
 export { default as TemplatesDrillDown } from './templates-drill-down';
 export { default as TemplatesBrowseContent } from './templates-browse-content';
 export { default as TemplatesFilteredBrowse } from './templates-filtered-browse';
+export { default as TemplatesAreaHub } from './templates-area-hub';
 export {
 	FILTER_IDS,
 	TEMPLATES_FILTER_QUERY,

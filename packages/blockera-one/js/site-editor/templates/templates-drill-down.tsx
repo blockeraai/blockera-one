@@ -1,8 +1,7 @@
 /**
- * Templates sidebar drill-down: purpose menu or parts sub-screen.
+ * Templates sidebar: purpose-nav (General stays visible while Area Hub is open).
  */
 
-import { useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 /**
@@ -11,59 +10,37 @@ import { __ } from '@wordpress/i18n';
 import DrillDownScreen from '../drill-down-screen';
 import { ROUTES } from '../constants';
 import {
-	getTemplatesUrlState,
+	buildTemplatePartItemPath,
 	navigateTemplates,
 	type PartAreaId,
 } from './constants';
-import { PART_AREA_LABELS } from './templates-nav-config';
+import { findCanonicalPart } from './templates-hub-parts';
 import TemplatesNav from './templates-nav';
-import TemplatesPartsScreen from './templates-parts-screen';
+import useTemplatesData from './use-templates-data';
 import './style.scss';
 
 export default function TemplatesDrillDown() {
-	const [partsArea, setPartsArea] = useState<PartAreaId | null>(
-		() => getTemplatesUrlState().partsArea
-	);
-
-	useEffect(() => {
-		const sync = () => setPartsArea(getTemplatesUrlState().partsArea);
-		sync();
-		window.addEventListener('popstate', sync);
-		return () => window.removeEventListener('popstate', sync);
-	}, []);
+	const { parts } = useTemplatesData();
 
 	const openPartsArea = (area: PartAreaId) => {
-		setPartsArea(area);
-		// Stay on browse until a part is selected for canvas preview.
+		const canonical = findCanonicalPart(area, parts);
+
+		if (canonical?.id !== undefined) {
+			navigateTemplates(buildTemplatePartItemPath(canonical.id), {
+				partsArea: area,
+				clearFilter: true,
+				activeView: null,
+				canvas: null,
+			});
+			return;
+		}
+
 		navigateTemplates(ROUTES.templates, {
 			partsArea: area,
 			clearFilter: true,
 			activeView: null,
-			direction: 'forward',
 		});
 	};
-
-	const closePartsArea = () => {
-		setPartsArea(null);
-		navigateTemplates(ROUTES.templates, {
-			partsArea: null,
-			direction: 'back',
-		});
-	};
-
-	if (partsArea) {
-		return (
-			<DrillDownScreen
-				title={PART_AREA_LABELS[partsArea]}
-				onBack={closePartsArea}
-				flush
-			>
-				<div className="blockera-site-editor-templates-panel">
-					<TemplatesPartsScreen area={partsArea} />
-				</div>
-			</DrillDownScreen>
-		);
-	}
 
 	return (
 		<DrillDownScreen title={__('Templates', 'blockera')} flush>

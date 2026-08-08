@@ -35,18 +35,22 @@ import {
 	TemplatesDrillDown,
 	isTemplatesOwnedPagePreview,
 } from './templates';
+import TemplatesAreaHub from './templates/templates-area-hub';
+import { getTemplatesUrlState } from './templates/constants';
 import { isSiteEditorUrl } from './utils';
 import './styles-panel.scss';
 
 let didRegister = false;
 
+type RouteAreaFn = (args: unknown) => ReactNode | Promise<ReactNode>;
+
 type RouteAreas = {
-	sidebar?: ReactNode | ((args: unknown) => ReactNode);
-	content?: ReactNode | ((args: unknown) => ReactNode);
-	preview?: ReactNode | ((args: unknown) => ReactNode);
-	mobile?: ReactNode | ((args: unknown) => ReactNode);
-	mobileContent?: ReactNode | ((args: unknown) => ReactNode);
-	mobileSidebar?: ReactNode | ((args: unknown) => ReactNode);
+	sidebar?: ReactNode | RouteAreaFn;
+	content?: ReactNode | RouteAreaFn;
+	preview?: ReactNode | RouteAreaFn;
+	mobile?: ReactNode | RouteAreaFn;
+	mobileContent?: ReactNode | RouteAreaFn;
+	mobileSidebar?: ReactNode | RouteAreaFn;
 };
 
 type EditSiteRoute = {
@@ -101,17 +105,16 @@ function duplicateAreaNode(node: ReactNode): ReactNode {
 	return node;
 }
 
-type RouteAreaFn = (args: unknown) => ReactNode;
-
 /**
  * Invoke a core route area (element or `({ siteData, query }) => …` function).
+ * Core preview/widths may be async — callers must await thenables.
  */
 function resolveAreaNode(
 	area: ReactNode | RouteAreaFn | undefined,
 	args: unknown
-): ReactNode {
+): ReactNode | Promise<ReactNode> {
 	if (typeof area === 'function') {
-		return (area as RouteAreaFn)(args);
+		return area(args);
 	}
 	return area ?? null;
 }
@@ -123,9 +126,37 @@ function resolveAreaNode(
 function wrapTemplatesBrowseArea(
 	area: ReactNode | RouteAreaFn | undefined
 ): RouteAreaFn {
-	return (args: unknown) => {
+	return async (args: unknown) => {
 		const resolved = resolveAreaNode(area, args);
-		return <TemplatesBrowseContent>{resolved}</TemplatesBrowseContent>;
+		const node =
+			!!resolved &&
+			typeof (resolved as { then?: unknown }).then === 'function'
+				? await (resolved as Promise<ReactNode>)
+				: resolved;
+		return <TemplatesBrowseContent>{node}</TemplatesBrowseContent>;
+	};
+}
+
+/**
+ * Await core async preview (list → Editor, grid → undefined). Return null when
+ * empty or when Area Hub owns the view so layout does not mount an empty canvas.
+ */
+function wrapTemplatesBrowsePreview(
+	area: ReactNode | RouteAreaFn | undefined
+): RouteAreaFn {
+	return async (args: unknown) => {
+		if (getTemplatesUrlState().partsArea) {
+			return null;
+		}
+
+		const resolved = resolveAreaNode(area, args);
+		const node =
+			!!resolved &&
+			typeof (resolved as { then?: unknown }).then === 'function'
+				? await (resolved as Promise<ReactNode>)
+				: resolved;
+
+		return node ?? null;
 	};
 }
 
@@ -216,7 +247,9 @@ export default function SiteEditorMainPanelRoutes(): null {
 						content: wrapTemplatesBrowseArea(
 							templates.areas.content
 						),
-						preview: templates.areas.preview,
+						preview: wrapTemplatesBrowsePreview(
+							templates.areas.preview
+						),
 						mobileSidebar: <TemplatesDrillDown />,
 						mobileContent: wrapTemplatesBrowseArea(
 							templates.areas.mobileContent ??
@@ -261,7 +294,14 @@ export default function SiteEditorMainPanelRoutes(): null {
 							'/wp_template_part/*postId',
 						areas: {
 							sidebar: <TemplatesDrillDown />,
-							preview: templatePartItem.areas.preview,
+							preview: (
+								<TemplatesAreaHub>
+									{
+										templatePartItem.areas
+											.preview as ReactNode
+									}
+								</TemplatesAreaHub>
+							),
 							mobileSidebar: <TemplatesDrillDown />,
 						},
 					},

@@ -6,12 +6,7 @@
 import type { ReactNode } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
-import {
-	FILTER_IDS,
-	PART_AREA_IDS,
-	type FilterId,
-	type PartAreaId,
-} from './constants';
+import { FILTER_IDS, type FilterId, type PartAreaId } from './constants';
 
 export type NavIcon =
 	| 'layout'
@@ -42,7 +37,7 @@ export type TemplatesNavItemConfig = {
 	icon: NavIcon;
 	/** Purpose / source filter applied to the browse list. */
 	filter: FilterId;
-	/** When set, opens Templates-owned parts sub-screen instead of filtering. */
+	/** When set, opens the General Area Hub for this template-part area. */
 	partsArea?: PartAreaId;
 	/** Base slug used for canvas preview (optional override). */
 	baseSlug?: string;
@@ -90,8 +85,12 @@ export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 		],
 	},
 	{
-		id: 'parts',
-		label: __('Template parts', 'blockera'),
+		id: 'general',
+		label: __('General', 'blockera'),
+		/**
+		 * Homepage rows are prepended at runtime; then Header / Footer /
+		 * Sidebar (Sidebar only when a sidebar part is registered).
+		 */
 		items: [
 			{
 				id: 'parts-header',
@@ -114,27 +113,7 @@ export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 				filter: FILTER_IDS.parts,
 				partsArea: 'sidebar',
 			},
-			{
-				id: 'parts-general',
-				label: __('General', 'blockera'),
-				icon: 'layout',
-				filter: FILTER_IDS.parts,
-				partsArea: 'uncategorized',
-			},
-			{
-				id: 'parts-nav-overlay',
-				label: __('Navigation overlay', 'blockera'),
-				icon: 'layout',
-				filter: FILTER_IDS.parts,
-				partsArea: 'navigation-overlay',
-			},
 		],
-	},
-	{
-		id: 'homepage',
-		label: __('Homepage', 'blockera'),
-		// Items replaced at runtime from Reading settings + active site-root slug.
-		items: [],
 	},
 	{
 		id: 'single',
@@ -259,13 +238,3 @@ export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 		],
 	},
 ];
-
-export const PART_AREA_LABELS: Record<PartAreaId, string> = {
-	header: __('Header', 'blockera'),
-	footer: __('Footer', 'blockera'),
-	sidebar: __('Sidebar', 'blockera'),
-	uncategorized: __('General', 'blockera'),
-	'navigation-overlay': __('Navigation overlay', 'blockera'),
-};
-
-export { PART_AREA_IDS };

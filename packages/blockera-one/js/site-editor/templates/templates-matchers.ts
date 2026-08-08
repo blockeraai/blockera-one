@@ -24,6 +24,7 @@ export type TemplateLike = {
 	area?: string;
 	title?: string | { rendered?: string; raw?: string };
 	description?: string | { raw?: string; rendered?: string };
+	content?: { raw?: string; rendered?: string; block_version?: number };
 };
 
 /**

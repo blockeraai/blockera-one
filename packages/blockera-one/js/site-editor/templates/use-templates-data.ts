@@ -13,7 +13,6 @@ import {
 	TEMPLATE_POST_TYPE,
 	buildChildrenFilter,
 	type FilterId,
-	type PartAreaId,
 } from './constants';
 import {
 	DEFAULT_TYPE_SLUGS,
@@ -33,6 +32,10 @@ import {
 	type TemplatesNavItemConfig,
 	type TemplatesNavSectionConfig,
 } from './templates-nav-config';
+import {
+	findCanonicalPart,
+	hasRegisteredSidebarPart,
+} from './templates-hub-parts';
 
 /** Higher wins when one author bucket mixes sources. */
 const AUTHOR_SOURCE_PRIORITY: Record<string, number> = {
@@ -84,7 +87,6 @@ export type TemplatesData = {
 	sections: TemplatesNavSectionConfig[];
 	counts: Record<string, number>;
 	siteReading?: SiteReadingSettings;
-	getPartsForArea: (area: PartAreaId) => TemplateLike[];
 	findBySlug: (slug: string) => TemplateLike | undefined;
 	filterTemplates: (filter: FilterId) => TemplateLike[];
 };
@@ -306,14 +308,20 @@ export default function useTemplatesData(): TemplatesData {
 			items: [...section.items],
 		}));
 
-		const homepageSection = next.find(
-			(section) => section.id === 'homepage'
-		);
-		if (homepageSection) {
-			homepageSection.items = buildHomepageSectionItems(
+		const generalSection = next.find((section) => section.id === 'general');
+		if (generalSection) {
+			const homepageItems = buildHomepageSectionItems(
 				findBySlug,
 				siteReading
 			);
+			const showSidebar = hasRegisteredSidebarPart(activeParts);
+			const partItems = generalSection.items.filter((item) => {
+				if (item.partsArea === 'sidebar') {
+					return showSidebar;
+				}
+				return true;
+			});
+			generalSection.items = [...homepageItems, ...partItems];
 		}
 
 		const singleSection = next.find((section) => section.id === 'single');
@@ -398,7 +406,7 @@ export default function useTemplatesData(): TemplatesData {
 		}
 
 		return next;
-	}, [publicPostTypes, templates, findBySlug, siteReading]);
+	}, [publicPostTypes, templates, findBySlug, siteReading, activeParts]);
 
 	const counts = useMemo(() => {
 		const map: Record<string, number> = {};
@@ -418,24 +426,14 @@ export default function useTemplatesData(): TemplatesData {
 		sections.forEach((section) => {
 			section.items.forEach((item) => {
 				if (item.partsArea) {
-					const count = activeParts.filter((part) => {
-						const area = part.area || 'uncategorized';
-						return area === item.partsArea;
-					}).length;
-					bump(String(item.id), count);
+					bump(
+						String(item.id),
+						findCanonicalPart(item.partsArea, activeParts) ? 1 : 0
+					);
 					return;
 				}
 				bump(String(item.id), filterTemplates(item.filter).length);
 			});
-		});
-
-		PART_AREA_COUNT_KEYS.forEach((area) => {
-			bump(
-				`parts:${area}`,
-				activeParts.filter(
-					(part) => (part.area || 'uncategorized') === area
-				).length
-			);
 		});
 
 		return map;
@@ -447,13 +445,6 @@ export default function useTemplatesData(): TemplatesData {
 		filterTemplates,
 		defaultTypeSlugs,
 	]);
-
-	const getPartsForArea = useMemo(() => {
-		return (area: PartAreaId) =>
-			activeParts.filter(
-				(part) => (part.area || 'uncategorized') === area
-			);
-	}, [activeParts]);
 
 	return {
 		templates,
@@ -467,19 +458,10 @@ export default function useTemplatesData(): TemplatesData {
 		sections,
 		counts,
 		siteReading,
-		getPartsForArea,
 		findBySlug,
 		filterTemplates,
 	};
 }
-
-const PART_AREA_COUNT_KEYS: PartAreaId[] = [
-	'header',
-	'footer',
-	'sidebar',
-	'uncategorized',
-	'navigation-overlay',
-];
 
 /**
  * Single “Child templates” nav row when the parent has any children.

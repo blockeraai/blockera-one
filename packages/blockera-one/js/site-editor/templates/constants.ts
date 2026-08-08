@@ -19,7 +19,7 @@ export const TEMPLATES_ACTIVE_VIEW_QUERY = 'activeView';
 /** URL query key for purpose / source filter. */
 export const TEMPLATES_FILTER_QUERY = 'boFilter';
 
-/** URL query key for Templates-owned parts sub-screen area. */
+/** URL query key for General Area Hub (header / footer / sidebar). */
 export const TEMPLATES_PARTS_AREA_QUERY = 'partsArea';
 
 export const TEMPLATE_POST_TYPE = 'wp_template';
@@ -73,16 +73,17 @@ export function getParentFilterFromChildrenFilter(
 	return filter.slice(CHILDREN_FILTER_PREFIX.length) || null;
 }
 
-/** Always-shown template part area shortcuts. */
-export const PART_AREA_IDS = [
-	'header',
-	'footer',
-	'sidebar',
-	'uncategorized',
-	'navigation-overlay',
-] as const;
+/** General Area Hub areas (site-wide header / footer / sidebar). */
+export const PART_AREA_IDS = ['header', 'footer', 'sidebar'] as const;
 
 export type PartAreaId = (typeof PART_AREA_IDS)[number];
+
+const TEMPLATES_QUERY_KEYS_TO_SCRUB = [
+	TEMPLATES_FILTER_QUERY,
+	TEMPLATES_PARTS_AREA_QUERY,
+	TEMPLATES_ACTIVE_VIEW_QUERY,
+	'canvas',
+] as const;
 
 export type TemplatesUrlState = {
 	filter: FilterId;
@@ -149,6 +150,50 @@ export function getCoreActiveViewForFilter(
 	}
 	// Purpose filters: keep core default Active tab list.
 	return 'active';
+}
+
+/**
+ * SPA navigate via history + popstate; scrub empty Templates query keys.
+ */
+function pushSiteEditorQuery(
+	nextQuery: Record<string, string | undefined>
+): void {
+	const absoluteUrl = addQueryArgs(window.location.href, nextQuery);
+	let nextUrl = absoluteUrl;
+
+	try {
+		const parsed = new URL(absoluteUrl);
+		TEMPLATES_QUERY_KEYS_TO_SCRUB.forEach((key) => {
+			const value = parsed.searchParams.get(key);
+			if (!value || value === 'undefined') {
+				parsed.searchParams.delete(key);
+			}
+		});
+		nextUrl = `${parsed.pathname}${parsed.search}${parsed.hash}`;
+	} catch (_e) {
+		// Keep absoluteUrl fallback.
+	}
+
+	const prevState =
+		typeof window.history.state === 'object' && window.history.state
+			? window.history.state
+			: {};
+	const nextIdx =
+		typeof (prevState as { idx?: number }).idx === 'number'
+			? (prevState as { idx: number }).idx + 1
+			: 0;
+
+	window.history.pushState(
+		{
+			...prevState,
+			usr: (prevState as { usr?: unknown }).usr ?? null,
+			key: Math.random().toString(36).slice(2, 10),
+			idx: nextIdx,
+		},
+		'',
+		nextUrl
+	);
+	window.dispatchEvent(new PopStateEvent('popstate'));
 }
 
 /**
@@ -225,51 +270,9 @@ export function navigateTemplates(
 	} else if (options?.canvas !== undefined) {
 		nextQuery.canvas =
 			options.canvas === 'view' ? undefined : options.canvas;
-	} else if (!isBrowsePath && options?.canvas === undefined) {
-		// Keep existing canvas only when not explicitly managed.
 	}
 
-	const absoluteUrl = addQueryArgs(window.location.href, nextQuery);
-	let nextUrl = absoluteUrl;
-
-	try {
-		const parsed = new URL(absoluteUrl);
-		[
-			TEMPLATES_FILTER_QUERY,
-			TEMPLATES_PARTS_AREA_QUERY,
-			TEMPLATES_ACTIVE_VIEW_QUERY,
-			'canvas',
-		].forEach((key) => {
-			const value = parsed.searchParams.get(key);
-			if (!value || value === 'undefined') {
-				parsed.searchParams.delete(key);
-			}
-		});
-		nextUrl = `${parsed.pathname}${parsed.search}${parsed.hash}`;
-	} catch (_e) {
-		// Keep absoluteUrl fallback.
-	}
-
-	const prevState =
-		typeof window.history.state === 'object' && window.history.state
-			? window.history.state
-			: {};
-	const nextIdx =
-		typeof (prevState as { idx?: number }).idx === 'number'
-			? (prevState as { idx: number }).idx + 1
-			: 0;
-
-	window.history.pushState(
-		{
-			...prevState,
-			usr: (prevState as { usr?: unknown }).usr ?? null,
-			key: Math.random().toString(36).slice(2, 10),
-			idx: nextIdx,
-		},
-		'',
-		nextUrl
-	);
-	window.dispatchEvent(new PopStateEvent('popstate'));
+	pushSiteEditorQuery(nextQuery);
 }
 
 export function buildTemplateItemPath(id: string | number): string {
@@ -278,4 +281,34 @@ export function buildTemplateItemPath(id: string | number): string {
 
 export function buildTemplatePartItemPath(id: string | number): string {
 	return `/wp_template_part/${id}`;
+}
+
+/**
+ * Core Patterns browse for template parts in one area
+ * (`/pattern?postType=wp_template_part&categoryId=header`).
+ */
+export function buildPatternsTemplatePartsPath(area: PartAreaId): string {
+	return addQueryArgs(ROUTES.patterns, {
+		postType: TEMPLATE_PART_POST_TYPE,
+		categoryId: area,
+	});
+}
+
+/**
+ * Leave Templates Hub for the matching Patterns area list; clear Templates query state.
+ */
+export function navigateToPatternsTemplatePartArea(area: PartAreaId): void {
+	if (typeof window === 'undefined') {
+		return;
+	}
+
+	setPendingSidebarNavDirection('forward');
+
+	pushSiteEditorQuery({
+		p: buildPatternsTemplatePartsPath(area),
+		[TEMPLATES_FILTER_QUERY]: undefined,
+		[TEMPLATES_PARTS_AREA_QUERY]: undefined,
+		[TEMPLATES_ACTIVE_VIEW_QUERY]: undefined,
+		canvas: undefined,
+	});
 }
