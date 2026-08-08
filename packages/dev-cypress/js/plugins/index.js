@@ -645,6 +645,49 @@ module.exports = (on, config, testingType = config.testingType || 'e2e') => {
 
 			return result;
 		},
+		/**
+		 * Hide/show a theme block template by renaming `templates/{slug}.html`
+		 * ↔ `templates/-{slug}.html` (same convention as `-front-page.html`).
+		 * Theme directory is bind-mounted into wp-env, so this is reliable.
+		 *
+		 * @param {{ slug: string, hidden: boolean }} options
+		 */
+		themeTemplateSetHidden({ slug, hidden }) {
+			const safeSlug = String(slug || '').replace(/[^a-z0-9_-]/gi, '');
+			if (!safeSlug) {
+				throw new Error('themeTemplateSetHidden requires slug');
+			}
+
+			const templatesDir = path.join(BLOCKERA_PLUGIN_ROOT, 'templates');
+			const visible = path.join(templatesDir, `${safeSlug}.html`);
+			const hiddenPath = path.join(templatesDir, `-${safeSlug}.html`);
+
+			if (hidden) {
+				if (fs.existsSync(visible)) {
+					fs.renameSync(visible, hiddenPath);
+					return { ok: true, message: `hidden:${safeSlug}` };
+				}
+				if (fs.existsSync(hiddenPath)) {
+					return { ok: true, message: `already_hidden:${safeSlug}` };
+				}
+				return {
+					ok: false,
+					message: `missing:${safeSlug}.html`,
+				};
+			}
+
+			if (fs.existsSync(hiddenPath)) {
+				fs.renameSync(hiddenPath, visible);
+				return { ok: true, message: `shown:${safeSlug}` };
+			}
+			if (fs.existsSync(visible)) {
+				return { ok: true, message: `already_visible:${safeSlug}` };
+			}
+			return {
+				ok: false,
+				message: `missing:-${safeSlug}.html`,
+			};
+		},
 	});
 
 	on('before:browser:launch', (browser = {}, launchOptions) => {
