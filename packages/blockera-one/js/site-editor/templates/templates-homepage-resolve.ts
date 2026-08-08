@@ -133,6 +133,9 @@ export function getHomepageLayerStatus(
 		if (slug === 'front-page' && activeSlug === 'front-page') {
 			return 'active';
 		}
+		if (slug === 'index') {
+			return 'fallback';
+		}
 		return 'unused';
 	}
 
