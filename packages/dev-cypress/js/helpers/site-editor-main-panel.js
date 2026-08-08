@@ -506,6 +506,88 @@ export function assertStatusTooltip(statusTestId, { heading, bodyIncludes }) {
 		.and('contain.text', bodyIncludes);
 }
 
+/**
+ * Hide or restore a theme HTML template file (`home.html` ↔ `-home.html`).
+ *
+ * @param {string} slug Template slug without extension.
+ * @param {boolean} hidden
+ * @return {Cypress.Chainable}
+ */
+export function setThemeTemplateHidden(slug, hidden) {
+	return cy.task('themeTemplateSetHidden', { slug, hidden });
+}
+
+/**
+ * Install a theme template from an e2e fixture file into `templates/{slug}.html`.
+ *
+ * @param {string} slug
+ * @param {string} fixturePath Path relative to theme root.
+ * @return {Cypress.Chainable}
+ */
+export function installThemeTemplateFixture(slug, fixturePath) {
+	return cy.task('themeTemplateInstallFixture', { slug, fixturePath });
+}
+
+/**
+ * Remove `templates/{slug}.html` (fixture-installed templates).
+ *
+ * @param {string} slug
+ * @return {Cypress.Chainable}
+ */
+export function removeThemeTemplateFile(slug) {
+	return cy.task('themeTemplateRemoveFile', { slug });
+}
+
+/**
+ * Ensure no Front Page template is available (theme file + custom DB posts).
+ *
+ * @return {Cypress.Chainable}
+ */
+export function ensureNoFrontPageTemplate() {
+	return cy
+		.task('themeTemplateRemoveFile', { slug: 'front-page' })
+		.then(() => cy.task('wpTemplateDeleteBySlug', { slug: 'front-page' }))
+		.then(() => {
+			// Invalidate only when Site Editor data store is already mounted.
+			cy.window({ log: false }).then((win) => {
+				const invalidate =
+					win.wp?.data?.dispatch('core')?.invalidateResolution;
+				if (typeof invalidate !== 'function') {
+					return;
+				}
+				invalidate('getEntityRecords', [
+					'postType',
+					'wp_template',
+					{ per_page: -1 },
+				]);
+				invalidate('getEntityRecords', [
+					'root',
+					'registeredTemplate',
+					{ per_page: -1 },
+				]);
+			});
+		});
+}
+
+/**
+ * Install theme `front-page.html` from the Homepage e2e fixture.
+ *
+ * @return {Cypress.Chainable}
+ */
+export function installFrontPageThemeTemplate() {
+	return installThemeTemplateFixture(
+		'front-page',
+		'packages/blockera-one/js/test/fixtures/homepage/front-page.html'
+	).then((result) => {
+		expect(result?.ok, result?.message || 'install front-page').to.eq(true);
+	});
+}
+
+/**
+ * Toggle the Disable Emojis Script control in the Performance panel.
+ *
+ * @param {boolean} enabled Desired checked state.
+ */
 export function setDisableEmojisToggle(enabled) {
 	cy.getByDataTest(SITE_EDITOR_TEST_IDS.performanceDisableEmojis)
 		.find('.components-form-toggle input[type="checkbox"]')
