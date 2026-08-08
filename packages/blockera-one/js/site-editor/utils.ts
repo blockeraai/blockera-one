@@ -2,6 +2,7 @@
  * Helpers for Site Editor main panel navigation.
  */
 
+import { useEffect } from '@wordpress/element';
 import { addQueryArgs, getQueryArg } from '@wordpress/url';
 
 /**
@@ -15,6 +16,71 @@ import { isSiteEditorUrl } from '@blockera/utils';
 import { CORE_NAV_UIDS, ROUTES, type MainNavKey } from './constants';
 
 export { isSiteEditorUrl };
+
+/** Fired after SPA history changes (patched push/replace + popstate). */
+export const SITE_EDITOR_NAVIGATE_EVENT = 'blockera-site-editor-navigate';
+
+let historyPatched = false;
+let originalPushState: typeof window.history.pushState | null = null;
+let originalReplaceState: typeof window.history.replaceState | null = null;
+
+/**
+ * Patch history once; notify listeners on SPA navigations (incl. core router).
+ */
+export function ensureSiteEditorHistoryPatch(): () => void {
+	if (typeof window === 'undefined') {
+		return () => {};
+	}
+
+	const emit = () => {
+		window.dispatchEvent(new CustomEvent(SITE_EDITOR_NAVIGATE_EVENT));
+	};
+
+	if (!historyPatched) {
+		originalPushState = window.history.pushState;
+		originalReplaceState = window.history.replaceState;
+
+		window.history.pushState = function (...args) {
+			const result = originalPushState!.apply(this, args);
+			emit();
+			return result;
+		};
+		window.history.replaceState = function (...args) {
+			const result = originalReplaceState!.apply(this, args);
+			emit();
+			return result;
+		};
+
+		historyPatched = true;
+	}
+
+	window.addEventListener('popstate', emit);
+
+	return () => {
+		window.removeEventListener('popstate', emit);
+	};
+}
+
+/**
+ * Subscribe to Site Editor URL changes (core router + Blockera SPA navigate).
+ */
+export function useSiteEditorNavigate(listener: () => void): void {
+	useEffect(() => {
+		if (!isSiteEditorUrl()) {
+			return;
+		}
+
+		const removePop = ensureSiteEditorHistoryPatch();
+		const onNavigate = () => listener();
+		window.addEventListener(SITE_EDITOR_NAVIGATE_EVENT, onNavigate);
+		onNavigate();
+
+		return () => {
+			window.removeEventListener(SITE_EDITOR_NAVIGATE_EVENT, onNavigate);
+			removePop();
+		};
+	}, [listener]);
+}
 
 /**
  * Dashboard URL for the site-hub logo (back to wp-admin).
