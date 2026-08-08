@@ -116,6 +116,9 @@ export function assertSiteEditorDrillDown() {
 
 /**
  * Assert Templates purpose-nav drill-down is mounted.
+ *
+ * Homepage click opens a live template/page preview (no content DataViews).
+ * Restore All browse afterward so callers can assert core PageTemplates.
  */
 export function assertSiteEditorTemplatesNav() {
 	assertSiteEditorDrillDown();
@@ -134,6 +137,14 @@ export function assertSiteEditorTemplatesNav() {
 	/* Active homepage winner is hidden; other available layers (e.g. Index) show. */
 	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavHomepageIndex).should(
 		'be.visible'
+	);
+	/* Leave live preview (`/wp_template/...`) and remount PageTemplates browse. */
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavAll).click();
+	cy.location('search')
+		.should('include', 'p=%2Ftemplate')
+		.and('not.include', 'wp_template');
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavHomepageFrontPage).should(
+		'not.exist'
 	);
 }
 
