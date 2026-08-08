@@ -393,6 +393,119 @@ export function deleteWpTemplate(templateId) {
 	});
 }
 
+/**
+ * Open Templates purpose-nav drill-down from Design root.
+ */
+export function openTemplatesPurposeNav() {
+	clickSiteEditorNav(SITE_EDITOR_TEST_IDS.navTemplates);
+	cy.location('search').should('include', 'template');
+	assertSiteEditorDrillDown();
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesPanel, {
+		timeout: 20000,
+	}).should('be.visible');
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should('be.visible');
+}
+
+/**
+ * Expand Homepage branch and assert section / inline fallback state.
+ *
+ * @param {{
+ *   homepageStatus?: string | null,
+ *   blogHomeVisible?: boolean,
+ *   blogHomeStatus?: string | null,
+ *   children?: Array<{ testId: string, statusTestId?: string, statusLabel?: string, visible?: boolean }>,
+ *   absentChildTestIds?: string[],
+ * }} options
+ */
+export function assertTemplatesHomepageSection({
+	homepageStatus = null,
+	blogHomeVisible = false,
+	blogHomeStatus = null,
+	children = [],
+	absentChildTestIds = [],
+} = {}) {
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavHomepage).should(
+		'be.visible'
+	);
+
+	if (homepageStatus) {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavHomepageStatus)
+			.should('be.visible')
+			.and('contain.text', homepageStatus);
+	} else {
+		cy.getByDataTest(
+			SITE_EDITOR_TEST_IDS.templatesNavHomepageStatus
+		).should('not.exist');
+	}
+
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavHomepage).click();
+
+	if (blogHomeVisible) {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavBlogPosts).should(
+			'be.visible'
+		);
+		if (blogHomeStatus) {
+			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavBlogPostsStatus)
+				.should('be.visible')
+				.and('contain.text', blogHomeStatus);
+		}
+	} else {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavBlogPosts).should(
+			'not.exist'
+		);
+	}
+
+	children.forEach(
+		({ testId, statusTestId, statusLabel, visible = true }) => {
+			if (!visible) {
+				cy.getByDataTest(testId).should('not.exist');
+				return;
+			}
+
+			cy.getByDataTest(testId).should('be.visible');
+			if (statusLabel) {
+				cy.getByDataTest(statusTestId || `${testId}-status`)
+					.should('be.visible')
+					.and('contain.text', statusLabel);
+			}
+		}
+	);
+
+	absentChildTestIds.forEach((testId) => {
+		cy.getByDataTest(testId).should('not.exist');
+	});
+}
+
+/**
+ * Hover a status badge and assert tooltip heading / body copy.
+ *
+ * @param {string} statusTestId Badge `data-test`.
+ * @param {{ heading: string, bodyIncludes: string }} options
+ */
+export function assertStatusTooltip(statusTestId, { heading, bodyIncludes }) {
+	// Homepage status Tooltip delay is 200ms; realHover + pointer events for
+	// headless Chrome (WP Tooltip listens to mouseenter).
+	cy.getByDataTest(statusTestId)
+		.should('be.visible')
+		.scrollIntoView()
+		.trigger('pointerover', { force: true })
+		.trigger('mouseover', { force: true })
+		.trigger('mouseenter', { force: true })
+		.safeRealHover();
+
+	// eslint-disable-next-line cypress/no-unnecessary-waiting
+	cy.wait(500);
+
+	cy.get('body')
+		.find(
+			'[role="tooltip"], .components-tooltip, .blockera-component-tooltip',
+			{ timeout: 10000 }
+		)
+		.should('be.visible')
+		.and('contain.text', heading)
+		.and('contain.text', bodyIncludes);
+}
+
 export function setDisableEmojisToggle(enabled) {
 	cy.getByDataTest(SITE_EDITOR_TEST_IDS.performanceDisableEmojis)
 		.find('.components-form-toggle input[type="checkbox"]')
