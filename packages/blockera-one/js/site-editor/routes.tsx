@@ -1,14 +1,14 @@
 /**
- * Register / override Site Editor routes for styles, identity, homepage,
- * performance.
+ * Register / override Site Editor routes for styles, templates, identity,
+ * homepage, and performance.
  *
  * Uses Redux `REGISTER_ROUTE` / `UNREGISTER_ROUTE` on `core/edit-site`
  * (same pattern as SiteEditorPostItemRouteRegistration). Do not import
  * `@wordpress/edit-site` internals.
  *
  * These routes are sidebar-only drill-downs (like Navigation): main Design
- * nav collapses; settings / Global Styles render inside the primary sidebar —
- * no second `edit-site-layout__area` content column.
+ * nav collapses; settings / Global Styles / Templates purpose-nav render
+ * inside the primary sidebar.
  */
 
 import type { ReactNode } from 'react';
@@ -27,6 +27,7 @@ import HomepageSettingsPanel from './homepage-settings-panel';
 import PerformancePanel from './performance-panel';
 import SiteIdentityPanel from './site-identity-panel';
 import StylesDrillDown from './styles-drill-down';
+import { TemplatesBrowseContent, TemplatesDrillDown } from './templates';
 import { isSiteEditorUrl } from './utils';
 import './styles-panel.scss';
 
@@ -45,7 +46,7 @@ type EditSiteRoute = {
 	name?: string;
 	path?: string;
 	areas?: RouteAreas;
-	widths?: Record<string, number>;
+	widths?: Record<string, number | ((args: unknown) => unknown)>;
 };
 
 type DataRegistryWithStores = {
@@ -93,12 +94,40 @@ function duplicateAreaNode(node: ReactNode): ReactNode {
 	return node;
 }
 
+type RouteAreaFn = (args: unknown) => ReactNode;
+
+/**
+ * Invoke a core route area (element or `({ siteData, query }) => …` function).
+ */
+function resolveAreaNode(
+	area: ReactNode | RouteAreaFn | undefined,
+	args: unknown
+): ReactNode {
+	if (typeof area === 'function') {
+		return (area as RouteAreaFn)(args);
+	}
+	return area ?? null;
+}
+
+/**
+ * Keep core area as a function so the router still passes `siteData` / `query`,
+ * then gate the resolved node (e.g. missing-base empty state).
+ */
+function wrapTemplatesBrowseArea(
+	area: ReactNode | RouteAreaFn | undefined
+): RouteAreaFn {
+	return (args: unknown) => {
+		const resolved = resolveAreaNode(area, args);
+		return <TemplatesBrowseContent>{resolved}</TemplatesBrowseContent>;
+	};
+}
+
 function wrapStylesDrillDown(content: ReactNode): ReactNode {
 	return <StylesDrillDown>{content}</StylesDrillDown>;
 }
 
 /**
- * Bootstrap styles / identity / homepage / performance drill-down routes once
+ * Bootstrap styles / templates / identity / homepage / performance routes once
  * core routes are ready.
  */
 export default function SiteEditorMainPanelRoutes(): null {
@@ -121,6 +150,13 @@ export default function SiteEditorMainPanelRoutes(): null {
 
 			// Styles needs its own content + preview (Style Book / Editor).
 			if (!styles?.areas?.content || !styles?.areas?.preview) {
+				return false;
+			}
+
+			const templates = routes.find((r) => r?.name === 'templates');
+
+			// Templates purpose-nav needs the core templates route (preview Editor).
+			if (!templates?.areas?.sidebar || !templates?.areas?.preview) {
 				return false;
 			}
 
@@ -159,6 +195,71 @@ export default function SiteEditorMainPanelRoutes(): null {
 					},
 				},
 			});
+
+			unregisterIfPresent(reduxStore, 'templates');
+			reduxStore.dispatch({
+				type: 'REGISTER_ROUTE',
+				route: {
+					name: 'templates',
+					path: '/template',
+					areas: {
+						sidebar: <TemplatesDrillDown />,
+						// Core content is a function — must stay callable so
+						// PageTemplates receives siteData (see wrapTemplatesBrowseArea).
+						content: wrapTemplatesBrowseArea(
+							templates.areas.content
+						),
+						preview: templates.areas.preview,
+						mobileSidebar: <TemplatesDrillDown />,
+						mobileContent: wrapTemplatesBrowseArea(
+							templates.areas.mobileContent ??
+								templates.areas.content
+						),
+					},
+					widths: templates.widths,
+				},
+			});
+
+			const templateItem = routes.find(
+				(r) => r?.name === 'template-item'
+			);
+			const templatePartItem = routes.find(
+				(r) => r?.name === 'template-part-item'
+			);
+
+			if (templateItem?.areas?.preview) {
+				unregisterIfPresent(reduxStore, 'template-item');
+				reduxStore.dispatch({
+					type: 'REGISTER_ROUTE',
+					route: {
+						name: 'template-item',
+						path: templateItem.path || '/wp_template/*postId',
+						areas: {
+							sidebar: <TemplatesDrillDown />,
+							preview: templateItem.areas.preview,
+							mobileSidebar: <TemplatesDrillDown />,
+						},
+					},
+				});
+			}
+
+			if (templatePartItem?.areas?.preview) {
+				unregisterIfPresent(reduxStore, 'template-part-item');
+				reduxStore.dispatch({
+					type: 'REGISTER_ROUTE',
+					route: {
+						name: 'template-part-item',
+						path:
+							templatePartItem.path ||
+							'/wp_template_part/*postId',
+						areas: {
+							sidebar: <TemplatesDrillDown />,
+							preview: templatePartItem.areas.preview,
+							mobileSidebar: <TemplatesDrillDown />,
+						},
+					},
+				});
+			}
 
 			const identityScreen = (
 				<DrillDownScreen title={__('Site Identity', 'blockera')}>

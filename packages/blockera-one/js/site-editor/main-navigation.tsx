@@ -239,7 +239,7 @@ export default function MainNavigation() {
 	}, []);
 
 	const onDesignClick = (key: DesignNavKey) => {
-		if (key === 'styles') {
+		if (key === 'styles' || key === 'templates') {
 			setPendingSidebarNavDirection('forward');
 		}
 		navigateViaCoreUid(key);
