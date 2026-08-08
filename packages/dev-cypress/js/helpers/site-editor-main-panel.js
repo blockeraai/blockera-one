@@ -37,6 +37,39 @@ export const SITE_EDITOR_TEST_IDS = {
 	homepagePostsPage: 'blockera-site-editor-homepage-posts-page',
 	performancePanel: 'blockera-site-editor-performance-panel',
 	performanceDisableEmojis: 'blockera-site-editor-performance-disable-emojis',
+	stylesPanel: 'blockera-site-editor-styles-panel',
+	stylesActions: 'blockera-site-editor-styles-actions',
+	templatesPanel: 'blockera-site-editor-templates-panel',
+	templatesNav: 'blockera-site-editor-templates-nav',
+	templatesNavAll: 'blockera-site-editor-templates-nav-all',
+	templatesNavHomepage: 'blockera-site-editor-templates-nav-homepage-root',
+	templatesNavHomepageStatus:
+		'blockera-site-editor-templates-nav-homepage-root-status',
+	templatesNavBlogPosts:
+		'blockera-site-editor-templates-nav-homepage-blog-posts',
+	templatesNavBlogPostsStatus:
+		'blockera-site-editor-templates-nav-homepage-blog-posts-status',
+	templatesNavHomepageFrontPage:
+		'blockera-site-editor-templates-nav-homepage-fallback:front-page',
+	templatesNavHomepageFrontPageStatus:
+		'blockera-site-editor-templates-nav-homepage-fallback:front-page-status',
+	templatesNavHomepageHome:
+		'blockera-site-editor-templates-nav-homepage-fallback:home',
+	templatesNavHomepageHomeStatus:
+		'blockera-site-editor-templates-nav-homepage-fallback:home-status',
+	templatesNavHomepageIndex:
+		'blockera-site-editor-templates-nav-homepage-fallback:index',
+	templatesNavHomepageIndexStatus:
+		'blockera-site-editor-templates-nav-homepage-fallback:index-status',
+	templatesNavHeader: 'blockera-site-editor-templates-nav-parts-header',
+	templatesNavFooter: 'blockera-site-editor-templates-nav-parts-footer',
+	templatesNavSidebar: 'blockera-site-editor-templates-nav-parts-sidebar',
+	templatesAreaHub: 'blockera-site-editor-templates-area-hub',
+	templatesAreaHubBanner: 'blockera-site-editor-templates-area-hub-banner',
+	templatesAreaHubEmpty: 'blockera-site-editor-templates-area-hub-empty',
+	templatesAreaHubManage: 'blockera-site-editor-templates-area-hub-manage',
+	drillDown: 'blockera-site-editor-drill-down',
+	drillDownBack: 'blockera-site-editor-drill-down-back',
 };
 
 export const DISABLE_EMOJIS_SETTING = 'blockera_one_disable_emojis';
@@ -71,6 +104,70 @@ export function getSiteEditorNav() {
 
 export function clickSiteEditorNav(testId) {
 	return cy.getByDataTest(testId).should('be.visible').click();
+}
+
+/**
+ * Assert Styles / Identity / Homepage / Performance / Templates drill-down chrome:
+ * hub + branding stay, main nav collapses, back control present.
+ */
+export function assertSiteEditorDrillDown() {
+	assertSiteEditorChrome();
+	getSiteEditorNav().should('not.exist');
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.drillDown, {
+		timeout: 20000,
+	}).should('be.visible');
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.drillDownBack).should('be.visible');
+}
+
+/**
+ * Assert Templates purpose-nav drill-down is mounted.
+ *
+ * Homepage click opens a live template/page preview (no content DataViews).
+ * Restore All browse afterward so callers can assert core PageTemplates.
+ */
+export function assertSiteEditorTemplatesNav() {
+	assertSiteEditorDrillDown();
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesPanel, {
+		timeout: 20000,
+	}).should('be.visible');
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should('be.visible');
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavAll).should('be.visible');
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavHomepage).should(
+		'be.visible'
+	);
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavHomepageFrontPage).should(
+		'not.exist'
+	);
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavHomepage).click();
+	/* Active homepage winner is hidden; other available layers (e.g. Index) show. */
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavHomepageIndex).should(
+		'be.visible'
+	);
+	/* Leave live preview (`/wp_template/...`) and remount PageTemplates browse. */
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavAll).click();
+	cy.location('search')
+		.should('include', 'p=%2Ftemplate')
+		.and('not.include', 'wp_template');
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavHomepageFrontPage).should(
+		'not.exist'
+	);
+}
+
+/**
+ * Click drill-down Back and assert Design-root main nav is restored.
+ *
+ * @param {string} [routeFragment] Optional `p` path fragment that must leave the URL (e.g. `identity`).
+ */
+export function clickSiteEditorDrillDownBack(routeFragment) {
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.drillDownBack)
+		.should('be.visible')
+		.click();
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.drillDown).should('not.exist');
+	if (routeFragment) {
+		cy.location('search').should('not.include', routeFragment);
+	}
+	assertSiteEditorChrome();
+	assertSiteEditorMainNav();
 }
 
 /**
@@ -141,28 +238,642 @@ export function saveEditedSiteRecord() {
 }
 
 /**
- * Update a Site Editor settings field via authenticated REST `/wp/v2/settings`.
+ * Authenticated REST helper using `wpApiSettings.nonce` + `rest_route`.
  *
- * @param {Object} body Settings payload.
+ * @param {string} route Route after `/wp/v2/` (e.g. `settings`, `pages`).
+ * @param {Object} [options] Cypress request options (`method`, `body`, …).
  * @return {Cypress.Chainable}
  */
-export function updateSiteSettingsViaRest(body) {
+export function siteEditorRestRequest(route, options = {}) {
 	const testURL = (Cypress.env('testURL') || '').replace(/\/$/, '');
-	// wp-env may not expose pretty `/wp-json` routes to the host; use rest_route.
-	const url = `${testURL}/?rest_route=/wp/v2/settings`;
+	const path = String(route || '').replace(/^\//, '');
+	const url = `${testURL}/?rest_route=/wp/v2/${path}`;
 
 	return cy.window().then((win) => {
 		const nonce = win.wpApiSettings?.nonce;
 		expect(nonce, 'wpApiSettings.nonce').to.be.a('string').and.not.be.empty;
 
 		return cy.request({
-			method: 'POST',
 			url,
 			headers: {
 				'X-WP-Nonce': nonce,
+				...(options.headers || {}),
 			},
-			body,
+			...options,
 		});
+	});
+}
+
+/**
+ * Update a Site Editor settings field via authenticated REST `/wp/v2/settings`.
+ *
+ * @param {Object} body Settings payload.
+ * @return {Cypress.Chainable}
+ */
+export function updateSiteSettingsViaRest(body) {
+	return siteEditorRestRequest('settings', {
+		method: 'POST',
+		body,
+	});
+}
+
+/**
+ * Set Reading settings used by Templates Homepage purpose-nav.
+ *
+ * @param {{
+ *   showOnFront: 'posts' | 'page',
+ *   pageOnFront?: number | null,
+ *   pageForPosts?: number | null,
+ * }} options
+ * @return {Cypress.Chainable}
+ */
+export function setReadingSettings({
+	showOnFront,
+	pageOnFront = null,
+	pageForPosts = null,
+}) {
+	const body = {
+		show_on_front: showOnFront,
+	};
+
+	if (showOnFront === 'page') {
+		body.page_on_front = pageOnFront || 0;
+		body.page_for_posts = pageForPosts || 0;
+	} else {
+		body.page_on_front = 0;
+		body.page_for_posts = 0;
+	}
+
+	return updateSiteSettingsViaRest(body);
+}
+
+/**
+ * Create a published page via REST.
+ *
+ * @param {{ title?: string, content?: string }} [options]
+ * @return {Cypress.Chainable<number>} Resolves to the page id.
+ */
+export function createSiteEditorPage({
+	title = `E2E Page ${Date.now()}`,
+	content = '<!-- wp:paragraph --><p>E2E page</p><!-- /wp:paragraph -->',
+} = {}) {
+	return siteEditorRestRequest('pages', {
+		method: 'POST',
+		body: {
+			title,
+			content,
+			status: 'publish',
+		},
+	}).then((response) => {
+		expect(response.status).to.be.oneOf([200, 201]);
+		const id = response.body?.id;
+		expect(id, 'created page id').to.be.a('number');
+		return id;
+	});
+}
+
+/**
+ * Delete a page via REST (force).
+ *
+ * @param {number|string} pageId
+ * @return {Cypress.Chainable}
+ */
+export function deleteSiteEditorPage(pageId) {
+	if (!pageId) {
+		return cy.wrap(null);
+	}
+
+	return siteEditorRestRequest(`pages/${pageId}?force=true`, {
+		method: 'DELETE',
+		failOnStatusCode: false,
+	});
+}
+
+/**
+ * Create a custom `wp_template` via REST (e.g. slug `front-page`).
+ *
+ * @param {{ slug: string, title?: string, content?: string }} options
+ * @return {Cypress.Chainable<{ id: string|number, slug: string }>}
+ */
+export function createWpTemplate({
+	slug,
+	title,
+	content = '<!-- wp:paragraph --><p>E2E template</p><!-- /wp:paragraph -->',
+}) {
+	expect(slug, 'template slug').to.be.a('string').and.not.be.empty;
+
+	return siteEditorRestRequest('templates', {
+		method: 'POST',
+		body: {
+			slug,
+			title: title || slug,
+			content,
+			status: 'publish',
+		},
+	}).then((response) => {
+		expect(response.status).to.be.oneOf([200, 201]);
+		const id = response.body?.id;
+		expect(id, 'created template id').to.exist;
+		return { id, slug: response.body?.slug || slug };
+	});
+}
+
+/**
+ * Delete a `wp_template` via REST / data store (force).
+ *
+ * @param {string|number} templateId Theme-style id (`theme//slug`) or numeric.
+ * @return {Cypress.Chainable}
+ */
+export function deleteWpTemplate(templateId) {
+	if (!templateId) {
+		return cy.wrap(null);
+	}
+
+	const id = String(templateId);
+
+	return cy.window().then((win) => {
+		const deleteRecord = win.wp?.data?.dispatch('core')?.deleteEntityRecord;
+
+		if (typeof deleteRecord === 'function') {
+			return deleteRecord('postType', 'wp_template', id, {
+				force: true,
+			}).catch(() => null);
+		}
+
+		// Encode the full id so `theme//slug` does not collapse in rest_route.
+		const encoded = encodeURIComponent(id);
+		return siteEditorRestRequest(`templates/${encoded}?force=true`, {
+			method: 'DELETE',
+			failOnStatusCode: false,
+		});
+	});
+}
+
+/**
+ * Open Templates purpose-nav drill-down from Design root.
+ */
+export function openTemplatesPurposeNav() {
+	clickSiteEditorNav(SITE_EDITOR_TEST_IDS.navTemplates);
+	cy.location('search').should('include', 'template');
+	assertSiteEditorDrillDown();
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesPanel, {
+		timeout: 20000,
+	}).should('be.visible');
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should('be.visible');
+}
+
+const TEMPLATES_PART_AREA_NAV = {
+	header: SITE_EDITOR_TEST_IDS.templatesNavHeader,
+	footer: SITE_EDITOR_TEST_IDS.templatesNavFooter,
+	sidebar: SITE_EDITOR_TEST_IDS.templatesNavSidebar,
+};
+
+const TEMPLATES_PART_AREA_LABELS = {
+	header: {
+		banner: 'Global site header',
+		manage: 'Manage all headers',
+		empty: 'No site header yet.',
+	},
+	footer: {
+		banner: 'Global site footer',
+		manage: 'Manage all footers',
+		empty: 'No site footer yet.',
+	},
+	sidebar: {
+		banner: 'Global site sidebar',
+		manage: 'Manage all sidebars',
+		empty: 'No site sidebar yet.',
+	},
+};
+
+/**
+ * Assert Header / Footer / Sidebar rows in Templates purpose-nav.
+ *
+ * @param {{ sidebarVisible?: boolean }} options
+ */
+export function assertTemplatesPartsNav({ sidebarVisible = true } = {}) {
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavHeader).should(
+		'be.visible'
+	);
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavFooter).should(
+		'be.visible'
+	);
+
+	if (sidebarVisible) {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavSidebar).should(
+			'be.visible'
+		);
+	} else {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavSidebar).should(
+			'not.exist'
+		);
+	}
+}
+
+/**
+ * Open a General Area Hub part from Templates purpose-nav.
+ *
+ * @param {'header' | 'footer' | 'sidebar'} area
+ */
+export function openTemplatesPartArea(area) {
+	const testId = TEMPLATES_PART_AREA_NAV[area];
+	expect(testId, `known templates part area: ${area}`).to.be.a('string');
+	cy.getByDataTest(testId).should('be.visible').click();
+}
+
+/**
+ * Assert Area Hub chrome for a part area.
+ *
+ * @param {{
+ *   area: 'header' | 'footer' | 'sidebar',
+ *   mode?: 'preview' | 'empty' | 'edit',
+ * }} options
+ */
+export function assertTemplatesAreaHub({ area, mode = 'preview' }) {
+	const labels = TEMPLATES_PART_AREA_LABELS[area];
+	expect(labels, `known templates part area: ${area}`).to.exist;
+
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesAreaHub, {
+		timeout: 20000,
+	})
+		.should('be.visible')
+		.and('have.attr', 'data-area', area);
+
+	if (mode !== 'edit') {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should(
+			'be.visible'
+		);
+		cy.getByDataTest(TEMPLATES_PART_AREA_NAV[area]).should(
+			'have.class',
+			'is-active'
+		);
+	}
+
+	if (mode === 'empty') {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesAreaHubEmpty)
+			.should('be.visible')
+			.and('contain.text', labels.empty);
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesAreaHubBanner).should(
+			'not.exist'
+		);
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesAreaHubManage)
+			.should('be.visible')
+			.and('contain.text', labels.manage);
+		cy.location('search').should('include', `partsArea=${area}`);
+		return;
+	}
+
+	if (mode === 'edit') {
+		// Full-canvas edit hides the Templates sidebar; only assert hub chrome.
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesAreaHub).should(
+			'have.attr',
+			'data-canvas',
+			'edit'
+		);
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesAreaHubBanner).should(
+			'not.exist'
+		);
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesAreaHubManage).should(
+			'not.exist'
+		);
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesAreaHubEmpty).should(
+			'not.exist'
+		);
+		cy.location('search').should('include', 'wp_template_part');
+		cy.location('search').should('include', `partsArea=${area}`);
+		cy.location('search').should('include', 'canvas=edit');
+		return;
+	}
+
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesAreaHubBanner)
+		.should('be.visible')
+		.and('contain.text', labels.banner)
+		.and(
+			'contain.text',
+			'Editing this updates it everywhere this part is used.'
+		);
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesAreaHubEmpty).should(
+		'not.exist'
+	);
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesAreaHubManage)
+		.should('be.visible')
+		.and('contain.text', labels.manage);
+	cy.location('search').should('include', 'wp_template_part');
+	cy.location('search').should('include', `partsArea=${area}`);
+}
+
+/**
+ * Assert navigation landed on Patterns template-parts area list.
+ *
+ * @param {'header' | 'footer' | 'sidebar'} area
+ */
+export function assertNavigatedToPatternsTemplatePartArea(area) {
+	cy.location('search', { timeout: 20000 }).should((search) => {
+		const decoded = decodeURIComponent(String(search));
+		expect(decoded).to.include('pattern');
+		expect(decoded).to.include('postType=wp_template_part');
+		expect(decoded).to.include(`categoryId=${area}`);
+		expect(decoded).to.not.include('partsArea=');
+	});
+}
+
+/**
+ * Toggle Site Editor `canvas` query via history (patched pushState emits navigate).
+ *
+ * @param {'edit' | 'view'} mode
+ */
+export function setSiteEditorCanvasMode(mode) {
+	cy.window().then((win) => {
+		const url = new URL(win.location.href);
+		if (mode === 'edit') {
+			url.searchParams.set('canvas', 'edit');
+		} else {
+			url.searchParams.delete('canvas');
+		}
+		win.history.pushState(
+			typeof win.history.state === 'object' && win.history.state
+				? { ...win.history.state }
+				: {},
+			'',
+			`${url.pathname}${url.search}${url.hash}`
+		);
+		win.dispatchEvent(new PopStateEvent('popstate'));
+	});
+}
+
+/**
+ * Enter canvas edit the same way users do: click the view-mode Editor iframe.
+ * Core sets `canvas=edit` via router history.navigate (pushState).
+ *
+ * Template-part edit can open Core’s welcome Guide over the Area Hub; dismiss
+ * it before callers assert hub chrome (CI flakes on covered `is-edit-canvas`).
+ */
+export function enterSiteEditorCanvasEditFromPreview() {
+	cy.get(
+		'iframe.edit-site-visual-editor__editor-canvas[aria-label="Edit"], .edit-site-visual-editor__editor-canvas[aria-label="Edit"], iframe.edit-site-visual-editor__editor-canvas',
+		{ timeout: 20000 }
+	)
+		.first()
+		.should('be.visible')
+		.click({ force: true });
+
+	cy.location('search', { timeout: 20000 }).should('include', 'canvas=edit');
+
+	// Guide often mounts a tick after `canvas=edit` — wait once if not present yet.
+	cy.get('body').then(($body) => {
+		if (
+			$body.find(
+				'.components-modal__screen-overlay, .components-guide__page'
+			).length === 0
+		) {
+			// eslint-disable-next-line cypress/no-unnecessary-waiting
+			cy.wait(1500);
+		}
+	});
+	closeWelcomeGuide();
+}
+
+/**
+ * Click core “Open Navigation” (exit full-canvas edit back to navigator).
+ */
+export function clickSiteEditorOpenNavigation() {
+	cy.get('button[aria-label="Open Navigation"]', { timeout: 20000 })
+		.should('be.visible')
+		.click();
+}
+
+/**
+ * Expand Homepage branch and assert section / inline fallback state.
+ *
+ * @param {{
+ *   homepageStatus?: string | null,
+ *   blogHomeVisible?: boolean,
+ *   blogHomeStatus?: string | null,
+ *   children?: Array<{ testId: string, statusTestId?: string, statusLabel?: string, visible?: boolean }>,
+ *   absentChildTestIds?: string[],
+ * }} options
+ */
+export function assertTemplatesHomepageSection({
+	homepageStatus = null,
+	blogHomeVisible = false,
+	blogHomeStatus = null,
+	children = [],
+	absentChildTestIds = [],
+} = {}) {
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavHomepage).should(
+		'be.visible'
+	);
+
+	if (homepageStatus) {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavHomepageStatus)
+			.should('be.visible')
+			.and('contain.text', homepageStatus);
+	} else {
+		cy.getByDataTest(
+			SITE_EDITOR_TEST_IDS.templatesNavHomepageStatus
+		).should('not.exist');
+	}
+
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavHomepage).click();
+
+	if (blogHomeVisible) {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavBlogPosts).should(
+			'be.visible'
+		);
+		if (blogHomeStatus) {
+			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavBlogPostsStatus)
+				.should('be.visible')
+				.and('contain.text', blogHomeStatus);
+		}
+	} else {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavBlogPosts).should(
+			'not.exist'
+		);
+	}
+
+	children.forEach(
+		({ testId, statusTestId, statusLabel, visible = true }) => {
+			if (!visible) {
+				cy.getByDataTest(testId).should('not.exist');
+				return;
+			}
+
+			cy.getByDataTest(testId).should('be.visible');
+			if (statusLabel) {
+				cy.getByDataTest(statusTestId || `${testId}-status`)
+					.should('be.visible')
+					.and('contain.text', statusLabel);
+			}
+		}
+	);
+
+	absentChildTestIds.forEach((testId) => {
+		cy.getByDataTest(testId).should('not.exist');
+	});
+}
+
+/**
+ * Hover a status badge and assert tooltip heading / body copy.
+ *
+ * @param {string} statusTestId Badge `data-test`.
+ * @param {{ heading: string, bodyIncludes: string }} options
+ */
+export function assertStatusTooltip(statusTestId, { heading, bodyIncludes }) {
+	// Homepage status Tooltip delay is 200ms; realHover + pointer events for
+	// headless Chrome (WP Tooltip listens to mouseenter).
+	cy.getByDataTest(statusTestId)
+		.should('be.visible')
+		.scrollIntoView()
+		.trigger('pointerover', { force: true })
+		.trigger('mouseover', { force: true })
+		.trigger('mouseenter', { force: true })
+		.safeRealHover();
+
+	// eslint-disable-next-line cypress/no-unnecessary-waiting
+	cy.wait(500);
+
+	cy.get('body')
+		.find(
+			'[role="tooltip"], .components-tooltip, .blockera-component-tooltip',
+			{ timeout: 10000 }
+		)
+		.should('be.visible')
+		.and('contain.text', heading)
+		.and('contain.text', bodyIncludes);
+}
+
+/**
+ * Hide or restore a theme HTML template file (`home.html` ↔ `-home.html`).
+ *
+ * @param {string} slug Template slug without extension.
+ * @param {boolean} hidden
+ * @return {Cypress.Chainable}
+ */
+export function setThemeTemplateHidden(slug, hidden) {
+	return cy.task('themeTemplateSetHidden', { slug, hidden });
+}
+
+/**
+ * Hide or restore a theme template part (`parts/{slug}.html` ↔ `parts/-{slug}.html`).
+ *
+ * @param {string} slug Part slug without extension.
+ * @param {boolean} hidden
+ * @return {Cypress.Chainable}
+ */
+export function setThemePartHidden(slug, hidden) {
+	return cy.task('themePartSetHidden', { slug, hidden });
+}
+
+/**
+ * Ensure a canonical template part is unavailable (theme file + custom DB posts).
+ *
+ * @param {string} slug
+ * @return {Cypress.Chainable}
+ */
+export function ensureNoTemplatePart(slug) {
+	return cy
+		.task('themePartSetHidden', { slug, hidden: true })
+		.then((result) => {
+			expect(result?.ok, result?.message || `hide part ${slug}`).to.eq(
+				true
+			);
+		})
+		.then(() => cy.task('wpTemplatePartDeleteBySlug', { slug }))
+		.then(() => {
+			cy.window({ log: false }).then((win) => {
+				const invalidate =
+					win.wp?.data?.dispatch('core')?.invalidateResolution;
+				if (typeof invalidate !== 'function') {
+					return;
+				}
+				invalidate('getEntityRecords', [
+					'postType',
+					'wp_template_part',
+					{ per_page: -1 },
+				]);
+			});
+		});
+}
+
+/**
+ * Restore a previously hidden theme template part file.
+ *
+ * @param {string} slug
+ * @return {Cypress.Chainable}
+ */
+export function restoreThemePart(slug) {
+	return cy
+		.task('themePartSetHidden', { slug, hidden: false })
+		.then((result) => {
+			expect(result?.ok, result?.message || `restore part ${slug}`).to.eq(
+				true
+			);
+		});
+}
+
+/**
+ * Install a theme template from an e2e fixture file into `templates/{slug}.html`.
+ *
+ * @param {string} slug
+ * @param {string} fixturePath Path relative to theme root.
+ * @return {Cypress.Chainable}
+ */
+export function installThemeTemplateFixture(slug, fixturePath) {
+	return cy.task('themeTemplateInstallFixture', { slug, fixturePath });
+}
+
+/**
+ * Remove `templates/{slug}.html` (fixture-installed templates).
+ *
+ * @param {string} slug
+ * @return {Cypress.Chainable}
+ */
+export function removeThemeTemplateFile(slug) {
+	return cy.task('themeTemplateRemoveFile', { slug });
+}
+
+/**
+ * Ensure no Front Page template is available (theme file + custom DB posts).
+ *
+ * @return {Cypress.Chainable}
+ */
+export function ensureNoFrontPageTemplate() {
+	return cy
+		.task('themeTemplateRemoveFile', { slug: 'front-page' })
+		.then(() => cy.task('wpTemplateDeleteBySlug', { slug: 'front-page' }))
+		.then(() => {
+			// Invalidate only when Site Editor data store is already mounted.
+			cy.window({ log: false }).then((win) => {
+				const invalidate =
+					win.wp?.data?.dispatch('core')?.invalidateResolution;
+				if (typeof invalidate !== 'function') {
+					return;
+				}
+				invalidate('getEntityRecords', [
+					'postType',
+					'wp_template',
+					{ per_page: -1 },
+				]);
+				invalidate('getEntityRecords', [
+					'root',
+					'registeredTemplate',
+					{ per_page: -1 },
+				]);
+			});
+		});
+}
+
+/**
+ * Install theme `front-page.html` from the Homepage e2e fixture.
+ *
+ * @return {Cypress.Chainable}
+ */
+export function installFrontPageThemeTemplate() {
+	return installThemeTemplateFixture(
+		'front-page',
+		'packages/blockera-one/js/test/fixtures/homepage/front-page.html'
+	).then((result) => {
+		expect(result?.ok, result?.message || 'install front-page').to.eq(true);
 	});
 }
 

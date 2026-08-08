@@ -26,70 +26,14 @@ import MainNavigation from './main-navigation';
 import MainPanelHeader from './main-panel-header';
 import SiteEditorMainPanelRoutes from './routes';
 import SiteHub from './site-hub';
-import { getSiteEditorPath, isDesignRootPath, isSiteEditorUrl } from './utils';
-import './blockera-se-admin-ui-page.scss';
+import {
+	getSiteEditorPath,
+	isDesignRootPath,
+	isSiteEditorUrl,
+	useSiteEditorNavigate,
+} from './utils';
+import './admin-ui-card.scss';
 import './style.scss';
-
-const NAVIGATE_EVENT = 'blockera-site-editor-navigate';
-
-let historyPatched = false;
-let originalPushState: typeof window.history.pushState | null = null;
-let originalReplaceState: typeof window.history.replaceState | null = null;
-
-/**
- * Patch history once; notify listeners on SPA navigations.
- */
-function ensureHistoryPatch(): () => void {
-	if (typeof window === 'undefined') {
-		return () => {};
-	}
-
-	const emit = () => {
-		window.dispatchEvent(new CustomEvent(NAVIGATE_EVENT));
-	};
-
-	if (!historyPatched) {
-		originalPushState = window.history.pushState;
-		originalReplaceState = window.history.replaceState;
-
-		window.history.pushState = function (...args) {
-			const result = originalPushState!.apply(this, args);
-			emit();
-			return result;
-		};
-		window.history.replaceState = function (...args) {
-			const result = originalReplaceState!.apply(this, args);
-			emit();
-			return result;
-		};
-
-		historyPatched = true;
-	}
-
-	window.addEventListener('popstate', emit);
-
-	return () => {
-		window.removeEventListener('popstate', emit);
-	};
-}
-
-function useSiteEditorNavigate(listener: () => void): void {
-	useEffect(() => {
-		if (!isSiteEditorUrl()) {
-			return;
-		}
-
-		const removePop = ensureHistoryPatch();
-		const onNavigate = () => listener();
-		window.addEventListener(NAVIGATE_EVENT, onNavigate);
-		onNavigate();
-
-		return () => {
-			window.removeEventListener(NAVIGATE_EVENT, onNavigate);
-			removePop();
-		};
-	}, [listener]);
-}
 
 /**
  * Ensure a mount node exists as the first child of the Site Editor sidebar.

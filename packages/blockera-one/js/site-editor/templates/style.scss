@@ -1,0 +1,244 @@
+/**
+ * Templates purpose-nav + browse list styles (dark sidebar chrome).
+ */
+
+.blockera-site-editor-templates-panel {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	min-height: 0;
+	color: #f0f0f0;
+}
+
+.blockera-site-editor-templates-nav {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	padding: 0 4px 16px;
+
+	&__loading {
+		margin: 0;
+		padding: 8px 12px;
+		color: #a7aaad;
+		font-size: 13px;
+	}
+
+	&__section {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+	}
+
+	&__section-title {
+		padding: 8px 12px 4px;
+		font-size: 11px;
+		font-weight: 600;
+		letter-spacing: 0.02em;
+		text-transform: uppercase;
+		color: #a7aaad;
+	}
+
+	&__items {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+
+	&__item-shell {
+		position: relative;
+
+		&:has(> .blockera-site-editor-templates-nav__item.is-child) {
+			padding-left: 28px;
+		}
+
+		&:has(> .blockera-site-editor-templates-nav__item.is-grandchild) {
+			padding-left: 44px;
+		}
+	}
+
+	&__item.components-button {
+		display: block;
+		width: 100%;
+		height: auto;
+		padding: 8px 12px;
+		border-radius: 4px;
+		color: #f0f0f0;
+		text-align: left;
+		box-shadow: none !important;
+
+		&:hover,
+		&:focus {
+			color: #ffffff;
+			background: rgba(255, 255, 255, 0.06);
+		}
+
+		&.is-active {
+			color: #ffffff;
+			background: rgba(255, 255, 255, 0.1);
+		}
+	}
+
+	&__item-inner {
+		width: 100%;
+	}
+
+	&__item-icon {
+		display: inline-flex;
+		color: #cccccc;
+	}
+
+	&__item-suffix {
+		color: #a7aaad;
+	}
+
+	&__status-slot {
+		position: absolute;
+		top: 50%;
+		right: 34px;
+		z-index: 2;
+		transform: translateY(-50%);
+		line-height: 0;
+		pointer-events: auto;
+		cursor: pointer;
+	}
+
+	&__count {
+		min-width: 1.25em;
+		font-size: 12px;
+		text-align: right;
+		opacity: 0.85;
+	}
+
+	&__status {
+		padding: 1px 6px;
+		border-radius: 3px;
+		font-size: 10px;
+		font-weight: 600;
+		letter-spacing: 0.02em;
+		line-height: 1.4;
+		text-transform: uppercase;
+		color: #a7aaad;
+		background: rgba(255, 255, 255, 0.06);
+		white-space: nowrap;
+		cursor: pointer;
+
+		&.is-active {
+			color: #ffffff;
+			background: rgba(255, 255, 255, 0.14);
+		}
+
+		&.is-fallback {
+			color: #c3c4c7;
+			background: rgba(255, 255, 255, 0.08);
+		}
+
+		&.is-unused {
+			color: #8c8f94;
+			opacity: 0.9;
+		}
+
+		&.is-static {
+			color: #c3c4c7;
+			background: rgba(255, 255, 255, 0.1);
+		}
+	}
+}
+
+.blockera-site-editor-templates-area-hub {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	min-height: 0;
+	background: #ffffff;
+	color: #1e1e1e;
+	box-sizing: border-box;
+
+	&__banner {
+		flex: 0 0 auto;
+		padding: 12px 16px;
+		border-bottom: 8px solid #1e1e1e;
+		background: #ffffff;
+	}
+
+	&__banner-text {
+		min-width: 0;
+	}
+
+	&__banner-title {
+		font-size: 15px;
+		font-weight: 600;
+		line-height: 1.4;
+	}
+
+	&__banner-hint {
+		margin: 4px 0 0;
+		font-size: 12px;
+		line-height: 1.4;
+		color: #646970;
+	}
+
+	&__manage.components-button {
+		flex-shrink: 0;
+	}
+
+	&__canvas {
+		flex: 1 1 auto;
+		min-height: 0;
+		position: relative;
+
+		> * {
+			height: 100%;
+			min-height: 0;
+		}
+	}
+
+	&__empty {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 16px;
+		flex: 1 1 auto;
+		min-height: 160px;
+		padding: 24px;
+		text-align: center;
+		color: #646970;
+		font-size: 14px;
+	}
+}
+
+/* Area Hub inside ResizableFrame / browse content should fill available height. */
+.edit-site-layout__canvas:has(.blockera-site-editor-templates-area-hub),
+.edit-site-layout__area:has(.blockera-site-editor-templates-area-hub) {
+	.blockera-site-editor-templates-area-hub {
+		min-height: 100%;
+	}
+}
+
+.edit-site-layout__area:has(.blockera-site-editor-templates-area-hub) {
+	max-width: none !important;
+	flex: 1 1 auto;
+}
+
+.blockera-site-editor-templates-custom,
+.blockera-site-editor-templates-filtered {
+	height: 100%;
+	min-height: 0;
+}
+
+.blockera-site-editor-templates-missing {
+	&__message {
+		margin: 0;
+		font-size: 13px;
+		line-height: 1.5;
+		color: var(--wpds-color-foreground-content-neutral, #1e1e1e);
+	}
+
+	&__fallback-link.components-button.is-link {
+		display: inline;
+		height: auto;
+		padding: 0;
+		font-size: inherit;
+		line-height: inherit;
+	}
+}

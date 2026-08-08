@@ -6,7 +6,7 @@ export const EDIT_SITE_STORE_NAME = 'core/edit-site';
 
 export const BODY_CLASS = 'has-blockera-site-editor-main-panel';
 
-/** Toggled while Design-root routes are active (home / styles / identity / homepage / performance). */
+/** Toggled while Design-root routes are active (home only). */
 export const DESIGN_ROOT_BODY_CLASS = 'has-blockera-site-editor-design-root';
 
 export const COMPONENT_SELECTOR = '.blockera-site-editor-main-navigation';
@@ -73,5 +73,3 @@ export const RESOURCE_LINKS = {
 	featureRequests:
 		'https://community.blockera.ai/feature-request-1rsjg2ck?utm_source=blockera-one-site-editor&utm_medium=referral&utm_campaign=feature-request-page&utm_content=cta-link',
 } as const;
-
-export const CONTENT_PANEL_WIDTH = 380;

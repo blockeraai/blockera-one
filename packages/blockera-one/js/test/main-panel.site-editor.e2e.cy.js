@@ -9,7 +9,10 @@ import {
 	openSiteEditorViewMode,
 	assertSiteEditorChrome,
 	assertSiteEditorMainNav,
+	assertSiteEditorDrillDown,
+	assertSiteEditorTemplatesNav,
 	clickSiteEditorNav,
+	clickSiteEditorDrillDownBack,
 	getSiteEditorNav,
 	getSiteEditorHeader,
 	getSiteEditorHub,
@@ -51,16 +54,50 @@ describe('Blockera One → Site Editor main panel chrome', () => {
 		cy.location('search').should('include', 'page');
 	});
 
-	it('navigates Design → Styles via Blockera nav', () => {
+	it('opens Templates purpose-nav drill-down then Back restores main nav', () => {
+		clickSiteEditorNav(SITE_EDITOR_TEST_IDS.navTemplates);
+
+		cy.location('search').should('include', 'template');
+		/* Expands Homepage then restores All browse (preview has no DataViews). */
+		assertSiteEditorTemplatesNav();
+		/* Core PageTemplates DataViews on All browse (not a Blockera custom list). */
+		cy.get(
+			'.edit-site-page-templates, .dataviews-wrapper, .dataviews-view-grid, .dataviews-view-table',
+			{ timeout: 20000 }
+		).should('exist');
+
+		/* Header/Footer/Sidebar Area Hub coverage: templates-parts.templates.e2e.cy.js */
+		clickSiteEditorDrillDownBack('template');
+	});
+
+	it('opens Styles as sidebar drill-down then Back restores main nav', () => {
 		clickSiteEditorNav(SITE_EDITOR_TEST_IDS.navStyles);
 
 		cy.location('search').should('include', 'styles');
-		getSiteEditorNav().should('be.visible');
-		cy.getByDataTest(SITE_EDITOR_TEST_IDS.navStyles).should(
-			'have.attr',
-			'aria-current',
-			'page'
-		);
+		assertSiteEditorDrillDown();
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.stylesPanel, {
+			timeout: 20000,
+		}).should('be.visible');
+		cy.get('.edit-site-layout__area').should('not.exist');
+		/* Duplicate Page title is hidden; Style Book lives on drill-down row. */
+		cy.get(
+			'.blockera-site-editor-styles-panel .admin-ui-page__header'
+		).should('not.be.visible');
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.stylesActions, {
+			timeout: 20000,
+		})
+			.find(
+				'.admin-ui-page__header-actions, .edit-site-styles__header-actions'
+			)
+			.should('exist');
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.stylesActions)
+			.find('button[aria-label="Style Book"]')
+			.should('be.visible');
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.stylesActions)
+			.find('.components-dropdown-menu')
+			.should('not.be.visible');
+
+		clickSiteEditorDrillDownBack('styles');
 	});
 
 	it('exposes Resource links with site-editor UTM params', () => {

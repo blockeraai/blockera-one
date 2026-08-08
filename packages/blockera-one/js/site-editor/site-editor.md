@@ -1,6 +1,6 @@
 # Site Editor Main Panel (Blockera One)
 
-Custom Design / Site / Features / Resources navigation for the WordPress Site Editor main sidebar, plus Site Identity, Homepage Settings, and Performance secondary panels.
+Custom Design / Site / Features / Resources navigation for the WordPress Site Editor main sidebar, plus Styles, **Templates purpose-nav**, Site Identity, Homepage Settings, and Performance **sidebar drill-down** panels.
 
 ## Goals
 
@@ -8,10 +8,11 @@ Custom Design / Site / Features / Resources navigation for the WordPress Site Ed
 - Replace core `.edit-site-site-hub` on all Site Editor view-mode pages (logo hover → arrow-up-left / dashboard).
 - Show Blockera One branding (`MainPanelHeader`) under the hub on all view-mode pages.
 - Render Blockera nav with Design, Site, Features, and Resources categories (no Starter sites).
-- Keep core routes for Styles, Navigation, Pages, Templates, Patterns (and Identity path).
+- Keep core routes for Styles, Navigation, Pages, Templates, Patterns — Styles uses core Global Styles UI + canvas as a sidebar drill-down; **Templates** uses a Blockera purpose-based sidebar (see `templates/`).
 - Custom Site Identity content (logo, title, tagline — no site icon).
-- New Homepage Settings route (`/homepage`) for Reading-style homepage display options.
+- Homepage Settings route (`/homepage`) for Reading-style homepage display options.
 - Features → Performance (`/performance`) for site performance toggles (Disable Emojis Script first).
+- Styles / Identity / Homepage / Performance / Templates collapse the main nav and render inside the primary sidebar.
 
 ## Approach
 
@@ -22,6 +23,8 @@ There is **no SlotFill** for Design sidebar items in `@wordpress/edit-site`. We 
 
 `SiteHub` and `MainPanelHeader` are separate components with separate stylesheets. `index.tsx` composes them in the sidebar mount.
 
+Drill-down screens use a Blockera-owned `DrillDownScreen` (back → `/` + title + content) instead of importing core `SidebarNavigationScreen`.
+
 ## Files
 
 | File | Role |
@@ -30,63 +33,62 @@ There is **no SlotFill** for Design sidebar items in `@wordpress/edit-site`. We 
 | `site-hub.tsx` / `site-hub.scss` | Blockera SiteHub (dashboard / title / command palette) |
 | `main-panel-header.tsx` / `main-panel-header.scss` | Blockera One branding + More menu (Reset styles) |
 | `main-navigation.tsx` / `main-navigation.scss` | Design / Site / Features / Resources UI |
-| `site-identity-panel.tsx` / `site-identity-panel.scss` | Secondary panel for logo / title / tagline |
-| `homepage-settings-panel.tsx` / `homepage-settings-panel.scss` | Secondary panel for `show_on_front` + pages |
+| `drill-down-screen.tsx` / `drill-down-screen.scss` | Back + title (+ optional actions / `onBack`) chrome |
+| `styles-drill-down.tsx` | Styles wrapper: portals Style Book into drill-down title row |
+| `admin-ui-card.scss` | `.blockera-se-admin-ui-card` wrapper — tighter override for core `.admin-ui-page*` |
+| `styles-panel.scss` | Styles-only tweaks (hide Page header, GS navigator padding) |
+| `templates/` | Templates purpose-nav feature module (see below) |
+| `site-identity-panel.tsx` / `site-identity-panel.scss` | Identity card (logo / title / tagline) |
+| `homepage-settings-panel.tsx` / `homepage-settings-panel.scss` | Homepage card (`show_on_front` + pages) |
 | `performance-panel.tsx` / `performance-panel.scss` | Features → Performance toggles |
-| `blockera-se-admin-ui-page.scss` | Independent copy of core Admin UI Page layout (`.blockera-se-admin-ui-page*`) |
-| `routes.tsx` | Identity / homepage / performance registration |
+| `routes.tsx` | Styles / templates / identity / homepage / performance registration |
 | `constants.ts` | Paths, core `uid`s, Resource URLs, selectors, setting keys |
-| `utils.ts` | Path helpers, dashboard URL, core-uid click, SPA navigate (`isSiteEditorUrl` from `@blockera/utils`) |
+| `utils.ts` | Path helpers, dashboard URL, core-uid click, SPA navigate |
 | `style.scss` | Shared layout glue only (hide core ItemGroup / design-root flex) |
+
+### `templates/` module
+
+| File | Role |
+|------|------|
+| `index.ts` | Public exports for route wiring |
+| `constants.ts` | `boFilter` / `partsArea` query helpers + SPA navigate |
+| `templates-nav-config.ts` | Static purpose-nav IA (homepage shell filled at runtime) |
+| `templates-homepage-resolve.ts` | Homepage / Blog·Posts + fallback badges from Reading settings |
+| `templates-matchers.ts` | Slug / custom / author matchers |
+| `use-templates-data.ts` | Entity fetch, counts, dynamic CPT/author/homepage rows |
+| `templates-drill-down.tsx` | DrillDownScreen + purpose-nav (General Area Hub) |
+| `templates-nav.tsx` | Parent/child purpose menu UI |
+| `templates-hub-parts.ts` | Canonical header/footer/sidebar helpers |
+| `templates-area-hub.tsx` | Live Editor banner for global site parts (+ Patterns link) |
+| `templates-browse-content.tsx` | Browse gate (core / filtered / missing-base / hub empty) |
+| `style.scss` | Nav + Area Hub styles |
 
 PHP: `packages/blockera-one/php/Theme/Performance.php` — registers `blockera_one_disable_emojis` on `/wp/v2/settings` and removes WP emoji hooks when enabled.
 
-Registered from `packages/blockera-one/js/index.js` via `blockera.after.bootstrap` as `blockera-one-site-editor-main-panel` (source: `packages/blockera-one/js/site-editor/`).
+Registered from `packages/blockera-one/js/index.js` via `blockera.after.bootstrap` as `blockera-one-site-editor-main-panel`.
 
 ## Navigation mechanics
 
-- **Design items:** click hidden core nav nodes by stable `uid` / `id` (SPA-safe, no router private API).
-- **Site Identity + Homepage + Performance:** SPA navigate via `history.pushState` + `popstate` with `p=/identity`, `p=/homepage`, or `p=/performance` (no full reload). Runtime WP may not ship a core Identity route/nav item — Blockera registers routes by cloning `styles` sidebar/preview areas.
-- **Resources:** external links from blockera-admin destinations with `utm_source=blockera-one-site-editor`.
-
-## Performance setting
-
-- Key: `blockera_one_disable_emojis` (boolean on `root/site` / `/wp/v2/settings`).
-- **Default enabled:** missing / `null` / `true` → emoji scripts removed. Explicit `false` → WP emoji assets may load.
-- Applied by `Blockera\One\Theme\Performance` on `init`.
+- **Design-root** is `/` only. Main nav portals there; Styles / Templates and other drill-downs unmount it.
+- **Design items:** click hidden core nav nodes by stable `uid` / `id`. Styles / Templates set forward enter animation before the uid click.
+- **Styles:** override `styles` route — wrap core `areas.content` in `StylesDrillDown`. Keep core `areas.preview`; omit `areas.content`.
+- **Templates:** override `templates`, `template-item`, and `template-part-item` sidebars with `TemplatesDrillDown`. Browse `/template` keeps **core PageTemplates DataViews** via `TemplatesBrowseContent`, except when a purpose filter’s **base** template is missing — then the right pane shows a missing-base card (hierarchy fallback link + Add specific template). Purpose-nav sets `activeView` for Other tabs. Selecting a purpose filter whose base exists navigates to `/wp_template/{id}` (view). **Header / Footer / Sidebar** open the site-wide part in Area Hub (banner + live Editor); **Manage all …** jumps to Patterns (`categoryId`). **Homepage** section: one **Homepage** row (latest posts: first of `front-page → home → index`; static front: `front-page` or the selected homepage page), optional **Blog Home** → `/page/{page_for_posts}` (not `home.html`), and collapsed inline fallbacks with status badges.
+- **Site Identity + Homepage + Performance:** SPA navigate via `history.pushState` + `popstate`.
+- **Resources:** external links with `utm_source=blockera-one-site-editor`.
 
 ## Pitfalls
 
-1. **Do not** import `@wordpress/edit-site/build-module/*` (lock-unlock double opt-in).
-2. `REGISTER_ROUTE` **appends** — if core later adds `identity`, unregister it before registering Blockera’s version.
-3. Clone `styles.areas.sidebar` / `preview` (not core identity — it may be absent); do not rebuild Editor from edit-site.
-4. Core Design nav `uid`s live in `constants.ts` — if WordPress renames them, Design clicks break first.
-5. Hub + branding portal while `.edit-site-layout__sidebar` exists (view mode). Nav portal mounts on Design-root routes; drill-down screens use core UI as usual.
+1. **Do not** import `@wordpress/edit-site/build-module/*`.
+2. Always `UNREGISTER_ROUTE` before registering Blockera overrides.
+3. Templates purpose-filter state uses URL query keys `boFilter` and `partsArea`.
+4. Hard-refresh after changing route registration (`didRegister` module flag).
 
 ## E2E (CI category: `site-editor`)
 
-Specs (auto-discovered by `.github/scripts/list-e2e-test-categories.js` → Cypress matrix in `.github/workflows/cypress-e2e-tests.yml`):
-
-- `packages/blockera-one/js/test/main-panel.site-editor.e2e.cy.js`
-- `packages/blockera-one/js/test/identity-homepage.site-editor.e2e.cy.js`
-- `packages/blockera-one/js/test/performance.site-editor.e2e.cy.js`
-
-Helpers: `packages/dev-cypress/js/helpers/site-editor-main-panel.js`
-
-```bash
-npm run test:e2e -- --spec 'packages/**-one(-**|)/**/*.site-editor.e2e.cy.js'
-```
+- `packages/blockera-one/js/test/main-panel.site-editor.e2e.cy.js` (includes Templates purpose-nav)
+- Helpers: `assertSiteEditorTemplatesNav` in `packages/dev-cypress/js/helpers/site-editor-main-panel.js`
 
 ## Manual verification
 
-- Site Editor view mode: Blockera site hub (not core); logo hover shows arrow-up-left; click goes to Dashboard.
-- Blockera One branding appears under the hub on all view-mode routes (including Pages / Templates drill-downs).
-- Design-root shows Design / Site / Features / Resources under branding.
-- Core `.edit-site-site-hub` stays hidden; Blockera hub shows on all view-mode sidebar routes.
-- Styles / Navigation / Pages / Templates / Patterns open the same core screens as before.
-- Site Identity opens a 380px panel; logo / title / tagline edit `root/site` and Save persists.
-- Homepage Settings opens `/homepage` panel; posts vs static page + selects work with Save.
-- Features → Performance opens `/performance`; Disable Emojis Script defaults ON; Save removes front-end emoji assets; OFF restores them.
-- Resources open Community / Roadmap / Feature Requests in a new tab.
-- Hub search opens the command palette; site title opens the front end in a new tab.
-- Global Styles Blockera nav and post-item route still register.
+- **Templates:** purpose sections; Homepage collapsed until selected (then inline Front Page / Blog Home / Index fallbacks with status badges); Blog Home when posts page is set; Header/Footer/Sidebar open Area Hub for the global part; Manage all … opens Patterns; Back from Templates returns to Design root; clicking a category with a base template opens canvas preview.
+- Styles / Identity / Homepage / Performance drill-downs still work as before.
