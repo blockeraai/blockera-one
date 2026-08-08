@@ -604,6 +604,9 @@ export function setSiteEditorCanvasMode(mode) {
 /**
  * Enter canvas edit the same way users do: click the view-mode Editor iframe.
  * Core sets `canvas=edit` via router history.navigate (pushState).
+ *
+ * Template-part edit can open Core’s welcome Guide over the Area Hub; dismiss
+ * it before callers assert hub chrome (CI flakes on covered `is-edit-canvas`).
  */
 export function enterSiteEditorCanvasEditFromPreview() {
 	cy.get(
@@ -615,6 +618,19 @@ export function enterSiteEditorCanvasEditFromPreview() {
 		.click({ force: true });
 
 	cy.location('search', { timeout: 20000 }).should('include', 'canvas=edit');
+
+	// Guide often mounts a tick after `canvas=edit` — wait once if not present yet.
+	cy.get('body').then(($body) => {
+		if (
+			$body.find(
+				'.components-modal__screen-overlay, .components-guide__page'
+			).length === 0
+		) {
+			// eslint-disable-next-line cypress/no-unnecessary-waiting
+			cy.wait(1500);
+		}
+	});
+	closeWelcomeGuide();
 }
 
 /**
