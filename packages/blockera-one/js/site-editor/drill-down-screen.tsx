@@ -1,8 +1,10 @@
 /**
- * Drill-down sidebar screen for Styles / Site Identity / Homepage / Performance.
+ * Drill-down sidebar screen for Styles / Templates / Site Identity / Homepage /
+ * Performance.
  *
  * Mirrors core `SidebarNavigationScreen` (back + title + content) without
- * importing `@wordpress/edit-site` internals. Back always returns to Design root.
+ * importing `@wordpress/edit-site` internals. Back returns to Design root
+ * unless `onBack` is provided (e.g. Templates parts sub-screen).
  *
  * Enter animation matches core Patterns/Pages (`slide-from-right` keyframes).
  * Applied on this screen (not the core wrapper) because:
@@ -41,6 +43,8 @@ type DrillDownScreenProps = {
 	actions?: ReactNode;
 	/** Skip content padding (e.g. full-bleed Global Styles UI). */
 	flush?: boolean;
+	/** Override back navigation (default: Design root `/`). */
+	onBack?: () => void;
 };
 
 /**
@@ -52,13 +56,15 @@ export default function DrillDownScreen({
 	children,
 	actions = null,
 	flush = false,
+	onBack,
 }: DrillDownScreenProps) {
 	const icon = isRTL() ? chevronRight : chevronLeft;
 	const [enterClass] = useState(() => {
 		const direction = consumePendingSidebarNavDirection();
-		return direction === 'forward' || direction === null
-			? 'is-entering-forward'
-			: '';
+		// Only animate when an explicit forward nav was requested.
+		// Remounts from `p` changes (e.g. Pages ↔ Child templates) leave
+		// direction null — treating null as forward caused spurious slides.
+		return direction === 'forward' ? 'is-entering-forward' : '';
 	});
 
 	useEffect(() => {
@@ -91,7 +97,13 @@ export default function DrillDownScreen({
 					showTooltip={false}
 					className="blockera-site-editor-drill-down__back"
 					data-test="blockera-site-editor-drill-down-back"
-					onClick={() => navigateToSiteEditorPath(ROUTES.home)}
+					onClick={() => {
+						if (onBack) {
+							onBack();
+							return;
+						}
+						navigateToSiteEditorPath(ROUTES.home);
+					}}
 				/>
 				<Heading
 					className="blockera-site-editor-drill-down__title"
