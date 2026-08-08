@@ -17,3 +17,14 @@ export {
 	getTemplatesUrlState,
 	navigateTemplates,
 } from './constants';
+export {
+	HOMEPAGE_NAV_ID,
+	BLOG_POSTS_NAV_ID,
+	BLOG_POSTS_FILTER,
+	HOMEPAGE_LAYER_SLUGS,
+	buildHomepageSectionItems,
+	buildHomepageFallbackNavItems,
+	buildPageItemPath,
+	isHomepageBranchFilter,
+	isTemplatesOwnedPagePreview,
+} from './templates-homepage-resolve';

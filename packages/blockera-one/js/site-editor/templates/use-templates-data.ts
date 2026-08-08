@@ -24,6 +24,10 @@ import {
 	type TemplateLike,
 } from './templates-matchers';
 import {
+	buildHomepageSectionItems,
+	type SiteReadingSettings,
+} from './templates-homepage-resolve';
+import {
 	TEMPLATES_NAV_SECTIONS,
 	type NavIcon,
 	type TemplatesNavItemConfig,
@@ -79,6 +83,7 @@ export type TemplatesData = {
 	defaultTypeSlugs: Set<string>;
 	sections: TemplatesNavSectionConfig[];
 	counts: Record<string, number>;
+	siteReading?: SiteReadingSettings;
 	getPartsForArea: (area: PartAreaId) => TemplateLike[];
 	findBySlug: (slug: string) => TemplateLike | undefined;
 	filterTemplates: (filter: FilterId) => TemplateLike[];
@@ -109,15 +114,30 @@ export default function useTemplatesData(): TemplatesData {
 		activeTheme,
 		defaultTemplateTypes,
 		postTypes,
+		siteReading,
 	} = useSelect((select) => {
-		const { getEntityRecord, getCurrentTheme, getPostTypes } = select(
-			coreStore
-		) as {
+		const {
+			getEntityRecord,
+			getEditedEntityRecord,
+			getCurrentTheme,
+			getPostTypes,
+		} = select(coreStore) as {
 			getEntityRecord: (
 				kind: string,
 				name: string
 			) =>
 				| { active_templates?: Record<string, string | number> }
+				| undefined;
+			getEditedEntityRecord: (
+				kind: string,
+				name: string
+			) =>
+				| {
+						show_on_front?: string;
+						page_on_front?: number;
+						page_for_posts?: number;
+						active_templates?: Record<string, string | number>;
+				  }
 				| undefined;
 			getCurrentTheme: () => {
 				stylesheet?: string;
@@ -127,12 +147,22 @@ export default function useTemplatesData(): TemplatesData {
 			getPostTypes: (query: { per_page: number }) => PostTypeRecord[];
 		};
 
+		const site = getEditedEntityRecord('root', 'site');
+
 		return {
-			activeTemplatesOption: getEntityRecord('root', 'site')
-				?.active_templates,
+			activeTemplatesOption:
+				site?.active_templates ||
+				getEntityRecord('root', 'site')?.active_templates,
 			activeTheme: getCurrentTheme(),
 			defaultTemplateTypes: getCurrentTheme()?.default_template_types,
 			postTypes: getPostTypes({ per_page: -1 }) || [],
+			siteReading: site
+				? {
+						show_on_front: site.show_on_front,
+						page_on_front: site.page_on_front,
+						page_for_posts: site.page_for_posts,
+					}
+				: undefined,
 		};
 	}, []);
 
@@ -276,6 +306,16 @@ export default function useTemplatesData(): TemplatesData {
 			items: [...section.items],
 		}));
 
+		const homepageSection = next.find(
+			(section) => section.id === 'homepage'
+		);
+		if (homepageSection) {
+			homepageSection.items = buildHomepageSectionItems(
+				findBySlug,
+				siteReading
+			);
+		}
+
 		const singleSection = next.find((section) => section.id === 'single');
 		if (singleSection) {
 			publicPostTypes.forEach((postType) => {
@@ -358,7 +398,7 @@ export default function useTemplatesData(): TemplatesData {
 		}
 
 		return next;
-	}, [publicPostTypes, templates]);
+	}, [publicPostTypes, templates, findBySlug, siteReading]);
 
 	const counts = useMemo(() => {
 		const map: Record<string, number> = {};
@@ -426,6 +466,7 @@ export default function useTemplatesData(): TemplatesData {
 		defaultTypeSlugs,
 		sections,
 		counts,
+		siteReading,
 		getPartsForArea,
 		findBySlug,
 		filterTemplates,
