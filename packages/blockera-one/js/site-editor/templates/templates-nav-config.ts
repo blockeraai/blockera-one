@@ -3,6 +3,7 @@
  * Dynamic CPT / author / child rows are merged at runtime.
  */
 
+import type { ReactNode } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 import {
@@ -61,6 +62,8 @@ export type TemplatesNavItemConfig = {
 	status?: 'active' | 'fallback' | 'unused' | 'static';
 	/** Translated status badge label. */
 	statusLabel?: string;
+	/** Longer explanation shown in a tooltip on the status badge (may include heading). */
+	statusTooltip?: ReactNode;
 	/**
 	 * When true, TemplatesNav renders the front-page → home → index
 	 * fallback chain as inline children under this row.
