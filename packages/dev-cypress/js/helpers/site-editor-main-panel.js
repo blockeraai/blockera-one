@@ -119,7 +119,7 @@ export function assertSiteEditorTemplatesNav() {
 		'not.exist'
 	);
 	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavHomepage).click();
-	/* Front Page / Blog Home fallbacks are hidden when unused; Index stays. */
+	/* Active homepage winner is hidden; other available layers (e.g. Index) show. */
 	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavHomepageIndex).should(
 		'be.visible'
 	);
