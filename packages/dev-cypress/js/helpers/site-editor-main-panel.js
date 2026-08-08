@@ -43,12 +43,24 @@ export const SITE_EDITOR_TEST_IDS = {
 	templatesNav: 'blockera-site-editor-templates-nav',
 	templatesNavAll: 'blockera-site-editor-templates-nav-all',
 	templatesNavHomepage: 'blockera-site-editor-templates-nav-homepage-root',
+	templatesNavHomepageStatus:
+		'blockera-site-editor-templates-nav-homepage-root-status',
+	templatesNavBlogPosts:
+		'blockera-site-editor-templates-nav-homepage-blog-posts',
+	templatesNavBlogPostsStatus:
+		'blockera-site-editor-templates-nav-homepage-blog-posts-status',
 	templatesNavHomepageFrontPage:
 		'blockera-site-editor-templates-nav-homepage-fallback:front-page',
+	templatesNavHomepageFrontPageStatus:
+		'blockera-site-editor-templates-nav-homepage-fallback:front-page-status',
 	templatesNavHomepageHome:
 		'blockera-site-editor-templates-nav-homepage-fallback:home',
+	templatesNavHomepageHomeStatus:
+		'blockera-site-editor-templates-nav-homepage-fallback:home-status',
 	templatesNavHomepageIndex:
 		'blockera-site-editor-templates-nav-homepage-fallback:index',
+	templatesNavHomepageIndexStatus:
+		'blockera-site-editor-templates-nav-homepage-fallback:index-status',
 	templatesNavHeader: 'blockera-site-editor-templates-nav-parts-header',
 	templatesParts: 'blockera-site-editor-templates-parts',
 	drillDown: 'blockera-site-editor-drill-down',
