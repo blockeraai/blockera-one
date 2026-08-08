@@ -3,7 +3,8 @@
  * and Homepage / Blog·Posts section items from Reading settings.
  */
 
-import { __ } from '@wordpress/i18n';
+import { createElement, Fragment, type ReactNode } from '@wordpress/element';
+import { __, sprintf } from '@wordpress/i18n';
 
 import { ROUTES } from '../constants';
 import {
@@ -126,8 +127,8 @@ export function getHomepageLayerStatus(
 		return 'unused';
 	}
 
-	// Static homepage: only front-page applies to `/`. home/index are not
-	// site-root fallbacks (home is for the posts page via Blog / Posts).
+	// Static homepage: front-page wins `/` when present; Index remains the
+	// site-wide fallback. Blog Home (`home`) is for the posts page, not `/`.
 	if (isStaticFrontPage(site)) {
 		if (slug === 'front-page' && activeSlug === 'front-page') {
 			return 'active';
@@ -155,10 +156,85 @@ export function getHomepageStatusLabel(status: HomepageLayerStatus): string {
 			return __('Active', 'blockera');
 		case 'fallback':
 			return __('Fallback', 'blockera');
+		case 'static':
+			return getStaticPageStatusLabel();
 		case 'unused':
 		default:
 			return __('Not used', 'blockera');
 	}
+}
+
+/** Body copy for a Homepage status badge tooltip. */
+function getHomepageStatusTooltipBody(
+	status: HomepageLayerStatus,
+	slug?: HomepageLayerSlug
+): string {
+	if (slug === 'index') {
+		switch (status) {
+			case 'active':
+				return __(
+					'Used for the site homepage (/), and as the final fallback for all templates when a more specific one is missing.',
+					'blockera'
+				);
+			case 'fallback':
+				return __(
+					'Final fallback for all templates on the site when a more specific template is missing — not only the homepage.',
+					'blockera'
+				);
+			case 'unused':
+			default:
+				return __(
+					'Not serving the homepage right now. Index can still act as the final fallback for other templates.',
+					'blockera'
+				);
+		}
+	}
+
+	switch (status) {
+		case 'active':
+			return __('Currently used for your site homepage (/).', 'blockera');
+		case 'fallback':
+			return __(
+				'Used when a more specific homepage template is missing.',
+				'blockera'
+			);
+		case 'static':
+			return __(
+				'Assigned as a static page in Reading settings (Homepage or Posts page).',
+				'blockera'
+			);
+		case 'unused':
+		default:
+			return __(
+				'Not used for the site homepage with your current Reading settings.',
+				'blockera'
+			);
+	}
+}
+
+/**
+ * Status badge tooltip: h5 with template file name, then explanation.
+ * Example heading: “home.html template”.
+ */
+export function getHomepageStatusTooltip(
+	status: HomepageLayerStatus,
+	slug?: HomepageLayerSlug
+): ReactNode {
+	const body = getHomepageStatusTooltipBody(status, slug);
+	const heading = slug
+		? sprintf(
+				/* translators: %s: template slug without extension (e.g. home, front-page) */
+				__('%s.html template', 'blockera'),
+				slug
+			)
+		: getStaticPageStatusLabel();
+
+	return createElement(
+		Fragment,
+		null,
+		createElement('h5', null, heading),
+		createElement('p', null, body)
+	);
 }
 
 export function shouldShowBlogPostsRow(
@@ -203,7 +279,8 @@ export function buildHomepageSectionItems(
 	// Reading settings use a static homepage page — surface that on the row.
 	if (isStaticFrontPage(site) && frontPageId) {
 		homepageItem.status = 'static';
-		homepageItem.statusLabel = getStaticPageStatusLabel();
+		homepageItem.statusLabel = getHomepageStatusLabel('static');
+		homepageItem.statusTooltip = getHomepageStatusTooltip('static');
 	}
 
 	const items: TemplatesNavItemConfig[] = [homepageItem];
@@ -217,7 +294,8 @@ export function buildHomepageSectionItems(
 			// Posts page entity — not the home.html template.
 			entityPath: buildPageItemPath(postsPageId),
 			status: 'static',
-			statusLabel: getStaticPageStatusLabel(),
+			statusLabel: getHomepageStatusLabel('static'),
+			statusTooltip: getHomepageStatusTooltip('static'),
 		});
 	}
 
@@ -288,6 +366,7 @@ export function buildHomepageFallbackNavItems(
 				showChildren: slug === 'front-page',
 				status,
 				statusLabel: getHomepageStatusLabel(status),
+				statusTooltip: getHomepageStatusTooltip(status, slug),
 			},
 		];
 	});
