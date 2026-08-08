@@ -42,6 +42,13 @@ export const SITE_EDITOR_TEST_IDS = {
 	templatesPanel: 'blockera-site-editor-templates-panel',
 	templatesNav: 'blockera-site-editor-templates-nav',
 	templatesNavAll: 'blockera-site-editor-templates-nav-all',
+	templatesNavHomepage: 'blockera-site-editor-templates-nav-homepage-root',
+	templatesNavHomepageFrontPage:
+		'blockera-site-editor-templates-nav-homepage-fallback:front-page',
+	templatesNavHomepageHome:
+		'blockera-site-editor-templates-nav-homepage-fallback:home',
+	templatesNavHomepageIndex:
+		'blockera-site-editor-templates-nav-homepage-fallback:index',
 	templatesNavHeader: 'blockera-site-editor-templates-nav-parts-header',
 	templatesParts: 'blockera-site-editor-templates-parts',
 	drillDown: 'blockera-site-editor-drill-down',
@@ -105,6 +112,22 @@ export function assertSiteEditorTemplatesNav() {
 	}).should('be.visible');
 	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should('be.visible');
 	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavAll).should('be.visible');
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavHomepage).should(
+		'be.visible'
+	);
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavHomepageFrontPage).should(
+		'not.exist'
+	);
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavHomepage).click();
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavHomepageFrontPage).should(
+		'be.visible'
+	);
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavHomepageHome).should(
+		'be.visible'
+	);
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavHomepageIndex).should(
+		'be.visible'
+	);
 }
 
 /**
