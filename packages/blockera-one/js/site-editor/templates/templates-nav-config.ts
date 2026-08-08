@@ -149,6 +149,7 @@ export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 				filter: FILTER_IDS.attachment,
 				baseSlug: 'attachment',
 				showChildren: true,
+				hideWhenEmpty: true,
 			},
 		],
 	},
