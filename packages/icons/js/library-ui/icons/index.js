@@ -127,6 +127,8 @@ export { default as BorderStyleVerticalSolid } from './border-style-vertical-sol
 export { default as Border } from './border.svg';
 export { default as BreakAll } from './break-all.svg';
 export { default as BreakNormal } from './break-normal.svg';
+export { default as CategoriesAdd } from './categories-add.svg';
+export { default as Categories } from './categories.svg';
 export { default as CookieConsent } from './cookie-consent.svg';
 export { default as WebsiteFrame } from './website-frame.svg';
 export { default as JavascriptCodes } from './javascript.svg';
