@@ -342,7 +342,9 @@ export function isHomepageBranchFilter(
 
 /**
  * Inline child rows: Front Page / Blog Home / Index with status badges.
- * Front Page is omitted when unused; keeps showChildren for front-page-* when shown.
+ * - Front Page / Blog Home omitted when unused.
+ * - Active site-root winner omitted (already represented by Homepage).
+ * - All other available layers are shown.
  */
 export function buildHomepageFallbackNavItems(
 	findBySlug: (slug: string) => TemplateLike | undefined,
@@ -354,8 +356,13 @@ export function buildHomepageFallbackNavItems(
 		const exists = !!findBySlug(slug);
 		const status = getHomepageLayerStatus(slug, activeSlug, exists, site);
 
-		// Front Page / Blog Home — hide when not in use for the site root.
+		// Unused Front Page / Blog Home — not available for the site root.
 		if ((slug === 'front-page' || slug === 'home') && status === 'unused') {
+			return [];
+		}
+
+		// Active winner is Homepage itself — don't duplicate under it.
+		if (status === 'active') {
 			return [];
 		}
 
