@@ -45,6 +45,11 @@ export type TemplatesNavItemConfig = {
 	partsArea?: PartAreaId;
 	/** Base slug used for canvas preview (optional override). */
 	baseSlug?: string;
+	/**
+	 * Site Editor `p` path for a non-template entity (e.g. `/page/{id}` for
+	 * the selected homepage / posts page). Takes precedence over baseSlug.
+	 */
+	entityPath?: string;
 	/** Show nested specific templates under this row. */
 	showChildren?: boolean;
 	/**
@@ -52,6 +57,15 @@ export type TemplatesNavItemConfig = {
 	 * (base or children). Used for advanced types like Taxonomies.
 	 */
 	hideWhenEmpty?: boolean;
+	/** Homepage row / fallback layer status badge. */
+	status?: 'active' | 'fallback' | 'unused' | 'static';
+	/** Translated status badge label. */
+	statusLabel?: string;
+	/**
+	 * When true, TemplatesNav renders the front-page → home → index
+	 * fallback chain as inline children under this row.
+	 */
+	showHomepageFallbacks?: boolean;
 };
 
 export type TemplatesNavSectionConfig = {
@@ -115,31 +129,9 @@ export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 	},
 	{
 		id: 'homepage',
-		label: __('Homepage & fallbacks', 'blockera'),
-		items: [
-			{
-				id: FILTER_IDS.frontPage,
-				label: __('Front Page', 'blockera'),
-				icon: 'home',
-				filter: FILTER_IDS.frontPage,
-				baseSlug: 'front-page',
-				showChildren: true,
-			},
-			{
-				id: FILTER_IDS.home,
-				label: __('Blog Home', 'blockera'),
-				icon: 'verse',
-				filter: FILTER_IDS.home,
-				baseSlug: 'home',
-			},
-			{
-				id: FILTER_IDS.index,
-				label: __('Index', 'blockera'),
-				icon: 'list',
-				filter: FILTER_IDS.index,
-				baseSlug: 'index',
-			},
-		],
+		label: __('Homepage', 'blockera'),
+		// Items replaced at runtime from Reading settings + active site-root slug.
+		items: [],
 	},
 	{
 		id: 'single',
