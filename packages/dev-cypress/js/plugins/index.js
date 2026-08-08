@@ -688,6 +688,61 @@ module.exports = (on, config, testingType = config.testingType || 'e2e') => {
 				message: `missing:-${safeSlug}.html`,
 			};
 		},
+		/**
+		 * Install a theme template HTML file from a fixture (overwrite).
+		 *
+		 * @param {{ slug: string, fixturePath: string }} options
+		 */
+		themeTemplateInstallFixture({ slug, fixturePath }) {
+			const safeSlug = String(slug || '').replace(/[^a-z0-9_-]/gi, '');
+			if (!safeSlug || !fixturePath) {
+				throw new Error(
+					'themeTemplateInstallFixture requires slug and fixturePath'
+				);
+			}
+
+			const source = path.join(BLOCKERA_PLUGIN_ROOT, fixturePath);
+			const target = path.join(
+				BLOCKERA_PLUGIN_ROOT,
+				'templates',
+				`${safeSlug}.html`
+			);
+
+			if (!fs.existsSync(source)) {
+				return {
+					ok: false,
+					message: `fixture_missing:${fixturePath}`,
+				};
+			}
+
+			fs.mkdirSync(path.dirname(target), { recursive: true });
+			fs.copyFileSync(source, target);
+			return { ok: true, message: `installed:${safeSlug}` };
+		},
+		/**
+		 * Remove an installed theme template HTML file (does not touch `-slug.html`).
+		 *
+		 * @param {{ slug: string }} options
+		 */
+		themeTemplateRemoveFile({ slug }) {
+			const safeSlug = String(slug || '').replace(/[^a-z0-9_-]/gi, '');
+			if (!safeSlug) {
+				throw new Error('themeTemplateRemoveFile requires slug');
+			}
+
+			const target = path.join(
+				BLOCKERA_PLUGIN_ROOT,
+				'templates',
+				`${safeSlug}.html`
+			);
+
+			if (fs.existsSync(target)) {
+				fs.unlinkSync(target);
+				return { ok: true, message: `removed:${safeSlug}` };
+			}
+
+			return { ok: true, message: `already_absent:${safeSlug}` };
+		},
 	});
 
 	on('before:browser:launch', (browser = {}, launchOptions) => {
