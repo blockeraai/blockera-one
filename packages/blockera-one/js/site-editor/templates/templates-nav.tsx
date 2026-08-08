@@ -9,7 +9,7 @@ import { __ } from '@wordpress/i18n';
 /**
  * Blockera dependencies
  */
-import { Flex } from '@blockera/controls';
+import { Flex, Tooltip } from '@blockera/controls';
 import { Icon } from '@blockera/icons';
 
 /**
@@ -91,64 +91,90 @@ function NavRow({
 	const showCount = typeof count === 'number';
 	const status = item.status;
 	const statusLabel = item.statusLabel;
+	const statusTooltip = item.statusTooltip;
 
+	const statusBadge =
+		status && statusLabel ? (
+			<span
+				className={[
+					'blockera-site-editor-templates-nav__status',
+					`is-${status}`,
+				].join(' ')}
+				onClick={onClick}
+			>
+				{statusLabel}
+			</span>
+		) : null;
+
+	// WP Button wraps children in Tooltip context; status Tooltip must be a
+	// sibling (absolutely positioned) or it becomes a nested no-op.
 	return (
-		<Button
-			className={[
-				'blockera-site-editor-templates-nav__item',
-				isActive ? 'is-active' : '',
-				isChild ? 'is-child' : '',
-				isGrandchild ? 'is-grandchild' : '',
-			]
-				.filter(Boolean)
-				.join(' ')}
-			onClick={onClick}
-			data-test={`blockera-site-editor-templates-nav-${item.id}`}
-		>
-			<Flex
-				alignItems="center"
-				justifyContent="space-between"
-				className="blockera-site-editor-templates-nav__item-inner"
+		<div className="blockera-site-editor-templates-nav__item-shell">
+			<Button
+				className={[
+					'blockera-site-editor-templates-nav__item',
+					isActive ? 'is-active' : '',
+					isChild ? 'is-child' : '',
+					isGrandchild ? 'is-grandchild' : '',
+				]
+					.filter(Boolean)
+					.join(' ')}
+				onClick={onClick}
+				data-test={`blockera-site-editor-templates-nav-${item.id}`}
 			>
 				<Flex
 					alignItems="center"
-					justifyContent="flex-start"
-					gap="10px"
-					className="blockera-site-editor-templates-nav__item-label"
+					justifyContent="space-between"
+					className="blockera-site-editor-templates-nav__item-inner"
 				>
-					<span className="blockera-site-editor-templates-nav__item-icon">
-						<Icon
-							library={iconDef.library}
-							icon={iconDef.icon}
-							iconSize={isChild ? 18 : 20}
-						/>
-					</span>
-					<span>{item.label}</span>
+					<Flex
+						alignItems="center"
+						justifyContent="flex-start"
+						gap="10px"
+						className="blockera-site-editor-templates-nav__item-label"
+					>
+						<span className="blockera-site-editor-templates-nav__item-icon">
+							<Icon
+								library={iconDef.library}
+								icon={iconDef.icon}
+								iconSize={isChild ? 18 : 20}
+							/>
+						</span>
+						<span>{item.label}</span>
+					</Flex>
+					<Flex
+						alignItems="center"
+						gap="6px"
+						className="blockera-site-editor-templates-nav__item-suffix"
+					>
+						{showCount ? (
+							<span className="blockera-site-editor-templates-nav__count">
+								{count}
+							</span>
+						) : null}
+						<Icon library="wp" icon="chevron-right" iconSize={16} />
+					</Flex>
 				</Flex>
-				<Flex
-					alignItems="center"
-					gap="6px"
-					className="blockera-site-editor-templates-nav__item-suffix"
-				>
-					{status && statusLabel ? (
-						<span
-							className={[
-								'blockera-site-editor-templates-nav__status',
-								`is-${status}`,
-							].join(' ')}
+			</Button>
+			{statusBadge ? (
+				<span className="blockera-site-editor-templates-nav__status-slot">
+					{statusTooltip ? (
+						<Tooltip
+							text={statusTooltip}
+							width="200px"
+							hideOnClick={false}
+							style={{
+								'--tooltip-bg': '#2f9e5b',
+							}}
 						>
-							{statusLabel}
-						</span>
-					) : null}
-					{showCount ? (
-						<span className="blockera-site-editor-templates-nav__count">
-							{count}
-						</span>
-					) : null}
-					<Icon library="wp" icon="chevron-right" iconSize={16} />
-				</Flex>
-			</Flex>
-		</Button>
+							{statusBadge}
+						</Tooltip>
+					) : (
+						statusBadge
+					)}
+				</span>
+			) : null}
+		</div>
 	);
 }
 
