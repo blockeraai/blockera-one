@@ -68,6 +68,10 @@
 		&.is-child {
 			padding-left: 28px;
 		}
+
+		&.is-grandchild {
+			padding-left: 44px;
+		}
 	}
 
 	&__item-inner {
@@ -88,6 +92,39 @@
 		font-size: 12px;
 		text-align: right;
 		opacity: 0.85;
+	}
+
+	&__status {
+		padding: 1px 6px;
+		border-radius: 3px;
+		font-size: 10px;
+		font-weight: 600;
+		letter-spacing: 0.02em;
+		line-height: 1.4;
+		text-transform: uppercase;
+		color: #a7aaad;
+		background: rgba(255, 255, 255, 0.06);
+		white-space: nowrap;
+
+		&.is-active {
+			color: #ffffff;
+			background: rgba(255, 255, 255, 0.14);
+		}
+
+		&.is-fallback {
+			color: #c3c4c7;
+			background: rgba(255, 255, 255, 0.08);
+		}
+
+		&.is-unused {
+			color: #8c8f94;
+			opacity: 0.9;
+		}
+
+		&.is-static {
+			color: #c3c4c7;
+			background: rgba(255, 255, 255, 0.1);
+		}
 	}
 }
 

@@ -31,6 +31,11 @@ import {
 	getChildTemplatesForFilter,
 	type TemplateLike,
 } from './templates-matchers';
+import {
+	BLOG_POSTS_FILTER,
+	buildHomepageFallbackNavItems,
+	isHomepageBranchFilter,
+} from './templates-homepage-resolve';
 import type { NavIcon, TemplatesNavItemConfig } from './templates-nav-config';
 import useTemplatesData, { buildChildNavItems } from './use-templates-data';
 
@@ -70,6 +75,7 @@ function NavRow({
 	count,
 	isActive,
 	isChild = false,
+	isGrandchild = false,
 	onClick,
 }: {
 	item: TemplatesNavItemConfig;
@@ -77,10 +83,14 @@ function NavRow({
 	count?: number | null;
 	isActive: boolean;
 	isChild?: boolean;
+	/** Nested under an already-child row (e.g. Child templates under Front Page). */
+	isGrandchild?: boolean;
 	onClick: () => void;
 }) {
 	const iconDef = ICON_MAP[item.icon] || ICON_MAP.layout;
 	const showCount = typeof count === 'number';
+	const status = item.status;
+	const statusLabel = item.statusLabel;
 
 	return (
 		<Button
@@ -88,6 +98,7 @@ function NavRow({
 				'blockera-site-editor-templates-nav__item',
 				isActive ? 'is-active' : '',
 				isChild ? 'is-child' : '',
+				isGrandchild ? 'is-grandchild' : '',
 			]
 				.filter(Boolean)
 				.join(' ')}
@@ -119,6 +130,16 @@ function NavRow({
 					gap="6px"
 					className="blockera-site-editor-templates-nav__item-suffix"
 				>
+					{status && statusLabel ? (
+						<span
+							className={[
+								'blockera-site-editor-templates-nav__status',
+								`is-${status}`,
+							].join(' ')}
+						>
+							{statusLabel}
+						</span>
+					) : null}
 					{showCount ? (
 						<span className="blockera-site-editor-templates-nav__count">
 							{count}
@@ -143,6 +164,10 @@ function opensLivePreview(
 		return false;
 	}
 
+	if (item.entityPath) {
+		return true;
+	}
+
 	if (item.filter === FILTER_IDS.all || isChildrenFilter(item.filter)) {
 		return false;
 	}
@@ -163,6 +188,17 @@ function selectFilter(
 	findBySlug: (slug: string) => TemplateLike | undefined
 ): void {
 	const filter = item.filter;
+
+	// Homepage / Blog·Posts → selected page entity (not home.html).
+	if (item.entityPath) {
+		navigateTemplates(item.entityPath, {
+			filter,
+			partsArea: null,
+			activeView: null,
+		});
+		return;
+	}
+
 	const baseSlug = item.baseSlug || getBaseSlugForFilter(filter) || undefined;
 	const base = baseSlug ? findBySlug(baseSlug) : undefined;
 
@@ -182,14 +218,16 @@ function selectFilter(
 		filter,
 		partsArea: null,
 		activeView:
-			filter === FILTER_IDS.custom || isChildrenFilter(filter)
+			filter === FILTER_IDS.custom ||
+			isChildrenFilter(filter) ||
+			filter === BLOG_POSTS_FILTER
 				? null
 				: (mappedActiveView ?? null),
 	});
 }
 
 export default function TemplatesNav({ onOpenPartsArea }: TemplatesNavProps) {
-	const { sections, counts, templates, findBySlug, isLoading } =
+	const { sections, counts, templates, findBySlug, isLoading, siteReading } =
 		useTemplatesData();
 	const [activeFilter, setActiveFilter] = useState<FilterId>(
 		() => getTemplatesUrlState().filter
@@ -243,6 +281,20 @@ export default function TemplatesNav({ onOpenPartsArea }: TemplatesNavProps) {
 								return null;
 							}
 
+							const homepageFallbacks = item.showHomepageFallbacks
+								? buildHomepageFallbackNavItems(
+										findBySlug,
+										siteReading
+									)
+								: [];
+							const showHomepageFallbacks =
+								homepageFallbacks.length > 0 &&
+								!activePartsArea &&
+								isHomepageBranchFilter(
+									activeFilter,
+									item,
+									homepageFallbacks
+								);
 							const children = buildChildNavItems(
 								templates,
 								item
@@ -259,7 +311,13 @@ export default function TemplatesNav({ onOpenPartsArea }: TemplatesNavProps) {
 							const isFilterActive =
 								!item.partsArea &&
 								!activePartsArea &&
-								activeFilter === item.filter;
+								(activeFilter === item.filter ||
+									(item.showHomepageFallbacks &&
+										isHomepageBranchFilter(
+											activeFilter,
+											item,
+											homepageFallbacks
+										)));
 							const showCount =
 								!opensLivePreview(item, findBySlug) &&
 								browseCount > 0;
@@ -293,6 +351,72 @@ export default function TemplatesNav({ onOpenPartsArea }: TemplatesNavProps) {
 											selectFilter(item, findBySlug);
 										}}
 									/>
+									{(showHomepageFallbacks
+										? homepageFallbacks
+										: []
+									).map((fallback) => {
+										const fallbackChildren =
+											buildChildNavItems(
+												templates,
+												fallback
+											);
+										const fallbackChildCount =
+											fallback.showChildren
+												? getChildTemplatesForFilter(
+														templates,
+														fallback.filter
+													).length
+												: 0;
+
+										return (
+											<div key={String(fallback.id)}>
+												<NavRow
+													item={fallback}
+													isChild
+													isActive={
+														!activePartsArea &&
+														activeFilter ===
+															fallback.filter
+													}
+													onClick={() =>
+														selectFilter(
+															fallback,
+															findBySlug
+														)
+													}
+												/>
+												{fallbackChildren.map(
+													(child) => (
+														<NavRow
+															key={String(
+																child.id
+															)}
+															item={child}
+															count={
+																fallbackChildCount >
+																0
+																	? fallbackChildCount
+																	: null
+															}
+															isChild
+															isGrandchild
+															isActive={
+																!activePartsArea &&
+																activeFilter ===
+																	child.filter
+															}
+															onClick={() =>
+																selectFilter(
+																	child,
+																	findBySlug
+																)
+															}
+														/>
+													)
+												)}
+											</div>
+										);
+									})}
 									{children.map((child) => (
 										<NavRow
 											key={String(child.id)}
