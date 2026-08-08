@@ -100,7 +100,16 @@ function NavRow({
 					'blockera-site-editor-templates-nav__status',
 					`is-${status}`,
 				].join(' ')}
+				data-test={`blockera-site-editor-templates-nav-${item.id}-status`}
+				role="button"
+				tabIndex={0}
 				onClick={onClick}
+				onKeyDown={(event) => {
+					if (event.key === 'Enter' || event.key === ' ') {
+						event.preventDefault();
+						onClick();
+					}
+				}}
 			>
 				{statusLabel}
 			</span>
