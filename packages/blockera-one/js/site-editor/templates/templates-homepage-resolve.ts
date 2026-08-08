@@ -261,7 +261,7 @@ export function isHomepageBranchFilter(
 
 /**
  * Inline child rows: Front Page / Blog Home / Index with status badges.
- * Front Page keeps showChildren for front-page-* templates.
+ * Front Page is omitted when unused; keeps showChildren for front-page-* when shown.
  */
 export function buildHomepageFallbackNavItems(
 	findBySlug: (slug: string) => TemplateLike | undefined,
@@ -269,19 +269,26 @@ export function buildHomepageFallbackNavItems(
 ): TemplatesNavItemConfig[] {
 	const activeSlug = getSiteRootActiveSlug(findBySlug, site);
 
-	return HOMEPAGE_LAYER_SLUGS.map((slug) => {
+	return HOMEPAGE_LAYER_SLUGS.flatMap((slug) => {
 		const exists = !!findBySlug(slug);
 		const status = getHomepageLayerStatus(slug, activeSlug, exists, site);
 
-		return {
-			id: `homepage-fallback:${slug}`,
-			label: LAYER_LABEL[slug](),
-			icon: LAYER_ICON[slug],
-			filter: LAYER_FILTER[slug],
-			baseSlug: slug,
-			showChildren: slug === 'front-page',
-			status,
-			statusLabel: getHomepageStatusLabel(status),
-		};
+		// Front Page / Blog Home — hide when not in use for the site root.
+		if ((slug === 'front-page' || slug === 'home') && status === 'unused') {
+			return [];
+		}
+
+		return [
+			{
+				id: `homepage-fallback:${slug}`,
+				label: LAYER_LABEL[slug](),
+				icon: LAYER_ICON[slug],
+				filter: LAYER_FILTER[slug],
+				baseSlug: slug,
+				showChildren: slug === 'front-page',
+				status,
+				statusLabel: getHomepageStatusLabel(status),
+			},
+		];
 	});
 }
