@@ -339,6 +339,7 @@ export { default as SideLockNone } from './side-lock-none.svg';
 export { default as SideLockVerticalHorizontal } from './side-lock-vertical-horizontal.svg';
 export { default as SideLockVertical } from './side-lock-vertical.svg';
 export { default as StyleVariations } from './style-variations.svg';
+export { default as Sidebar } from './sidebar.svg';
 export { default as StyleVariationsAnimated } from './style-variations-animated';
 export { default as SizeVariations } from './size-variations.svg';
 export { default as SizeVariationsAnimated } from './size-variations-animated';
