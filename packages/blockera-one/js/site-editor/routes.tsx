@@ -36,6 +36,7 @@ import {
 	isTemplatesOwnedPagePreview,
 } from './templates';
 import TemplatesAreaHub from './templates/templates-area-hub';
+import TemplatesPurposePreview from './templates/templates-purpose-preview';
 import { getTemplatesUrlState } from './templates/constants';
 import { isSiteEditorUrl } from './utils';
 import './styles-panel.scss';
@@ -160,6 +161,26 @@ function wrapTemplatesBrowsePreview(
 	};
 }
 
+/**
+ * Keep `template-item` preview as a route area function so the router still
+ * resolves core `({ siteData }) => <Editor />`. Wrapping the function as JSX
+ * children leaves a blank canvas.
+ */
+function wrapTemplateItemPurposePreview(
+	area: ReactNode | RouteAreaFn | undefined
+): RouteAreaFn {
+	return async (args: unknown) => {
+		const resolved = resolveAreaNode(area, args);
+		const node =
+			!!resolved &&
+			typeof (resolved as { then?: unknown }).then === 'function'
+				? await (resolved as Promise<ReactNode>)
+				: resolved;
+
+		return <TemplatesPurposePreview>{node}</TemplatesPurposePreview>;
+	};
+}
+
 function wrapStylesDrillDown(content: ReactNode): ReactNode {
 	return <StylesDrillDown>{content}</StylesDrillDown>;
 }
@@ -276,7 +297,9 @@ export default function SiteEditorMainPanelRoutes(): null {
 						path: templateItem.path || '/wp_template/*postId',
 						areas: {
 							sidebar: <TemplatesDrillDown />,
-							preview: templateItem.areas.preview,
+							preview: wrapTemplateItemPurposePreview(
+								templateItem.areas.preview
+							),
 							mobileSidebar: <TemplatesDrillDown />,
 						},
 					},

@@ -27,6 +27,7 @@ import {
 	type PartAreaId,
 } from './constants';
 import { findCanonicalPart } from './templates-hub-parts';
+import { isOpenNavigationControl } from './templates-purpose-preview';
 import useTemplatesData from './use-templates-data';
 
 type TemplatesAreaHubProps = {
@@ -38,12 +39,6 @@ type TemplatesAreaHubProps = {
  * (`getNavigationPath` → `/pattern?postType=wp_template_part`). When the user
  * opened the part from Templates Area Hub, return to that hub instead.
  */
-function isOpenNavigationControl(target: Element): boolean {
-	return !!target.closest(
-		'button[aria-label="Open Navigation"], .edit-site-editor__view-mode-toggle, .edit-site-editor__view-mode-toggle-icon, .edit-site-layout__view-mode-toggle'
-	);
-}
-
 function returnToTemplatesPartsHub(area: PartAreaId): void {
 	const path = getSiteEditorPath();
 	const partId = getPreviewedPartId(path);
