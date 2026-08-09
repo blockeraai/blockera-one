@@ -99,7 +99,8 @@ function NavRow({
 	isGrandchild?: boolean;
 	onClick: () => void;
 }) {
-	const iconSize = isChild ? 18 : 20;
+	// Child “Specific templates” rows use list-view at 20px; everything else 22px.
+	const iconSize = isChild && item.icon === 'list' ? 20 : 22;
 	const wooIcon = isWooCommerceNavIcon(item.icon)
 		? renderWooCommerceNavIcon(item.icon, iconSize)
 		: null;
@@ -151,6 +152,7 @@ function NavRow({
 				<Flex
 					alignItems="center"
 					justifyContent="space-between"
+					gap={isChild ? 0 : undefined}
 					className="blockera-site-editor-templates-nav__item-inner"
 				>
 					<Flex
