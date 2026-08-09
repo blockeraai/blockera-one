@@ -29,7 +29,16 @@ export type NavIcon =
 	| 'media'
 	| 'list'
 	| 'verse'
-	| 'blockera-one';
+	| 'blockera-one'
+	/** WooCommerce Templates section (WC SVGs + WP taxonomy icons) */
+	| 'store'
+	| 'product'
+	| 'cart'
+	| 'checkout'
+	| 'order'
+	| 'post-categories'
+	| 'product-search'
+	| 'coming-soon';
 
 export type TemplatesNavItemConfig = {
 	id: FilterId;
@@ -48,6 +57,12 @@ export type TemplatesNavItemConfig = {
 	entityPath?: string;
 	/** Show nested specific templates under this row. */
 	showChildren?: boolean;
+	/**
+	 * Explicit nested nav rows (e.g. WooCommerce Shop → taxonomies).
+	 * Always rendered as child rows when present — separate from showChildren
+	 * hierarchy “Child templates” browse.
+	 */
+	navChildren?: TemplatesNavItemConfig[];
 	/**
 	 * Hide this row when no templates match the filter
 	 * (base or children). Used for advanced types like Taxonomies.
@@ -267,6 +282,12 @@ export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 				baseSlug: '404',
 			},
 		],
+	},
+	{
+		id: 'woocommerce',
+		label: __('WooCommerce Templates', 'blockera'),
+		/** Rows are populated at runtime from active WooCommerce wp_templates. */
+		items: [],
 	},
 	{
 		id: 'other',
