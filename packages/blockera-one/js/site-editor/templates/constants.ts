@@ -12,6 +12,7 @@ import {
 	setPendingSidebarNavDirection,
 	type SidebarNavDirection,
 } from '../utils';
+import { rememberTemplatesSidebarScroll } from './templates-sidebar-scroll';
 
 /** Core Templates DataViews tab query key (`active` / `user` / author_text). */
 export const TEMPLATES_ACTIVE_VIEW_QUERY = 'activeView';
@@ -215,6 +216,9 @@ export function navigateTemplates(
 	if (typeof window === 'undefined') {
 		return;
 	}
+
+	// Capture purpose-nav scroll before routeKey remount can wipe it.
+	rememberTemplatesSidebarScroll();
 
 	if (options?.direction) {
 		setPendingSidebarNavDirection(options.direction);
