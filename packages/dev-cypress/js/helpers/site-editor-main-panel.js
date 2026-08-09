@@ -479,6 +479,8 @@ export function deleteWpTemplate(templateId) {
 
 /**
  * Open Templates purpose-nav drill-down from Design root.
+ *
+ * Save Hub can overlay the sticky templates nav — assert mounted, not painted.
  */
 export function openTemplatesPurposeNav() {
 	clickSiteEditorNav(SITE_EDITOR_TEST_IDS.navTemplates);
@@ -486,8 +488,10 @@ export function openTemplatesPurposeNav() {
 	assertSiteEditorDrillDown();
 	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesPanel, {
 		timeout: 20000,
-	}).should('be.visible');
-	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should('be.visible');
+	}).should('exist');
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav)
+		.scrollIntoView({ block: 'start', ensureScrollable: false })
+		.should('exist');
 }
 
 const TEMPLATES_PART_AREA_NAV = {
