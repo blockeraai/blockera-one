@@ -37,10 +37,6 @@ import {
 	isHomepageBranchFilter,
 } from './templates-homepage-resolve';
 import type { NavIcon, TemplatesNavItemConfig } from './templates-nav-config';
-import {
-	isWooCommerceNavIcon,
-	renderWooCommerceNavIcon,
-} from './templates-woocommerce-icons';
 import useTemplatesData, { buildChildNavItems } from './use-templates-data';
 
 const ICON_MAP: Partial<
@@ -76,6 +72,15 @@ const ICON_MAP: Partial<
 	list: { library: 'wp', icon: 'list-view' },
 	verse: { library: 'wp', icon: 'verse' },
 	'blockera-one': { library: 'blockera', icon: 'blockera-one' },
+	'woocommerce-store': { library: 'ui', icon: 'woocommerce-store' },
+	'woocommerce-product': { library: 'ui', icon: 'woocommerce-product' },
+	'woocommerce-cart': { library: 'ui', icon: 'woocommerce-cart' },
+	'woocommerce-checkout': { library: 'ui', icon: 'woocommerce-checkout' },
+	'woocommerce-order': { library: 'ui', icon: 'woocommerce-order' },
+	'woocommerce-coming-soon': {
+		library: 'ui',
+		icon: 'woocommerce-coming-soon',
+	},
 };
 
 type TemplatesNavProps = {
@@ -101,11 +106,7 @@ function NavRow({
 }) {
 	// Child “Specific templates” rows use list-view at 20px; everything else 22px.
 	const iconSize = isChild && item.icon === 'list' ? 20 : 22;
-	const wooIcon = isWooCommerceNavIcon(item.icon)
-		? renderWooCommerceNavIcon(item.icon, iconSize)
-		: null;
-	// Skip ICON_MAP lookup when a vendored Woo icon already resolved.
-	const iconDef = wooIcon ? null : ICON_MAP[item.icon] || ICON_MAP.layout;
+	const iconDef = ICON_MAP[item.icon] || ICON_MAP.layout;
 	const showCount = typeof count === 'number';
 	const status = item.status;
 	const statusLabel = item.statusLabel;
@@ -162,15 +163,11 @@ function NavRow({
 						className="blockera-site-editor-templates-nav__item-label"
 					>
 						<span className="blockera-site-editor-templates-nav__item-icon">
-							{wooIcon ? (
-								wooIcon
-							) : (
-								<Icon
-									library={iconDef!.library}
-									icon={iconDef!.icon}
-									iconSize={iconSize}
-								/>
-							)}
+							<Icon
+								library={iconDef.library}
+								icon={iconDef.icon}
+								iconSize={iconSize}
+							/>
 						</span>
 						<span>{item.label}</span>
 					</Flex>
