@@ -343,6 +343,8 @@ export default function useTemplatesData(): TemplatesData {
 							? 'page'
 							: `single-${postType.slug}`,
 					showChildren: true,
+					// Only show when a base or child single-{cpt} template exists.
+					hideWhenEmpty: true,
 				});
 			});
 		}
