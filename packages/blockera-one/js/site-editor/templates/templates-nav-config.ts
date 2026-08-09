@@ -3,7 +3,7 @@
  * Dynamic CPT / author / child rows are merged at runtime.
  */
 
-import type { ReactNode } from '@wordpress/element';
+import { createElement, Fragment, type ReactNode } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 import { FILTER_IDS, type FilterId, type PartAreaId } from './constants';
@@ -117,11 +117,38 @@ export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 	},
 	{
 		id: 'single',
-		label: __('Single content', 'blockera'),
+		label: __('Single Templates', 'blockera'),
 		items: [
 			{
+				id: FILTER_IDS.singular,
+				label: __('Singular', 'blockera'),
+				icon: 'layout',
+				filter: FILTER_IDS.singular,
+				baseSlug: 'singular',
+				hideWhenEmpty: true,
+				status: 'fallback',
+				statusLabel: __('Fallback', 'blockera'),
+				statusTooltip: createElement(
+					Fragment,
+					null,
+					createElement(
+						'h5',
+						null,
+						__('singular.html template', 'blockera')
+					),
+					createElement(
+						'p',
+						null,
+						__(
+							'Fallback for single content. Used for posts, pages, attachments, and custom post types when a more specific template is missing.',
+							'blockera'
+						)
+					)
+				),
+			},
+			{
 				id: FILTER_IDS.single,
-				label: __('Posts', 'blockera'),
+				label: __('Single Post', 'blockera'),
 				icon: 'post',
 				filter: FILTER_IDS.single,
 				baseSlug: 'single',
@@ -129,18 +156,11 @@ export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 			},
 			{
 				id: FILTER_IDS.page,
-				label: __('Pages', 'blockera'),
+				label: __('Single Page', 'blockera'),
 				icon: 'page',
 				filter: FILTER_IDS.page,
 				baseSlug: 'page',
 				showChildren: true,
-			},
-			{
-				id: FILTER_IDS.singular,
-				label: __('Singular', 'blockera'),
-				icon: 'layout',
-				filter: FILTER_IDS.singular,
-				baseSlug: 'singular',
 			},
 			{
 				id: FILTER_IDS.attachment,
