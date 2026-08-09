@@ -10,6 +10,7 @@ import {
 	assertSiteEditorChrome,
 	assertSiteEditorMainNav,
 	openTemplatesPurposeNav,
+	openTemplatesNavItem,
 	assertTemplatesSpecialSection,
 	assertTemplatesMissingBase,
 	hideSpecialThemeTemplate,
@@ -91,25 +92,13 @@ describe('Blockera One → Templates Special Templates purpose-nav', () => {
 					);
 				});
 
-			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavSearch).click();
-			cy.location('search').should((search) => {
-				const decoded = decodeURIComponent(search);
-				expect(decoded).to.include('search');
-				expect(decoded).to.include('boFilter=search');
-			});
-			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should('exist');
+			openTemplatesNavItem(SITE_EDITOR_TEST_IDS.templatesNavSearch);
 
 			// Remount purpose-nav after canvas preview.
 			openFreshSiteEditor();
 			openTemplatesPurposeNav();
 
-			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavNotFound).click();
-			cy.location('search').should((search) => {
-				const decoded = decodeURIComponent(search);
-				expect(decoded).to.include('404');
-				expect(decoded).to.include('boFilter=404');
-			});
-			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should('exist');
+			openTemplatesNavItem(SITE_EDITOR_TEST_IDS.templatesNavNotFound);
 		});
 	});
 
@@ -123,11 +112,7 @@ describe('Blockera One → Templates Special Templates purpose-nav', () => {
 
 			assertTemplatesSpecialSection();
 
-			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavSearch).click();
-			cy.location('search').should((search) => {
-				const decoded = decodeURIComponent(search);
-				expect(decoded).to.include('boFilter=search');
-			});
+			openTemplatesNavItem(SITE_EDITOR_TEST_IDS.templatesNavSearch);
 
 			assertTemplatesMissingBase({
 				headingIncludes: 'Search Results',
@@ -146,7 +131,7 @@ describe('Blockera One → Templates Special Templates purpose-nav', () => {
 
 			openFreshSiteEditor();
 			openTemplatesPurposeNav();
-			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavSearch).click();
+			openTemplatesNavItem(SITE_EDITOR_TEST_IDS.templatesNavSearch);
 
 			assertTemplatesMissingBase({
 				headingIncludes: 'Search Results',
@@ -171,11 +156,9 @@ describe('Blockera One → Templates Special Templates purpose-nav', () => {
 			openTemplatesPurposeNav();
 			assertTemplatesSpecialSection();
 
-			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavSearch).click();
+			openTemplatesNavItem(SITE_EDITOR_TEST_IDS.templatesNavSearch);
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
-				expect(decoded).to.include('search');
-				expect(decoded).to.include('boFilter=search');
 				expect(decoded).to.not.include('canvas=edit');
 			});
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesMissing).should(
@@ -194,11 +177,7 @@ describe('Blockera One → Templates Special Templates purpose-nav', () => {
 
 			assertTemplatesSpecialSection();
 
-			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavNotFound).click();
-			cy.location('search').should((search) => {
-				const decoded = decodeURIComponent(search);
-				expect(decoded).to.include('boFilter=404');
-			});
+			openTemplatesNavItem(SITE_EDITOR_TEST_IDS.templatesNavNotFound);
 
 			assertTemplatesMissingBase({
 				headingIncludes: 'Page: 404',
@@ -217,7 +196,7 @@ describe('Blockera One → Templates Special Templates purpose-nav', () => {
 
 			openFreshSiteEditor();
 			openTemplatesPurposeNav();
-			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavNotFound).click();
+			openTemplatesNavItem(SITE_EDITOR_TEST_IDS.templatesNavNotFound);
 
 			assertTemplatesMissingBase({
 				headingIncludes: 'Page: 404',
@@ -241,11 +220,9 @@ describe('Blockera One → Templates Special Templates purpose-nav', () => {
 			openTemplatesPurposeNav();
 			assertTemplatesSpecialSection();
 
-			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavNotFound).click();
+			openTemplatesNavItem(SITE_EDITOR_TEST_IDS.templatesNavNotFound);
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
-				expect(decoded).to.include('404');
-				expect(decoded).to.include('boFilter=404');
 				expect(decoded).to.not.include('canvas=edit');
 			});
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesMissing).should(
