@@ -145,7 +145,7 @@ export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 			{
 				id: FILTER_IDS.singular,
 				label: __('Singular', 'blockera'),
-				icon: 'layout',
+				icon: 'post-base',
 				filter: FILTER_IDS.singular,
 				baseSlug: 'singular',
 				hideWhenEmpty: true,
@@ -203,7 +203,7 @@ export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 			{
 				id: FILTER_IDS.archive,
 				label: __('All Archives', 'blockera'),
-				icon: 'archive',
+				icon: 'archive-base',
 				filter: FILTER_IDS.archive,
 				baseSlug: 'archive',
 				status: 'fallback',
@@ -285,7 +285,7 @@ export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 			{
 				id: FILTER_IDS.notFound,
 				label: __('404 Page', 'blockera'),
-				icon: 'not-found',
+				icon: 'post-not-found',
 				filter: FILTER_IDS.notFound,
 				baseSlug: '404',
 			},
