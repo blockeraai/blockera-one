@@ -988,9 +988,49 @@ export function assertTemplatesArchiveSection({
 }
 
 /**
+ * Scroll a Templates nav row into the sticky sidebar viewport (Save Hub can cover
+ * lower Special / WooCommerce rows otherwise).
+ *
+ * @param {string} testId
+ * @return {Cypress.Chainable}
+ */
+function scrollTemplatesNavItemIntoView(testId) {
+	return cy
+		.getByDataTest(testId)
+		.scrollIntoView({ block: 'center', ensureScrollable: false })
+		.should(($el) => {
+			expect(
+				$el[0].getBoundingClientRect().height,
+				`${testId} layout height`
+			).to.be.greaterThan(0);
+		});
+}
+
+/**
+ * Open a Templates purpose-nav row (scroll past Save Hub, force click).
+ *
+ * @param {string} testId SITE_EDITOR_TEST_IDS.templatesNav*
+ * @param {{ boFilterIncludes?: string }} [options]
+ */
+export function openTemplatesNavItem(testId, { boFilterIncludes } = {}) {
+	const filter =
+		boFilterIncludes ||
+		String(testId).replace(/^blockera-site-editor-templates-nav-/, '');
+
+	scrollTemplatesNavItemIntoView(testId).click({ force: true });
+
+	cy.location('search').should((search) => {
+		const decoded = decodeURIComponent(String(search));
+		expect(decoded).to.include(`boFilter=${filter}`);
+	});
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should('exist');
+}
+
+/**
  * Assert Special Templates purpose-nav section visibility / children.
  *
  * Search + 404 are always present (no hideWhenEmpty / status / children).
+ * Rows sit above WooCommerce — Save Hub may cover them; scroll before asserting.
  *
  * @param {{
  *   absentChildTestIds?: string[],
@@ -1008,14 +1048,16 @@ export function assertTemplatesSpecialSection({
 			'.blockera-site-editor-templates-nav__section-title',
 			'Special Templates'
 		)
-		.should('be.visible');
+		.scrollIntoView({ block: 'center', ensureScrollable: false })
+		.should('exist');
 
-	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavSearch).should(
-		'be.visible'
-	);
-	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavNotFound).should(
-		'be.visible'
-	);
+	// Prefer exist over be.visible — Save Hub overlays fixed/sticky sidebar rows.
+	scrollTemplatesNavItemIntoView(
+		SITE_EDITOR_TEST_IDS.templatesNavSearch
+	).should('exist');
+	scrollTemplatesNavItemIntoView(
+		SITE_EDITOR_TEST_IDS.templatesNavNotFound
+	).should('exist');
 
 	absentChildTestIds.forEach((testId) => {
 		cy.getByDataTest(testId).should('not.exist');
@@ -1096,42 +1138,12 @@ export function getTemplatesWooCommerceSection() {
 }
 
 /**
- * Scroll a Templates nav row into the sticky sidebar viewport (Save Hub can cover
- * lower WooCommerce rows otherwise).
- *
- * @param {string} testId
- * @return {Cypress.Chainable}
- */
-function scrollTemplatesNavItemIntoView(testId) {
-	return cy
-		.getByDataTest(testId)
-		.scrollIntoView({ block: 'center', ensureScrollable: false })
-		.should(($el) => {
-			expect(
-				$el[0].getBoundingClientRect().height,
-				`${testId} layout height`
-			).to.be.greaterThan(0);
-		});
-}
-
-/**
  * Open a WooCommerce Templates nav row and assert `boFilter` + nav still mounted.
  *
  * @param {string} testId SITE_EDITOR_TEST_IDS.templatesNavWoo*
  */
 export function openTemplatesWooCommerceItem(testId) {
-	const filter = String(testId).replace(
-		/^blockera-site-editor-templates-nav-/,
-		''
-	);
-
-	scrollTemplatesNavItemIntoView(testId).click({ force: true });
-
-	cy.location('search').should((search) => {
-		const decoded = decodeURIComponent(String(search));
-		expect(decoded).to.include(`boFilter=${filter}`);
-	});
-	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should('exist');
+	openTemplatesNavItem(testId);
 }
 
 /**
