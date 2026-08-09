@@ -101,6 +101,34 @@ export const SITE_EDITOR_TEST_IDS = {
 		'blockera-site-editor-templates-nav-children:search',
 	templatesNavChildrenNotFound:
 		'blockera-site-editor-templates-nav-children:404',
+	templatesNavCustom: 'blockera-site-editor-templates-nav-custom',
+	templatesNavAuthorWooCommerce:
+		'blockera-site-editor-templates-nav-author:WooCommerce',
+	templatesNavWooArchiveProduct:
+		'blockera-site-editor-templates-nav-child:archive-product',
+	templatesNavWooProductCat:
+		'blockera-site-editor-templates-nav-child:taxonomy-product_cat',
+	templatesNavWooProductTag:
+		'blockera-site-editor-templates-nav-child:taxonomy-product_tag',
+	templatesNavWooProductBrand:
+		'blockera-site-editor-templates-nav-child:taxonomy-product_brand',
+	templatesNavWooProductAttribute:
+		'blockera-site-editor-templates-nav-child:taxonomy-product_attribute',
+	templatesNavWooProductSearch:
+		'blockera-site-editor-templates-nav-child:product-search-results',
+	templatesNavWooSingleProduct:
+		'blockera-site-editor-templates-nav-child:single-product',
+	templatesNavWooCart: 'blockera-site-editor-templates-nav-child:page-cart',
+	templatesNavWooCheckout:
+		'blockera-site-editor-templates-nav-child:page-checkout',
+	templatesNavWooOrderConfirmation:
+		'blockera-site-editor-templates-nav-child:order-confirmation',
+	templatesNavWooComingSoon:
+		'blockera-site-editor-templates-nav-child:coming-soon',
+	templatesNavCptSingleProduct:
+		'blockera-site-editor-templates-nav-cpt-single:product',
+	templatesNavCptArchiveProduct:
+		'blockera-site-editor-templates-nav-cpt-archive:product',
 	templatesMissing: 'blockera-site-editor-templates-missing',
 	templatesMissingFallback: 'blockera-site-editor-templates-missing-fallback',
 	templatesAddSpecific: 'blockera-site-editor-templates-add-specific',
@@ -994,6 +1022,258 @@ export function assertTemplatesSpecialSection({
 	});
 }
 
+/** Curated WC purpose-nav rows (labels match templates-woocommerce.ts). */
+const WOO_TEMPLATES_NAV_ROWS = [
+	{
+		testId: () => SITE_EDITOR_TEST_IDS.templatesNavWooArchiveProduct,
+		label: 'Shop Page',
+		role: 'top',
+	},
+	{
+		testId: () => SITE_EDITOR_TEST_IDS.templatesNavWooProductCat,
+		label: 'Products by Category',
+		role: 'shop-child',
+	},
+	{
+		testId: () => SITE_EDITOR_TEST_IDS.templatesNavWooProductTag,
+		label: 'Products by Tag',
+		role: 'shop-child',
+	},
+	{
+		testId: () => SITE_EDITOR_TEST_IDS.templatesNavWooProductBrand,
+		label: 'Products by Brand',
+		role: 'shop-child',
+	},
+	{
+		testId: () => SITE_EDITOR_TEST_IDS.templatesNavWooProductAttribute,
+		label: 'Products by Attribute',
+		role: 'shop-child',
+	},
+	{
+		testId: () => SITE_EDITOR_TEST_IDS.templatesNavWooProductSearch,
+		label: 'Product Search Page',
+		role: 'shop-child',
+	},
+	{
+		testId: () => SITE_EDITOR_TEST_IDS.templatesNavWooSingleProduct,
+		label: 'Single Product',
+		role: 'top',
+	},
+	{
+		testId: () => SITE_EDITOR_TEST_IDS.templatesNavWooCart,
+		label: 'Cart Page',
+		role: 'top',
+	},
+	{
+		testId: () => SITE_EDITOR_TEST_IDS.templatesNavWooCheckout,
+		label: 'Checkout Page',
+		role: 'top',
+	},
+	{
+		testId: () => SITE_EDITOR_TEST_IDS.templatesNavWooOrderConfirmation,
+		label: 'Order Confirmation',
+		role: 'top',
+	},
+	{
+		testId: () => SITE_EDITOR_TEST_IDS.templatesNavWooComingSoon,
+		label: 'Coming Soon Page',
+		role: 'top',
+	},
+];
+
+/**
+ * Scoped Cypress chain for the WooCommerce Templates purpose-nav section.
+ */
+export function getTemplatesWooCommerceSection() {
+	return cy
+		.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav)
+		.find('.blockera-site-editor-templates-nav__section')
+		.contains(
+			'.blockera-site-editor-templates-nav__section-title',
+			'WooCommerce Templates'
+		)
+		.parents('.blockera-site-editor-templates-nav__section');
+}
+
+/**
+ * Scroll a Templates nav row into the sticky sidebar viewport (Save Hub can cover
+ * lower WooCommerce rows otherwise).
+ *
+ * @param {string} testId
+ * @return {Cypress.Chainable}
+ */
+function scrollTemplatesNavItemIntoView(testId) {
+	return cy
+		.getByDataTest(testId)
+		.scrollIntoView({ block: 'center', ensureScrollable: false })
+		.should(($el) => {
+			expect(
+				$el[0].getBoundingClientRect().height,
+				`${testId} layout height`
+			).to.be.greaterThan(0);
+		});
+}
+
+/**
+ * Open a WooCommerce Templates nav row and assert `boFilter` + nav still mounted.
+ *
+ * @param {string} testId SITE_EDITOR_TEST_IDS.templatesNavWoo*
+ */
+export function openTemplatesWooCommerceItem(testId) {
+	const filter = String(testId).replace(
+		/^blockera-site-editor-templates-nav-/,
+		''
+	);
+
+	scrollTemplatesNavItemIntoView(testId).click({ force: true });
+
+	cy.location('search').should((search) => {
+		const decoded = decodeURIComponent(String(search));
+		expect(decoded).to.include(`boFilter=${filter}`);
+	});
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should('exist');
+}
+
+/**
+ * Assert WooCommerce Templates section (requires WC-enabled wp-env).
+ * Section sits immediately before Other; curated rows, nesting, order, exclusions.
+ *
+ * @param {{
+ *   assertOrder?: boolean,
+ *   assertLabels?: boolean,
+ *   assertNesting?: boolean,
+ *   assertExclusions?: boolean,
+ *   assertUniqueness?: boolean,
+ * }} [options]
+ */
+export function assertTemplatesWooCommerceSection({
+	assertOrder = true,
+	assertLabels = true,
+	assertNesting = true,
+	assertExclusions = true,
+	assertUniqueness = true,
+} = {}) {
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav)
+		.find('.blockera-site-editor-templates-nav__section')
+		.then(($sections) => {
+			const titles = [...$sections]
+				.map((section) =>
+					section
+						.querySelector(
+							'.blockera-site-editor-templates-nav__section-title'
+						)
+						?.textContent?.trim()
+				)
+				.filter(Boolean);
+
+			const wooIndex = titles.indexOf('WooCommerce Templates');
+			const otherIndex = titles.indexOf('Other');
+
+			expect(wooIndex, 'WooCommerce Templates section').to.be.gte(0);
+			expect(otherIndex, 'Other section').to.be.gte(0);
+			expect(wooIndex).to.be.lt(otherIndex);
+		});
+
+	const allTestIds = WOO_TEMPLATES_NAV_ROWS.map((row) => row.testId());
+
+	allTestIds.forEach((testId) => {
+		scrollTemplatesNavItemIntoView(testId).should('exist');
+	});
+
+	if (assertLabels) {
+		WOO_TEMPLATES_NAV_ROWS.forEach(({ testId, label }) => {
+			scrollTemplatesNavItemIntoView(testId()).should(
+				'contain.text',
+				label
+			);
+		});
+	}
+
+	if (assertNesting) {
+		const shopChildTestIds = WOO_TEMPLATES_NAV_ROWS.filter(
+			(row) => row.role === 'shop-child'
+		).map((row) => row.testId());
+
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavWooArchiveProduct)
+			.parents('.blockera-site-editor-templates-nav__item-shell')
+			.parent()
+			.within(() => {
+				shopChildTestIds.forEach((testId) => {
+					cy.getByDataTest(testId).should('have.class', 'is-child');
+				});
+			});
+	}
+
+	if (assertOrder) {
+		const topLevelOrder = WOO_TEMPLATES_NAV_ROWS.filter(
+			(row) => row.role === 'top'
+		).map((row) => row.testId());
+		const shopChildOrder = WOO_TEMPLATES_NAV_ROWS.filter(
+			(row) => row.role === 'shop-child'
+		).map((row) => row.testId());
+
+		getTemplatesWooCommerceSection()
+			.find('.blockera-site-editor-templates-nav__items [data-test]')
+			.then(($rows) => {
+				const testIds = [...$rows]
+					.map((el) => el.getAttribute('data-test'))
+					.filter(Boolean);
+
+				const topIndexes = topLevelOrder.map((id) =>
+					testIds.indexOf(id)
+				);
+				topIndexes.forEach((index, i) => {
+					expect(index, topLevelOrder[i]).to.be.gte(0);
+					if (i > 0) {
+						expect(
+							topIndexes[i - 1],
+							`${topLevelOrder[i - 1]} before ${topLevelOrder[i]}`
+						).to.be.lt(index);
+					}
+				});
+
+				const childIndexes = shopChildOrder.map((id) =>
+					testIds.indexOf(id)
+				);
+				childIndexes.forEach((index, i) => {
+					expect(index, shopChildOrder[i]).to.be.gte(0);
+					if (i > 0) {
+						expect(
+							childIndexes[i - 1],
+							`${shopChildOrder[i - 1]} before ${shopChildOrder[i]}`
+						).to.be.lt(index);
+					}
+				});
+
+				// Shop children sit between Shop Page and Single Product.
+				expect(childIndexes[0]).to.be.gt(topIndexes[0]);
+				expect(childIndexes[childIndexes.length - 1]).to.be.lt(
+					topIndexes[1]
+				);
+			});
+	}
+
+	if (assertExclusions) {
+		cy.getByDataTest(
+			SITE_EDITOR_TEST_IDS.templatesNavAuthorWooCommerce
+		).should('not.exist');
+		cy.getByDataTest(
+			SITE_EDITOR_TEST_IDS.templatesNavCptSingleProduct
+		).should('not.exist');
+		cy.getByDataTest(
+			SITE_EDITOR_TEST_IDS.templatesNavCptArchiveProduct
+		).should('not.exist');
+	}
+
+	if (assertUniqueness) {
+		allTestIds.forEach((testId) => {
+			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav)
+				.find(`[data-test="${testId}"]`)
+				.should('have.length', 1);
+		});
+	}
+}
+
 /**
  * Assert the missing-base empty state for a purpose filter.
  *
@@ -1383,6 +1663,54 @@ export function ensureNoThemeTemplate(slug) {
 				]);
 			});
 		});
+}
+
+const WOOCOMMERCE_TEMPLATES_FIXTURE_DIR =
+	'packages/blockera-one/js/test/fixtures/woocommerce-templates';
+
+/**
+ * WC taxonomy templates that are registry-known but not shipped as plugin HTML
+ * files (WordPress only exposes them after a theme/custom template exists).
+ */
+export const WOOCOMMERCE_TAXONOMY_TEMPLATE_FIXTURE_SLUGS = [
+	'taxonomy-product_cat',
+	'taxonomy-product_tag',
+	'taxonomy-product_brand',
+];
+
+/**
+ * Install theme fixtures so Shop Page can nest Category / Tag / Brand rows.
+ *
+ * @return {Cypress.Chainable}
+ */
+export function installWooCommerceTaxonomyTemplateFixtures() {
+	return WOOCOMMERCE_TAXONOMY_TEMPLATE_FIXTURE_SLUGS.reduce(
+		(chain, slug) =>
+			chain.then(() =>
+				installThemeTemplateFixture(
+					slug,
+					`${WOOCOMMERCE_TEMPLATES_FIXTURE_DIR}/${slug}.html`
+				).then((result) => {
+					expect(
+						result?.ok,
+						result?.message || `install ${slug}`
+					).to.eq(true);
+				})
+			),
+		cy.wrap(null, { log: false })
+	);
+}
+
+/**
+ * Remove WooCommerce taxonomy template fixtures installed for e2e.
+ *
+ * @return {Cypress.Chainable}
+ */
+export function removeWooCommerceTaxonomyTemplateFixtures() {
+	return WOOCOMMERCE_TAXONOMY_TEMPLATE_FIXTURE_SLUGS.reduce(
+		(chain, slug) => chain.then(() => ensureNoThemeTemplate(slug)),
+		cy.wrap(null, { log: false })
+	);
 }
 
 /**
