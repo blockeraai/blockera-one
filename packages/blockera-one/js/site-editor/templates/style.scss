@@ -84,7 +84,14 @@
 
 	&__item-icon {
 		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		flex: 0 0 auto;
 		color: #cccccc;
+
+		svg {
+			display: block;
+		}
 	}
 
 	&__item-suffix {

@@ -37,11 +37,14 @@ import {
 	isHomepageBranchFilter,
 } from './templates-homepage-resolve';
 import type { NavIcon, TemplatesNavItemConfig } from './templates-nav-config';
+import {
+	isWooCommerceNavIcon,
+	renderWooCommerceNavIcon,
+} from './templates-woocommerce-icons';
 import useTemplatesData, { buildChildNavItems } from './use-templates-data';
 
-const ICON_MAP: Record<
-	NavIcon,
-	{ library: 'wp' | 'ui' | 'tabler' | 'blockera'; icon: string }
+const ICON_MAP: Partial<
+	Record<NavIcon, { library: 'wp' | 'ui' | 'blockera'; icon: string }>
 > = {
 	layout: { library: 'wp', icon: 'layout' },
 	home: { library: 'wp', icon: 'home' },
@@ -50,12 +53,13 @@ const ICON_MAP: Record<
 	archive: { library: 'wp', icon: 'archive' },
 	category: { library: 'ui', icon: 'categories' },
 	tag: { library: 'wp', icon: 'tag' },
+	'post-categories': { library: 'wp', icon: 'post-categories' },
 	author: { library: 'wp', icon: 'comment-author-avatar' },
 	search: { library: 'wp', icon: 'search' },
 	'not-found': { library: 'wp', icon: 'not-found' },
 	header: { library: 'wp', icon: 'header' },
 	footer: { library: 'wp', icon: 'footer' },
-	sidebar: { library: 'wp', icon: 'columns' },
+	sidebar: { library: 'ui', icon: 'sidebar' },
 	plugins: { library: 'wp', icon: 'plugins' },
 	custom: { library: 'wp', icon: 'add-template' },
 	active: { library: 'wp', icon: 'yes' },
@@ -87,7 +91,12 @@ function NavRow({
 	isGrandchild?: boolean;
 	onClick: () => void;
 }) {
-	const iconDef = ICON_MAP[item.icon] || ICON_MAP.layout;
+	const iconSize = isChild ? 18 : 20;
+	const wooIcon = isWooCommerceNavIcon(item.icon)
+		? renderWooCommerceNavIcon(item.icon, iconSize)
+		: null;
+	// Skip ICON_MAP lookup when a vendored Woo icon already resolved.
+	const iconDef = wooIcon ? null : ICON_MAP[item.icon] || ICON_MAP.layout;
 	const showCount = typeof count === 'number';
 	const status = item.status;
 	const statusLabel = item.statusLabel;
@@ -143,11 +152,15 @@ function NavRow({
 						className="blockera-site-editor-templates-nav__item-label"
 					>
 						<span className="blockera-site-editor-templates-nav__item-icon">
-							<Icon
-								library={iconDef.library}
-								icon={iconDef.icon}
-								iconSize={isChild ? 18 : 20}
-							/>
+							{wooIcon ? (
+								wooIcon
+							) : (
+								<Icon
+									library={iconDef!.library}
+									icon={iconDef!.icon}
+									iconSize={iconSize}
+								/>
+							)}
 						</span>
 						<span>{item.label}</span>
 					</Flex>
@@ -341,6 +354,7 @@ export default function TemplatesNav({ onOpenPartsArea }: TemplatesNavProps) {
 										item.filter
 									).length
 								: 0;
+							const navChildren = item.navChildren || [];
 							const isPartsActive =
 								!!item.partsArea &&
 								activePartsArea === item.partsArea;
@@ -453,6 +467,20 @@ export default function TemplatesNav({ onOpenPartsArea }: TemplatesNavProps) {
 											</div>
 										);
 									})}
+									{navChildren.map((child) => (
+										<NavRow
+											key={String(child.id)}
+											item={child}
+											isChild
+											isActive={
+												!activePartsArea &&
+												activeFilter === child.filter
+											}
+											onClick={() =>
+												selectFilter(child, findBySlug)
+											}
+										/>
+									))}
 									{children.map((child) => (
 										<NavRow
 											key={String(child.id)}
