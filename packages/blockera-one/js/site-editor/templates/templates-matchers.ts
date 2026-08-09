@@ -10,6 +10,7 @@ import {
 	isChildrenFilter,
 	type FilterId,
 } from './constants';
+import { isWooCommerceTemplate } from './templates-woocommerce';
 
 export type TemplateLike = {
 	id?: string | number;
@@ -89,6 +90,11 @@ export function isCustomTemplate(
 	template: TemplateLike,
 	defaultTypeSlugs: Set<string> = DEFAULT_TYPE_SLUGS
 ): boolean {
+	// WooCommerce registered templates are never "Custom templates".
+	if (isWooCommerceTemplate(template)) {
+		return false;
+	}
+
 	if (typeof template.is_custom === 'boolean') {
 		return template.is_custom;
 	}
@@ -358,6 +364,15 @@ export function templateMatchesFilter(
 
 	if (filter.startsWith('child:')) {
 		return slug === filter.slice('child:'.length);
+	}
+
+	/*
+	 * WooCommerce templates live in their own nav section. Keep them out of
+	 * purpose / CPT / default slug filters (All / Active / User / child: already
+	 * handled above; Custom via isCustomTemplate).
+	 */
+	if (isWooCommerceTemplate(template)) {
+		return false;
 	}
 
 	if (filter.startsWith('cpt-single:')) {
