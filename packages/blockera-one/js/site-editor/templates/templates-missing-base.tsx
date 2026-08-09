@@ -207,6 +207,7 @@ export default function TemplatesMissingBase({
 						<Button
 							variant="link"
 							className="blockera-site-editor-templates-missing__fallback-link"
+							data-test="blockera-site-editor-templates-missing-fallback"
 							onClick={openFallbackFilter}
 						/>
 					),

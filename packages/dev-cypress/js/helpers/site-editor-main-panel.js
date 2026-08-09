@@ -95,6 +95,15 @@ export const SITE_EDITOR_TEST_IDS = {
 		'blockera-site-editor-templates-nav-children:taxonomy',
 	templatesNavCptArchiveBook:
 		'blockera-site-editor-templates-nav-cpt-archive:bo_book',
+	templatesNavSearch: 'blockera-site-editor-templates-nav-search',
+	templatesNavNotFound: 'blockera-site-editor-templates-nav-404',
+	templatesNavChildrenSearch:
+		'blockera-site-editor-templates-nav-children:search',
+	templatesNavChildrenNotFound:
+		'blockera-site-editor-templates-nav-children:404',
+	templatesMissing: 'blockera-site-editor-templates-missing',
+	templatesMissingFallback: 'blockera-site-editor-templates-missing-fallback',
+	templatesAddSpecific: 'blockera-site-editor-templates-add-specific',
 	templatesAreaHub: 'blockera-site-editor-templates-area-hub',
 	templatesAreaHubBanner: 'blockera-site-editor-templates-area-hub-banner',
 	templatesAreaHubEmpty: 'blockera-site-editor-templates-area-hub-empty',
@@ -948,6 +957,109 @@ export function assertTemplatesArchiveSection({
 	absentChildTestIds.forEach((testId) => {
 		cy.getByDataTest(testId).should('not.exist');
 	});
+}
+
+/**
+ * Assert Special Templates purpose-nav section visibility / children.
+ *
+ * Search + 404 are always present (no hideWhenEmpty / status / children).
+ *
+ * @param {{
+ *   absentChildTestIds?: string[],
+ * }} options
+ */
+export function assertTemplatesSpecialSection({
+	absentChildTestIds = [
+		SITE_EDITOR_TEST_IDS.templatesNavChildrenSearch,
+		SITE_EDITOR_TEST_IDS.templatesNavChildrenNotFound,
+	],
+} = {}) {
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav)
+		.find('.blockera-site-editor-templates-nav__section')
+		.contains(
+			'.blockera-site-editor-templates-nav__section-title',
+			'Special Templates'
+		)
+		.should('be.visible');
+
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavSearch).should(
+		'be.visible'
+	);
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavNotFound).should(
+		'be.visible'
+	);
+
+	absentChildTestIds.forEach((testId) => {
+		cy.getByDataTest(testId).should('not.exist');
+	});
+}
+
+/**
+ * Assert the missing-base empty state for a purpose filter.
+ *
+ * @param {{
+ *   headingIncludes: string,
+ *   messageIncludes?: string,
+ *   hasFallbackLink?: boolean,
+ * }} options
+ */
+export function assertTemplatesMissingBase({
+	headingIncludes,
+	messageIncludes = 'There is no specific',
+	hasFallbackLink = true,
+} = {}) {
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesMissing, {
+		timeout: 20000,
+	})
+		.should('be.visible')
+		.and('contain.text', headingIncludes)
+		.and('contain.text', messageIncludes);
+
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesAddSpecific)
+		.should('be.visible')
+		.and('contain.text', 'Add a specific template');
+
+	if (hasFallbackLink) {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesMissingFallback).should(
+			'be.visible'
+		);
+	} else {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesMissingFallback).should(
+			'not.exist'
+		);
+	}
+}
+
+/**
+ * Hide a shipped Special template (theme file rename + delete custom DB posts).
+ *
+ * @param {'search'|'404'} slug
+ * @return {Cypress.Chainable}
+ */
+export function hideSpecialThemeTemplate(slug) {
+	return cy
+		.task('wpTemplateDeleteBySlug', { slug })
+		.then(() => setThemeTemplateHidden(slug, true))
+		.then((result) => {
+			expect(result?.ok, result?.message || `hide ${slug}`).to.eq(true);
+		});
+}
+
+/**
+ * Restore a shipped Special template (custom DB cleanup + unhide theme file).
+ *
+ * @param {'search'|'404'} slug
+ * @return {Cypress.Chainable}
+ */
+export function restoreSpecialThemeTemplate(slug) {
+	return cy
+		.task('wpTemplateDeleteBySlug', { slug })
+		.then(() => setThemeTemplateHidden(slug, false))
+		.then((result) => {
+			expect(result?.ok, result?.message || `restore ${slug}`).to.eq(
+				true
+			);
+		});
 }
 
 /**
