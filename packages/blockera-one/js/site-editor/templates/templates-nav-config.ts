@@ -250,18 +250,18 @@ export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 	},
 	{
 		id: 'system',
-		label: __('System', 'blockera'),
+		label: __('Special Templates', 'blockera'),
 		items: [
 			{
 				id: FILTER_IDS.search,
-				label: __('Search', 'blockera'),
+				label: __('Search Page', 'blockera'),
 				icon: 'search',
 				filter: FILTER_IDS.search,
 				baseSlug: 'search',
 			},
 			{
 				id: FILTER_IDS.notFound,
-				label: __('404 page', 'blockera'),
+				label: __('404 Page', 'blockera'),
 				icon: 'not-found',
 				filter: FILTER_IDS.notFound,
 				baseSlug: '404',
