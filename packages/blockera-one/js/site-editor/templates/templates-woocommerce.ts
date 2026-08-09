@@ -76,11 +76,11 @@ export function isWooCommerceShopChildSlug(slug: string): boolean {
 const WOOCOMMERCE_NAV_META: Record<string, WooCommerceNavMeta> = {
 	'archive-product': {
 		label: __('Shop Page', 'blockera'),
-		icon: 'store',
+		icon: 'woocommerce-store',
 	},
 	'single-product': {
 		label: __('Single Product', 'blockera'),
-		icon: 'product',
+		icon: 'woocommerce-product',
 	},
 	/*
 	 * Taxonomy templates: WC titles (`Products by %s`). Categories use the same
@@ -109,19 +109,19 @@ const WOOCOMMERCE_NAV_META: Record<string, WooCommerceNavMeta> = {
 	},
 	'page-cart': {
 		label: __('Cart Page', 'blockera'),
-		icon: 'cart',
+		icon: 'woocommerce-cart',
 	},
 	'page-checkout': {
 		label: __('Checkout Page', 'blockera'),
-		icon: 'checkout',
+		icon: 'woocommerce-checkout',
 	},
 	'order-confirmation': {
 		label: __('Order Confirmation', 'blockera'),
-		icon: 'order',
+		icon: 'woocommerce-order',
 	},
 	'coming-soon': {
 		label: __('Coming Soon Page', 'blockera'),
-		icon: 'coming-soon',
+		icon: 'woocommerce-coming-soon',
 	},
 };
 

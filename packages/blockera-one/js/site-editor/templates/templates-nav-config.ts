@@ -38,14 +38,14 @@ export type NavIcon =
 	| 'list'
 	| 'verse'
 	| 'blockera-one'
-	/** WooCommerce Templates section (WC SVGs + WP taxonomy icons) */
-	| 'store'
-	| 'product'
-	| 'cart'
-	| 'checkout'
-	| 'order'
-	| 'post-categories'
-	| 'coming-soon';
+	/** WooCommerce Templates section (ui/woocommerce-* + WP taxonomy icons) */
+	| 'woocommerce-store'
+	| 'woocommerce-product'
+	| 'woocommerce-cart'
+	| 'woocommerce-checkout'
+	| 'woocommerce-order'
+	| 'woocommerce-coming-soon'
+	| 'post-categories';
 
 export type TemplatesNavItemConfig = {
 	id: FilterId;
