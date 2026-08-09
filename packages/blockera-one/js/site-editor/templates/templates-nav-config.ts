@@ -45,7 +45,6 @@ export type NavIcon =
 	| 'checkout'
 	| 'order'
 	| 'post-categories'
-	| 'product-search'
 	| 'coming-soon';
 
 export type TemplatesNavItemConfig = {
