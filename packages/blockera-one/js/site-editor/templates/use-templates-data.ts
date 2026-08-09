@@ -18,6 +18,7 @@ import {
 	DEFAULT_TYPE_SLUGS,
 	getActiveTemplateParts,
 	getChildTemplatesForFilter,
+	getTemplateTitle,
 	isCustomTemplate,
 	templateMatchesFilter,
 	type TemplateLike,
@@ -36,6 +37,13 @@ import {
 	findCanonicalPart,
 	hasRegisteredSidebarPart,
 } from './templates-hub-parts';
+import {
+	getWooCommerceNavMeta,
+	isWooCommerceShopChildSlug,
+	isWooCommerceTemplate,
+	sortWooCommerceShopChildTemplates,
+	sortWooCommerceTopLevelTemplates,
+} from './templates-woocommerce';
 
 /** Higher wins when one author bucket mixes sources. */
 const AUTHOR_SOURCE_PRIORITY: Record<string, number> = {
@@ -374,6 +382,77 @@ export default function useTemplatesData(): TemplatesData {
 				});
 		}
 
+		const wooSection = next.find((section) => section.id === 'woocommerce');
+		if (wooSection) {
+			const bySlug = new Map<string, TemplateLike>();
+			templates.forEach((template) => {
+				const slug = template.slug || '';
+				if (!slug || !isWooCommerceTemplate(template)) {
+					return;
+				}
+				if (!bySlug.has(slug)) {
+					bySlug.set(slug, template);
+				}
+			});
+
+			const toNavItem = (
+				template: TemplateLike
+			): TemplatesNavItemConfig => {
+				const slug = template.slug || '';
+				const meta = getWooCommerceNavMeta(slug);
+				return {
+					id: `child:${slug}`,
+					label: meta?.label || getTemplateTitle(template),
+					icon: (meta?.icon || 'plugins') as NavIcon,
+					filter: `child:${slug}`,
+					baseSlug: slug,
+				};
+			};
+
+			const allWoo = Array.from(bySlug.values());
+			const shopChildren = sortWooCommerceShopChildTemplates(
+				allWoo.filter((template) =>
+					isWooCommerceShopChildSlug(template.slug || '')
+				)
+			);
+			const topLevel = sortWooCommerceTopLevelTemplates(
+				allWoo.filter(
+					(template) =>
+						!isWooCommerceShopChildSlug(template.slug || '')
+				)
+			);
+
+			/*
+			 * Shop journey (#1): Shop Page nests browse/discovery templates;
+			 * then Single Product → Cart → Checkout → Order → Coming Soon.
+			 */
+			wooSection.items = topLevel.map((template) => {
+				const item = toNavItem(template);
+				if (template.slug === 'archive-product') {
+					item.navChildren = shopChildren.map(toNavItem);
+				}
+				return item;
+			});
+
+			// If Shop Page is missing, keep browse templates as top-level rows.
+			if (!bySlug.has('archive-product') && shopChildren.length > 0) {
+				wooSection.items = [
+					...shopChildren.map(toNavItem),
+					...wooSection.items,
+				];
+			}
+
+			// Hide the whole section when WooCommerce templates are absent.
+			if (wooSection.items.length === 0) {
+				const index = next.findIndex(
+					(section) => section.id === 'woocommerce'
+				);
+				if (index !== -1) {
+					next.splice(index, 1);
+				}
+			}
+		}
+
 		const otherSection = next.find((section) => section.id === 'other');
 		if (otherSection) {
 			const authors = new Map<
@@ -384,6 +463,11 @@ export default function useTemplatesData(): TemplatesData {
 			templates.forEach((template) => {
 				const author = template.author_text;
 				if (!author) {
+					return;
+				}
+
+				// WooCommerce has its own section — skip seeding Other author rows.
+				if (isWooCommerceTemplate(template)) {
 					return;
 				}
 
