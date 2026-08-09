@@ -370,7 +370,8 @@ function activateMuPluginInContainer(muPluginPath, targetName, force = false) {
 		: `if (file_exists($targetFile) && md5_file($targetFile) === md5_file($sourceFile)) { echo 'already_active'; exit(0); } `;
 	const successToken = force ? 'forced_copy' : 'installed';
 
-	const activatePhp = `if (!file_exists(WPMU_PLUGIN_DIR)) { wp_mkdir_p(WPMU_PLUGIN_DIR); } $sourceFile = ABSPATH . 'wp-content/plugins/${WP_PLUGIN_SLUG}/${muPluginPath}'; $targetFile = WPMU_PLUGIN_DIR . '/${targetName}'; if (!file_exists($sourceFile)) { echo 'source_missing'; exit(1); } ${forcePhp}${skipIfActivePhp}file_put_contents($targetFile, file_get_contents($sourceFile)); echo file_exists($targetFile) ? '${successToken}' : 'not_installed';`;
+	// Prefer plugins/{slug}/… then themes/{slug}/… (blockera-one is theme-only).
+	const activatePhp = `if (!file_exists(WPMU_PLUGIN_DIR)) { wp_mkdir_p(WPMU_PLUGIN_DIR); } $pluginSource = ABSPATH . 'wp-content/plugins/${WP_PLUGIN_SLUG}/${muPluginPath}'; $themeSource = ABSPATH . 'wp-content/themes/${WP_PLUGIN_SLUG}/${muPluginPath}'; $sourceFile = file_exists($pluginSource) ? $pluginSource : $themeSource; $targetFile = WPMU_PLUGIN_DIR . '/${targetName}'; if (!file_exists($sourceFile)) { echo 'source_missing'; exit(1); } ${forcePhp}${skipIfActivePhp}file_put_contents($targetFile, file_get_contents($sourceFile)); echo file_exists($targetFile) ? '${successToken}' : 'not_installed';`;
 	const result = runWpEval(activatePhp);
 
 	if (result === 'source_missing') {
@@ -460,7 +461,7 @@ function verifyMuPluginInContainer(muPluginPath, targetName) {
 		};
 	}
 
-	const verifyPhp = `$sourceFile = ABSPATH . 'wp-content/plugins/${WP_PLUGIN_SLUG}/${muPluginPath}'; $targetFile = WPMU_PLUGIN_DIR . '/${targetName}'; if (!file_exists($targetFile)) { echo 'missing'; exit(0); } if (!file_exists($sourceFile)) { echo 'source_missing'; exit(1); } echo md5_file($targetFile) === md5_file($sourceFile) ? 'verified' : 'hash_mismatch';`;
+	const verifyPhp = `$pluginSource = ABSPATH . 'wp-content/plugins/${WP_PLUGIN_SLUG}/${muPluginPath}'; $themeSource = ABSPATH . 'wp-content/themes/${WP_PLUGIN_SLUG}/${muPluginPath}'; $sourceFile = file_exists($pluginSource) ? $pluginSource : $themeSource; $targetFile = WPMU_PLUGIN_DIR . '/${targetName}'; if (!file_exists($targetFile)) { echo 'missing'; exit(0); } if (!file_exists($sourceFile)) { echo 'source_missing'; exit(1); } echo md5_file($targetFile) === md5_file($sourceFile) ? 'verified' : 'hash_mismatch';`;
 	const result = runWpEval(verifyPhp);
 
 	if (result === 'source_missing') {
