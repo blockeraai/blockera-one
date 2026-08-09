@@ -175,14 +175,33 @@ export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 	},
 	{
 		id: 'archives',
-		label: __('Archives & taxonomies', 'blockera'),
+		label: __('Archive Templates', 'blockera'),
 		items: [
 			{
 				id: FILTER_IDS.archive,
-				label: __('All archives', 'blockera'),
+				label: __('All Archives', 'blockera'),
 				icon: 'archive',
 				filter: FILTER_IDS.archive,
 				baseSlug: 'archive',
+				status: 'fallback',
+				statusLabel: __('Fallback', 'blockera'),
+				statusTooltip: createElement(
+					Fragment,
+					null,
+					createElement(
+						'h5',
+						null,
+						__('archive.html template', 'blockera')
+					),
+					createElement(
+						'p',
+						null,
+						__(
+							'Fallback for archive-type pages. Used for categories, tags, authors, dates, and custom post type archives when a more specific template is missing.',
+							'blockera'
+						)
+					)
+				),
 			},
 			{
 				id: FILTER_IDS.category,
@@ -199,6 +218,7 @@ export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 				filter: FILTER_IDS.tag,
 				baseSlug: 'tag',
 				showChildren: true,
+				hideWhenEmpty: true,
 			},
 			{
 				id: FILTER_IDS.author,
@@ -207,6 +227,7 @@ export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 				filter: FILTER_IDS.author,
 				baseSlug: 'author',
 				showChildren: true,
+				hideWhenEmpty: true,
 			},
 			{
 				id: FILTER_IDS.date,
@@ -214,6 +235,7 @@ export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 				icon: 'calendar',
 				filter: FILTER_IDS.date,
 				baseSlug: 'date',
+				hideWhenEmpty: true,
 			},
 			{
 				id: FILTER_IDS.taxonomy,
