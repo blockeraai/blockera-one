@@ -368,6 +368,8 @@ export default function useTemplatesData(): TemplatesData {
 						icon: 'archive',
 						filter: `cpt-archive:${postType.slug}`,
 						baseSlug: `archive-${postType.slug}`,
+						// Only show when a base or child archive-{cpt} template exists.
+						hideWhenEmpty: true,
 					});
 				});
 		}
