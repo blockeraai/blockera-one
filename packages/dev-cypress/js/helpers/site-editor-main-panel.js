@@ -64,6 +64,20 @@ export const SITE_EDITOR_TEST_IDS = {
 	templatesNavHeader: 'blockera-site-editor-templates-nav-parts-header',
 	templatesNavFooter: 'blockera-site-editor-templates-nav-parts-footer',
 	templatesNavSidebar: 'blockera-site-editor-templates-nav-parts-sidebar',
+	templatesNavSingular: 'blockera-site-editor-templates-nav-singular',
+	templatesNavSingularStatus:
+		'blockera-site-editor-templates-nav-singular-status',
+	templatesNavSinglePost: 'blockera-site-editor-templates-nav-single',
+	templatesNavSinglePage: 'blockera-site-editor-templates-nav-page',
+	templatesNavAttachment: 'blockera-site-editor-templates-nav-attachment',
+	templatesNavChildrenSingle:
+		'blockera-site-editor-templates-nav-children:single',
+	templatesNavChildrenPage:
+		'blockera-site-editor-templates-nav-children:page',
+	templatesNavCptBook:
+		'blockera-site-editor-templates-nav-cpt-single:bo_book',
+	templatesNavChildrenCptBook:
+		'blockera-site-editor-templates-nav-children:cpt-single:bo_book',
 	templatesAreaHub: 'blockera-site-editor-templates-area-hub',
 	templatesAreaHubBanner: 'blockera-site-editor-templates-area-hub-banner',
 	templatesAreaHubEmpty: 'blockera-site-editor-templates-area-hub-empty',
@@ -713,6 +727,93 @@ export function assertTemplatesHomepageSection({
 }
 
 /**
+ * Assert Single Templates purpose-nav section state.
+ *
+ * @param {{
+ *   singularVisible?: boolean,
+ *   singularStatus?: string | null,
+ *   attachmentVisible?: boolean,
+ *   cptBookVisible?: boolean,
+ *   cptBookLabelIncludes?: string,
+ *   children?: Array<{ testId: string, count?: number, visible?: boolean }>,
+ *   absentChildTestIds?: string[],
+ * }} options
+ */
+export function assertTemplatesSingleSection({
+	singularVisible = false,
+	singularStatus = null,
+	attachmentVisible = false,
+	cptBookVisible = false,
+	cptBookLabelIncludes = 'Book',
+	children = [],
+	absentChildTestIds = [],
+} = {}) {
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavSinglePost)
+		.should('be.visible')
+		.and('contain.text', 'Single Post');
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavSinglePage)
+		.should('be.visible')
+		.and('contain.text', 'Single Page');
+
+	if (singularVisible) {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavSingular)
+			.should('be.visible')
+			.and('contain.text', 'Singular');
+		if (singularStatus) {
+			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavSingularStatus)
+				.should('be.visible')
+				.and('contain.text', singularStatus);
+		}
+	} else {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavSingular).should(
+			'not.exist'
+		);
+		cy.getByDataTest(
+			SITE_EDITOR_TEST_IDS.templatesNavSingularStatus
+		).should('not.exist');
+	}
+
+	if (attachmentVisible) {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavAttachment).should(
+			'be.visible'
+		);
+	} else {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavAttachment).should(
+			'not.exist'
+		);
+	}
+
+	if (cptBookVisible) {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavCptBook)
+			.should('be.visible')
+			.and('contain.text', cptBookLabelIncludes);
+	} else {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavCptBook).should(
+			'not.exist'
+		);
+	}
+
+	children.forEach(({ testId, count, visible = true }) => {
+		if (!visible) {
+			cy.getByDataTest(testId).should('not.exist');
+			return;
+		}
+
+		cy.getByDataTest(testId).should('be.visible');
+		if (typeof count === 'number') {
+			cy.getByDataTest(testId)
+				.find('.blockera-site-editor-templates-nav__count')
+				.should('be.visible')
+				.and('contain.text', String(count));
+		}
+	});
+
+	absentChildTestIds.forEach((testId) => {
+		cy.getByDataTest(testId).should('not.exist');
+	});
+}
+
+/**
  * Hover a status badge and assert tooltip heading / body copy.
  *
  * @param {string} statusTestId Badge `data-test`.
@@ -875,6 +976,138 @@ export function installFrontPageThemeTemplate() {
 	).then((result) => {
 		expect(result?.ok, result?.message || 'install front-page').to.eq(true);
 	});
+}
+
+const SINGLE_TEMPLATES_FIXTURE_DIR =
+	'packages/blockera-one/js/test/fixtures/single-templates';
+
+/**
+ * Ensure theme `singular.html` is unavailable (remove visible + hidden copies).
+ *
+ * @return {Cypress.Chainable}
+ */
+export function ensureSingularHidden() {
+	// Restore `-singular.html` → `singular.html` when present, then delete.
+	return setThemeTemplateHidden('singular', false)
+		.then(() => cy.task('themeTemplateRemoveFile', { slug: 'singular' }))
+		.then(() => cy.task('wpTemplateDeleteBySlug', { slug: 'singular' }));
+}
+
+/**
+ * Ensure theme `singular.html` is visible (restore hidden file or install fixture).
+ *
+ * @return {Cypress.Chainable}
+ */
+export function ensureSingularVisible() {
+	return setThemeTemplateHidden('singular', false).then((result) => {
+		if (result?.ok) {
+			return result;
+		}
+
+		// No theme file at all — install the e2e fixture.
+		return installThemeTemplateFixture(
+			'singular',
+			`${SINGLE_TEMPLATES_FIXTURE_DIR}/singular.html`
+		).then((installResult) => {
+			expect(
+				installResult?.ok,
+				installResult?.message || 'install singular'
+			).to.eq(true);
+			return installResult;
+		});
+	});
+}
+
+/**
+ * Install theme `attachment.html` from the Single Templates e2e fixture.
+ *
+ * @return {Cypress.Chainable}
+ */
+export function installAttachmentThemeTemplate() {
+	return installThemeTemplateFixture(
+		'attachment',
+		`${SINGLE_TEMPLATES_FIXTURE_DIR}/attachment.html`
+	).then((result) => {
+		expect(result?.ok, result?.message || 'install attachment').to.eq(true);
+	});
+}
+
+/**
+ * Ensure no Attachment template is available (theme file + custom DB posts).
+ *
+ * @return {Cypress.Chainable}
+ */
+export function ensureNoAttachmentTemplate() {
+	return cy
+		.task('themeTemplateRemoveFile', { slug: 'attachment' })
+		.then(() => cy.task('wpTemplateDeleteBySlug', { slug: 'attachment' }))
+		.then(() => {
+			cy.window({ log: false }).then((win) => {
+				const invalidate =
+					win.wp?.data?.dispatch('core')?.invalidateResolution;
+				if (typeof invalidate !== 'function') {
+					return;
+				}
+				invalidate('getEntityRecords', [
+					'postType',
+					'wp_template',
+					{ per_page: -1 },
+				]);
+				invalidate('getEntityRecords', [
+					'root',
+					'registeredTemplate',
+					{ per_page: -1 },
+				]);
+			});
+		});
+}
+
+/**
+ * Install a Single Templates theme fixture by slug.
+ *
+ * @param {string} slug
+ * @param {string} [fileName] Fixture file name (defaults to `${slug}.html`).
+ * @return {Cypress.Chainable}
+ */
+export function installSingleTemplatesFixture(slug, fileName) {
+	const fixtureFile = fileName || `${slug}.html`;
+	return installThemeTemplateFixture(
+		slug,
+		`${SINGLE_TEMPLATES_FIXTURE_DIR}/${fixtureFile}`
+	).then((result) => {
+		expect(result?.ok, result?.message || `install ${slug}`).to.eq(true);
+	});
+}
+
+/**
+ * Remove an installed theme template file and any custom DB template posts.
+ *
+ * @param {string} slug
+ * @return {Cypress.Chainable}
+ */
+export function ensureNoThemeTemplate(slug) {
+	return cy
+		.task('themeTemplateRemoveFile', { slug })
+		.then(() => cy.task('wpTemplateDeleteBySlug', { slug }))
+		.then(() => {
+			cy.window({ log: false }).then((win) => {
+				const invalidate =
+					win.wp?.data?.dispatch('core')?.invalidateResolution;
+				if (typeof invalidate !== 'function') {
+					return;
+				}
+				invalidate('getEntityRecords', [
+					'postType',
+					'wp_template',
+					{ per_page: -1 },
+				]);
+				invalidate('getEntityRecords', [
+					'root',
+					'registeredTemplate',
+					{ per_page: -1 },
+				]);
+			});
+		});
 }
 
 /**
