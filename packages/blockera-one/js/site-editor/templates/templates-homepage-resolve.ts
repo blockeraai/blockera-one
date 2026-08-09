@@ -67,8 +67,8 @@ const LAYER_LABEL: Record<HomepageLayerSlug, () => string> = {
 
 const LAYER_ICON: Record<HomepageLayerSlug, TemplatesNavItemConfig['icon']> = {
 	'front-page': 'home',
-	home: 'verse',
-	index: 'list',
+	home: 'home-blog',
+	index: 'home-base',
 };
 
 export function getFilterIdForHomepageSlug(slug: HomepageLayerSlug): FilterId {
@@ -292,7 +292,7 @@ export function buildHomepageSectionItems(
 		items.push({
 			id: BLOG_POSTS_NAV_ID,
 			label: __('Blog Home', 'blockera'),
-			icon: 'verse',
+			icon: 'home-blog',
 			filter: BLOG_POSTS_FILTER,
 			// Posts page entity — not the home.html template.
 			entityPath: buildPageItemPath(postsPageId),
