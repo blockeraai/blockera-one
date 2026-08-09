@@ -344,7 +344,8 @@ export default function useTemplatesData(): TemplatesData {
 							postType.name ||
 							postType.slug
 					),
-					icon: 'post',
+					// CPT singles use ui/post-new; core Single Post keeps ui/post.
+					icon: 'post-new',
 					filter: `cpt-single:${postType.slug}`,
 					baseSlug:
 						postType.slug === 'page'
@@ -373,7 +374,8 @@ export default function useTemplatesData(): TemplatesData {
 								postType.name ||
 								postType.slug
 						),
-						icon: 'archive',
+						// CPT archives use ui/archive-new; core All Archives keeps wp/archive.
+						icon: 'archive-new',
 						filter: `cpt-archive:${postType.slug}`,
 						baseSlug: `archive-${postType.slug}`,
 						// Only show when a base or child archive-{cpt} template exists.
