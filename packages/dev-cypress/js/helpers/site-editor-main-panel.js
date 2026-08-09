@@ -78,6 +78,23 @@ export const SITE_EDITOR_TEST_IDS = {
 		'blockera-site-editor-templates-nav-cpt-single:bo_book',
 	templatesNavChildrenCptBook:
 		'blockera-site-editor-templates-nav-children:cpt-single:bo_book',
+	templatesNavArchive: 'blockera-site-editor-templates-nav-archive',
+	templatesNavArchiveStatus:
+		'blockera-site-editor-templates-nav-archive-status',
+	templatesNavCategory: 'blockera-site-editor-templates-nav-category',
+	templatesNavTag: 'blockera-site-editor-templates-nav-tag',
+	templatesNavAuthor: 'blockera-site-editor-templates-nav-author',
+	templatesNavDate: 'blockera-site-editor-templates-nav-date',
+	templatesNavTaxonomy: 'blockera-site-editor-templates-nav-taxonomy',
+	templatesNavChildrenCategory:
+		'blockera-site-editor-templates-nav-children:category',
+	templatesNavChildrenTag: 'blockera-site-editor-templates-nav-children:tag',
+	templatesNavChildrenAuthor:
+		'blockera-site-editor-templates-nav-children:author',
+	templatesNavChildrenTaxonomy:
+		'blockera-site-editor-templates-nav-children:taxonomy',
+	templatesNavCptArchiveBook:
+		'blockera-site-editor-templates-nav-cpt-archive:bo_book',
 	templatesAreaHub: 'blockera-site-editor-templates-area-hub',
 	templatesAreaHubBanner: 'blockera-site-editor-templates-area-hub-banner',
 	templatesAreaHubEmpty: 'blockera-site-editor-templates-area-hub-empty',
@@ -814,24 +831,150 @@ export function assertTemplatesSingleSection({
 }
 
 /**
+ * Assert Archive Templates purpose-nav section visibility / children.
+ *
+ * All Archives + Categories are always present. Tags / Authors / Date /
+ * Taxonomy / CPT archive rows honor hideWhenEmpty.
+ *
+ * @param {{
+ *   archiveStatus?: string|null,
+ *   tagVisible?: boolean,
+ *   authorVisible?: boolean,
+ *   dateVisible?: boolean,
+ *   taxonomyVisible?: boolean,
+ *   cptBookArchiveVisible?: boolean,
+ *   cptBookLabelIncludes?: string,
+ *   children?: Array<{ testId: string, count?: number, visible?: boolean }>,
+ *   absentChildTestIds?: string[],
+ * }} options
+ */
+export function assertTemplatesArchiveSection({
+	archiveStatus = 'Fallback',
+	tagVisible = false,
+	authorVisible = false,
+	dateVisible = false,
+	taxonomyVisible = false,
+	cptBookArchiveVisible = false,
+	cptBookLabelIncludes = 'Book',
+	children = [],
+	absentChildTestIds = [],
+} = {}) {
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav)
+		.find('.blockera-site-editor-templates-nav__section')
+		.contains(
+			'.blockera-site-editor-templates-nav__section-title',
+			'Archive Templates'
+		)
+		.should('be.visible');
+
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavArchive)
+		.should('be.visible')
+		.and('contain.text', 'All Archives');
+	if (archiveStatus) {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavArchiveStatus)
+			.should('be.visible')
+			.and('contain.text', archiveStatus);
+	}
+
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavCategory)
+		.should('be.visible')
+		.and('contain.text', 'Categories');
+
+	if (tagVisible) {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavTag)
+			.should('be.visible')
+			.and('contain.text', 'Tags');
+	} else {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavTag).should(
+			'not.exist'
+		);
+	}
+
+	if (authorVisible) {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavAuthor)
+			.should('be.visible')
+			.and('contain.text', 'Authors');
+	} else {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavAuthor).should(
+			'not.exist'
+		);
+	}
+
+	if (dateVisible) {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavDate)
+			.should('be.visible')
+			.and('contain.text', 'Date');
+	} else {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavDate).should(
+			'not.exist'
+		);
+	}
+
+	if (taxonomyVisible) {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavTaxonomy)
+			.should('be.visible')
+			.and('contain.text', 'Taxonomy');
+	} else {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavTaxonomy).should(
+			'not.exist'
+		);
+	}
+
+	if (cptBookArchiveVisible) {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavCptArchiveBook)
+			.should('be.visible')
+			.and('contain.text', cptBookLabelIncludes);
+	} else {
+		cy.getByDataTest(
+			SITE_EDITOR_TEST_IDS.templatesNavCptArchiveBook
+		).should('not.exist');
+	}
+
+	children.forEach(({ testId, count, visible = true }) => {
+		if (!visible) {
+			cy.getByDataTest(testId).should('not.exist');
+			return;
+		}
+
+		cy.getByDataTest(testId).should('be.visible');
+		if (typeof count === 'number') {
+			cy.getByDataTest(testId)
+				.find('.blockera-site-editor-templates-nav__count')
+				.should('be.visible')
+				.and('contain.text', String(count));
+		}
+	});
+
+	absentChildTestIds.forEach((testId) => {
+		cy.getByDataTest(testId).should('not.exist');
+	});
+}
+
+/**
  * Hover a status badge and assert tooltip heading / body copy.
  *
  * @param {string} statusTestId Badge `data-test`.
  * @param {{ heading: string, bodyIncludes: string }} options
  */
 export function assertStatusTooltip(statusTestId, { heading, bodyIncludes }) {
-	// Homepage status Tooltip delay is 200ms; realHover + pointer events for
-	// headless Chrome (WP Tooltip listens to mouseenter).
-	cy.getByDataTest(statusTestId)
-		.should('be.visible')
-		.scrollIntoView()
-		.trigger('pointerover', { force: true })
-		.trigger('mouseover', { force: true })
-		.trigger('mouseenter', { force: true })
-		.safeRealHover();
+	// Homepage/nav status Tooltip delay is 200ms; realHover + pointer events for
+	// headless Chrome (WP Tooltip listens to mouseenter). Hover twice — lower
+	// sidebar rows are flaky on first hover in headless Chrome.
+	const hoverStatus = () => {
+		cy.getByDataTest(statusTestId)
+			.should('be.visible')
+			.scrollIntoView({ block: 'center' })
+			.trigger('pointerover', { force: true })
+			.trigger('mouseover', { force: true })
+			.trigger('mouseenter', { force: true })
+			.safeRealHover();
 
-	// eslint-disable-next-line cypress/no-unnecessary-waiting
-	cy.wait(500);
+		// eslint-disable-next-line cypress/no-unnecessary-waiting
+		cy.wait(700);
+	};
+
+	hoverStatus();
+	hoverStatus();
 
 	cy.get('body')
 		.find(
@@ -981,6 +1124,9 @@ export function installFrontPageThemeTemplate() {
 const SINGLE_TEMPLATES_FIXTURE_DIR =
 	'packages/blockera-one/js/test/fixtures/single-templates';
 
+const ARCHIVE_TEMPLATES_FIXTURE_DIR =
+	'packages/blockera-one/js/test/fixtures/archive-templates';
+
 /**
  * Ensure theme `singular.html` is unavailable (remove visible + hidden copies).
  *
@@ -1074,6 +1220,23 @@ export function installSingleTemplatesFixture(slug, fileName) {
 	return installThemeTemplateFixture(
 		slug,
 		`${SINGLE_TEMPLATES_FIXTURE_DIR}/${fixtureFile}`
+	).then((result) => {
+		expect(result?.ok, result?.message || `install ${slug}`).to.eq(true);
+	});
+}
+
+/**
+ * Install an Archive Templates theme fixture by slug.
+ *
+ * @param {string} slug
+ * @param {string} [fileName] Fixture file name (defaults to `${slug}.html`).
+ * @return {Cypress.Chainable}
+ */
+export function installArchiveTemplatesFixture(slug, fileName) {
+	const fixtureFile = fileName || `${slug}.html`;
+	return installThemeTemplateFixture(
+		slug,
+		`${ARCHIVE_TEMPLATES_FIXTURE_DIR}/${fixtureFile}`
 	).then((result) => {
 		expect(result?.ok, result?.message || `install ${slug}`).to.eq(true);
 	});
