@@ -68,7 +68,7 @@ export type TemplatesNavItemConfig = {
 	/**
 	 * Explicit nested nav rows (e.g. WooCommerce Shop → taxonomies).
 	 * Always rendered as child rows when present — separate from showChildren
-	 * hierarchy “Child templates” browse.
+	 * hierarchy “Specific templates” browse.
 	 */
 	navChildren?: TemplatesNavItemConfig[];
 	/**

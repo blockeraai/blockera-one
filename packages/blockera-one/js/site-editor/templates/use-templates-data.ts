@@ -554,7 +554,7 @@ export default function useTemplatesData(): TemplatesData {
 }
 
 /**
- * Single “Child templates” nav row when the parent has any children.
+ * Single “Specific templates” nav row when the parent has any children.
  * Click opens a filtered DataViews browse (not a long per-template list).
  */
 export function buildChildNavItems(
@@ -574,7 +574,7 @@ export function buildChildNavItems(
 	return [
 		{
 			id: childrenFilter,
-			label: __('Child templates', 'blockera'),
+			label: __('Specific templates', 'blockera'),
 			icon: 'list',
 			filter: childrenFilter,
 		},
