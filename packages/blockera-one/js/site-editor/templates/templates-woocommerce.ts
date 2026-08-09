@@ -105,7 +105,7 @@ const WOOCOMMERCE_NAV_META: Record<string, WooCommerceNavMeta> = {
 	},
 	'product-search-results': {
 		label: __('Product Search Page', 'blockera'),
-		icon: 'product-search',
+		icon: 'search',
 	},
 	'page-cart': {
 		label: __('Cart Page', 'blockera'),
