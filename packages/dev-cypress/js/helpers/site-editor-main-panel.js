@@ -6,10 +6,6 @@ import { closeWelcomeGuide } from './editor';
 import { goTo } from './site-navigation';
 
 export const SITE_EDITOR_TEST_IDS = {
-	hub: 'blockera-site-editor-site-hub',
-	hubDashboard: 'blockera-site-editor-site-hub-dashboard',
-	hubTitle: 'blockera-site-editor-site-hub-title',
-	hubCommand: 'blockera-site-editor-site-hub-command',
 	header: 'blockera-site-editor-main-panel-header',
 	headerTitle: 'blockera-site-editor-main-panel-header-title',
 	headerMore: 'blockera-site-editor-main-panel-header-more',
@@ -152,14 +148,10 @@ export function openSiteEditorViewMode(path = '/') {
 		// eslint-disable-next-line cypress/no-unnecessary-waiting
 		cy.wait(2000);
 		closeWelcomeGuide();
-		cy.getByDataTest(SITE_EDITOR_TEST_IDS.hub, { timeout: 60000 }).should(
-			'be.visible'
-		);
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.header, {
+			timeout: 60000,
+		}).should('be.visible');
 	});
-}
-
-export function getSiteEditorHub() {
-	return cy.getByDataTest(SITE_EDITOR_TEST_IDS.hub);
 }
 
 export function getSiteEditorHeader() {
@@ -176,7 +168,7 @@ export function clickSiteEditorNav(testId) {
 
 /**
  * Assert Styles / Identity / Homepage / Performance / Templates drill-down chrome:
- * hub + branding stay, main nav collapses, back control present.
+ * branding stays, main nav collapses, back control present.
  */
 export function assertSiteEditorDrillDown() {
 	assertSiteEditorChrome();
@@ -239,19 +231,17 @@ export function clickSiteEditorDrillDownBack(routeFragment) {
 }
 
 /**
- * Assert Blockera Site Editor chrome is mounted (hub + branding).
+ * Assert Blockera Site Editor chrome is mounted (branding under core SiteHub).
  */
 export function assertSiteEditorChrome() {
 	cy.get('body').should('have.class', 'has-blockera-site-editor-main-panel');
-	getSiteEditorHub().should('be.visible');
+	cy.get('.edit-site-layout__sidebar > .edit-site-site-hub').should(
+		'be.visible'
+	);
 	getSiteEditorHeader().should('be.visible');
 	cy.getByDataTest(SITE_EDITOR_TEST_IDS.headerTitle).should(
 		'contain.text',
 		'Blockera One'
-	);
-	// Core hub stays in DOM but is CSS-hidden; Blockera hub is the visible one.
-	cy.get('.edit-site-layout__sidebar > .edit-site-site-hub').should(
-		'not.be.visible'
 	);
 }
 
