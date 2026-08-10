@@ -8,6 +8,7 @@ import { Button } from '@wordpress/components';
 import { getQueryArg } from '@wordpress/url';
 import { useCallback, useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
+import { Icon } from '@blockera/icons';
 
 /**
  * Internal dependencies
@@ -25,6 +26,12 @@ import { findCanonicalPart } from './templates-hub-parts';
 import { isOpenNavigationControl } from './templates-purpose-preview';
 import useTemplatesData from './use-templates-data';
 import './templates-area-hub.scss';
+
+const AREA_ICON: Record<PartAreaId, { library: 'wp' | 'ui'; icon: string }> = {
+	header: { library: 'wp', icon: 'header' },
+	footer: { library: 'wp', icon: 'footer' },
+	sidebar: { library: 'ui', icon: 'sidebar' },
+};
 
 type TemplatesAreaHubProps = {
 	children?: ReactNode;
@@ -95,11 +102,11 @@ function usePartsArea(): PartAreaId | null {
 function sitePartLabel(area: PartAreaId): string {
 	switch (area) {
 		case 'header':
-			return __('Global site header', 'blockera');
+			return __('Global Site Header', 'blockera');
 		case 'footer':
-			return __('Global site footer', 'blockera');
+			return __('Global Site Footer', 'blockera');
 		case 'sidebar':
-			return __('Global site sidebar', 'blockera');
+			return __('Global Site Sidebar', 'blockera');
 	}
 }
 
@@ -237,11 +244,20 @@ export default function TemplatesAreaHub({ children }: TemplatesAreaHubProps) {
 					className="blockera-site-editor-templates-area-hub__banner"
 					data-test="blockera-site-editor-templates-area-hub-banner"
 				>
-					<div className="blockera-site-editor-templates-area-hub__banner-text">
-						<div className="blockera-site-editor-templates-area-hub__banner-title">
+					<div className="blockera-site-editor-templates-area-hub__banner-leading">
+						<span
+							className="blockera-site-editor-templates-area-hub__banner-icon"
+							aria-hidden="true"
+						>
+							<Icon
+								library={AREA_ICON[partsArea].library}
+								icon={AREA_ICON[partsArea].icon}
+								iconSize={26}
+							/>
+						</span>
+						<span className="blockera-site-editor-templates-area-hub__banner-title">
 							{sitePartLabel(partsArea)}
-							<ManageAllPartsButton area={partsArea} />
-						</div>
+						</span>
 						<p className="blockera-site-editor-templates-area-hub__banner-hint">
 							{__(
 								'Editing this updates it everywhere this part is used.',
@@ -249,6 +265,7 @@ export default function TemplatesAreaHub({ children }: TemplatesAreaHubProps) {
 							)}
 						</p>
 					</div>
+					<ManageAllPartsButton area={partsArea} />
 				</div>
 			) : null}
 			<div className="blockera-site-editor-templates-area-hub__canvas">
