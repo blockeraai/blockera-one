@@ -2,7 +2,7 @@
  * Templates purpose-nav query keys, filter ids, and URL helpers.
  */
 
-import { addQueryArgs, getQueryArg } from '@wordpress/url';
+import { addQueryArgs, getQueryArg, getQueryArgs } from '@wordpress/url';
 
 /**
  * Internal dependencies
@@ -288,8 +288,8 @@ export function buildTemplatePartItemPath(id: string | number): string {
 }
 
 /**
- * Core Patterns browse for template parts in one area
- * (`/pattern?postType=wp_template_part&categoryId=header`).
+ * Logical Patterns path for an area (what core `history.navigate` accepts).
+ * Example: `/pattern?postType=wp_template_part&categoryId=header`.
  */
 export function buildPatternsTemplatePartsPath(area: PartAreaId): string {
 	return addQueryArgs(ROUTES.patterns, {
@@ -300,6 +300,10 @@ export function buildPatternsTemplatePartsPath(area: PartAreaId): string {
 
 /**
  * Leave Templates Hub for the matching Patterns area list; clear Templates query state.
+ *
+ * Must mirror `@wordpress/router` `useHistory.navigate`: put the route in `p`
+ * and keep `postType` / `categoryId` as top-level search params. Nesting them
+ * inside `p` makes `useMatch` drop the area filter and open general Patterns.
  */
 export function navigateToPatternsTemplatePartArea(area: PartAreaId): void {
 	if (typeof window === 'undefined') {
@@ -308,8 +312,11 @@ export function navigateToPatternsTemplatePartArea(area: PartAreaId): void {
 
 	setPendingSidebarNavDirection('forward');
 
+	const pathQuery = getQueryArgs(buildPatternsTemplatePartsPath(area));
+
 	pushSiteEditorQuery({
-		p: buildPatternsTemplatePartsPath(area),
+		p: ROUTES.patterns,
+		...pathQuery,
 		[TEMPLATES_FILTER_QUERY]: undefined,
 		[TEMPLATES_PARTS_AREA_QUERY]: undefined,
 		[TEMPLATES_ACTIVE_VIEW_QUERY]: undefined,

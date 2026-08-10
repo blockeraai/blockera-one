@@ -126,33 +126,23 @@ describe('Blockera One → Templates parts Area Hub', () => {
 	});
 
 	describe('Manage → Patterns', () => {
-		it('opens Patterns headers list from Header Manage button', () => {
-			openFreshSiteEditor();
-			openTemplatesPurposeNav();
-			openTemplatesPartArea('header');
-			assertTemplatesAreaHub({ area: 'header', mode: 'preview' });
+		['header', 'footer', 'sidebar'].forEach((area) => {
+			it(`opens Patterns ${area} list from Manage (sibling categoryId, not nested in p)`, () => {
+				openFreshSiteEditor();
+				openTemplatesPurposeNav();
+				openTemplatesPartArea(area);
+				assertTemplatesAreaHub({ area, mode: 'preview' });
 
-			cy.getByDataTest(
-				SITE_EDITOR_TEST_IDS.templatesAreaHubManage
-			).click();
-			assertNavigatedToPatternsTemplatePartArea('header');
-		});
-
-		it('opens Patterns footers list from Footer Manage button', () => {
-			openFreshSiteEditor();
-			openTemplatesPurposeNav();
-			openTemplatesPartArea('footer');
-			assertTemplatesAreaHub({ area: 'footer', mode: 'preview' });
-
-			cy.getByDataTest(
-				SITE_EDITOR_TEST_IDS.templatesAreaHubManage
-			).click();
-			assertNavigatedToPatternsTemplatePartArea('footer');
+				cy.getByDataTest(
+					SITE_EDITOR_TEST_IDS.templatesAreaHubManage
+				).click();
+				assertNavigatedToPatternsTemplatePartArea(area);
+			});
 		});
 	});
 
 	describe('Empty hub', () => {
-		it('shows empty Header hub and Manage opens Patterns', () => {
+		it('shows empty Header hub and Manage opens Patterns headers list', () => {
 			ensureNoTemplatePart('header');
 			trackHiddenPart('header');
 
