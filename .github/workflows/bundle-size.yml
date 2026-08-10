@@ -12,7 +12,7 @@ on:
             - '**package*.json'
             # These files configures ESLint. Changes could affect the outcome.
             - '**.eslint*'
-            - 'packages/dev-tools/js/eslint/*.js'
+            - 'packages/global-packages/packages/dev-tools/js/eslint/*.js'
             # These files configures JSHint. Changes could affect the outcome.
             - '**.jshint*'
             # These files configures Prettier. Changes could affect the outcome.
@@ -26,7 +26,7 @@ on:
             #- '**.tsconfig*'
             # This file configures Webpack. Changes could affect the outcome.
             - 'webpack.config.js'
-            - 'packages/dev-tools/js/webpack/*.js'
+            - 'packages/global-packages/packages/dev-tools/js/webpack/*.js'
             # Changes to this workflow file should always verify the changes are successful.
             - '.github/workflows/bundle-size.yml'
 
@@ -49,6 +49,8 @@ jobs:
 
             - name: Setup Node.js and install dependencies
               uses: ./.github/setup-node
+              with:
+                  global-packages-token: ${{ secrets.BLOCKERABOT_PAT }}
 
             - name: Install Composer dependencies
               uses: ramsey/composer-install@v2

@@ -4,10 +4,28 @@ inputs:
     node-version:
         description: 'Optional. The Node.js version to use. When not specified, the version specified in .nvmrc will be used.'
         required: false
+    global-packages-token:
+        description: 'PAT with read access to blockera-global-packages (secrets.BLOCKERABOT_PAT).'
+        required: false
+        default: ''
+    chdir:
+        description: 'Optional. The directory to run the commands in. When not specified, the current directory will be used.'
+        required: false
+        default: ''
+    dir:
+        description: 'Optional. The directory backtrack to. When not specified, the current directory will be used.'
+        required: false
+        default: ''
 
 runs:
     using: 'composite'
     steps:
+        - name: Ensure global-packages submodule (sparse)
+          shell: bash
+          env:
+              BLOCKERA_GLOBAL_PACKAGES_TOKEN: ${{ inputs.global-packages-token }}
+          run: bash "${GITHUB_WORKSPACE}/.github/scripts/ensure-global-packages-sparse.sh" "${GITHUB_WORKSPACE}"
+
         - name: Setup Node.js with built-in npm cache
           uses: actions/setup-node@v4
           with:
@@ -26,9 +44,16 @@ runs:
           uses: actions/cache@v4
           with:
               path: '**/node_modules'
-              key: node_modules-${{ runner.os }}-${{ steps.node-version.outputs.NODE_VERSION }}-${{ hashFiles('package-lock.json') }}
+              key: node_modules-${{ runner.os }}-${{ steps.node-version.outputs.NODE_VERSION }}-${{ inputs.chdir}}-${{ hashFiles('package-lock.json') }}
 
         - name: Install npm dependencies
           if: ${{ steps.cache-node_modules.outputs.cache-hit != 'true' || cancelled() }}
-          run: bash .github/scripts/retry-npm-ci.sh
+          run: |
+              if [ -n "${{ inputs.chdir }}" ]; then
+                  cd ${{ inputs.chdir }}
+              fi
+              bash "${GITHUB_WORKSPACE}/.github/scripts/retry-npm-ci.sh"
+              if [ -n "${{ inputs.dir }}" ]; then
+                  cd ../${{ inputs.dir }}
+              fi
           shell: bash
