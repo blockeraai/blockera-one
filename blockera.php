@@ -6,7 +6,7 @@
  */
 
 ### BEGIN AUTO-GENERATED AUTOLOADER
-require_once __DIR__ . '/packages/autoloader-coordinator/bootstrap.php';
+require_once __DIR__ . '/packages/global-packages/packages/autoloader-coordinator/bootstrap.php';
 blockera_bootstrap_shared_autoloader(
 	'blockera-one',
 	__DIR__,
@@ -165,7 +165,7 @@ function blockera_one_init(): void {
         $whoops->pushHandler(new \Whoops\Handler\PrettyPageHandler());
         $whoops->register();
     }
-    require BLOCKERA_SB_PATH . 'packages/blockera/php/app.php';
+    require BLOCKERA_SB_PATH . 'vendor/blockera/blockera/php/app.php';
     require BLOCKERA_SB_PATH . 'packages/blockera-one/php/functions.php';
     ### END AUTO-GENERATED FRONT CONTROLLERS
 

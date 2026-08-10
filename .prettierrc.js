@@ -5,7 +5,7 @@ module.exports = {
 	endOfLine: 'auto',
 	useTabs: true,
 	plugins: [
-		require.resolve('./packages/dev-tools/js/theme-json/prettier-plugin-theme-config-sort.js'),
+		require.resolve('./packages/global-packages/packages/dev-tools/js/theme-json/prettier-plugin-theme-config-sort.js'),
 	],
 	overrides: [
 		{

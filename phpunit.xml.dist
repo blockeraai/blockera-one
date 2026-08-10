@@ -1,6 +1,6 @@
 <!--@see: https://github.com/wp-phpunit/docs to configuration project for wp phpunit testing-->
 <phpunit
-        bootstrap="./packages/dev-phpunit/php/bootstrap.php"
+        bootstrap="./packages/global-packages/packages/dev-phpunit/php/bootstrap.php"
         backupGlobals="false"
         colors="true"
         convertErrorsToExceptions="true"
@@ -23,16 +23,16 @@
             passed as CLI args from npm run test:unit:php:base.
         -->
         <testsuite name="units">
-            <directory suffix=".php">./packages/dev-phpunit/php/</directory>
+            <directory suffix=".php">./packages/global-packages/packages/dev-phpunit/php/</directory>
             <exclude>./node_modules/</exclude>
             <exclude>./dist/</exclude>
         </testsuite>
         <testsuite name="snapshots">
-            <directory suffix=".php">./packages/dev-phpunit/php/</directory>
+            <directory suffix=".php">./packages/global-packages/packages/dev-phpunit/php/</directory>
             <directory suffix=".php">./tests/phpunit/main/</directory>
             <exclude>./node_modules/</exclude>
             <exclude>./dist/</exclude>
-            <exclude>./packages/editor/php/Tests/StyleDefinitionTestCase.php</exclude>
+            <exclude>./packages/global-packages/packages/editor/php/Tests/StyleDefinitionTestCase.php</exclude>
         </testsuite>
     </testsuites>
 
@@ -40,8 +40,8 @@
         <env name="VERSION" value="1.0-beta" />
         <const name="PHPUNIT_PLUGIN_TEST" value="true"/>
         <env name="__BLOCKERA_DIR__" value="themes/blockera-one" />
-        <env name="WP_PHPUNIT__TESTS_CONFIG" value="./packages/dev-phpunit/php/config.php" />
-        <env name="WP_TESTS_CONFIG_FILE_PATH" value="./packages/dev-phpunit/php/config.php" />
+        <env name="WP_PHPUNIT__TESTS_CONFIG" value="./packages/global-packages/packages/dev-phpunit/php/config.php" />
+        <env name="WP_TESTS_CONFIG_FILE_PATH" value="./packages/global-packages/packages/dev-phpunit/php/config.php" />
     </php>
 
 </phpunit>
