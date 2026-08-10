@@ -27,6 +27,8 @@ on:
             # This file configures Webpack. Changes could affect the outcome.
             - 'webpack.config.js'
             - 'packages/global-packages/packages/dev-tools/js/webpack/*.js'
+            # Submodule pin bumps (gitlink) do not match **.js/**.php; still affect dist/zip size.
+            - 'packages/global-packages'
             # Changes to this workflow file should always verify the changes are successful.
             - '.github/workflows/bundle-size.yml'
 
@@ -65,7 +67,7 @@ jobs:
               uses: preactjs/compressed-size-action@v2
               with:
                   repo-token: '${{ secrets.BLOCKERABOT_PAT }}'
-                  pattern: '{dist/**/*.min.js,dist/**/*.min.css,blockera-one.zip,packages/**/*.php,!**/test/**,!**/tests/**,packages/php/**/*.json,packages/js/**/*.json,packages/**/*.svg}'
+                  pattern: '{dist/**/*.min.js,dist/**/*.min.css,blockera-one.zip,packages/**/*.php,!**/test/**,!**/tests/**,packages/**/php/**/*.json,packages/**/js/**/*.json,packages/**/*.svg}'
 
             # Action has no title input; prepend a custom H1 after it posts/updates the comment.
             - name: Prepend H1 to size comment
