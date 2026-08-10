@@ -34,7 +34,7 @@ type GlobalStylesRecord = {
 };
 
 /**
- * Branding row shown under the SiteHub on all Site Editor view-mode pages.
+ * Branding row shown under core SiteHub on all Site Editor view-mode pages.
  */
 export default function MainPanelHeader() {
 	const { globalStylesId, canReset } = useSelect((select) => {

@@ -1,6 +1,6 @@
 /**
  * Site Editor main panel plugin.
- * Hides core Design ItemGroup + SiteHub; portals Blockera hub / nav chrome.
+ * Hides core Design ItemGroup; portals Blockera branding / nav chrome.
  */
 
 import type { ReactNode } from 'react';
@@ -18,104 +18,71 @@ import {
 import {
 	BODY_CLASS,
 	DESIGN_ROOT_BODY_CLASS,
-	SITE_HUB_MOUNT_CLASS,
+	MAIN_PANEL_HEADER_MOUNT_CLASS,
 	STABLE_SIDEBAR_CONTENT_SELECTOR,
 	STABLE_SIDEBAR_SELECTOR,
 } from './constants';
 import MainNavigation from './main-navigation';
 import MainPanelHeader from './main-panel-header';
 import SiteEditorMainPanelRoutes from './routes';
-import SiteHub from './site-hub';
-import { getSiteEditorPath, isDesignRootPath, isSiteEditorUrl } from './utils';
-import './blockera-se-admin-ui-page.scss';
+import {
+	getSiteEditorPath,
+	isDesignRootPath,
+	isSiteEditorUrl,
+	useSiteEditorNavigate,
+} from './utils';
+import './admin-ui-card.scss';
 import './style.scss';
 
-const NAVIGATE_EVENT = 'blockera-site-editor-navigate';
-
-let historyPatched = false;
-let originalPushState: typeof window.history.pushState | null = null;
-let originalReplaceState: typeof window.history.replaceState | null = null;
-
 /**
- * Patch history once; notify listeners on SPA navigations.
+ * Ensure a mount node exists after core SiteHub (before sidebar content).
+ * React may drop unknown siblings on reconcile — caller re-runs via observer.
  */
-function ensureHistoryPatch(): () => void {
-	if (typeof window === 'undefined') {
-		return () => {};
-	}
+function ensureMainPanelHeaderMount(sidebar: Element): Element {
+	const existing = sidebar.querySelector(
+		`:scope > .${MAIN_PANEL_HEADER_MOUNT_CLASS}`
+	);
+	const hub = sidebar.querySelector(':scope > .edit-site-site-hub');
+	const content = sidebar.querySelector(
+		':scope > .edit-site-sidebar__content'
+	);
 
-	const emit = () => {
-		window.dispatchEvent(new CustomEvent(NAVIGATE_EVENT));
-	};
-
-	if (!historyPatched) {
-		originalPushState = window.history.pushState;
-		originalReplaceState = window.history.replaceState;
-
-		window.history.pushState = function (...args) {
-			const result = originalPushState!.apply(this, args);
-			emit();
-			return result;
-		};
-		window.history.replaceState = function (...args) {
-			const result = originalReplaceState!.apply(this, args);
-			emit();
-			return result;
-		};
-
-		historyPatched = true;
-	}
-
-	window.addEventListener('popstate', emit);
-
-	return () => {
-		window.removeEventListener('popstate', emit);
-	};
-}
-
-function useSiteEditorNavigate(listener: () => void): void {
-	useEffect(() => {
-		if (!isSiteEditorUrl()) {
+	const placeMount = (mount: Element) => {
+		if (hub) {
+			if (mount.previousElementSibling !== hub) {
+				hub.after(mount);
+			}
 			return;
 		}
 
-		const removePop = ensureHistoryPatch();
-		const onNavigate = () => listener();
-		window.addEventListener(NAVIGATE_EVENT, onNavigate);
-		onNavigate();
-
-		return () => {
-			window.removeEventListener(NAVIGATE_EVENT, onNavigate);
-			removePop();
-		};
-	}, [listener]);
-}
-
-/**
- * Ensure a mount node exists as the first child of the Site Editor sidebar.
- * React may drop unknown siblings on reconcile — caller re-runs via observer.
- */
-function ensureSiteHubMount(sidebar: Element): Element {
-	const existing = sidebar.querySelector(`:scope > .${SITE_HUB_MOUNT_CLASS}`);
-	if (existing) {
-		if (sidebar.firstElementChild !== existing) {
-			sidebar.insertBefore(existing, sidebar.firstChild);
+		if (content) {
+			if (mount.nextElementSibling !== content) {
+				sidebar.insertBefore(mount, content);
+			}
+			return;
 		}
+
+		if (sidebar.firstElementChild !== mount) {
+			sidebar.insertBefore(mount, sidebar.firstChild);
+		}
+	};
+
+	if (existing) {
+		placeMount(existing);
 		return existing;
 	}
 
 	const mount = document.createElement('div');
-	mount.className = SITE_HUB_MOUNT_CLASS;
-	sidebar.insertBefore(mount, sidebar.firstChild);
+	mount.className = MAIN_PANEL_HEADER_MOUNT_CLASS;
+	placeMount(mount);
 	return mount;
 }
 
 /**
- * Portal SiteHub + MainPanelHeader into `.edit-site-layout__sidebar` whenever
- * the sidebar is present (all Site Editor view-mode pages). Components stay
- * separate; this injector only composes them. Core hub is CSS-hidden always.
+ * Portal MainPanelHeader into `.edit-site-layout__sidebar` whenever the
+ * sidebar is present (all Site Editor view-mode pages). Core SiteHub stays.
  */
-function SiteHubInjector(): ReactNode {
+function MainPanelHeaderInjector(): ReactNode {
 	const [host, setHost] = useState<Element | null>(null);
 
 	const syncHost = useCallback(() => {
@@ -124,7 +91,7 @@ function SiteHubInjector(): ReactNode {
 			setHost(null);
 			return;
 		}
-		setHost(ensureSiteHubMount(sidebar));
+		setHost(ensureMainPanelHeaderMount(sidebar));
 	}, []);
 
 	useEffect(() => {
@@ -140,7 +107,7 @@ function SiteHubInjector(): ReactNode {
 		return () => {
 			observer.disconnect();
 			document
-				.querySelectorAll(`.${SITE_HUB_MOUNT_CLASS}`)
+				.querySelectorAll(`.${MAIN_PANEL_HEADER_MOUNT_CLASS}`)
 				.forEach((node) => node.remove());
 		};
 	}, [syncHost]);
@@ -151,13 +118,7 @@ function SiteHubInjector(): ReactNode {
 		return null;
 	}
 
-	return createPortal(
-		<>
-			<SiteHub />
-			<MainPanelHeader />
-		</>,
-		host
-	);
+	return createPortal(<MainPanelHeader />, host);
 }
 
 /**
@@ -223,7 +184,7 @@ export default function SiteEditorMainPanel(): ReactNode {
 	return (
 		<>
 			<SiteEditorMainPanelRoutes />
-			<SiteHubInjector />
+			<MainPanelHeaderInjector />
 			<SiteEditorMainPanelNavigationInjector />
 		</>
 	);

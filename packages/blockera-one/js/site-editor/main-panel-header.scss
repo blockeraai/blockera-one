@@ -2,11 +2,19 @@
  * Blockera One branding header — self-contained (no core edit-site class coupling).
  */
 
+.blockera-site-editor-main-panel-header-mount {
+	flex: 0 0 auto;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
 .blockera-site-editor-main-panel-header {
 	flex: 0 0 auto;
-	padding: 16px 12px 12px 15px;
+	padding: 12px 12px 12px 15px;
 	box-sizing: border-box;
 	color: #ffffff;
+	margin-top: 22px;
 
 	&__row {
 		width: 100%;

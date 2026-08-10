@@ -1,0 +1,150 @@
+/**
+ * Templates purpose-nav (dark sidebar chrome).
+ */
+
+.blockera-site-editor-templates-nav {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	padding: 0 4px 16px;
+
+	&__loading {
+		margin: 0;
+		padding: 8px 12px;
+		color: #a7aaad;
+		font-size: 13px;
+	}
+
+	&__section {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+	}
+
+	&__section-title {
+		padding: 8px 12px 4px;
+		font-size: 11px;
+		font-weight: 600;
+		letter-spacing: 0.02em;
+		text-transform: uppercase;
+		color: #ffffff;
+	}
+
+	&__items {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+
+	&__item-shell {
+		position: relative;
+
+		&:has(> .blockera-site-editor-templates-nav__item.is-child) {
+			padding-left: 28px;
+			margin-top: 2px;
+		}
+
+		&:has(> .blockera-site-editor-templates-nav__item.is-grandchild) {
+			padding-left: 44px;
+			margin-top: 2px;
+		}
+	}
+
+	&__item.components-button {
+		display: block;
+		width: 100%;
+		height: auto;
+		min-height: 38px;
+		padding: 6px 6px 6px 12px;
+		border-radius: 2px;
+		color: var(--wpds-color-foreground-interactive-neutral-weak, #707070);
+		text-align: left;
+		box-shadow: none !important;
+
+		&:hover,
+		&:focus {
+			color: #ffffff;
+			background: rgba(255, 255, 255, 0.06);
+		}
+
+		&.is-active {
+			color: #ffffff;
+			background: rgba(255, 255, 255, 0.1);
+		}
+
+		svg {
+			fill: currentColor;
+		}
+	}
+
+	&__item-inner {
+		width: 100%;
+	}
+
+	&__item.is-child .blockera-site-editor-templates-nav__item-inner {
+		gap: 0;
+	}
+
+	&__item-icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		flex: 0 0 auto;
+
+		svg {
+			display: block;
+		}
+	}
+
+	&__status-slot {
+		position: absolute;
+		top: 50%;
+		right: 28px;
+		z-index: 2;
+		transform: translateY(-50%);
+		line-height: 0;
+		pointer-events: auto;
+		cursor: pointer;
+	}
+
+	&__count {
+		min-width: 1.25em;
+		font-size: 12px;
+		text-align: right;
+		opacity: 0.85;
+	}
+
+	&__status {
+		padding: 1px 6px;
+		border-radius: 3px;
+		font-size: 10px;
+		font-weight: 600;
+		letter-spacing: 0.02em;
+		line-height: 1.4;
+		text-transform: uppercase;
+		color: #a7aaad;
+		background: rgba(255, 255, 255, 0.06);
+		white-space: nowrap;
+		cursor: pointer;
+
+		&.is-active {
+			color: #ffffff;
+			background: rgba(255, 255, 255, 0.14);
+		}
+
+		&.is-fallback {
+			color: #c3c4c7;
+			background: rgba(255, 255, 255, 0.08);
+		}
+
+		&.is-unused {
+			color: #8c8f94;
+			opacity: 0.9;
+		}
+
+		&.is-static {
+			color: #c3c4c7;
+			background: rgba(255, 255, 255, 0.1);
+		}
+	}
+}

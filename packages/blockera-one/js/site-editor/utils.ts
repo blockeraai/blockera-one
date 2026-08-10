@@ -2,6 +2,7 @@
  * Helpers for Site Editor main panel navigation.
  */
 
+import { useEffect } from '@wordpress/element';
 import { addQueryArgs, getQueryArg } from '@wordpress/url';
 
 /**
@@ -16,37 +17,69 @@ import { CORE_NAV_UIDS, ROUTES, type MainNavKey } from './constants';
 
 export { isSiteEditorUrl };
 
+/** Fired after SPA history changes (patched push/replace + popstate). */
+export const SITE_EDITOR_NAVIGATE_EVENT = 'blockera-site-editor-navigate';
+
+let historyPatched = false;
+let originalPushState: typeof window.history.pushState | null = null;
+let originalReplaceState: typeof window.history.replaceState | null = null;
+
 /**
- * Dashboard URL for the site-hub logo (back to wp-admin).
- * Prefer the core site-hub / view-mode-toggle href when present.
+ * Patch history once; notify listeners on SPA navigations (incl. core router).
  */
-export function getWpAdminDashboardUrl(): string {
+export function ensureSiteEditorHistoryPatch(): () => void {
 	if (typeof window === 'undefined') {
-		return '/wp-admin/';
+		return () => {};
 	}
 
-	// Prefer core hub (hidden but still in DOM) — our hub uses only blockera classes.
-	const fromToggle = document
-		.querySelector<HTMLAnchorElement>(
-			'.edit-site-layout__sidebar > .edit-site-site-hub .edit-site-layout__view-mode-toggle, .edit-site-editor__view-mode-toggle a, .edit-site-editor__view-mode-toggle button[href]'
-		)
-		?.getAttribute('href');
+	const emit = () => {
+		window.dispatchEvent(new CustomEvent(SITE_EDITOR_NAVIGATE_EVENT));
+	};
 
-	if (fromToggle) {
-		return fromToggle;
+	if (!historyPatched) {
+		originalPushState = window.history.pushState;
+		originalReplaceState = window.history.replaceState;
+
+		window.history.pushState = function (...args) {
+			const result = originalPushState!.apply(this, args);
+			emit();
+			return result;
+		};
+		window.history.replaceState = function (...args) {
+			const result = originalReplaceState!.apply(this, args);
+			emit();
+			return result;
+		};
+
+		historyPatched = true;
 	}
 
-	try {
-		const { origin, pathname } = window.location;
-		const match = pathname.match(/^(.*\/wp-admin\/)/);
-		if (match?.[1]) {
-			return `${origin}${match[1]}`;
+	window.addEventListener('popstate', emit);
+
+	return () => {
+		window.removeEventListener('popstate', emit);
+	};
+}
+
+/**
+ * Subscribe to Site Editor URL changes (core router + Blockera SPA navigate).
+ */
+export function useSiteEditorNavigate(listener: () => void): void {
+	useEffect(() => {
+		if (!isSiteEditorUrl()) {
+			return;
 		}
-	} catch (_e) {
-		// fall through
-	}
 
-	return '/wp-admin/';
+		const removePop = ensureSiteEditorHistoryPatch();
+		const onNavigate = () => listener();
+		window.addEventListener(SITE_EDITOR_NAVIGATE_EVENT, onNavigate);
+		onNavigate();
+
+		return () => {
+			window.removeEventListener(SITE_EDITOR_NAVIGATE_EVENT, onNavigate);
+			removePop();
+		};
+	}, [listener]);
 }
 
 /**
@@ -66,22 +99,13 @@ export function getSiteEditorPath(): string {
 }
 
 /**
- * Routes that keep the Design list chrome (vs drill-down Pages/Templates/…).
+ * Routes that keep the Design list chrome (vs drill-down Styles / Pages / …).
+ * Styles / Identity / Homepage / Performance collapse the main nav like Templates.
  */
 export function isDesignRootPath(path: string = getSiteEditorPath()): boolean {
 	const normalized = path.split('?')[0] || ROUTES.home;
 
-	return (
-		normalized === ROUTES.home ||
-		normalized === ROUTES.styles ||
-		normalized.startsWith(`${ROUTES.styles}/`) ||
-		normalized === ROUTES.identity ||
-		normalized.startsWith(`${ROUTES.identity}/`) ||
-		normalized === ROUTES.homepage ||
-		normalized.startsWith(`${ROUTES.homepage}/`) ||
-		normalized === ROUTES.performance ||
-		normalized.startsWith(`${ROUTES.performance}/`)
-	);
+	return normalized === ROUTES.home;
 }
 
 /**
@@ -176,10 +200,23 @@ export function navigateViaCoreUid(key: keyof typeof CORE_NAV_UIDS): void {
  * the URL with pushState and dispatching `popstate` so the `history` package
  * instance inside `@wordpress/router` re-reads location and rematches routes
  * (when no navigation blockers are active).
+ *
+ * @param path     Site Editor `p` path.
+ * @param options.direction  Pending enter animation for the destination screen
+ *                           (`forward` / `back`). Mirrors core
+ *                           `SidebarNavigationContext.navigate()` — we cannot
+ *                           call that context without edit-site unlock.
  */
-export function navigateToSiteEditorPath(path: string): void {
+export function navigateToSiteEditorPath(
+	path: string,
+	options?: { direction?: SidebarNavDirection }
+): void {
 	if (typeof window === 'undefined') {
 		return;
+	}
+
+	if (options?.direction) {
+		setPendingSidebarNavDirection(options.direction);
 	}
 
 	const absoluteUrl = addQueryArgs(window.location.href, { p: path });
@@ -212,4 +249,51 @@ export function navigateToSiteEditorPath(path: string): void {
 		nextUrl
 	);
 	window.dispatchEvent(new PopStateEvent('popstate'));
+}
+
+/** Direction for Blockera sidebar enter animations (matches core slide classes). */
+export type SidebarNavDirection = 'forward' | 'back';
+
+let pendingSidebarNavDirection: SidebarNavDirection | null = null;
+
+/**
+ * Record the next sidebar screen enter animation.
+ * Consumed once by the destination screen on mount.
+ */
+export function setPendingSidebarNavDirection(
+	direction: SidebarNavDirection | null
+): void {
+	pendingSidebarNavDirection = direction;
+}
+
+/**
+ * Read and clear the pending sidebar enter animation direction.
+ */
+export function consumePendingSidebarNavDirection(): SidebarNavDirection | null {
+	const direction = pendingSidebarNavDirection;
+	pendingSidebarNavDirection = null;
+	return direction;
+}
+
+/**
+ * Strip core slide classes from the screen wrapper.
+ *
+ * Core `SidebarContentWrapper` may apply a stale
+ * `SidebarNavigationContext` direction when `shouldAnimate` is true
+ * (homepage / performance). We animate Blockera screens ourselves instead.
+ */
+export function clearCoreSidebarSlideClasses(): void {
+	if (typeof document === 'undefined') {
+		return;
+	}
+
+	const wrapper = document.querySelector(
+		'.edit-site-layout__sidebar .edit-site-sidebar__screen-wrapper'
+	);
+
+	if (!(wrapper instanceof HTMLElement)) {
+		return;
+	}
+
+	wrapper.classList.remove('slide-from-right', 'slide-from-left');
 }
