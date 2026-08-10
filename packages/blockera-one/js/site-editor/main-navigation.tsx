@@ -85,7 +85,7 @@ function NavItem({
 				className="blockera-site-editor-main-navigation__item-label"
 			>
 				<span className="blockera-site-editor-main-navigation__item-icon">
-					<Icon library={iconLibrary} icon={icon} iconSize={22} />
+					<Icon library={iconLibrary} icon={icon} iconSize={24} />
 				</span>
 				<span>{label}</span>
 			</Flex>
