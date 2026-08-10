@@ -117,11 +117,11 @@ function emptyPrimaryMessage(area: PartAreaId): string {
 function manageAllPartsLabel(area: PartAreaId): string {
 	switch (area) {
 		case 'header':
-			return __('Manage all headers', 'blockera');
+			return __('Manage All Headers', 'blockera');
 		case 'footer':
-			return __('Manage all footers', 'blockera');
+			return __('Manage All Footers', 'blockera');
 		case 'sidebar':
-			return __('Manage all sidebars', 'blockera');
+			return __('Manage All Sidebars', 'blockera');
 	}
 }
 
