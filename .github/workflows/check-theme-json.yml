@@ -6,7 +6,7 @@ on:
         paths:
             - 'theme-config/**'
             - 'theme.json'
-            - 'packages/dev-tools/js/theme-json/**'
+            - 'packages/global-packages/packages/dev-tools/js/theme-json/**'
             - '.github/workflows/check-theme-json.yml'
     workflow_dispatch:
 
@@ -24,11 +24,11 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v4
 
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
+            - name: Setup Node.js and install dependencies
+              uses: ./.github/setup-node
               with:
-                  node-version-file: '.nvmrc'
+                  global-packages-token: ${{ secrets.BLOCKERABOT_PAT }}
 
             - name: Check theme.json is in sync with theme-config
               run: |
-                  node ./packages/dev-tools/js/theme-json/merge-theme-json.js --check
+                  node ./packages/global-packages/packages/dev-tools/js/theme-json/merge-theme-json.js --check

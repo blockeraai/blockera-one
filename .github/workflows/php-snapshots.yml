@@ -98,11 +98,14 @@ jobs:
             - name: Setup Node.js and install dependencies
               if: steps.snapshot-fixtures.outputs.expected_tests != '0'
               uses: ./.github/setup-node
+              with:
+                  global-packages-token: ${{ secrets.BLOCKERABOT_PAT }}
 
             - name: Setup PHP Composer install dependencies
               if: steps.snapshot-fixtures.outputs.expected_tests != '0'
               uses: ./.github/setup-php
               with:
+                  global-packages-token: ${{ secrets.BLOCKERABOT_PAT }}
                   php-version: ${{ matrix.php }}
 
             - name: Npm build

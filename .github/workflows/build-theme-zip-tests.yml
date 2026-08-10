@@ -34,6 +34,8 @@ jobs:
             - name: Setup Node.js and install dependencies
               if: steps.find_specs_files.outputs.file_count != '0'
               uses: ./.github/setup-node
+              with:
+                  global-packages-token: ${{ secrets.BLOCKERABOT_PAT }}
 
             - name: Install Composer dependencies
               if: steps.find_specs_files.outputs.file_count != '0'
@@ -58,8 +60,7 @@ jobs:
               run: |
                   cd ./build/blockera-one
                   mkdir packages
-                  mkdir packages/blockera
-                  mkdir packages/blockera/tests
+                  mkdir -p packages/global-packages/packages/blockera/tests
                   mkdir -p .github/scripts
                   mkdir -p .github/wp-env-configs
 
@@ -83,14 +84,15 @@ jobs:
                   cp ./cypress.config.js ./build/blockera-one
                   # Cypress webpack babel-loader resolves babel.config.js from theme root.
                   cp ./babel.config.js ./build/blockera-one
-                  cp -r ./packages/dev-cypress ./build/blockera-one/packages
+                  mkdir -p ./build/blockera-one/packages/global-packages/packages
+                  cp -r ./packages/global-packages/packages/dev-cypress ./build/blockera-one/packages/global-packages/packages/
                   # Cypress webpack aliases resolve to packages/editor/.../testIds.ts; the zip
                   # extract does not include source packages, so mirror the minimal files.
-                  mkdir -p ./build/blockera-one/packages/editor/js/tabs/constants
-                  mkdir -p ./build/blockera-one/packages/editor/js/preview-mode/constants
-                  cp ./packages/editor/js/tabs/constants/testIds.ts ./build/blockera-one/packages/editor/js/tabs/constants/
-                  cp ./packages/editor/js/preview-mode/constants/testIds.ts ./build/blockera-one/packages/editor/js/preview-mode/constants/
-                  find ./packages -path "*-one*" -name "*.build.e2e.cy.js" -type f -exec cp {} ./build/blockera-one/packages/blockera/tests \;
+                  mkdir -p ./build/blockera-one/packages/global-packages/packages/editor/js/tabs/constants
+                  mkdir -p ./build/blockera-one/packages/global-packages/packages/editor/js/preview-mode/constants
+                  cp ./packages/global-packages/packages/editor/js/tabs/constants/testIds.ts ./build/blockera-one/packages/global-packages/packages/editor/js/tabs/constants/
+                  cp ./packages/global-packages/packages/editor/js/preview-mode/constants/testIds.ts ./build/blockera-one/packages/global-packages/packages/editor/js/preview-mode/constants/
+                  find ./packages -path "*-one*" -name "*.build.e2e.cy.js" -type f -exec cp {} ./build/blockera-one/packages/global-packages/packages/blockera/tests \;
 
             - name: Setup and Run E2E tests on Blockera One build
               if: steps.find_specs_files.outputs.file_count != '0'

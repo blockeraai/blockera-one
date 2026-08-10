@@ -7,8 +7,8 @@ on:
             - 'patterns/**'
             - '.patterns.config.js'
             - 'packages/utils/js/patterns/**'
-            - 'packages/dev-tools/js/patterns/**'
-            - 'packages/dev-tools/js/webpack/localize-patterns-plugin.js'
+            - 'packages/global-packages/packages/dev-tools/js/patterns/**'
+            - 'packages/global-packages/packages/dev-tools/js/webpack/localize-patterns-plugin.js'
             - '.github/workflows/check-patterns.yml'
     workflow_dispatch:
 
@@ -28,7 +28,9 @@ jobs:
 
             - name: Setup Node.js
               uses: ./.github/setup-node
+              with:
+                  global-packages-token: ${{ secrets.BLOCKERABOT_PAT }}
 
             - name: Check pattern files are localized
               run: |
-                  node ./packages/dev-tools/js/patterns/localize-patterns-cli.js --check --quiet
+                  node ./packages/global-packages/packages/dev-tools/js/patterns/localize-patterns-cli.js --check --quiet

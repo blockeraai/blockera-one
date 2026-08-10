@@ -30,6 +30,8 @@ jobs:
             - name: Setup Node.js and install dependencies
               if: steps.find_specs_files.outputs.file_count != '0'
               uses: ./.github/setup-node
+              with:
+                  global-packages-token: ${{ secrets.BLOCKERABOT_PAT }}
 
             - name: Install Cypress
               if: steps.find_specs_files.outputs.file_count != '0'
