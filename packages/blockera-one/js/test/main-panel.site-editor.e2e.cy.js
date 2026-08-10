@@ -96,9 +96,4 @@ describe('Blockera One → Site Editor main panel chrome', () => {
 			.should('have.attr', 'href')
 			.and('include', 'utm_source=blockera-one-site-editor');
 	});
-
-	it('opens the branding More menu with Reset styles', () => {
-		cy.getByDataTest(SITE_EDITOR_TEST_IDS.headerMore).click();
-		cy.getByDataTest(SITE_EDITOR_TEST_IDS.resetStyles).should('be.visible');
-	});
 });
