@@ -114,7 +114,6 @@
 	&__content {
 		flex-grow: 1;
 		min-height: 0;
-		overflow: auto;
 		padding: 0 0 16px 4px;
 		box-sizing: border-box;
 		/* Keep form controls on the light card (do not inherit sidebar chrome color). */
