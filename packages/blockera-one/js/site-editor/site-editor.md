@@ -29,7 +29,8 @@ Drill-down screens use a Blockera-owned `DrillDownScreen` (back → `/` + title 
 | File | Role |
 |------|------|
 | `index.tsx` | Plugin root: body class, header portal, nav portal, routes |
-| `main-panel-header.tsx` / `main-panel-header.scss` | Blockera One branding + More menu (Reset styles) |
+| `main-panel-header.tsx` / `main-panel-header.scss` | Blockera One branding + More menu (Reset → modal) |
+| `reset/` | Theme reset modal + REST client (`ResetThemeModal`, `resetTheme`) |
 | `main-navigation.tsx` / `main-navigation.scss` | Design / Site / Features / Resources UI |
 | `drill-down-screen.tsx` / `drill-down-screen.scss` | Back + title (+ optional actions / `onBack`) chrome |
 | `styles-drill-down.tsx` | Styles wrapper: portals Style Book into drill-down title row |
@@ -85,6 +86,11 @@ Registered from `packages/blockera-one/js/index.js` via `blockera.after.bootstra
 
 - `packages/blockera-one/js/test/main-panel.site-editor.e2e.cy.js` (includes Templates purpose-nav)
 - Helpers: `assertSiteEditorTemplatesNav` in `packages/dev-cypress/js/helpers/site-editor-main-panel.js`
+
+## E2E (CI category: `reset`)
+
+- `packages/blockera-one/js/test/theme-reset.reset.e2e.cy.js` — Reset theme modal UI + one-section isolation
+- Helpers: `packages/dev-cypress/js/helpers/site-editor-reset.js`
 
 ## Manual verification
 

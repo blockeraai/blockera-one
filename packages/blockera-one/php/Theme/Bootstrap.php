@@ -36,5 +36,6 @@ class Bootstrap {
 		( new BlockStyles() )->register();
 		( new Patterns() )->register();
 		( new Performance() )->register();
+		( new ResetTheme() )->register();
 	}
 }
