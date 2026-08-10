@@ -11,9 +11,15 @@
  * - SPA navigate cannot call edit-site `SidebarNavigationContext`
  * - Core sets `shouldAnimate={false}` for `identity`
  * - Homepage/performance may inherit a stale context direction
+ *
+ * WP 7.1+: when `@wordpress/theme` is present (via `wp.theme`), non-flush
+ * content is wrapped in ThemeProvider with a white background seed (same as
+ * edit-site `CONTENT_COLOR` on `areas.content`) so Admin UI / Global Styles
+ * get light `--wpds-*` tokens. Older WP has no ThemeProvider and no WPDS
+ * issue — children render unchanged.
  */
 
-import type { ReactNode } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 
 import {
 	Button,
@@ -36,12 +42,43 @@ import {
 	navigateToSiteEditorPath,
 } from './utils';
 
+/**
+ * Match edit-site layout content ThemeProvider seed.
+ * Core: `source-codes/block-editor/packages/edit-site/src/components/layout/index.js`
+ * (`CONTENT_COLOR` on `areas.content` / Styles). Nested under the dark admin
+ * ThemeProvider so light `--wpds-*` surface tokens apply to sidebar cards.
+ */
+const CONTENT_COLOR = { background: '#ffffff' };
+
+type ThemeProviderProps = {
+	children?: ReactNode;
+	color?: { background?: string; primary?: string };
+};
+
+type WpThemeGlobal = {
+	theme?: {
+		ThemeProvider?: ComponentType<ThemeProviderProps>;
+	};
+};
+
+/**
+ * Resolve ThemeProvider only if WordPress shipped `@wordpress/theme`.
+ * Avoid static import so older WP (no `wp.theme`) never throws on load.
+ */
+function getThemeProvider(): ComponentType<ThemeProviderProps> | null {
+	const theme = (window as Window & { wp?: WpThemeGlobal }).wp?.theme;
+	return theme?.ThemeProvider ?? null;
+}
+
 type DrillDownScreenProps = {
 	title: string;
 	children: ReactNode;
 	/** Optional trailing controls (e.g. Styles Style Book). */
 	actions?: ReactNode;
-	/** Skip content padding (e.g. full-bleed Global Styles UI). */
+	/**
+	 * Skip content padding and light ThemeProvider (e.g. Templates nav that
+	 * stays on dark sidebar chrome tokens).
+	 */
 	flush?: boolean;
 	/** Override back navigation (default: Design root `/`). */
 	onBack?: () => void;
@@ -75,6 +112,14 @@ export default function DrillDownScreen({
 		});
 		return () => window.cancelAnimationFrame(id);
 	}, []);
+
+	const ThemeProvider = !flush ? getThemeProvider() : null;
+	const content =
+		ThemeProvider !== null ? (
+			<ThemeProvider color={CONTENT_COLOR}>{children}</ThemeProvider>
+		) : (
+			children
+		);
 
 	return (
 		<VStack
@@ -122,7 +167,12 @@ export default function DrillDownScreen({
 					.filter(Boolean)
 					.join(' ')}
 			>
-				{children}
+				{/*
+				 * WP 7.1+: inject light design-system CSS vars (`--wpds-*`) when
+				 * `wp.theme.ThemeProvider` exists. Missing on older WP — no-op.
+				 * Skip when `flush` so Templates keep dark sidebar tokens.
+				 */}
+				{content}
 			</div>
 		</VStack>
 	);
