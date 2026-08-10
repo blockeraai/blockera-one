@@ -10,11 +10,6 @@ import { useCallback, useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 /**
- * Blockera dependencies
- */
-import { Flex } from '@blockera/controls';
-
-/**
  * Internal dependencies
  */
 import { ROUTES } from '../constants';
@@ -133,7 +128,8 @@ function manageAllPartsLabel(area: PartAreaId): string {
 function ManageAllPartsButton({ area }: { area: PartAreaId }) {
 	return (
 		<Button
-			variant="secondary"
+			variant="primary"
+			size="compact"
 			className="blockera-site-editor-templates-area-hub__manage"
 			onClick={() => navigateToPatternsTemplatePartArea(area)}
 			data-test="blockera-site-editor-templates-area-hub-manage"
@@ -241,24 +237,18 @@ export default function TemplatesAreaHub({ children }: TemplatesAreaHubProps) {
 					className="blockera-site-editor-templates-area-hub__banner"
 					data-test="blockera-site-editor-templates-area-hub-banner"
 				>
-					<Flex
-						alignItems="center"
-						justifyContent="space-between"
-						gap="12px"
-					>
-						<div className="blockera-site-editor-templates-area-hub__banner-text">
-							<div className="blockera-site-editor-templates-area-hub__banner-title">
-								{sitePartLabel(partsArea)}
-							</div>
-							<p className="blockera-site-editor-templates-area-hub__banner-hint">
-								{__(
-									'Editing this updates it everywhere this part is used.',
-									'blockera'
-								)}
-							</p>
+					<div className="blockera-site-editor-templates-area-hub__banner-text">
+						<div className="blockera-site-editor-templates-area-hub__banner-title">
+							{sitePartLabel(partsArea)}
+							<ManageAllPartsButton area={partsArea} />
 						</div>
-						<ManageAllPartsButton area={partsArea} />
-					</Flex>
+						<p className="blockera-site-editor-templates-area-hub__banner-hint">
+							{__(
+								'Editing this updates it everywhere this part is used.',
+								'blockera'
+							)}
+						</p>
+					</div>
 				</div>
 			) : null}
 			<div className="blockera-site-editor-templates-area-hub__canvas">

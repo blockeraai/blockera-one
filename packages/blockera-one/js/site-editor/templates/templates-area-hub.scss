@@ -12,7 +12,10 @@
 	box-sizing: border-box;
 
 	&__banner {
-		background: var(--wpds-color-background-surface-neutral-strong, #ffffff);
+		background: var(
+			--wpds-color-background-surface-neutral-strong,
+			#ffffff
+		);
 		padding: var(--wpds-dimension-padding-lg, 16px)
 			var(--wpds-dimension-padding-2xl, 24px);
 		flex: 0 0 auto;
@@ -24,13 +27,18 @@
 	}
 
 	&__banner-title {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		flex-wrap: wrap;
+		gap: 12px;
 		font-size: 15px;
 		font-weight: 600;
 		line-height: 1.4;
 	}
 
 	&__banner-hint {
-		margin: 6px 0 0;
+		margin: 0;
 		font-size: 12px;
 		line-height: 1.4;
 		color: #646970;
