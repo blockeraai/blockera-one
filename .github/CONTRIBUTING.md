@@ -46,7 +46,11 @@ You usually **do not** bump the submodule pin by hand.
    - **matching feature branch** (created by Husky mirror) → pushes the pin bump onto that branch
 4. Manual catch-up: Actions → **Sync global-packages submodule**, or `npm run submodule:bump`.
 
-Shared lint/job composites live in `packages/global-packages/packages/dev-tools/github/` and read `.github/blockera-ci.json`.
+Shared CI composites/scripts live in `packages/global-packages/packages/dev-tools/github/` and read `.github/blockera-ci.json`. Thin `.github/setup-node` / `.github/setup-php` bootstrap the submodule, then call those composites. After bumping the pin, sync bootstrap scripts:
+
+```bash
+bash packages/global-packages/packages/dev-tools/github/scripts/sync-consumer-bootstrap.sh
+```
 
 Husky `post-checkout` mirrors new consumer branches into the submodule as `<repo>/<branch>` (from the `origin` remote name).
 
