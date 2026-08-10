@@ -105,8 +105,8 @@ function NavRow({
 	isGrandchild?: boolean;
 	onClick: () => void;
 }) {
-	// Child “Specific templates” rows use list-view at 20px; everything else 22px.
-	const iconSize = isChild && item.icon === 'list' ? 20 : 22;
+	// Child “Specific templates” rows use list-view at 20px; everything else 24px.
+	const iconSize = isChild && item.icon === 'list' ? 20 : 24;
 	const iconDef = ICON_MAP[item.icon] || ICON_MAP.layout;
 	const showCount = typeof count === 'number';
 	const status = item.status;
@@ -160,7 +160,7 @@ function NavRow({
 					<Flex
 						alignItems="center"
 						justifyContent="flex-start"
-						gap="10px"
+						gap="8px"
 						className="blockera-site-editor-templates-nav__item-label"
 					>
 						<span className="blockera-site-editor-templates-nav__item-icon">
