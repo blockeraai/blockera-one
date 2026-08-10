@@ -35,6 +35,7 @@ import {
 import type { TemplatesNavSectionConfig } from './templates-nav-config';
 import TemplatesAddNewButton from './templates-add-new-button';
 import useTemplatesData from './use-templates-data';
+import './templates-filtered-browse.scss';
 
 export type TemplateRecord = TemplateLike & {
 	type?: string;

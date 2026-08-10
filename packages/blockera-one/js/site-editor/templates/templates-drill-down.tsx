@@ -23,7 +23,7 @@ import { findCanonicalPart } from './templates-hub-parts';
 import TemplatesNav from './templates-nav';
 import { restoreTemplatesSidebarScroll } from './templates-sidebar-scroll';
 import useTemplatesData from './use-templates-data';
-import './style.scss';
+import './templates-drill-down.scss';
 
 export default function TemplatesDrillDown() {
 	const { parts } = useTemplatesData();

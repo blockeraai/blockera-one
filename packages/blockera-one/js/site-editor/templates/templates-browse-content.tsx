@@ -24,7 +24,7 @@ import TemplatesAreaHub from './templates-area-hub';
 import TemplatesFilteredBrowse from './templates-filtered-browse';
 import TemplatesMissingBase from './templates-missing-base';
 import useTemplatesData from './use-templates-data';
-import './style.scss';
+import './templates-browse-content.scss';
 
 type TemplatesBrowseContentProps = {
 	/** Core PageTemplates (or mobile) area node. */

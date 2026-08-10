@@ -36,6 +36,7 @@ import {
 	type TemplateLike,
 } from './templates-matchers';
 import useTemplatesData from './use-templates-data';
+import './templates-missing-base.scss';
 
 type TemplatesMissingBaseProps = {
 	filter: FilterId;

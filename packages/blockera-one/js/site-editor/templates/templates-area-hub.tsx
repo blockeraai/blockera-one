@@ -29,6 +29,7 @@ import {
 import { findCanonicalPart } from './templates-hub-parts';
 import { isOpenNavigationControl } from './templates-purpose-preview';
 import useTemplatesData from './use-templates-data';
+import './templates-area-hub.scss';
 
 type TemplatesAreaHubProps = {
 	children?: ReactNode;

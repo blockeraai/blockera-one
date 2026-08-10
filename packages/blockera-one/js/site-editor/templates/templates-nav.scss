@@ -1,14 +1,6 @@
 /**
- * Templates purpose-nav + browse list styles (dark sidebar chrome).
+ * Templates purpose-nav (dark sidebar chrome).
  */
-
-.blockera-site-editor-templates-panel {
-	display: flex;
-	flex-direction: column;
-	flex: 1 1 auto;
-	min-height: 0;
-	color: #f0f0f0;
-}
 
 .blockera-site-editor-templates-nav {
 	display: flex;
@@ -154,104 +146,5 @@
 			color: #c3c4c7;
 			background: rgba(255, 255, 255, 0.1);
 		}
-	}
-}
-
-.blockera-site-editor-templates-area-hub {
-	display: flex;
-	flex-direction: column;
-	height: 100%;
-	min-height: 0;
-	background: #ffffff;
-	color: #1e1e1e;
-	box-sizing: border-box;
-
-	&__banner {
-		flex: 0 0 auto;
-		padding: 16px 20px;
-		border-bottom: 8px solid #1e1e1e;
-		background: #ffffff;
-	}
-
-	&__banner-text {
-		min-width: 0;
-	}
-
-	&__banner-title {
-		font-size: 15px;
-		font-weight: 600;
-		line-height: 1.4;
-	}
-
-	&__banner-hint {
-		margin: 6px 0 0;
-		font-size: 12px;
-		line-height: 1.4;
-		color: #646970;
-	}
-
-	&__manage.components-button {
-		flex-shrink: 0;
-	}
-
-	&__canvas {
-		flex: 1 1 auto;
-		min-height: 0;
-		position: relative;
-
-		> * {
-			height: 100%;
-			min-height: 0;
-		}
-	}
-
-	&__empty {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		gap: 16px;
-		flex: 1 1 auto;
-		min-height: 160px;
-		padding: 24px;
-		text-align: center;
-		color: #646970;
-		font-size: 14px;
-	}
-}
-
-/* Area Hub inside ResizableFrame / browse content should fill available height. */
-.edit-site-layout__canvas:has(.blockera-site-editor-templates-area-hub),
-.edit-site-layout__area:has(.blockera-site-editor-templates-area-hub) {
-	.blockera-site-editor-templates-area-hub {
-		min-height: 100%;
-	}
-}
-
-.edit-site-layout__area:has(.blockera-site-editor-templates-area-hub) {
-	max-width: none !important;
-	flex: 1 1 auto;
-}
-
-.blockera-site-editor-templates-custom,
-.blockera-site-editor-templates-filtered {
-	height: 100%;
-	min-height: 0;
-}
-
-.blockera-site-editor-templates-missing {
-	&__message {
-		margin: 0;
-		font-size: 13px;
-		line-height: 1.5;
-		color: var(--wpds-color-foreground-content-neutral, #1e1e1e);
-	}
-
-	&__fallback-link.components-button.is-link {
-		display: inline;
-		height: auto;
-		padding: 0;
-		font-size: inherit;
-		line-height: inherit;
 	}
 }

@@ -38,6 +38,7 @@ import {
 } from './templates-homepage-resolve';
 import type { NavIcon, TemplatesNavItemConfig } from './templates-nav-config';
 import useTemplatesData, { buildChildNavItems } from './use-templates-data';
+import './templates-nav.scss';
 
 const ICON_MAP: Partial<
 	Record<NavIcon, { library: 'wp' | 'ui' | 'blockera'; icon: string }>
