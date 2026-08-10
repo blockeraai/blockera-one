@@ -505,16 +505,21 @@ const TEMPLATES_PART_AREA_LABELS = {
 		banner: 'Global site header',
 		manage: 'Manage all headers',
 		empty: 'No site header yet.',
+		/** Core `default_template_part_areas` label shown on Patterns page. */
+		patternsTitle: 'Header',
 	},
 	footer: {
 		banner: 'Global site footer',
 		manage: 'Manage all footers',
 		empty: 'No site footer yet.',
+		patternsTitle: 'Footer',
 	},
 	sidebar: {
 		banner: 'Global site sidebar',
 		manage: 'Manage all sidebars',
 		empty: 'No site sidebar yet.',
+		// Theme registers sidebar as uncategorized; Patterns title may fall back.
+		patternsTitle: null,
 	},
 };
 
@@ -637,16 +642,51 @@ export function assertTemplatesAreaHub({ area, mode = 'preview' }) {
 /**
  * Assert navigation landed on Patterns template-parts area list.
  *
+ * Core router stores area filters as siblings of `p`
+ * (`?p=/pattern&postType=wp_template_part&categoryId=header`), not nested
+ * inside `p`. Nested form opens general Patterns and must fail this assert.
+ *
+ * Note: Patterns is a drill-down screen — Design root nav (incl. Patterns
+ * main-nav item) is not mounted, so we assert URL + Patterns chrome instead.
+ *
  * @param {'header' | 'footer' | 'sidebar'} area
  */
 export function assertNavigatedToPatternsTemplatePartArea(area) {
+	const labels = TEMPLATES_PART_AREA_LABELS[area];
+	expect(labels, `known templates part area: ${area}`).to.exist;
+
 	cy.location('search', { timeout: 20000 }).should((search) => {
-		const decoded = decodeURIComponent(String(search));
-		expect(decoded).to.include('pattern');
-		expect(decoded).to.include('postType=wp_template_part');
-		expect(decoded).to.include(`categoryId=${area}`);
-		expect(decoded).to.not.include('partsArea=');
+		const params = new URLSearchParams(String(search));
+		expect(params.get('p')).to.equal('/pattern');
+		expect(params.get('postType')).to.equal('wp_template_part');
+		expect(params.get('categoryId')).to.equal(area);
+		expect(params.get('partsArea')).to.equal(null);
 	});
+
+	// Left Design root (Templates hub / main nav) for Patterns drill-down.
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesAreaHub).should('not.exist');
+	cy.getByDataTest(SITE_EDITOR_TEST_IDS.nav).should('not.exist');
+
+	cy.get('.edit-site-page-patterns-dataviews', { timeout: 20000 }).should(
+		'exist'
+	);
+
+	if (labels.patternsTitle) {
+		cy.get('.edit-site-page-patterns-dataviews', { timeout: 20000 }).should(
+			'have.attr',
+			'aria-label',
+			labels.patternsTitle
+		);
+		cy.get('.edit-site-sidebar-navigation-item[aria-current="true"]', {
+			timeout: 20000,
+		})
+			.should('be.visible')
+			.and(($el) => {
+				const href = decodeURIComponent($el.attr('href') || '');
+				expect(href).to.include('postType=wp_template_part');
+				expect(href).to.include(`categoryId=${area}`);
+			});
+	}
 }
 
 /**
