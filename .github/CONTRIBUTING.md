@@ -48,6 +48,8 @@ You usually **do not** bump the submodule pin by hand.
 
 Shared lint/job composites live in `packages/global-packages/packages/dev-tools/github/` and read `.github/blockera-ci.json`.
 
+Husky `post-checkout` mirrors new consumer branches into the submodule as `<repo>/<branch>` (from the `origin` remote name).
+
 Husky `pre-push` verifies the pinned `packages/global-packages` SHA exists on origin (and pushes the mirrored submodule branch when needed). Skip with `BLOCKERA_SKIP_SUBMODULE_PUSH=1`.
 
 CI does **not** use `actions/checkout` `submodules:`. `setup-node` / `setup-php` run `ensure-global-packages-sparse.sh` with `secrets.BLOCKERABOT_PAT`.
