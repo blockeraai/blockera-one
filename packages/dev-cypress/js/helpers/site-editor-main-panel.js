@@ -503,20 +503,20 @@ const TEMPLATES_PART_AREA_NAV = {
 const TEMPLATES_PART_AREA_LABELS = {
 	header: {
 		banner: 'Global site header',
-		manage: 'Manage all headers',
+		manage: 'Manage All Headers',
 		empty: 'No site header yet.',
 		/** Core `default_template_part_areas` label shown on Patterns page. */
 		patternsTitle: 'Header',
 	},
 	footer: {
 		banner: 'Global site footer',
-		manage: 'Manage all footers',
+		manage: 'Manage All Footers',
 		empty: 'No site footer yet.',
 		patternsTitle: 'Footer',
 	},
 	sidebar: {
 		banner: 'Global site sidebar',
-		manage: 'Manage all sidebars',
+		manage: 'Manage All Sidebars',
 		empty: 'No site sidebar yet.',
 		// Theme registers sidebar as uncategorized; Patterns title may fall back.
 		patternsTitle: null,
