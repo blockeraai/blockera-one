@@ -23,6 +23,11 @@
 	max-height: 100%;
 	overflow: hidden;
 	box-sizing: border-box;
+	border-radius: var(--wpds-border-radius-xl, 12px);
+
+	.admin-ui-navigable-region {
+		overflow: auto;
+	}
 
 	/* Card root — same element or nested core Page */
 	&.admin-ui-page,
@@ -128,7 +133,10 @@
 		overflow: auto;
 		display: flex;
 		flex-direction: column;
-		background: var(--wpds-color-background-surface-neutral-strong, #ffffff);
+		background: var(
+			--wpds-color-background-surface-neutral-strong,
+			#ffffff
+		);
 		padding: 0;
 
 		&.has-padding {
