@@ -21,11 +21,12 @@ export const CORE_NAV_ITEM_GROUP_SELECTOR =
  */
 export const STABLE_SIDEBAR_CONTENT_SELECTOR = '.edit-site-sidebar__content';
 
-/** Parent of core SiteHub — stable while Site Editor sidebar is in view mode. */
+/** Site Editor sidebar — stable while view mode is active. */
 export const STABLE_SIDEBAR_SELECTOR = '.edit-site-layout__sidebar';
 
-/** Mount node we insert as first child of the sidebar for the Blockera site hub. */
-export const SITE_HUB_MOUNT_CLASS = 'blockera-site-editor-site-hub-mount';
+/** Mount node for Blockera MainPanelHeader (after core SiteHub). */
+export const MAIN_PANEL_HEADER_MOUNT_CLASS =
+	'blockera-site-editor-main-panel-header-mount';
 
 /** Core Design sidebar item ids (SidebarNavigationItem `uid`). */
 export const CORE_NAV_UIDS = {

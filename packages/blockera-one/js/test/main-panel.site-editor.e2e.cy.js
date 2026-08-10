@@ -1,5 +1,5 @@
 /**
- * Blockera One → Site Editor main panel (view-mode hub, branding, nav).
+ * Blockera One → Site Editor main panel (view-mode branding, nav).
  *
  * Category: site-editor (CI matrix via `*.site-editor.e2e.cy.js`)
  */
@@ -15,7 +15,6 @@ import {
 	clickSiteEditorDrillDownBack,
 	getSiteEditorNav,
 	getSiteEditorHeader,
-	getSiteEditorHub,
 } from '@blockera/dev-cypress/js/helpers';
 
 describe('Blockera One → Site Editor main panel chrome', () => {
@@ -23,31 +22,14 @@ describe('Blockera One → Site Editor main panel chrome', () => {
 		openSiteEditorViewMode('/');
 	});
 
-	it('shows Blockera hub + branding and hides core site hub', () => {
+	it('shows Blockera branding under core site hub', () => {
 		assertSiteEditorChrome();
 		assertSiteEditorMainNav();
-
-		cy.getByDataTest(SITE_EDITOR_TEST_IDS.hubDashboard)
-			.should('have.attr', 'href')
-			.and('include', 'wp-admin');
-
-		cy.getByDataTest(SITE_EDITOR_TEST_IDS.hubTitle)
-			.should('have.attr', 'target', '_blank')
-			.and('have.attr', 'href')
-			.and('not.be.empty');
 	});
 
-	it('opens the command palette from the site hub search button', () => {
-		cy.getByDataTest(SITE_EDITOR_TEST_IDS.hubCommand).click();
-		cy.get('.commands-command-menu, [class*="commands-command-menu"]', {
-			timeout: 10000,
-		}).should('exist');
-	});
-
-	it('keeps hub + branding when drilling into Pages (nav unmounts)', () => {
+	it('keeps branding when drilling into Pages (nav unmounts)', () => {
 		clickSiteEditorNav(SITE_EDITOR_TEST_IDS.navPages);
 
-		getSiteEditorHub().should('be.visible');
 		getSiteEditorHeader().should('be.visible');
 		getSiteEditorNav().should('not.exist');
 

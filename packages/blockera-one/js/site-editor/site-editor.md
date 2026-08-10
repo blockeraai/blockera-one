@@ -4,9 +4,8 @@ Custom Design / Site / Features / Resources navigation for the WordPress Site Ed
 
 ## Goals
 
-- Hide core Design `ItemGroup` while keeping the WP topbar / title row and `SaveHub` footer.
-- Replace core `.edit-site-site-hub` on all Site Editor view-mode pages (logo hover → arrow-up-left / dashboard).
-- Show Blockera One branding (`MainPanelHeader`) under the hub on all view-mode pages.
+- Hide core Design `ItemGroup` while keeping the WP topbar / title row, core SiteHub, and `SaveHub` footer.
+- Show Blockera One branding (`MainPanelHeader`) under core SiteHub on all view-mode pages.
 - Render Blockera nav with Design, Site, Features, and Resources categories (no Starter sites).
 - Keep core routes for Styles, Navigation, Pages, Templates, Patterns — Styles uses core Global Styles UI + canvas as a sidebar drill-down; **Templates** uses a Blockera purpose-based sidebar (see `templates/`).
 - Custom Site Identity content (logo, title, tagline — no site icon).
@@ -21,7 +20,7 @@ There is **no SlotFill** for Design sidebar items in `@wordpress/edit-site`. We 
 1. **CSS hide + stable portal** into `.edit-site-sidebar__content` (outside core’s `key={routeKey}` screen wrapper — avoids nav remount flash on Design-root navigations).
 2. **Redux route registration** on `core/edit-site` — `UNREGISTER_ROUTE` / `REGISTER_ROUTE` — same as `SiteEditorPostItemRouteRegistration` (no `@wordpress/edit-site` deep imports).
 
-`SiteHub` and `MainPanelHeader` are separate components with separate stylesheets. `index.tsx` composes them in the sidebar mount.
+`MainPanelHeader` portals into the sidebar mount (after core SiteHub). `index.tsx` owns that composition.
 
 Drill-down screens use a Blockera-owned `DrillDownScreen` (back → `/` + title + content) instead of importing core `SidebarNavigationScreen`.
 
@@ -29,8 +28,7 @@ Drill-down screens use a Blockera-owned `DrillDownScreen` (back → `/` + title 
 
 | File | Role |
 |------|------|
-| `index.tsx` | Plugin root: body class, compose hub + header portal, nav portal, routes |
-| `site-hub.tsx` / `site-hub.scss` | Blockera SiteHub (dashboard / title / command palette) |
+| `index.tsx` | Plugin root: body class, header portal, nav portal, routes |
 | `main-panel-header.tsx` / `main-panel-header.scss` | Blockera One branding + More menu (Reset styles) |
 | `main-navigation.tsx` / `main-navigation.scss` | Design / Site / Features / Resources UI |
 | `drill-down-screen.tsx` / `drill-down-screen.scss` | Back + title (+ optional actions / `onBack`) chrome |
@@ -43,7 +41,7 @@ Drill-down screens use a Blockera-owned `DrillDownScreen` (back → `/` + title 
 | `performance-panel.tsx` / `performance-panel.scss` | Features → Performance toggles |
 | `routes.tsx` | Styles / templates / identity / homepage / performance registration |
 | `constants.ts` | Paths, core `uid`s, Resource URLs, selectors, setting keys |
-| `utils.ts` | Path helpers, dashboard URL, core-uid click, SPA navigate |
+| `utils.ts` | Path helpers, core-uid click, SPA navigate |
 | `style.scss` | Shared layout glue only (hide core ItemGroup / design-root flex) |
 
 ### `templates/` module

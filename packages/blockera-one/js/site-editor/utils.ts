@@ -83,39 +83,6 @@ export function useSiteEditorNavigate(listener: () => void): void {
 }
 
 /**
- * Dashboard URL for the site-hub logo (back to wp-admin).
- * Prefer the core site-hub / view-mode-toggle href when present.
- */
-export function getWpAdminDashboardUrl(): string {
-	if (typeof window === 'undefined') {
-		return '/wp-admin/';
-	}
-
-	// Prefer core hub (hidden but still in DOM) — our hub uses only blockera classes.
-	const fromToggle = document
-		.querySelector<HTMLAnchorElement>(
-			'.edit-site-layout__sidebar > .edit-site-site-hub .edit-site-layout__view-mode-toggle, .edit-site-editor__view-mode-toggle a, .edit-site-editor__view-mode-toggle button[href]'
-		)
-		?.getAttribute('href');
-
-	if (fromToggle) {
-		return fromToggle;
-	}
-
-	try {
-		const { origin, pathname } = window.location;
-		const match = pathname.match(/^(.*\/wp-admin\/)/);
-		if (match?.[1]) {
-			return `${origin}${match[1]}`;
-		}
-	} catch (_e) {
-		// fall through
-	}
-
-	return '/wp-admin/';
-}
-
-/**
  * Current Site Editor router path from the `p` query arg (e.g. `/styles`).
  */
 export function getSiteEditorPath(): string {
