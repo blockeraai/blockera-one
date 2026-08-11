@@ -59,6 +59,53 @@ class FunctionsTest extends TestCase {
 	}
 
 	/**
+	 * functions.php must hard-exit when loaded outside WordPress (no ABSPATH).
+	 *
+	 * @return void
+	 */
+	public function test_functions_file_exits_when_abspath_undefined(): void {
+		$file = dirname( __DIR__ ) . '/functions.php';
+		$this->assertFileExists( $file );
+
+		$script = 'if ( defined( "ABSPATH" ) ) { fwrite( STDERR, "ABSPATH already defined" . PHP_EOL ); exit( 2 ); }'
+			. ' include ' . var_export( $file, true ) . ';'
+			. ' fwrite( STDERR, "functions.php did not exit" . PHP_EOL ); exit( 3 );';
+
+		$cmd = escapeshellarg( PHP_BINARY ) . ' -r ' . escapeshellarg( $script );
+		exec( $cmd, $output, $exit_code );
+
+		$this->assertSame(
+			0,
+			$exit_code,
+			'Expected functions.php ABSPATH guard to exit(0); stderr/output: ' . implode( "\n", $output )
+		);
+	}
+
+	/**
+	 * With ABSPATH + add_action stubs, helpers become available (Composer autoload path).
+	 *
+	 * @return void
+	 */
+	public function test_functions_file_loads_helpers_when_abspath_defined(): void {
+		$file = dirname( __DIR__ ) . '/functions.php';
+		$this->assertFileExists( $file );
+
+		$script = 'if ( ! function_exists( "add_action" ) ) { function add_action( ...$args ) { return true; } }'
+			. ' if ( ! defined( "ABSPATH" ) ) { define( "ABSPATH", "/tmp/" ); }'
+			. ' include ' . var_export( $file, true ) . ';'
+			. ' exit( function_exists( "blockera_one_get_companion_plugin_status" ) ? 0 : 4 );';
+
+		$cmd = escapeshellarg( PHP_BINARY ) . ' -r ' . escapeshellarg( $script );
+		exec( $cmd, $output, $exit_code );
+
+		$this->assertSame(
+			0,
+			$exit_code,
+			'Expected helpers to load when ABSPATH is defined; output: ' . implode( "\n", $output )
+		);
+	}
+
+	/**
 	 * @return void
 	 */
 	public function test_get_companion_plugin_status_not_installed(): void {

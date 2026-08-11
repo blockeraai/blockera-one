@@ -17,6 +17,29 @@ use ReflectionClass;
 abstract class TestCase extends AppTestCase {
 
 	/**
+	 * Load companion helpers after WordPress boots.
+	 *
+	 * packages/blockera-one/php/functions.php keeps a hard ABSPATH exit (theme
+	 * convention). Composer may also autoload that file early — PHPUnit uses
+	 * --prepend so ABSPATH exists before vendor/autoload.php. If helpers are
+	 * still missing (files autoload not registered), require them now that WP
+	 * has defined ABSPATH.
+	 *
+	 * @return void
+	 */
+	public function set_up(): void {
+		parent::set_up();
+
+		if ( ! function_exists( 'blockera_one_get_companion_plugin_status' ) ) {
+			require_once dirname( __DIR__ ) . '/functions.php';
+		}
+
+		if ( function_exists( 'blockera_one_register_companion_plugin_hooks' ) ) {
+			blockera_one_register_companion_plugin_hooks();
+		}
+	}
+
+	/**
 	 * Reset Bootstrap idempotency flag between scenarios that need a fresh boot.
 	 *
 	 * @param bool $booted Desired flag value.

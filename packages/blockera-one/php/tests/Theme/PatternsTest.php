@@ -92,12 +92,20 @@ class PatternsTest extends TestCase {
 			$this->markTestSkipped( 'WooCommerce class already exists in this process.' );
 		}
 
-		$before = WP_Block_Patterns_Registry::get_instance()->get_all_registered();
+		$before = array_column(
+			WP_Block_Patterns_Registry::get_instance()->get_all_registered(),
+			'name'
+		);
 
 		$module = new Patterns();
 		$module->registerConditionalPatterns();
 
-		$after = WP_Block_Patterns_Registry::get_instance()->get_all_registered();
+		$after = array_column(
+			WP_Block_Patterns_Registry::get_instance()->get_all_registered(),
+			'name'
+		);
+
+		// Compare names only — core may mutate transient keys like filePath between reads.
 		$this->assertSame( $before, $after );
 	}
 

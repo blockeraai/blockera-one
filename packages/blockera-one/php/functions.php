@@ -105,4 +105,8 @@ if ( ! function_exists( 'blockera_one_register_companion_plugin_hooks' ) ) :
 	}
 endif;
 
-blockera_one_register_companion_plugin_hooks();
+// Only register when WordPress APIs exist. Composer may autoload this file after a
+// test prepend defines ABSPATH but before add_action() is available.
+if ( function_exists( 'add_action' ) ) {
+	blockera_one_register_companion_plugin_hooks();
+}
