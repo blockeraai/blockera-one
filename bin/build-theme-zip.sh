@@ -202,6 +202,17 @@ zip -r -q blockera-one.zip \
   ### END AUTO-GENERATED VENDOR PACKAGES PATH PATTERN
   && echo "blockera-one.zip created successfully ✅" || echo "blockera-one.zip creation failed ❌"
 
+# Guard against incomplete shared-package packaging (causes WP Playground fatals on activate).
+if [ ! -f blockera-one.zip ]; then
+	error "ERROR: blockera-one.zip was not created."
+	exit 1
+fi
+if ! zipinfo -1 blockera-one.zip | grep -qx 'vendor/blockera/blockera/php/functions.php'; then
+	error "ERROR: blockera-one.zip is missing vendor/blockera/blockera/php/functions.php.
+Shared packages under packages/global-packages/packages were not packed. Check bin/generate-build-theme-zip-sh.php."
+	exit 1
+fi
+
 status "Cleaning up... 🧹"
 
 # Reset `blockera.php`.
