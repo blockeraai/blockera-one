@@ -28,6 +28,10 @@
 			"themeData": {
 				"resource": "url",
 				"url": "URL_PLACEMENT"
+			},
+			"options": {
+				"activate": true,
+				"targetFolderName": "blockera-one"
 			}
 		},
 		{
