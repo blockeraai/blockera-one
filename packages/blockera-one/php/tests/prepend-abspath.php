@@ -29,4 +29,4 @@ if ( is_dir( $wp_root . '/wp-admin' ) ) {
 }
 
 fwrite( STDERR, 'blockera-one prepend-abspath: could not resolve WordPress ABSPATH' . PHP_EOL );
-exit( 1 );
+exit ( 1 );

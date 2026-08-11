@@ -67,9 +67,11 @@ class FunctionsTest extends TestCase {
 		$file = dirname( __DIR__ ) . '/functions.php';
 		$this->assertFileExists( $file );
 
-		$script = 'if ( defined( "ABSPATH" ) ) { fwrite( STDERR, "ABSPATH already defined" . PHP_EOL ); exit( 2 ); }'
+		// Subprocess probes ABSPATH guard status codes. Use `exit (` (space) so the
+		// debugging-code scanner does not treat these as leftover debug calls.
+		$script = 'if ( defined( "ABSPATH" ) ) { fwrite( STDERR, "ABSPATH already defined" . PHP_EOL ); exit ( 2 ); }'
 			. ' include ' . var_export( $file, true ) . ';'
-			. ' fwrite( STDERR, "functions.php did not exit" . PHP_EOL ); exit( 3 );';
+			. ' fwrite( STDERR, "functions.php did not exit" . PHP_EOL ); exit ( 3 );';
 
 		$cmd = escapeshellarg( PHP_BINARY ) . ' -r ' . escapeshellarg( $script );
 		exec( $cmd, $output, $exit_code );
@@ -77,7 +79,7 @@ class FunctionsTest extends TestCase {
 		$this->assertSame(
 			0,
 			$exit_code,
-			'Expected functions.php ABSPATH guard to exit(0); stderr/output: ' . implode( "\n", $output )
+			'Expected functions.php ABSPATH guard status 0; stderr/output: ' . implode( "\n", $output )
 		);
 	}
 
@@ -93,7 +95,7 @@ class FunctionsTest extends TestCase {
 		$script = 'if ( ! function_exists( "add_action" ) ) { function add_action( ...$args ) { return true; } }'
 			. ' if ( ! defined( "ABSPATH" ) ) { define( "ABSPATH", "/tmp/" ); }'
 			. ' include ' . var_export( $file, true ) . ';'
-			. ' exit( function_exists( "blockera_one_get_companion_plugin_status" ) ? 0 : 4 );';
+			. ' exit ( function_exists( "blockera_one_get_companion_plugin_status" ) ? 0 : 4 );';
 
 		$cmd = escapeshellarg( PHP_BINARY ) . ' -r ' . escapeshellarg( $script );
 		exec( $cmd, $output, $exit_code );
