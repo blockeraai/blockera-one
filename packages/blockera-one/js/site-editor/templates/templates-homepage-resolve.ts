@@ -3,7 +3,8 @@
  * and Homepage / Blog·Posts section items from Reading settings.
  */
 
-import { createElement, Fragment, type ReactNode } from '@wordpress/element';
+import type { ReactNode } from 'react';
+import { createElement, Fragment } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 
 import { ROUTES } from '../constants';

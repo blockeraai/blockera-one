@@ -3,7 +3,8 @@
  * Dynamic CPT / author / child rows are merged at runtime.
  */
 
-import { createElement, Fragment, type ReactNode } from '@wordpress/element';
+import type { ReactNode } from 'react';
+import { createElement, Fragment } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 import { FILTER_IDS, type FilterId, type PartAreaId } from './constants';
