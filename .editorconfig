@@ -1,3 +1,8 @@
+# Shared Blockera EditorConfig (source of truth in @blockera/dev-tools).
+# Consumers keep a real root .editorconfig copy of this file (synced with global-packages).
+# EditorConfig has no extends/include.
+root = true
+
 [*]
 charset = utf-8
 end_of_line = lf
