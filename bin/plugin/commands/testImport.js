@@ -9,7 +9,10 @@ const glob = require('fast-glob');
 /**
  * Internal dependencies
  */
-const { log, formats } = require('../lib/logger');
+const {
+	log,
+	formats,
+} = require('../../../packages/global-packages/packages/dev-tools/bin/plugin/lib/logger');
 
 /**
  * Import test HTML files as WordPress posts.
