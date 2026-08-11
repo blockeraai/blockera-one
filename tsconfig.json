@@ -40,9 +40,6 @@
 		// Type Definitions
 		"typeRoots": ["./node_modules/@types", "./types"],
 
-		// Base URL for imports
-		"baseUrl": ".",
-
 		// Include DOM types
 		"lib": ["ES2021", "DOM", "DOM.Iterable"]
 	},
