@@ -51,7 +51,6 @@ jobs:
             BLOCKERA_PHP_UNIT_PHP_VERSION: ${{ matrix.php }}
             BLOCKERA_PHP_UNIT_MULTISITE: ${{ matrix.multisite }}
             BLOCKERA_PHP_UNIT_SKIP_IF_NO_TESTS: 'true'
-            BLOCKERA_PHP_UNIT_TEST_ROOTS: './packages/blockera-one-* ./packages/*-one'
             BLOCKERA_PHP_UNIT_MIN_TESTS: '30'
         steps:
             - uses: actions/checkout@v5
