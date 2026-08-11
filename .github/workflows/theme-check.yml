@@ -16,6 +16,12 @@ jobs:
         if: ${{ github.repository == 'blockeraai/blockera-one' || github.event_name == 'pull_request' }}
         env:
             BLOCKERA_GLOBAL_PACKAGES_TOKEN: ${{ secrets.BLOCKERABOT_PAT }}
+            # theme-check reuses plugin-check/prepare-build.sh; theme zip generator differs.
+            BLOCKERA_PLUGIN_CHECK_BUILD_CMD: >-
+                php ./bin/generate-build-theme-zip-sh.php >./bin/build-theme-zip.temp.sh
+                && chmod +x ./bin/build-theme-zip.temp.sh
+                && NO_CHECKS=true NO_INSTALL_NPM=true NO_INSTALL_COMPOSER=true ./bin/build-theme-zip.temp.sh
+                && rm -f ./bin/build-theme-zip.temp.sh
         steps:
             - uses: actions/checkout@v5
               with:
