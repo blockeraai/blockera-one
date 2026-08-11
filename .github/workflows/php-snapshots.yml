@@ -3,13 +3,9 @@ name: PHP Snapshots
 on:
     pull_request:
         types: [opened, synchronize, ready_for_review]
-
     workflow_dispatch:
 
-# Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
-    # The concurrency group contains the workflow name and the branch name for pull requests
-    # or the commit hash for any other events.
     group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
     cancel-in-progress: true
 
@@ -19,28 +15,21 @@ jobs:
         runs-on: ubuntu-latest
         outputs:
             previous-wordpress-version: ${{ steps.get-previous-wordpress-version.outputs.previous-wordpress-version }}
-
+        env:
+            BLOCKERA_GLOBAL_PACKAGES_TOKEN: ${{ secrets.BLOCKERABOT_PAT }}
         steps:
-            - name: Get previous WordPress version
-              id: get-previous-wordpress-version
-              run: |
-                  curl \
-                    -H "Accept: application/json" \
-                    -o versions.json \
-                    "http://api.wordpress.org/core/stable-check/1.0/"
-                  LATEST_WP_VERSION=$(jq --raw-output 'with_entries(select(.value=="latest"))|keys[]' versions.json)
-                  IFS='.' read LATEST_WP_MAJOR LATEST_WP_MINOR LATEST_WP_PATCH <<< "${LATEST_WP_VERSION}"
-                  if [[ ${LATEST_WP_MINOR} == "0" ]]; then
-                    PREVIOUS_WP_SERIES="$((LATEST_WP_MAJOR - 1)).9"
-                  else
-                    PREVIOUS_WP_SERIES="${LATEST_WP_MAJOR}.$((LATEST_WP_MINOR - 1))"
-                  fi
-                  PREVIOUS_WP_VERSION=$(jq --raw-output --arg series "${PREVIOUS_WP_SERIES}" 'with_entries(select(.key|startswith($series)))|keys[-1]' versions.json)
-                  echo "previous-wordpress-version=${PREVIOUS_WP_VERSION}" >> $GITHUB_OUTPUT
-                  rm versions.json
+            - uses: actions/checkout@v5
+              with:
+                  token: ${{ secrets.BLOCKERABOT_PAT }}
+
+            - name: Ensure global-packages submodule
+              uses: ./.github/actions/ensure-global-packages
+
+            - id: get-previous-wordpress-version
+              run: bash packages/global-packages/packages/dev-tools/github/scripts/jobs/php-snapshots/compute-previous-wordpress-version.sh
 
     test-php:
-        name: PHP ${{ matrix.php }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.wordpress != '' && format( ' (WP {0}) ', matrix.wordpress ) || '' }} snapshots tests on ubuntu-latest
+        name: PHP ${{ matrix.php }} snapshots tests on ubuntu-latest
         needs: compute-previous-wordpress-version
         runs-on: ubuntu-latest
         timeout-minutes: 20
@@ -51,131 +40,26 @@ jobs:
                 php:
                     - '8.2'
                 multisite: [false]
-                wordpress: [''] # Latest WordPress version.
-        #                include:
-        #                    # Test with the previous WP version.
-        #                    - php: '7.4'
-        #                      wordpress: ${{ needs.compute-previous-wordpress-version.outputs.previous-wordpress-version }}
-        #                    - php: '8.2'
-        #                      wordpress: ${{ needs.compute-previous-wordpress-version.outputs.previous-wordpress-version }}
-
+                wordpress: ['']
         env:
+            BLOCKERA_GLOBAL_PACKAGES_TOKEN: ${{ secrets.BLOCKERABOT_PAT }}
             WP_ENV_PHP_VERSION: ${{ matrix.php }}
-            # Empty matrix.wordpress = latest stable release (same as local .wp-env / base.json).
-            # Do not use WordPress/WordPress (GitHub trunk) — trunk HTML/CSS drifts and breaks snapshots.
             WP_ENV_CORE: ${{ matrix.wordpress == '' && 'https://wordpress.org/wordpress-latest.zip' || format( 'https://wordpress.org/wordpress-{0}.zip', matrix.wordpress ) }}
-
+            BLOCKERA_PHP_SNAPSHOTS_PHP_VERSION: ${{ matrix.php }}
+            BLOCKERA_PHP_SNAPSHOTS_MULTISITE: ${{ matrix.multisite }}
+            BLOCKERA_PHP_SNAPSHOTS_ON_EMPTY: skip
         steps:
-            - name: Checkout Repository
-              uses: actions/checkout@v4
-
-            # Expected count matches BlockeraTest::designNameProvider(): fixture dirs under
-            # tests/fixtures/*/ unless config.json sets "snapshot": false.
-            - name: Count snapshot fixtures
-              id: snapshot-fixtures
-              run: |
-                  expected_tests=0
-                  for design_dir in tests/fixtures/*/; do
-                    [ -d "$design_dir" ] || continue
-                    config_path="${design_dir}config.json"
-                    if [ -f "$config_path" ]; then
-                      # Skip only when snapshot is explicitly false (same as designNameProvider).
-                      if jq -e '.snapshot == false' "$config_path" >/dev/null 2>&1; then
-                        continue
-                      fi
-                    fi
-                    expected_tests=$((expected_tests + 1))
-                  done
-                  echo "expected_tests=${expected_tests}" >> "$GITHUB_OUTPUT"
-                  echo "Expected snapshot tests: ${expected_tests}"
-
-            - name: Skip PHP snapshots (no fixtures)
-              if: steps.snapshot-fixtures.outputs.expected_tests == '0'
-              run: |
-                  echo "No snapshot fixtures under tests/fixtures/*/ (or all have snapshot: false)."
-                  echo "Skipping PHP snapshot suite."
-
-            - name: Setup Node.js and install dependencies
-              if: steps.snapshot-fixtures.outputs.expected_tests != '0'
-              uses: ./.github/setup-node
+            - uses: actions/checkout@v5
               with:
-                  global-packages-token: ${{ secrets.BLOCKERABOT_PAT }}
+                  token: ${{ secrets.BLOCKERABOT_PAT }}
 
-            - name: Setup PHP Composer install dependencies
-              if: steps.snapshot-fixtures.outputs.expected_tests != '0'
-              uses: ./.github/setup-php
+            - name: Ensure global-packages submodule
+              uses: ./.github/actions/ensure-global-packages
+
+            - uses: ./packages/global-packages/packages/dev-tools/github/actions/setup-node
+
+            - uses: ./packages/global-packages/packages/dev-tools/github/actions/setup-php
               with:
-                  global-packages-token: ${{ secrets.BLOCKERABOT_PAT }}
                   php-version: ${{ matrix.php }}
 
-            - name: Npm build
-              if: steps.snapshot-fixtures.outputs.expected_tests != '0'
-              run: npm run build
-
-            #            - name: Docker debug information
-            #              run: |
-            #                  docker -v
-            #                  docker-compose -v
-
-            - name: General debug information
-              if: steps.snapshot-fixtures.outputs.expected_tests != '0'
-              run: |
-                  npm --version
-                  node --version
-                  curl --version
-                  git --version
-                  locale -a
-
-            - name: Create requires environment files
-              if: steps.snapshot-fixtures.outputs.expected_tests != '0'
-              run: |
-                  # Set the base configuration file
-                  WP_ENV_CONFIG=".github/wp-env-configs/base.json"
-
-                  # Copy the base configuration and add PHP version
-                  cp "$WP_ENV_CONFIG" .wp-env.json
-                  jq --arg php "${{ matrix.php }}" '. + {"phpVersion": $php}' .wp-env.json > .wp-env.json.tmp && mv .wp-env.json.tmp .wp-env.json
-
-                  cat .wp-env.json
-                  touch .env
-                  echo APP_MODE=production >> .env
-                  echo DB=wp_tests >> .env
-                  cat .env
-
-            - name: Start WordPress Environment
-              if: steps.snapshot-fixtures.outputs.expected_tests != '0'
-              run: bash .github/scripts/retry-wp-env-start.sh
-
-            - name: Running single site unit tests
-              if: ${{ ! matrix.multisite && steps.snapshot-fixtures.outputs.expected_tests != '0' }}
-              run: |
-                  set -o pipefail
-                  npm run test:snapshots:php | tee phpunit.log
-
-            # Verifies PHPUnit actually ran the snapshot suite (guards against silent no-op /
-            # empty data-provider skips that still report Tests: 1, Skipped: 1).
-            - name: Check number of passed tests
-              if: steps.snapshot-fixtures.outputs.expected_tests != '0'
-              run: |
-                  # Note: relies on PHPUnit execution to fail on test failure.
-                  expected_tests="${{ steps.snapshot-fixtures.outputs.expected_tests }}"
-
-                  # Extract the number of executed tests from the log file.
-                  if ! num_tests=$(grep -Eo 'OK \([0-9]+ tests' phpunit.log) ; then
-                    if ! num_tests=$(grep -Eo 'Tests: [0-9]+, Assertions:' phpunit.log) ; then
-                      echo "PHPUnit failed or did not run. Check the PHPUnit output in the previous step to debug." && exit 1
-                    fi
-                  fi
-                  # Extract just the number of tests from the string.
-                  num_tests=$(echo "$num_tests" | grep -Eo '[0-9]+')
-
-                  # Empty data providers report Tests: 1, Skipped: 1 — do not treat as success.
-                  skipped_tests=0
-                  if skipped_line=$(grep -Eo 'Skipped: [0-9]+' phpunit.log) ; then
-                    skipped_tests=$(echo "$skipped_line" | grep -Eo '[0-9]+')
-                  fi
-                  executed_tests=$((num_tests - skipped_tests))
-                  if [ "$executed_tests" -lt "$expected_tests" ]; then
-                    echo "Only $executed_tests tests executed ($num_tests reported, $skipped_tests skipped), expected at least $expected_tests (from tests/fixtures)." && exit 1
-                  fi
-                  echo "$executed_tests tests passed (expected at least $expected_tests)."
+            - run: bash packages/global-packages/packages/dev-tools/github/scripts/jobs/php-snapshots/run.sh

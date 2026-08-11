@@ -27,7 +27,7 @@ git clone --recurse-submodules <blockera-one-url>
 cd blockera-one
 # If you cloned without --recurse-submodules:
 git submodule update --init packages/global-packages
-bash .github/scripts/ensure-global-packages-sparse.sh
+bash .github/actions/ensure-global-packages/ensure.sh
 
 composer install
 npm ci
@@ -46,7 +46,11 @@ You usually **do not** bump the submodule pin by hand.
    - **matching feature branch** (created by Husky mirror) → pushes the pin bump onto that branch
 4. Manual catch-up: Actions → **Sync global-packages submodule**, or `npm run submodule:bump`.
 
-Shared CI composites/scripts live in `packages/global-packages/packages/dev-tools/github/` and read `.github/blockera-ci.json`. Thin `.github/setup-node` / `.github/setup-php` bootstrap the submodule, then call those composites. After bumping the pin, sync bootstrap scripts:
+Shared CI composites/scripts live in `packages/global-packages/packages/dev-tools/github/`
+(Blockera plugin defaults). Theme workflows override via `env:` / action `with:`
+(e.g. `BLOCKERA_E2E_PRODUCT_STYLE=theme`, zip `blockera-one.zip`).
+
+Consumer bootstrap (must exist before the submodule is available):
 
 ```bash
 bash packages/global-packages/packages/dev-tools/github/scripts/sync-consumer-bootstrap.sh

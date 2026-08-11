@@ -242,7 +242,7 @@
 		"test:generate-output": "jest --json --outputFile=.jest-test-results.json",
 		"test:generate-output:dev": "jest --json --outputFile=.jest-test-results.json -- --watch",
 		"test:unit:php:setup": "npm run env:start",
-		"test:unit:php:base": "bash .github/scripts/run-phpunit-one-units.sh",
+		"test:unit:php:base": "bash packages/global-packages/packages/dev-tools/github/scripts/run-phpunit-one-units.sh",
 		"test:snapshots:php:base": "wp-env run --env-cwd='wp-content/themes/blockera-one' tests-wordpress vendor/bin/phpunit -c phpunit.xml.dist --verbose --testsuite snapshots",
 		"test:unit:php": "npm-run-all test:unit:php:setup test:unit:php:base",
 		"test:snapshots:php": "npm-run-all test:unit:php:setup test:snapshots:php:base",
@@ -257,9 +257,9 @@
 		"icons:update": "npm install @wordpress/icons@latest && npm run icons:sync-search-data && npm run icons:indexing",
 		"env": "wp-env",
 		"env:stop": "npm run env stop",
-		"env:start:spx": "node .github/scripts/setup-wp-env.js && wp-env start --spx",
-		"env:start:xd": "node .github/scripts/setup-wp-env.js && wp-env start --xdebug=profile",
-		"env:start": "node .github/scripts/setup-wp-env.js && wp-env start",
+		"env:start:spx": "node packages/global-packages/packages/dev-tools/github/scripts/setup-wp-env.js && wp-env start --spx",
+		"env:start:xd": "node packages/global-packages/packages/dev-tools/github/scripts/setup-wp-env.js && wp-env start --xdebug=profile",
+		"env:start": "node packages/global-packages/packages/dev-tools/github/scripts/setup-wp-env.js && wp-env start",
 		"env:clean": "npm run env clean all",
 		"env:reset": "npm run env:start --update --xdebug",
 		"env:destroy": "npm run env destroy",
@@ -267,7 +267,7 @@
 		"packages:update": "wp-scripts packages-update",
 		"plugin:activate": "wp-env run tests-cli wp plugin activate blockera",
 		"plugin:deactivate": "wp-env run tests-cli wp plugin deactivate blockera",
-		"submodule:bump": "bash .github/scripts/bump-global-packages-submodule.sh"
+		"submodule:bump": "bash packages/global-packages/packages/dev-tools/github/scripts/bump-global-packages-submodule.sh"
 	},
 	"lint-staged": {
 		"*.{js,json,ts,tsx,yml,yaml}": [
