@@ -28,9 +28,9 @@ import useTemplatesData from './use-templates-data';
 import './templates-area-hub.scss';
 
 const AREA_ICON: Record<PartAreaId, { library: 'wp' | 'ui'; icon: string }> = {
-	header: { library: 'wp', icon: 'header' },
-	footer: { library: 'wp', icon: 'footer' },
-	sidebar: { library: 'ui', icon: 'sidebar' },
+	header: { library: 'ui', icon: 'template-header' },
+	footer: { library: 'ui', icon: 'template-footer' },
+	sidebar: { library: 'ui', icon: 'template-sidebar' },
 };
 
 type TemplatesAreaHubProps = {

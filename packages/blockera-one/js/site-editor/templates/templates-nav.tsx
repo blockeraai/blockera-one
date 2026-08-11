@@ -43,7 +43,7 @@ import './templates-nav.scss';
 const ICON_MAP: Partial<
 	Record<NavIcon, { library: 'wp' | 'ui' | 'blockera'; icon: string }>
 > = {
-	layout: { library: 'wp', icon: 'layout' },
+	template: { library: 'ui', icon: 'template' },
 	home: { library: 'wp', icon: 'home' },
 	'home-base': { library: 'ui', icon: 'home-base' },
 	'home-blog': { library: 'ui', icon: 'home-blog' },
@@ -61,11 +61,11 @@ const ICON_MAP: Partial<
 	search: { library: 'wp', icon: 'search' },
 	'not-found': { library: 'wp', icon: 'not-found' },
 	'post-not-found': { library: 'ui', icon: 'post-not-found' },
-	header: { library: 'wp', icon: 'header' },
-	footer: { library: 'wp', icon: 'footer' },
-	sidebar: { library: 'ui', icon: 'sidebar' },
+	header: { library: 'ui', icon: 'template-header' },
+	footer: { library: 'ui', icon: 'template-footer' },
+	sidebar: { library: 'ui', icon: 'template-sidebar' },
 	plugins: { library: 'wp', icon: 'plugins' },
-	custom: { library: 'wp', icon: 'add-template' },
+	custom: { library: 'ui', icon: 'template-new' },
 	active: { library: 'wp', icon: 'yes' },
 	calendar: { library: 'wp', icon: 'calendar' },
 	media: { library: 'ui', icon: 'attachment' },
@@ -107,7 +107,7 @@ function NavRow({
 }) {
 	// Child “Specific templates” rows use list-view at 20px; everything else 24px.
 	const iconSize = isChild && item.icon === 'list' ? 20 : 24;
-	const iconDef = ICON_MAP[item.icon] || ICON_MAP.layout;
+	const iconDef = ICON_MAP[item.icon] || ICON_MAP.template;
 	const showCount = typeof count === 'number';
 	const status = item.status;
 	const statusLabel = item.statusLabel;

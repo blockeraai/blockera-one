@@ -9,7 +9,7 @@ import { __ } from '@wordpress/i18n';
 import { FILTER_IDS, type FilterId, type PartAreaId } from './constants';
 
 export type NavIcon =
-	| 'layout'
+	| 'template'
 	| 'home'
 	| 'home-base'
 	| 'home-blog'
@@ -101,7 +101,7 @@ export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 			{
 				id: FILTER_IDS.all,
 				label: __('All templates', 'blockera'),
-				icon: 'layout',
+				icon: 'template',
 				filter: FILTER_IDS.all,
 			},
 		],

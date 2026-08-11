@@ -147,6 +147,7 @@ const DESIGN_ITEMS: Array<{
 	key: DesignNavKey;
 	label: string;
 	icon: string;
+	iconLibrary?: 'wp' | 'ui';
 	coreUidKey: DesignNavKey;
 }> = [
 	{
@@ -170,7 +171,8 @@ const DESIGN_ITEMS: Array<{
 	{
 		key: 'templates',
 		label: __('Templates', 'blockera'),
-		icon: 'layout',
+		icon: 'template',
+		iconLibrary: 'ui',
 		coreUidKey: 'templates',
 	},
 	{
@@ -274,6 +276,7 @@ export default function MainNavigation() {
 						key={item.key}
 						label={item.label}
 						icon={item.icon}
+						iconLibrary={item.iconLibrary}
 						isActive={activeKey === item.key}
 						onClick={() => onDesignClick(item.coreUidKey)}
 						data-test={`blockera-site-editor-nav-${item.key}`}
