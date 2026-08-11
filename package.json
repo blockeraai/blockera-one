@@ -243,6 +243,7 @@
 		"test:generate-output:dev": "jest --json --outputFile=.jest-test-results.json -- --watch",
 		"test:unit:php:setup": "npm run env:start",
 		"test:unit:php:base": "bash packages/global-packages/packages/dev-tools/github/scripts/run-phpunit-one-units.sh",
+		"test:unit:php:coverage": "wp-env run --env-cwd='wp-content/themes/blockera-one' tests-wordpress vendor/bin/phpunit -c phpunit.xml.dist --verbose --testsuite units --coverage-text",
 		"test:snapshots:php:base": "wp-env run --env-cwd='wp-content/themes/blockera-one' tests-wordpress vendor/bin/phpunit -c phpunit.xml.dist --verbose --testsuite snapshots",
 		"test:unit:php": "npm-run-all test:unit:php:setup test:unit:php:base",
 		"test:snapshots:php": "npm-run-all test:unit:php:setup test:snapshots:php:base",
