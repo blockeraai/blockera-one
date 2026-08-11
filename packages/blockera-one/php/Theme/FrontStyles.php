@@ -34,8 +34,12 @@ class FrontStyles {
 	 * @return void
 	 */
 	public function enqueue(): void {
-		$suffix = SCRIPT_DEBUG ? '' : '.min';
-		$src    = 'style' . $suffix . '.css';
+		$script_debug = (bool) apply_filters(
+			'blockera_one_front_styles_script_debug',
+			defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG
+		);
+		$suffix       = $script_debug ? '' : '.min';
+		$src          = 'style' . $suffix . '.css';
 
 		wp_enqueue_style(
 			self::HANDLE,
