@@ -10,8 +10,17 @@
         failOnEmptyTestSuite="false"
 >
     <coverage>
+        <include>
+            <directory suffix=".php">./packages/blockera-one/php</directory>
+        </include>
+        <exclude>
+            <directory suffix=".php">./packages/blockera-one/php/tests</directory>
+            <directory suffix=".php">./packages/blockera-one/php/test-support</directory>
+            <file>./packages/blockera-one/php/index.php</file>
+        </exclude>
         <report>
             <html outputDirectory="php-coverage" />
+            <text outputFile="php://stdout" showOnlySummary="true"/>
         </report>
     </coverage>
 
@@ -24,8 +33,10 @@
         -->
         <testsuite name="units">
             <directory suffix=".php">./packages/global-packages/packages/dev-phpunit/php/</directory>
+            <directory suffix=".php">./packages/blockera-one/php/tests/</directory>
             <exclude>./node_modules/</exclude>
             <exclude>./dist/</exclude>
+            <exclude>./packages/blockera-one/php/test-support/</exclude>
         </testsuite>
         <testsuite name="snapshots">
             <directory suffix=".php">./packages/global-packages/packages/dev-phpunit/php/</directory>
