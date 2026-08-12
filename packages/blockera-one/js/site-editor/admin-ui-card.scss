@@ -45,15 +45,11 @@
 		background-color: var(--wpds-color-background-surface-neutral, #fcfcfc);
 		color: var(--wpds-color-foreground-content-neutral, #1e1e1e);
 		border-radius: 8px;
-		box-shadow: 0 0 0 1px
-			var(
-				--wpds-color-stroke-surface-neutral-weak,
-				rgba(255, 255, 255, 0.08)
-			);
+		box-shadow: none;
 	}
 
 	.admin-ui-page__header {
-		padding: 14px 18px;
+		padding: 12px 18px;
 		border-block-end: 1px solid #f0f0f0;
 		background: #ffffff;
 		position: sticky;
