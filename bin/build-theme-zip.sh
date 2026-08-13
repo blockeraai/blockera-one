@@ -86,12 +86,18 @@ status "Generating build... 🗂"
 npm run build
 
 
-# Temporarily modify `blockera.php` with production constants defined.
-# Use a temp file because `bin/generate-blockera-php.php` reads from `blockera.php`
+# Temporarily rewrite entry files for production:
+# - blockera.php: version/mode defines + inc/app.php
+# - functions.php: shared autoloader from inc/bootstrap.php
+# Use temp files because `bin/generate-blockera-php.php` reads the source file
 # so we need to avoid writing to that file at the same time.
 status "Generating blockera.php 📝"
-php bin/generate-blockera-php.php > blockera.tmp.php
+php bin/generate-blockera-php.php blockera.php > blockera.tmp.php
 mv blockera.tmp.php blockera.php
+
+status "Generating functions.php 📝"
+php bin/generate-blockera-php.php functions.php > functions.tmp.php
+mv functions.tmp.php functions.php
 
 
 # Temporarily modify `readme.txt`.
@@ -215,8 +221,8 @@ fi
 
 status "Cleaning up... 🧹"
 
-# Reset `blockera.php`.
-git checkout blockera.php
+# Reset production-rewritten entry files.
+git checkout blockera.php functions.php
 
 # Reset `readme.txt`.
 git checkout readme.txt

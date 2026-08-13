@@ -105,6 +105,87 @@ if ( ! function_exists( 'blockera_one_register_companion_plugin_hooks' ) ) :
 	}
 endif;
 
+if ( ! function_exists( 'blockera_one_get_theme_root_path' ) ) :
+	/**
+	 * Theme root filesystem path with trailing slash.
+	 *
+	 * Companion plugin defines BLOCKERA_SB_PATH as the plugin directory, so
+	 * theme dist lookups must use the theme root — not those constants.
+	 *
+	 * @return string
+	 */
+	function blockera_one_get_theme_root_path(): string {
+		return trailingslashit( get_template_directory() );
+	}
+endif;
+
+if ( ! function_exists( 'blockera_one_get_theme_root_url' ) ) :
+	/**
+	 * Theme root URL with trailing slash.
+	 *
+	 * @return string
+	 */
+	function blockera_one_get_theme_root_url(): string {
+		return trailingslashit( get_template_directory_uri() );
+	}
+endif;
+
+if ( ! function_exists( 'blockera_one_is_one_named_package' ) ) :
+	/**
+	 * Whether an asset slug matches the theme `*-one` package pattern.
+	 *
+	 * Matches `blockera-one` and follow-on entries such as `blockera-one-styles`.
+	 *
+	 * @param string $name Asset / package slug from config/assets.php.
+	 *
+	 * @return bool
+	 */
+	function blockera_one_is_one_named_package( string $name ): bool {
+		return str_ends_with( $name, '-one' ) || str_contains( $name, '-one-' );
+	}
+endif;
+
+if ( ! function_exists( 'blockera_one_get_one_named_editor_assets' ) ) :
+	/**
+	 * Editor asset slugs from the theme config that match `*-one`.
+	 *
+	 * Cached per request — config/assets.php is a small include, not a glob.
+	 *
+	 * @return string[]
+	 */
+	function blockera_one_get_one_named_editor_assets(): array {
+		static $cached = null;
+
+		if ( null !== $cached ) {
+			return $cached;
+		}
+
+		$config_file = blockera_one_get_theme_root_path() . 'config/assets.php';
+		if ( ! is_readable( $config_file ) ) {
+			$cached = array();
+			return $cached;
+		}
+
+		$config      = include $config_file;
+		$editor_list = is_array( $config ) ? ( $config['editor']['list'] ?? array() ) : array();
+		$cached      = array();
+
+		if ( ! is_array( $editor_list ) ) {
+			return $cached;
+		}
+
+		foreach ( $editor_list as $name ) {
+			if ( ! is_string( $name ) || ! blockera_one_is_one_named_package( $name ) ) {
+				continue;
+			}
+
+			$cached[] = $name;
+		}
+
+		return $cached;
+	}
+endif;
+
 // Only register when WordPress APIs exist. Composer may autoload this file after a
 // test prepend defines ABSPATH but before add_action() is available.
 if ( function_exists( 'add_action' ) ) {
