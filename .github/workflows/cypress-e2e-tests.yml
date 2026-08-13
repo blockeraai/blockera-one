@@ -35,6 +35,7 @@ jobs:
         name: Test
         needs: detect_categories
         runs-on: ubuntu-latest
+        timeout-minutes: 60
         if: ${{ github.repository == 'blockeraai/blockera-one' || github.event_name == 'pull_request' }}
         strategy:
             fail-fast: false
@@ -42,8 +43,11 @@ jobs:
                 category: ${{ fromJson(needs.detect_categories.outputs.categories) }}
         env:
             BLOCKERA_GLOBAL_PACKAGES_TOKEN: ${{ secrets.BLOCKERABOT_PAT }}
+            # Cross-repo download of the companion Blockera plugin from .pr-env.json.
+            GITHUB_TOKEN: ${{ secrets.BLOCKERABOT_PAT }}
             BLOCKERA_E2E_CATEGORY: ${{ matrix.category }}
             BLOCKERA_E2E_PRODUCT_STYLE: theme
+            BLOCKERA_E2E_PREPARE_CMD: bash bin/prepare-theme-e2e.sh
         steps:
             - uses: actions/checkout@v5
               with:
