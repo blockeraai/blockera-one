@@ -1,0 +1,84 @@
+/**
+ * Compact nested-panel gateway row (title + toggle + chevron).
+ *
+ * Hover scale mirrors Site Editor canvas preview:
+ * `source-codes/block-editor/packages/edit-site/src/components/resizable-frame/index.js`
+ * (`whileHover` scale 1.005, 0.5s easeOut).
+ */
+
+.blockera-site-editor-gateway-card {
+	flex: 0 0 auto;
+	max-height: none;
+	overflow: hidden;
+	transform-origin: center center;
+
+	&.admin-ui-page {
+		flex: 0 0 auto;
+		max-height: none;
+		overflow: hidden;
+	}
+
+	&.is-header-collapsed .admin-ui-page__header {
+		border-block-end: none;
+	}
+
+	&.is-navigable {
+		cursor: pointer;
+
+		@media not (prefers-reduced-motion) {
+			.blockera-site-editor-gateway-card__chevron {
+				transition: transform 0.1s ease-out;
+			}
+		}
+
+		&:hover {
+			.blockera-site-editor-gateway-card__chevron {
+				transform: translate(5px, 0);
+			}
+		}
+
+		.admin-ui-page__header {
+			cursor: pointer;
+		}
+	}
+
+	.admin-ui-page__header {
+		padding-right: 12px !important;
+		transition: transform 0.1s ease-out;
+	}
+
+	&:not(.is-navigable) {
+		.admin-ui-page__header {
+			background: #cbcbcb !important;
+		}
+	}
+
+	&__trailing {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		flex: 0 0 auto;
+	}
+
+	&__toggle {
+		display: inline-flex;
+		align-items: center;
+	}
+
+	&__chevron {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		color: #949494;
+		line-height: 0;
+
+		svg {
+			display: block;
+			fill: currentColor;
+		}
+	}
+
+	&.is-enabled &__chevron {
+		color: var(--wp-admin-theme-color, #3858e9);
+	}
+}
