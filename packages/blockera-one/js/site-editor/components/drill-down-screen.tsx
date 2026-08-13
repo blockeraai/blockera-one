@@ -6,8 +6,9 @@
  * importing `@wordpress/edit-site` internals. Back returns to Design root
  * unless `onBack` is provided (e.g. Templates parts sub-screen).
  *
- * Enter animation matches core Patterns/Pages (`slide-from-right` keyframes).
- * Applied on this screen (not the core wrapper) because:
+ * Enter animation (forward/back) is shared with MainNavigation via
+ * `useSidebarEnterClass` + `sidebar-enter.scss`. Applied here (not the core
+ * wrapper) because:
  * - SPA navigate cannot call edit-site `SidebarNavigationContext`
  * - Core sets `shouldAnimate={false}` for `identity`
  * - Homepage/performance may inherit a stale context direction
@@ -23,24 +24,26 @@ import type { ComponentType, ReactNode } from 'react';
 
 import {
 	Button,
-	__experimentalHStack as HStack,
 	__experimentalHeading as Heading,
-	__experimentalVStack as VStack,
 } from '@wordpress/components';
-import { useEffect, useState } from '@wordpress/element';
+import { useEffect, useRef } from '@wordpress/element';
 import { isRTL, __ } from '@wordpress/i18n';
-import { chevronLeft, chevronRight } from '@wordpress/icons';
+import { Icon, chevronLeft, chevronRight } from '@wordpress/icons';
+
+/**
+ * Blockera dependencies
+ */
+import { classNames } from '@blockera/classnames';
+import { Flex } from '@blockera/controls';
 
 /**
  * Internal dependencies
  */
-import { ROUTES } from './constants';
+import { ROUTES } from '../constants';
 import './drill-down-screen.scss';
-import {
-	clearCoreSidebarSlideClasses,
-	consumePendingSidebarNavDirection,
-	navigateToSiteEditorPath,
-} from './utils';
+import useClearCoreSidebarSlide from '../hooks/use-clear-core-slide';
+import useSidebarEnterClass from '../hooks/use-sidebar-enter-class';
+import { navigateToSiteEditorPath } from '../utils';
 
 /**
  * Match edit-site layout content ThemeProvider seed.
@@ -70,6 +73,12 @@ function getThemeProvider(): ComponentType<ThemeProviderProps> | null {
 	return theme?.ThemeProvider ?? null;
 }
 
+export type DrillDownBreadcrumbItem = {
+	label: string;
+	/** When set, the segment is a button that navigates to that parent. */
+	onClick?: () => void;
+};
+
 type DrillDownScreenProps = {
 	title: string;
 	children: ReactNode;
@@ -82,7 +91,26 @@ type DrillDownScreenProps = {
 	flush?: boolean;
 	/** Override back navigation (default: Design root `/`). */
 	onBack?: () => void;
+	/**
+	 * Parent trail shown above the title (e.g. "All Archives" over "Sidebar").
+	 * String / string[] stay display-only; items with `onClick` are navigable.
+	 */
+	breadcrumb?: string | string[] | DrillDownBreadcrumbItem[];
 };
+
+function normalizeBreadcrumb(
+	breadcrumb: DrillDownScreenProps['breadcrumb']
+): DrillDownBreadcrumbItem[] {
+	if (!breadcrumb) {
+		return [];
+	}
+	if (typeof breadcrumb === 'string') {
+		return breadcrumb ? [{ label: breadcrumb }] : [];
+	}
+	return breadcrumb
+		.map((item) => (typeof item === 'string' ? { label: item } : item))
+		.filter((item) => !!item.label);
+}
 
 /**
  * Collapsed main-panel screen: back control, title, and panel body.
@@ -94,21 +122,21 @@ export default function DrillDownScreen({
 	actions = null,
 	flush = false,
 	onBack,
+	breadcrumb,
 }: DrillDownScreenProps) {
 	const icon = isRTL() ? chevronRight : chevronLeft;
-	const [enterClass] = useState(() => {
-		const direction = consumePendingSidebarNavDirection();
-		// Only animate when an explicit forward nav was requested.
-		// Remounts from `p` changes (e.g. Pages ↔ Child templates) leave
-		// direction null — treating null as forward caused spurious slides.
-		return direction === 'forward' ? 'is-entering-forward' : '';
-	});
+	const breadcrumbSepIcon = isRTL() ? chevronLeft : chevronRight;
+	const enterClass = useSidebarEnterClass();
+	const backButtonRef = useRef<HTMLButtonElement>(null);
 
+	// After core's layout effect may have applied a stale slide class.
+	useClearCoreSidebarSlide();
+
+	// Prefer the back control over breadcrumb links (which render above
+	// visually via grid, but must not steal focus when the panel opens).
 	useEffect(() => {
-		// After core's layout effect may have applied a stale slide class.
-		clearCoreSidebarSlideClasses();
 		const id = window.requestAnimationFrame(() => {
-			clearCoreSidebarSlideClasses();
+			backButtonRef.current?.focus();
 		});
 		return () => window.cancelAnimationFrame(id);
 	}, []);
@@ -121,21 +149,30 @@ export default function DrillDownScreen({
 			children
 		);
 
+	const crumbs = normalizeBreadcrumb(breadcrumb);
+	const hasBreadcrumb = crumbs.length > 0;
+
 	return (
-		<VStack
-			className={['blockera-site-editor-drill-down', enterClass]
-				.filter(Boolean)
-				.join(' ')}
-			spacing={0}
-			justify="flex-start"
+		<Flex
+			className={classNames(
+				'blockera-site-editor-drill-down',
+				'blockera-site-editor-enter',
+				enterClass
+			)}
+			direction="column"
+			gap="0"
+			justifyContent="flex-start"
 			data-test="blockera-site-editor-drill-down"
 		>
-			<HStack
-				spacing={3}
-				alignment="center"
-				className="blockera-site-editor-drill-down__title-row"
+			<div
+				className={classNames(
+					'blockera-site-editor-drill-down__header',
+					{ 'has-breadcrumb': hasBreadcrumb }
+				)}
 			>
+				{/* Back first in DOM so it is the preferred focus target. */}
 				<Button
+					ref={backButtonRef}
 					size="compact"
 					icon={icon}
 					label={__('Back', 'blockera')}
@@ -147,7 +184,9 @@ export default function DrillDownScreen({
 							onBack();
 							return;
 						}
-						navigateToSiteEditorPath(ROUTES.home);
+						navigateToSiteEditorPath(ROUTES.home, {
+							direction: 'back',
+						});
 					}}
 				/>
 				<Heading
@@ -157,15 +196,51 @@ export default function DrillDownScreen({
 				>
 					{title}
 				</Heading>
-				{actions}
-			</HStack>
+				{actions ? (
+					<div className="blockera-site-editor-drill-down__actions-slot">
+						{actions}
+					</div>
+				) : null}
+				{hasBreadcrumb ? (
+					<nav
+						className="blockera-site-editor-drill-down__breadcrumb"
+						aria-label={__('Breadcrumb', 'blockera')}
+						data-test="blockera-site-editor-drill-down-breadcrumb"
+					>
+						{crumbs.map((item, index) => (
+							<span
+								key={`${item.label}-${index}`}
+								className="blockera-site-editor-drill-down__breadcrumb-item"
+							>
+								{item.onClick ? (
+									<button
+										type="button"
+										className="blockera-site-editor-drill-down__breadcrumb-link"
+										onClick={item.onClick}
+									>
+										{item.label}
+									</button>
+								) : (
+									<span className="blockera-site-editor-drill-down__breadcrumb-text">
+										{item.label}
+									</span>
+								)}
+								<span
+									className="blockera-site-editor-drill-down__breadcrumb-sep"
+									aria-hidden="true"
+								>
+									<Icon icon={breadcrumbSepIcon} size={20} />
+								</span>
+							</span>
+						))}
+					</nav>
+				) : null}
+			</div>
 			<div
-				className={[
+				className={classNames(
 					'blockera-site-editor-drill-down__content',
-					flush ? 'is-flush' : '',
-				]
-					.filter(Boolean)
-					.join(' ')}
+					{ 'is-flush': flush }
+				)}
 			>
 				{/*
 				 * WP 7.1+: inject light design-system CSS vars (`--wpds-*`) when
@@ -174,6 +249,6 @@ export default function DrillDownScreen({
 				 */}
 				{content}
 			</div>
-		</VStack>
+		</Flex>
 	);
 }
