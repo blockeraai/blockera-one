@@ -1,0 +1,65 @@
+/**
+ * Shared sidebar enter slide (DrillDownScreen + MainNavigation).
+ * Keyframes match core edit-site sidebar local--slide-from-right / left.
+ */
+
+@keyframes blockera-site-editor-slide-from-right {
+	from {
+		transform: translateX(50px);
+		opacity: 0;
+	}
+
+	to {
+		transform: none;
+		opacity: 1;
+	}
+}
+
+@keyframes blockera-site-editor-slide-from-left {
+	from {
+		transform: translateX(-50px);
+		opacity: 0;
+	}
+
+	to {
+		transform: none;
+		opacity: 1;
+	}
+}
+
+.blockera-site-editor-enter {
+	&.is-entering-forward {
+		/* LTR: next panel enters from the right (slides left into place). */
+		animation-name: blockera-site-editor-slide-from-right;
+		animation-duration: 0.14s;
+		animation-timing-function: ease-in-out;
+		will-change: transform, opacity;
+
+		@media (prefers-reduced-motion: reduce) {
+			animation-duration: 0s;
+		}
+	}
+
+	&.is-entering-back {
+		/* LTR: previous panel enters from the left (slides right into place). */
+		animation-name: blockera-site-editor-slide-from-left;
+		animation-duration: 0.14s;
+		animation-timing-function: ease-in-out;
+		will-change: transform, opacity;
+
+		@media (prefers-reduced-motion: reduce) {
+			animation-duration: 0s;
+		}
+	}
+}
+
+/* RTL: sidebar on the right → flip enter directions. */
+html[dir="rtl"] .blockera-site-editor-enter.is-entering-forward,
+body.rtl .blockera-site-editor-enter.is-entering-forward {
+	animation-name: blockera-site-editor-slide-from-left;
+}
+
+html[dir="rtl"] .blockera-site-editor-enter.is-entering-back,
+body.rtl .blockera-site-editor-enter.is-entering-back {
+	animation-name: blockera-site-editor-slide-from-right;
+}
