@@ -47,7 +47,7 @@ jobs:
             GITHUB_TOKEN: ${{ secrets.BLOCKERABOT_PAT }}
             BLOCKERA_E2E_CATEGORY: ${{ matrix.category }}
             BLOCKERA_E2E_PRODUCT_STYLE: theme
-            BLOCKERA_E2E_PREPARE_CMD: bash bin/prepare-theme-e2e.sh
+            BLOCKERA_E2E_PREPARE_CMD: bash packages/global-packages/packages/dev-tools/github/scripts/jobs/cypress-e2e-tests/prepare-theme.sh
         steps:
             - uses: actions/checkout@v5
               with:
