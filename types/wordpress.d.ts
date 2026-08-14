@@ -581,13 +581,13 @@ declare module '@wordpress/components' {
 		children?: (props: { onClose: () => void }) => ReactNode;
 		className?: string;
 		controls?: Array<{
-			icon?: ReactNode;
+			icon?: import('@wordpress/icons').IconType;
 			onClick?: () => void;
 			role?: string;
 			title: string;
 			isDisabled?: boolean;
 		}>;
-		icon?: ReactNode;
+		icon?: import('@wordpress/icons').IconType | null;
 		label: string;
 		menuProps?: Record<string, unknown>;
 		popoverProps?: Partial<PopoverProps>;
@@ -702,6 +702,8 @@ declare module '@wordpress/components' {
 		name?: string;
 		readOnly?: boolean;
 		required?: boolean;
+		__nextHasNoMarginBottom?: boolean;
+		__next40pxDefaultSize?: boolean;
 	}
 
 	export const TextControl: ComponentType<TextControlProps>;
