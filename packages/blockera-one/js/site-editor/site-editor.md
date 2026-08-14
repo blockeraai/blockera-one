@@ -31,16 +31,18 @@ Drill-down screens use a Blockera-owned `DrillDownScreen` (back → `/` + title 
 | `index.tsx` | Plugin root: body class, header portal, nav portal, routes |
 | `main-panel-header.tsx` / `main-panel-header.scss` | Blockera One branding + More menu (Reset → modal) |
 | `reset/` | Theme reset modal + REST client (`ResetThemeModal`, `resetTheme`) |
-| `main-navigation.tsx` / `main-navigation.scss` | Design / Site / Features / Resources UI |
-| `drill-down-screen.tsx` / `drill-down-screen.scss` | Back + title (+ optional actions / `onBack`) chrome |
+| `main-navigation.tsx` / `main-navigation.scss` | Design / Site / Features / Resources UI (rendered from `navigation/nav-config.ts`) |
+| `components/` | Shared UI: `nav-item`, `nav-section`, `settings-panel-shell`, `drill-down-screen` |
+| `hooks/` | Shared hooks: `use-edited-site-record`, `use-portal-host`, `use-clear-core-slide`, `use-sidebar-enter-class` (`useSiteEditorUrlState` lives in `@blockera/utils`) |
+| `navigation/` | Nav catalog (`nav-config.ts`) + SPA history writer (`history.ts`) |
+| `panels/` | Settings panels: `site-identity-panel`, `homepage-settings-panel`, `performance-panel` (+ scss) |
+| `routes/` | Styles / templates / settings route registration (config-driven) |
 | `styles-drill-down.tsx` | Styles wrapper: portals Style Book into drill-down title row |
 | `admin-ui-card.scss` | `.blockera-se-admin-ui-card` wrapper — tighter override for core `.admin-ui-page*` |
 | `styles-panel.scss` | Styles-only tweaks (hide Page header, GS navigator padding) |
 | `templates/` | Templates purpose-nav feature module (see below) |
-| `site-identity-panel.tsx` / `site-identity-panel.scss` | Identity card (logo / title / tagline) |
-| `homepage-settings-panel.tsx` / `homepage-settings-panel.scss` | Homepage card (`show_on_front` + pages) |
-| `performance-panel.tsx` / `performance-panel.scss` | Features → Performance toggles |
-| `routes.tsx` | Styles / templates / identity / homepage / performance registration |
+| `templates-builder/` | Template options engine (configs + shared block operations) |
+| `nested-panels/` | URL-stacked nested drill-down panels + gateway card |
 | `constants.ts` | Paths, core `uid`s, Resource URLs, selectors, setting keys |
 | `utils.ts` | Path helpers, core-uid click, SPA navigate |
 | `style.scss` | Shared layout glue only (hide core ItemGroup / design-root flex) |
@@ -54,7 +56,10 @@ Drill-down screens use a Blockera-owned `DrillDownScreen` (back → `/` + title 
 | `templates-nav-config.ts` | Static purpose-nav IA (homepage shell filled at runtime) |
 | `templates-homepage-resolve.ts` | Homepage / Blog·Posts + fallback badges from Reading settings |
 | `templates-matchers.ts` | Slug / custom / author matchers |
-| `use-templates-data.ts` | Entity fetch, counts, dynamic CPT/author/homepage rows |
+| `use-templates-data.ts` | Thin composition of records + sections + counts |
+| `use-template-records.ts` | Entity fetch + active/user lookups + filter matcher |
+| `build-nav-sections.ts` | Runtime section builder (homepage / CPT / Woo / authors) |
+| `templates-counts.ts` | Browse counts + "Specific templates" child rows |
 | `templates-drill-down.tsx` | DrillDownScreen + purpose-nav (General Area Hub) |
 | `templates-nav.tsx` | Parent/child purpose menu UI |
 | `templates-hub-parts.ts` | Canonical header/footer/sidebar helpers |
