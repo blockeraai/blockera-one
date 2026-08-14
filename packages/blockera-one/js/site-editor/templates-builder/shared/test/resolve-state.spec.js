@@ -265,6 +265,37 @@ describe('resolveSectionState', () => {
 			resolveSectionState([block('core/group')], 'never-registered')
 		).toEqual({ kind: 'missing', value: false });
 	});
+
+	it('innerBlock matches a named child of the parent section only', () => {
+		registerSectionHeuristics({
+			'page-title-title': {
+				kind: 'innerBlock',
+				parentId: 'page-title',
+				name: 'core/query-title',
+			},
+			'page-title-breadcrumbs': {
+				kind: 'innerBlock',
+				parentId: 'page-title',
+				name: 'core/breadcrumbs',
+			},
+		});
+
+		const tree = [
+			stamped('core/group', 'section/page-title:default', {}, [
+				block('core/query-title'),
+				block('core/term-description'),
+			]),
+			block('core/query-title'),
+		];
+
+		const title = resolveSectionState(tree, 'page-title-title');
+		expect(title.kind).toBe('customized');
+		expect(title.path).toEqual([0, 0]);
+
+		expect(resolveSectionState(tree, 'page-title-breadcrumbs').kind).toBe(
+			'missing'
+		);
+	});
 });
 
 describe('resolveToggleState', () => {
