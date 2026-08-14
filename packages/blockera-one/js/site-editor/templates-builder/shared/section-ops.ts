@@ -20,6 +20,11 @@ import {
 	replaceAtPath,
 } from './tree';
 import type { BlockNode, InsertRule, VariantDef } from './types';
+import {
+	applyBlockeraInspectorAttribute,
+	isBlockeraExtensionPath,
+} from './blockera-attribute';
+import { replaceBlockStyleClassName } from './block-style';
 
 /**
  * Replace a leaf section with a variant, carrying user attributes.
@@ -181,6 +186,11 @@ export function toggleSection(
 	// Variant placement wins; the control-level insert rule is the fallback.
 	const insertRule = params.defaultVariant.placement || params.insert;
 	if (insertRule) {
+		restoreBlocks = alignInsertedWithParent(
+			blocks,
+			insertRule.relativeTo,
+			restoreBlocks
+		);
 		const placed = insertAtPlacement(blocks, insertRule, restoreBlocks);
 		if (placed) {
 			return placed;
@@ -213,22 +223,172 @@ export function setSectionAttribute(
 		return blocks;
 	}
 
-	const parts = params.attributePath.split('.');
 	const attrs = { ...(node.attributes || {}) } as Record<string, unknown>;
-	let cursor: Record<string, unknown> = attrs;
-	for (let i = 0; i < parts.length - 1; i++) {
-		const key = parts[i];
-		const nextVal =
-			cursor[key] && typeof cursor[key] === 'object'
-				? { ...(cursor[key] as Record<string, unknown>) }
-				: {};
-		cursor[key] = nextVal;
-		cursor = nextVal;
+	let nextAttrs = attrs;
+
+	if (isBlockeraExtensionPath(params.attributePath)) {
+		nextAttrs = applyBlockeraInspectorAttribute(
+			attrs,
+			params.attributePath,
+			params.value,
+			node.name
+		);
+	} else {
+		const parts = params.attributePath.split('.');
+		let cursor: Record<string, unknown> = nextAttrs;
+		for (let i = 0; i < parts.length - 1; i++) {
+			const key = parts[i];
+			const nextVal =
+				cursor[key] && typeof cursor[key] === 'object'
+					? { ...(cursor[key] as Record<string, unknown>) }
+					: {};
+			cursor[key] = nextVal;
+			cursor = nextVal;
+		}
+		cursor[parts[parts.length - 1]] = params.value;
 	}
-	cursor[parts[parts.length - 1]] = params.value;
 
 	return replaceAtPath(blocks, state.path, {
 		...node,
-		attributes: attrs,
+		attributes: nextAttrs,
 	});
+}
+
+/**
+ * Swap the Gutenberg `is-style-*` class on a detected section. Preserves
+ * other className tokens (including Blockera generated ids).
+ */
+export function setSectionBlockStyle(
+	blocks: BlockNode[],
+	params: {
+		sectionId: string;
+		styleName: string;
+	}
+): BlockNode[] {
+	const state = resolveSectionState(blocks, params.sectionId);
+	if (!state.path) {
+		return blocks;
+	}
+	const node = getAtPath(blocks, state.path);
+	if (!node) {
+		return blocks;
+	}
+
+	const className = replaceBlockStyleClassName(
+		typeof node.attributes?.className === 'string'
+			? node.attributes.className
+			: '',
+		params.styleName
+	);
+
+	return replaceAtPath(blocks, state.path, {
+		...node,
+		attributes: {
+			...(node.attributes || {}),
+			className,
+		},
+	});
+}
+
+/**
+ * Move an existing stamped section to a placement (inside-start / inside-end
+ * of a parent, or before/after a sibling). No-op when the section is missing.
+ */
+export function placeSection(
+	blocks: BlockNode[],
+	params: {
+		sectionId: string;
+		placement: InsertRule;
+	}
+): BlockNode[] {
+	const state = resolveSectionState(blocks, params.sectionId);
+	if (!state.path) {
+		return blocks;
+	}
+	const node = getAtPath(blocks, state.path);
+	if (!node) {
+		return blocks;
+	}
+	const without = removeAtPath(blocks, state.path);
+	const placed = insertAtPlacement(without, params.placement, [node]);
+	return placed || blocks;
+}
+
+/**
+ * Rebuild `parentId` innerBlocks so stamped children follow `orderedIds`.
+ * Unstamped (or unknown-stamp) siblings stay after the managed set.
+ */
+export function orderInnerSections(
+	blocks: BlockNode[],
+	parentId: string,
+	orderedIds: string[]
+): BlockNode[] {
+	if (!orderedIds.length) {
+		return blocks;
+	}
+	const parent = resolveSectionState(blocks, parentId);
+	if (!parent.path) {
+		return blocks;
+	}
+	const node = getAtPath(blocks, parent.path);
+	if (!node) {
+		return blocks;
+	}
+
+	const idSet: Record<string, true> = {};
+	for (let i = 0; i < orderedIds.length; i++) {
+		idSet[orderedIds[i]] = true;
+	}
+
+	const byId: Record<string, BlockNode> = {};
+	const rest: BlockNode[] = [];
+	const children = node.innerBlocks || [];
+	for (let i = 0; i < children.length; i++) {
+		const child = children[i];
+		const id = getStamp(child)?.id;
+		if (id && idSet[id] && !byId[id]) {
+			byId[id] = child;
+		} else {
+			rest.push(child);
+		}
+	}
+
+	const ordered: BlockNode[] = [];
+	for (let i = 0; i < orderedIds.length; i++) {
+		const child = byId[orderedIds[i]];
+		if (child) {
+			ordered.push(child);
+		}
+	}
+
+	return replaceAtPath(blocks, parent.path, {
+		...node,
+		innerBlocks: [...ordered, ...rest],
+	});
+}
+
+/**
+ * Banner page-header children are centered; copy that onto inserted blocks
+ * so a toggled-back title matches the active design.
+ */
+function alignInsertedWithParent(
+	blocks: BlockNode[],
+	parentId: string,
+	insertBlocks: BlockNode[]
+): BlockNode[] {
+	const parent = resolveSectionState(blocks, parentId);
+	if (!parent.path) {
+		return insertBlocks;
+	}
+	const parentNode = getAtPath(blocks, parent.path);
+	if (getStamp(parentNode)?.variant !== 'banner') {
+		return insertBlocks;
+	}
+	return insertBlocks.map((block) => ({
+		...block,
+		attributes: {
+			...(block.attributes || {}),
+			textAlign: 'center',
+		},
+	}));
 }

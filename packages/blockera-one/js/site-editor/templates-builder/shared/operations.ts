@@ -20,7 +20,14 @@ export {
 	type SerializeFn,
 } from './op-context';
 export { transplantLayout } from './layout-transplant';
-export { setSectionAttribute, swapSection, toggleSection } from './section-ops';
+export {
+	orderInnerSections,
+	placeSection,
+	setSectionAttribute,
+	setSectionBlockStyle,
+	swapSection,
+	toggleSection,
+} from './section-ops';
 export {
 	prepareHideChromeSection,
 	swapTemplatePart,
