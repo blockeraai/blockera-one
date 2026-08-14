@@ -2,7 +2,7 @@
 /**
  * Title: Shop call to action
  * Slug: blockera-one/woo-shop-cta
- * Categories: blockera_one_page
+ * Categories: blockera-one/page
  * Keywords: shop, woo, cta, commerce
  * Viewport width: 1400
  * Description: A simple call-to-action section for shop pages.

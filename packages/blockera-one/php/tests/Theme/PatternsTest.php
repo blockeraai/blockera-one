@@ -29,8 +29,10 @@ class PatternsTest extends TestCase {
 	 */
 	public function tear_down(): void {
 		$categories = WP_Block_Pattern_Categories_Registry::get_instance();
-		if ( $categories->is_registered( 'blockera_one_page' ) ) {
-			$categories->unregister( 'blockera_one_page' );
+		foreach ( array( 'blockera-one/page', 'blockera-one/template-builder' ) as $category_name ) {
+			if ( $categories->is_registered( $category_name ) ) {
+				$categories->unregister( $category_name );
+			}
 		}
 
 		$patterns = WP_Block_Patterns_Registry::get_instance();
@@ -72,16 +74,21 @@ class PatternsTest extends TestCase {
 	/**
 	 * @return void
 	 */
-	public function test_register_categories_adds_pages_category(): void {
+	public function test_register_categories_adds_theme_categories(): void {
 		$module = new Patterns();
 		$module->registerCategories();
 
 		$registry = WP_Block_Pattern_Categories_Registry::get_instance();
-		$this->assertTrue( $registry->is_registered( 'blockera_one_page' ) );
 
-		$category = $registry->get_registered( 'blockera_one_page' );
-		$this->assertSame( 'Pages', $category['label'] );
-		$this->assertNotEmpty( $category['description'] );
+		$this->assertTrue( $registry->is_registered( 'blockera-one/page' ) );
+		$page = $registry->get_registered( 'blockera-one/page' );
+		$this->assertSame( 'Pages', $page['label'] );
+		$this->assertNotEmpty( $page['description'] );
+
+		$this->assertTrue( $registry->is_registered( 'blockera-one/template-builder' ) );
+		$builder = $registry->get_registered( 'blockera-one/template-builder' );
+		$this->assertSame( 'Templates Builder', $builder['label'] );
+		$this->assertNotEmpty( $builder['description'] );
 	}
 
 	/**

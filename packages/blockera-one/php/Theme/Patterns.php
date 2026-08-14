@@ -42,10 +42,18 @@ class Patterns {
 	 */
 	public function registerCategories(): void {
 		register_block_pattern_category(
-			'blockera_one_page',
+			'blockera-one/page',
 			array(
 				'label'       => __( 'Pages', 'blockera-one' ),
 				'description' => __( 'A collection of full page layouts.', 'blockera-one' ),
+			)
+		);
+
+		register_block_pattern_category(
+			'blockera-one/template-builder',
+			array(
+				'label'       => __( 'Templates Builder', 'blockera-one' ),
+				'description' => __( 'Hidden variants used by the Blockera One Templates Builder.', 'blockera-one' ),
 			)
 		);
 	}
