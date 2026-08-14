@@ -202,6 +202,29 @@ describe('archive config structural invariants', () => {
 		}
 	});
 
+	it('gives page header Design a customize-in-editor action', () => {
+		const pageHeader = config.groups.find((g) => g.id === 'page-header');
+		const design = pageHeader.nestedPanel.groups.find(
+			(g) => g.id === 'page-header-design'
+		);
+
+		expect(design.controls.map((c) => c.id)).toEqual([
+			'page-title-design',
+			'page-header-gap',
+			'page-title-customize',
+		]);
+
+		const customize = design.controls.find(
+			(c) => c.id === 'page-title-customize'
+		);
+		expect(customize.type).toBe('button');
+		expect(customize.operation).toBe('selectInCanvas');
+		expect(customize.target).toEqual({
+			kind: 'section',
+			id: 'page-title',
+		});
+	});
+
 	it('gives title and description a Design nested panel without Settings', () => {
 		const title = controls.find((c) => c.id === 'page-title-title');
 		const description = controls.find(

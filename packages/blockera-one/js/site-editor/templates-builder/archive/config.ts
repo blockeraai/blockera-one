@@ -339,6 +339,21 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 									},
 								],
 							},
+							{
+								...sectionCustomizeControl(
+									{
+										kind: 'section',
+										id: 'page-title',
+									},
+									'page-title-customize'
+								),
+								conditions: [
+									{
+										controlId: 'page-title',
+										equals: true,
+									},
+								],
+							},
 						],
 					},
 					{
