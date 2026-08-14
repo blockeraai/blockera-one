@@ -1,9 +1,10 @@
 /**
- * Keep purpose-nav selection when leaving canvas edit on a wp_template preview.
+ * Keep purpose-nav selection (and Templates Builder nested stack) when leaving
+ * canvas edit on a wp_template preview.
  *
  * Core “Open Navigation” on template-item routes to `/template` (All templates)
- * via getNavigationPath — dropping `boFilter`. Intercept while a purpose filter
- * is active and return to the same template preview instead.
+ * via getNavigationPath — dropping `boFilter` / `boBuilder`. Intercept while a
+ * purpose filter is active and return to the same template preview instead.
  *
  * Mounted around the resolved Editor (see wrapTemplateItemPurposePreview) so the
  * click listener stays alive in full-canvas edit when the sidebar is unmounted.
@@ -21,6 +22,7 @@ import {
 	getTemplatesUrlState,
 	navigateTemplates,
 } from './constants';
+import { stopContentOnlySectionEdit } from '../templates-builder/shared/select-section-in-canvas';
 import useOpenNavigationInterceptor from './use-open-navigation-interceptor';
 
 type TemplatesPurposePreviewProps = {
@@ -31,7 +33,7 @@ export default function TemplatesPurposePreview({
 	children,
 }: TemplatesPurposePreviewProps) {
 	useOpenNavigationInterceptor((path) => {
-		const { filter } = getTemplatesUrlState();
+		const { filter, optionsPanel } = getTemplatesUrlState();
 		const canvas = getQueryArg(window.location.href, 'canvas');
 
 		if (
@@ -43,8 +45,10 @@ export default function TemplatesPurposePreview({
 			return false;
 		}
 
+		stopContentOnlySectionEdit();
 		navigateTemplates(path, {
 			filter,
+			optionsPanel,
 			partsArea: null,
 			activeView: null,
 			canvas: null,
