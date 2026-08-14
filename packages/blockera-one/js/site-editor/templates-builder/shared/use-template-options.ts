@@ -24,7 +24,12 @@ import {
 	resolveConfigVariantsHtml,
 	type PatternRecord,
 } from './resolve-variant-html';
-import type { BlockNode, ControlDef, TemplateOptionsConfig } from './types';
+import type {
+	BlockNode,
+	ControlDef,
+	ControlValue,
+	TemplateOptionsConfig,
+} from './types';
 
 export type { ControlViewState };
 
@@ -240,7 +245,7 @@ export default function useTemplateOptions(
 	}, []);
 
 	const onChangeControl = useCallback(
-		(control: ControlDef, nextValue: string | number | boolean) => {
+		(control: ControlDef, nextValue: ControlValue) => {
 			const view = controlStates.find((c) => c.control.id === control.id);
 			const needsConfirm = !!view?.needsConfirm;
 			// Callers may hold a control from the raw config (e.g. a group
