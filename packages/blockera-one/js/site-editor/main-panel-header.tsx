@@ -10,7 +10,6 @@ import {
 	DropdownMenu,
 	MenuGroup,
 	MenuItem,
-	__experimentalHStack as HStack,
 	__experimentalHeading as Heading,
 } from '@wordpress/components';
 import { useState } from '@wordpress/element';
@@ -20,6 +19,7 @@ import { moreVertical } from '@wordpress/icons';
 /**
  * Blockera dependencies
  */
+import { Flex } from '@blockera/controls';
 import { Icon } from '@blockera/icons';
 
 /**
@@ -40,16 +40,16 @@ export default function MainPanelHeader() {
 				className="blockera-site-editor-main-panel-header"
 				data-test="blockera-site-editor-main-panel-header"
 			>
-				<HStack
-					spacing={2}
-					alignment="center"
-					justify="space-between"
+				<Flex
+					gap="8px"
+					alignItems="center"
+					justifyContent="space-between"
 					className="blockera-site-editor-main-panel-header__row"
 				>
-					<HStack
-						spacing={3}
-						alignment="center"
-						justify="flex-start"
+					<Flex
+						gap="12px"
+						alignItems="center"
+						justifyContent="flex-start"
 						className="blockera-site-editor-main-panel-header__brand"
 					>
 						<span
@@ -70,7 +70,7 @@ export default function MainPanelHeader() {
 						>
 							{__('Blockera One', 'blockera')}
 						</Heading>
-					</HStack>
+					</Flex>
 
 					<DropdownMenu
 						icon={moreVertical}
@@ -101,7 +101,7 @@ export default function MainPanelHeader() {
 							</MenuGroup>
 						)}
 					</DropdownMenu>
-				</HStack>
+				</Flex>
 			</div>
 
 			{isResetModalOpen && (

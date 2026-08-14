@@ -12,7 +12,7 @@ import { store as noticesStore } from '@wordpress/notices';
 /**
  * Blockera dependencies
  */
-import { componentInnerClassNames } from '@blockera/classnames';
+import { classNames, componentInnerClassNames } from '@blockera/classnames';
 import {
 	Button,
 	CheckboxControl,
@@ -44,7 +44,9 @@ export default function ResetThemeModal({ onClose }: ResetThemeModalProps) {
 	const [isConfirmed, setIsConfirmed] = useState(false);
 	const [isBusy, setIsBusy] = useState(false);
 
-	const { createErrorNotice } = useDispatch(noticesStore);
+	const { createErrorNotice } = useDispatch(noticesStore) as unknown as {
+		createErrorNotice: (msg: string, opts?: { type?: string }) => void;
+	};
 
 	const hasSelection =
 		resetStyles ||
@@ -88,7 +90,10 @@ export default function ResetThemeModal({ onClose }: ResetThemeModalProps) {
 
 	return (
 		<Modal
-			className={`${componentInnerClassNames('delete-modal')} blockera-site-editor-reset-theme-modal`}
+			className={classNames(
+				componentInnerClassNames('delete-modal'),
+				'blockera-site-editor-reset-theme-modal'
+			)}
 			headerIcon={<Icon icon="trash" iconSize="34" />}
 			headerTitle={__('Reset Blockera One Theme', 'blockera')}
 			isDismissible={!isBusy}

@@ -1,342 +1,94 @@
 /**
- * Custom Design / Site / Resources navigation for the Site Editor main sidebar.
+ * Custom Design / Site / Features / Resources navigation for the Site Editor
+ * main sidebar — rendered from the navigation catalog (navigation/nav-config).
  */
 
-import type { ReactNode } from 'react';
-
-import { useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 /**
  * Blockera dependencies
  */
-import { Flex } from '@blockera/controls';
-import { Icon } from '@blockera/icons';
+import { classNames } from '@blockera/classnames';
+import { useSiteEditorUrlState } from '@blockera/utils';
 
 /**
  * Internal dependencies
  */
-import {
-	COMPONENT_SELECTOR,
-	RESOURCE_LINKS,
-	ROUTES,
-	type DesignNavKey,
-	type FeaturesNavKey,
-	type MainNavKey,
-	type SiteNavKey,
-} from './constants';
+import Nav from './components/nav';
+import NavItem from './components/nav-item';
+import NavSection from './components/nav-section';
+import { COMPONENT_SELECTOR } from './constants';
 import './main-navigation.scss';
+import useClearCoreSidebarSlide from './hooks/use-clear-core-slide';
+import useSidebarEnterClass from './hooks/use-sidebar-enter-class';
 import {
-	clearCoreSidebarSlideClasses,
+	MAIN_NAV_CATEGORIES,
+	getMainNavItemsByCategory,
+	type MainNavItemConfig,
+} from './navigation/nav-config';
+import {
 	getActiveMainNavKey,
 	navigateToSiteEditorPath,
 	navigateViaCoreUid,
 	setPendingSidebarNavDirection,
 } from './utils';
 
-type NavItemProps = {
-	label: string;
-	icon: string;
-	iconLibrary?: 'wp' | 'ui';
-	isActive?: boolean;
-	onClick?: () => void;
-	href?: string;
-	external?: boolean;
-	/** False for items that stay on Design-root (none currently — Styles drills down). */
-	showChevron?: boolean;
-	'data-test'?: string;
-};
-
-function NavItem({
-	label,
-	icon,
-	iconLibrary = 'wp',
-	isActive = false,
-	onClick,
-	href,
-	external = false,
-	showChevron = true,
-	'data-test': dataTest,
-}: NavItemProps) {
-	const className = [
-		'blockera-site-editor-main-navigation__item',
-		isActive ? 'is-active' : '',
-	]
-		.filter(Boolean)
-		.join(' ');
-
-	let trailingIcon = null;
-	if (external) {
-		trailingIcon = <Icon library="ui" icon="arrow-new-tab" iconSize={18} />;
-	} else if (showChevron) {
-		trailingIcon = <Icon library="wp" icon="chevron-right" iconSize={18} />;
-	}
-
-	const content = (
-		<Flex
-			alignItems="center"
-			justifyContent="space-between"
-			className="blockera-site-editor-main-navigation__item-inner"
-		>
-			<Flex
-				alignItems="center"
-				justifyContent="flex-start"
-				gap="10px"
-				className="blockera-site-editor-main-navigation__item-label"
-			>
-				<span className="blockera-site-editor-main-navigation__item-icon">
-					<Icon library={iconLibrary} icon={icon} iconSize={24} />
-				</span>
-				<span>{label}</span>
-			</Flex>
-			{trailingIcon ? (
-				<span className="blockera-site-editor-main-navigation__item-suffix">
-					{trailingIcon}
-				</span>
-			) : null}
-		</Flex>
-	);
-
-	if (external && href) {
-		return (
-			<a
-				className={className}
-				href={href}
-				target="_blank"
-				rel="noopener noreferrer"
-				data-test={dataTest}
-			>
-				{content}
-			</a>
-		);
-	}
-
-	return (
-		<button
-			type="button"
-			className={className}
-			onClick={onClick}
-			data-test={dataTest}
-			aria-current={isActive ? 'page' : undefined}
-		>
-			{content}
-		</button>
-	);
-}
-
-function NavCategory({
-	title,
-	children,
-}: {
-	title: string;
-	children: ReactNode;
-}) {
-	return (
-		<div className="blockera-site-editor-main-navigation__category">
-			<h2 className="blockera-site-editor-main-navigation__category-title">
-				{title}
-			</h2>
-			<div className="blockera-site-editor-main-navigation__category-items">
-				{children}
-			</div>
-		</div>
-	);
-}
-
-const DESIGN_ITEMS: Array<{
-	key: DesignNavKey;
-	label: string;
-	icon: string;
-	iconLibrary?: 'wp' | 'ui';
-	coreUidKey: DesignNavKey;
-}> = [
-	{
-		key: 'styles',
-		label: __('Styles', 'blockera'),
-		icon: 'styles',
-		coreUidKey: 'styles',
-	},
-	{
-		key: 'navigation',
-		label: __('Navigation', 'blockera'),
-		icon: 'navigation',
-		coreUidKey: 'navigation',
-	},
-	{
-		key: 'pages',
-		label: __('Pages', 'blockera'),
-		icon: 'page',
-		coreUidKey: 'pages',
-	},
-	{
-		key: 'templates',
-		label: __('Templates', 'blockera'),
-		icon: 'template',
-		iconLibrary: 'ui',
-		coreUidKey: 'templates',
-	},
-	{
-		key: 'patterns',
-		label: __('Patterns', 'blockera'),
-		icon: 'symbol',
-		coreUidKey: 'patterns',
-	},
-];
-
-const SITE_ITEMS: Array<{
-	key: SiteNavKey;
-	label: string;
-	icon: string;
-}> = [
-	{
-		key: 'identity',
-		label: __('Site Identity', 'blockera'),
-		icon: 'site-logo',
-	},
-	{
-		key: 'homepage',
-		label: __('Homepage Settings', 'blockera'),
-		icon: 'home',
-	},
-];
-
-const FEATURES_ITEMS: Array<{
-	key: FeaturesNavKey;
-	label: string;
-	icon: string;
-	iconLibrary?: 'wp' | 'ui';
-}> = [
-	{
-		key: 'performance',
-		label: __('Performance', 'blockera'),
-		icon: 'zap-fast-flat',
-		iconLibrary: 'ui',
-	},
-];
-
-export default function MainNavigation() {
-	const [activeKey, setActiveKey] = useState<MainNavKey | null>(() =>
-		getActiveMainNavKey()
-	);
-
-	useEffect(() => {
-		const sync = () => setActiveKey(getActiveMainNavKey());
-
-		sync();
-		window.addEventListener('popstate', sync);
-
-		return () => {
-			window.removeEventListener('popstate', sync);
-		};
-	}, []);
-
-	// No enter animation on the main list — strip stale core slide classes
-	// (SidebarNavigationContext) that can linger after Patterns / our drill-downs.
-	useEffect(() => {
-		clearCoreSidebarSlideClasses();
-		const id = window.requestAnimationFrame(() => {
-			clearCoreSidebarSlideClasses();
-		});
-		return () => window.cancelAnimationFrame(id);
-	}, []);
-
-	const onDesignClick = (key: DesignNavKey) => {
-		if (key === 'styles' || key === 'templates') {
+function onNavItemClick(item: MainNavItemConfig): void {
+	if (item.navigate === 'coreUid' && item.coreUid) {
+		if (item.forwardDirection) {
 			setPendingSidebarNavDirection('forward');
 		}
-		navigateViaCoreUid(key);
-		setActiveKey(key);
-	};
+		navigateViaCoreUid(item.coreUid);
+		return;
+	}
 
-	const onSiteClick = (key: SiteNavKey) => {
-		const path = key === 'identity' ? ROUTES.identity : ROUTES.homepage;
-		// Core may not expose Identity uid/route — navigate via `p` like homepage.
-		navigateToSiteEditorPath(path, { direction: 'forward' });
-		setActiveKey(key);
-	};
+	if (item.navigate === 'path' && item.path) {
+		navigateToSiteEditorPath(item.path, { direction: 'forward' });
+	}
+}
 
-	const onFeaturesClick = (key: FeaturesNavKey) => {
-		if (key === 'performance') {
-			navigateToSiteEditorPath(ROUTES.performance, {
-				direction: 'forward',
-			});
-		}
-		setActiveKey(key);
-	};
+export default function MainNavigation() {
+	const enterClass = useSidebarEnterClass();
+	// Synced on every SPA navigation (core router included), not just popstate.
+	const activeKey = useSiteEditorUrlState(getActiveMainNavKey);
+
+	// Strip stale core slide classes (SidebarNavigationContext) that can
+	// linger after Patterns / our drill-downs.
+	useClearCoreSidebarSlide();
 
 	return (
-		<nav
-			className={COMPONENT_SELECTOR.replace(/^\./, '')}
+		<Nav
+			className={classNames(
+				COMPONENT_SELECTOR.replace(/^\./, ''),
+				'blockera-site-editor-enter',
+				enterClass
+			)}
 			aria-label={__('Site editor main navigation', 'blockera')}
 			data-test="blockera-site-editor-main-navigation"
 		>
-			<NavCategory title={__('Design', 'blockera')}>
-				{DESIGN_ITEMS.map((item) => (
-					<NavItem
-						key={item.key}
-						label={item.label}
-						icon={item.icon}
-						iconLibrary={item.iconLibrary}
-						isActive={activeKey === item.key}
-						onClick={() => onDesignClick(item.coreUidKey)}
-						data-test={`blockera-site-editor-nav-${item.key}`}
-					/>
-				))}
-			</NavCategory>
-
-			<NavCategory title={__('Site', 'blockera')}>
-				{SITE_ITEMS.map((item) => (
-					<NavItem
-						key={item.key}
-						label={item.label}
-						icon={item.icon}
-						isActive={activeKey === item.key}
-						onClick={() => onSiteClick(item.key)}
-						data-test={`blockera-site-editor-nav-${item.key}`}
-					/>
-				))}
-			</NavCategory>
-
-			<NavCategory title={__('Features', 'blockera')}>
-				{FEATURES_ITEMS.map((item) => (
-					<NavItem
-						key={item.key}
-						label={item.label}
-						icon={item.icon}
-						iconLibrary={item.iconLibrary}
-						isActive={activeKey === item.key}
-						onClick={() => onFeaturesClick(item.key)}
-						data-test={`blockera-site-editor-nav-${item.key}`}
-					/>
-				))}
-			</NavCategory>
-
-			<NavCategory title={__('Resources', 'blockera')}>
-				<NavItem
-					label={__('Community', 'blockera')}
-					icon="community-conversation"
-					iconLibrary="ui"
-					href={RESOURCE_LINKS.community}
-					external
-					data-test="blockera-site-editor-nav-community"
-				/>
-				<NavItem
-					label={__('Roadmap', 'blockera')}
-					icon="changelog"
-					iconLibrary="ui"
-					href={RESOURCE_LINKS.roadmap}
-					external
-					data-test="blockera-site-editor-nav-roadmap"
-				/>
-				<NavItem
-					label={__('Feature Requests', 'blockera')}
-					icon="bolb"
-					iconLibrary="ui"
-					href={RESOURCE_LINKS.featureRequests}
-					external
-					data-test="blockera-site-editor-nav-feature-requests"
-				/>
-			</NavCategory>
-		</nav>
+			{MAIN_NAV_CATEGORIES.map((category) => (
+				<NavSection key={category.id} title={category.label}>
+					{getMainNavItemsByCategory(category.id).map((item) => (
+						<NavItem
+							key={item.key}
+							label={item.label}
+							icon={item.icon}
+							href={
+								item.navigate === 'external'
+									? item.href
+									: undefined
+							}
+							isActive={activeKey === item.key}
+							onClick={
+								item.navigate === 'external'
+									? undefined
+									: () => onNavItemClick(item)
+							}
+							data-test={`blockera-site-editor-nav-${item.key}`}
+						/>
+					))}
+				</NavSection>
+			))}
+		</Nav>
 	);
 }
