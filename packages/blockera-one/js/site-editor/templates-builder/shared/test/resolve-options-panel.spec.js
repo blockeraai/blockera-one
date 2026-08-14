@@ -142,3 +142,91 @@ describe('flattenPanelControls', () => {
 		expect(flattenPanelControls([])).toEqual([]);
 	});
 });
+
+describe('control-level nestedPanel', () => {
+	const BREADCRUMB_TOGGLE = {
+		...control('page-title-breadcrumbs'),
+		nestedPanel: {
+			id: 'page-header-breadcrumbs',
+			title: 'Breadcrumbs',
+			groups: [
+				{
+					id: 'breadcrumbs-options',
+					title: 'Breadcrumbs',
+					controls: [control('breadcrumbs-position')],
+				},
+			],
+		},
+	};
+
+	const PAGE_HEADER = {
+		id: 'page-header',
+		title: 'Page Header',
+		controls: [control('page-title-design')],
+		nestedPanel: {
+			id: 'page-header-settings',
+			title: 'Page Header Settings',
+			gatewayLabel: 'Design & Elements',
+			groups: [
+				{
+					id: 'page-header-elements',
+					title: 'Elements',
+					controls: [BREADCRUMB_TOGGLE],
+				},
+			],
+		},
+	};
+
+	const PAGE_CONFIG = {
+		type: 'archive',
+		filters: ['archive'],
+		layoutId: 'archive-body',
+		groups: [PAGE_HEADER],
+	};
+
+	it('includes control nested panels in the navigation tree', () => {
+		expect(buildNestedPanelTree(PAGE_CONFIG.groups)).toEqual([
+			{
+				id: 'page-header-settings',
+				title: 'Page Header Settings',
+				children: [
+					{
+						id: 'page-header-breadcrumbs',
+						title: 'Breadcrumbs',
+						children: [],
+					},
+				],
+			},
+		]);
+	});
+
+	it('walks a stack that enters a control nestedPanel', () => {
+		const settings = resolveOptionsPanelGroups(PAGE_CONFIG, [
+			'page-header-settings',
+		]);
+		expect(settings.valid).toBe(true);
+		expect(settings.groups.map((g) => g.id)).toEqual([
+			'page-header-elements',
+		]);
+
+		const crumb = resolveOptionsPanelGroups(PAGE_CONFIG, [
+			'page-header-settings',
+			'page-header-breadcrumbs',
+		]);
+		expect(crumb.valid).toBe(true);
+		expect(crumb.groups.map((g) => g.id)).toEqual(['breadcrumbs-options']);
+		expect(crumb.groups[0].controls.map((c) => c.id)).toEqual([
+			'breadcrumbs-position',
+		]);
+	});
+
+	it('flattens controls inside a control nestedPanel', () => {
+		expect(
+			flattenPanelControls(PAGE_CONFIG.groups).map((c) => c.id)
+		).toEqual([
+			'page-title-design',
+			'page-title-breadcrumbs',
+			'breadcrumbs-position',
+		]);
+	});
+});
