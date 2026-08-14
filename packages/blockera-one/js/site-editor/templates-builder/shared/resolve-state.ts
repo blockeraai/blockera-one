@@ -154,6 +154,62 @@ function heuristicFindSection(
 			return findByStamp(blocks, (_s, b) =>
 				matchesTemplatePartHeuristic(b, heuristic)
 			);
+		case 'innerBlock':
+			return heuristicFindInnerBlock(
+				blocks,
+				heuristic.parentId,
+				heuristic.name
+			);
+		default:
+			return null;
+	}
+}
+
+/**
+ * Direct child of a parent section whose block name matches. Parent is
+ * resolved by stamp first, then by the parent's own heuristic (never
+ * `innerBlock`, so this cannot recurse into itself).
+ */
+function heuristicFindInnerBlock(
+	blocks: BlockNode[],
+	parentId: string,
+	name: string
+): { block: BlockNode; path: number[] } | null {
+	const parentByStamp = findByStamp(
+		blocks,
+		(stamp) => stamp?.id === parentId
+	);
+	const parent =
+		parentByStamp || heuristicFindParentSection(blocks, parentId);
+	if (!parent) {
+		return null;
+	}
+	const children = parent.block.innerBlocks || [];
+	for (let i = 0; i < children.length; i++) {
+		if (children[i].name === name) {
+			return { block: children[i], path: [...parent.path, i] };
+		}
+	}
+	return null;
+}
+
+function heuristicFindParentSection(
+	blocks: BlockNode[],
+	parentId: string
+): { block: BlockNode; path: number[] } | null {
+	const heuristic = HEURISTIC_REGISTRY.get(parentId);
+	if (!heuristic || heuristic.kind === 'innerBlock') {
+		return null;
+	}
+	switch (heuristic.kind) {
+		case 'blockName':
+			return findByStamp(blocks, (_s, b) => b.name === heuristic.name);
+		case 'groupWrapping':
+			return heuristicFindWrappingGroup(blocks, heuristic.childName);
+		case 'templatePart':
+			return findByStamp(blocks, (_s, b) =>
+				matchesTemplatePartHeuristic(b, heuristic)
+			);
 		default:
 			return null;
 	}
