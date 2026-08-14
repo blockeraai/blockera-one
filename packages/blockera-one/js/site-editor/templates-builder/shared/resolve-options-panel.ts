@@ -1,4 +1,9 @@
-import type { ControlDef, PanelGroupDef, TemplateOptionsConfig } from './types';
+import type {
+	ControlDef,
+	NestedPanelDef,
+	PanelGroupDef,
+	TemplateOptionsConfig,
+} from './types';
 import type { NestedPanelNode } from '../../nested-panels';
 
 export type ResolvedOptionsPanel = {
@@ -10,22 +15,63 @@ export type ResolvedOptionsPanel = {
 	valid: boolean;
 };
 
+function controlList(group: PanelGroupDef): ControlDef[] {
+	const list: ControlDef[] = [];
+	if (group.headerToggle) {
+		list.push(group.headerToggle);
+	}
+	list.push(...group.controls);
+	return list;
+}
+
 /**
- * Build a navigation tree from groups that declare `nestedPanel`.
+ * Nested panel declared on a group or on one of its controls.
+ */
+function findNestedPanel(
+	groups: PanelGroupDef[],
+	segment: string
+): NestedPanelDef | null {
+	for (const group of groups) {
+		if (group.nestedPanel?.id === segment) {
+			return group.nestedPanel;
+		}
+		const controls = controlList(group);
+		for (let i = 0; i < controls.length; i++) {
+			if (controls[i].nestedPanel?.id === segment) {
+				return controls[i].nestedPanel as NestedPanelDef;
+			}
+		}
+	}
+	return null;
+}
+
+/**
+ * Build a navigation tree from groups/controls that declare `nestedPanel`.
  */
 export function buildNestedPanelTree(
 	groups: PanelGroupDef[]
 ): NestedPanelNode[] {
 	const nodes: NestedPanelNode[] = [];
 	for (const group of groups) {
-		if (!group.nestedPanel) {
-			continue;
+		if (group.nestedPanel) {
+			nodes.push({
+				id: group.nestedPanel.id,
+				title: group.nestedPanel.title,
+				children: buildNestedPanelTree(group.nestedPanel.groups),
+			});
 		}
-		nodes.push({
-			id: group.nestedPanel.id,
-			title: group.nestedPanel.title,
-			children: buildNestedPanelTree(group.nestedPanel.groups),
-		});
+		const controls = controlList(group);
+		for (let i = 0; i < controls.length; i++) {
+			const nested = controls[i].nestedPanel;
+			if (!nested) {
+				continue;
+			}
+			nodes.push({
+				id: nested.id,
+				title: nested.title,
+				children: buildNestedPanelTree(nested.groups),
+			});
+		}
 	}
 	return nodes;
 }
@@ -45,13 +91,11 @@ export function resolveOptionsPanelGroups(
 
 	let groups = config.groups;
 	for (const segment of stack) {
-		const match = groups.find(
-			(g) => g.nestedPanel && g.nestedPanel.id === segment
-		);
-		if (!match?.nestedPanel) {
+		const match = findNestedPanel(groups, segment);
+		if (!match) {
 			return { groups: config.groups, tree, valid: false };
 		}
-		groups = match.nestedPanel.groups;
+		groups = match.groups;
 	}
 
 	return { groups, tree, valid: true };
@@ -59,7 +103,8 @@ export function resolveOptionsPanelGroups(
 
 /**
  * Flatten headerToggle + controls from every group in the panel tree
- * (root and all nestedPanel descendants) for value resolution.
+ * (root and all nestedPanel descendants, including control-level panels)
+ * for value resolution.
  */
 export function flattenPanelControls(groups: PanelGroupDef[]): ControlDef[] {
 	const out: ControlDef[] = [];
@@ -67,8 +112,17 @@ export function flattenPanelControls(groups: PanelGroupDef[]): ControlDef[] {
 		for (const group of list) {
 			if (group.headerToggle) {
 				out.push(group.headerToggle);
+				if (group.headerToggle.nestedPanel?.groups?.length) {
+					walk(group.headerToggle.nestedPanel.groups);
+				}
 			}
 			out.push(...group.controls);
+			for (let i = 0; i < group.controls.length; i++) {
+				const nested = group.controls[i].nestedPanel;
+				if (nested?.groups?.length) {
+					walk(nested.groups);
+				}
+			}
 			if (group.nestedPanel?.groups?.length) {
 				walk(group.nestedPanel.groups);
 			}
