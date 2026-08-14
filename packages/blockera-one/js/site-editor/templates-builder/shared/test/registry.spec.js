@@ -201,4 +201,37 @@ describe('archive config structural invariants', () => {
 			}
 		}
 	});
+
+	it('gives title and description a Design nested panel without Settings', () => {
+		const title = controls.find((c) => c.id === 'page-title-title');
+		const description = controls.find(
+			(c) => c.id === 'page-title-description'
+		);
+
+		expect(title.nestedPanel.id).toBe('page-header-title');
+		expect(title.nestedPanel.groups.map((g) => g.id)).toEqual([
+			'title-design',
+		]);
+		expect(title.nestedPanel.groups[0].controls.map((c) => c.id)).toEqual([
+			'title-color',
+			'title-bg-color',
+			'title-font-size',
+			'title-style',
+			'title-customize',
+		]);
+
+		expect(description.nestedPanel.id).toBe('page-header-description');
+		expect(description.nestedPanel.groups.map((g) => g.id)).toEqual([
+			'description-design',
+		]);
+		expect(
+			description.nestedPanel.groups[0].controls.map((c) => c.id)
+		).toEqual([
+			'description-color',
+			'description-bg-color',
+			'description-font-size',
+			'description-style',
+			'description-customize',
+		]);
+	});
 });

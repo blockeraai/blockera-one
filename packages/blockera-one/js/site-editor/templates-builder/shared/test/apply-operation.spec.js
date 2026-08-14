@@ -1015,4 +1015,166 @@ describe('swapSection reapply toggles', () => {
 		});
 		expect(crumb.attributes.blockeraFontSize).toEqual({ value: '14px' });
 	});
+
+	it('re-applies title and description attributes and style after a design swap', () => {
+		const blocks = [
+			stamped('core/group', 'section/page-title:default', {}, [
+				stamped(
+					'core/query-title',
+					'section/page-title-title:default',
+					{
+						className: 'blockera-block is-style-underline',
+						blockeraFontColor: { value: '#111111' },
+						blockeraBackgroundColor: { value: '#eeeeee' },
+						blockeraFontSize: { value: '32px' },
+					}
+				),
+				stamped(
+					'core/term-description',
+					'section/page-title-description:default',
+					{
+						className: 'blockera-block is-style-plain',
+						blockeraFontColor: { value: '#333333' },
+						blockeraBackgroundColor: { value: '#fafafa' },
+						blockeraFontSize: { value: '16px' },
+					}
+				),
+			]),
+		];
+		const titleColor = {
+			id: 'title-color',
+			type: 'color',
+			label: 'Text Color',
+			target: { kind: 'section', id: 'page-title-title' },
+			operation: 'setSectionAttribute',
+			attributePath: 'blockeraFontColor.value',
+		};
+		const titleBg = {
+			id: 'title-bg-color',
+			type: 'color',
+			label: 'BG Color',
+			target: { kind: 'section', id: 'page-title-title' },
+			operation: 'setSectionAttribute',
+			attributePath: 'blockeraBackgroundColor.value',
+		};
+		const titleSize = {
+			id: 'title-font-size',
+			type: 'input',
+			label: 'Font Size',
+			target: { kind: 'section', id: 'page-title-title' },
+			operation: 'setSectionAttribute',
+			attributePath: 'blockeraFontSize.value',
+		};
+		const titleStyle = {
+			id: 'title-style',
+			type: 'select',
+			label: 'Style',
+			target: { kind: 'section', id: 'page-title-title' },
+			operation: 'setBlockStyle',
+			defaultValue: 'default',
+		};
+		const descriptionColor = {
+			id: 'description-color',
+			type: 'color',
+			label: 'Text Color',
+			target: { kind: 'section', id: 'page-title-description' },
+			operation: 'setSectionAttribute',
+			attributePath: 'blockeraFontColor.value',
+		};
+		const descriptionBg = {
+			id: 'description-bg-color',
+			type: 'color',
+			label: 'BG Color',
+			target: { kind: 'section', id: 'page-title-description' },
+			operation: 'setSectionAttribute',
+			attributePath: 'blockeraBackgroundColor.value',
+		};
+		const descriptionSize = {
+			id: 'description-font-size',
+			type: 'input',
+			label: 'Font Size',
+			target: { kind: 'section', id: 'page-title-description' },
+			operation: 'setSectionAttribute',
+			attributePath: 'blockeraFontSize.value',
+		};
+		const descriptionStyle = {
+			id: 'description-style',
+			type: 'select',
+			label: 'Style',
+			target: { kind: 'section', id: 'page-title-description' },
+			operation: 'setBlockStyle',
+			defaultValue: 'default',
+		};
+		const design = {
+			id: 'page-title-design',
+			type: 'layout-picker',
+			label: 'Header Design',
+			target: { kind: 'section', id: 'page-title' },
+			operation: 'swapSection',
+			variants: [
+				{ id: 'default', label: 'Simple', html: 'page-title-default' },
+				{ id: 'banner', label: 'Banner', html: 'page-title-banner' },
+			],
+			swapHints: {
+				reapplyControls: [
+					'title-color',
+					'title-bg-color',
+					'title-font-size',
+					'title-style',
+					'description-color',
+					'description-bg-color',
+					'description-font-size',
+					'description-style',
+				],
+			},
+		};
+		const config = {
+			type: 'archive',
+			filters: ['archive'],
+			layoutId: LAYOUT_ID,
+			groups: [
+				{
+					id: 'page-header',
+					title: 'Page Header',
+					controls: [
+						design,
+						titleColor,
+						titleBg,
+						titleSize,
+						titleStyle,
+						descriptionColor,
+						descriptionBg,
+						descriptionSize,
+						descriptionStyle,
+					],
+				},
+			],
+		};
+
+		const result = apply(design, 'banner', { blocks, config });
+		const title = findStamp(result.blocks, 'page-title-title').block;
+		expect(title.attributes.className).toContain('is-style-underline');
+		expect(title.attributes.blockeraFontColor).toEqual({
+			value: '#111111',
+		});
+		expect(title.attributes.blockeraBackgroundColor).toEqual({
+			value: '#eeeeee',
+		});
+		expect(title.attributes.blockeraFontSize).toEqual({ value: '32px' });
+
+		const description = findStamp(
+			result.blocks,
+			'page-title-description'
+		).block;
+		expect(description.attributes.className).toContain('is-style-plain');
+		expect(description.attributes.blockeraFontColor).toEqual({
+			value: '#333333',
+		});
+		expect(description.attributes.blockeraBackgroundColor).toEqual({
+			value: '#fafafa',
+		});
+		expect(description.attributes.blockeraFontSize).toEqual({
+			value: '16px',
+		});
+	});
 });
