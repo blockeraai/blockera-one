@@ -50,13 +50,24 @@ export function resolveVariantHtml(
 }
 
 /**
+ * Whether a variant needs pattern-store HTML. Position-only variants
+ * (placeSection) have neither a pattern slug nor a template-part kind.
+ */
+export function variantNeedsPatternHtml(variant: VariantDef): boolean {
+	if (variant.kind === 'templatePart') {
+		return false;
+	}
+	return variant.kind === 'pattern' || !!variant.patternSlug;
+}
+
+/**
  * Whether a control still has pattern-kind variants without resolved HTML
  * (used to disable pickers while the patterns REST request is in flight —
  * never swap in empty markup).
  */
 export function hasUnresolvedVariants(control: ControlDef): boolean {
 	return !!control.variants?.some(
-		(variant) => variant.kind !== 'templatePart' && !variant.html
+		(variant) => variantNeedsPatternHtml(variant) && !variant.html
 	);
 }
 
@@ -65,24 +76,43 @@ function resolveControl(
 	patterns: PatternRecord[] | null | undefined,
 	patternsResolved: boolean
 ): ControlDef {
-	if (!control.variants?.length) {
-		return control;
+	let next = control;
+	if (control.variants?.length) {
+		let variants = control.variants.map((variant) => {
+			const html = resolveVariantHtml(
+				variant,
+				control.target.id,
+				patterns
+			);
+			return html ? { ...variant, html } : variant;
+		});
+
+		// Pattern missing after resolution finished (unregistered slug): drop
+		// the tile instead of offering a swap that would produce empty HTML.
+		// Position-only variants have no pattern slug and must be kept.
+		if (patternsResolved) {
+			variants = variants.filter(
+				(variant) => !variantNeedsPatternHtml(variant) || !!variant.html
+			);
+		}
+
+		next = { ...control, variants };
 	}
 
-	let variants = control.variants.map((variant) => {
-		const html = resolveVariantHtml(variant, control.target.id, patterns);
-		return html ? { ...variant, html } : variant;
-	});
-
-	// Pattern missing after resolution finished (unregistered slug): drop the
-	// tile instead of offering a swap that would produce an empty section.
-	if (patternsResolved) {
-		variants = variants.filter(
-			(variant) => variant.kind === 'templatePart' || !!variant.html
-		);
+	if (!next.nestedPanel?.groups?.length) {
+		return next;
 	}
-
-	return { ...control, variants };
+	return {
+		...next,
+		nestedPanel: {
+			...next.nestedPanel,
+			groups: resolveGroups(
+				next.nestedPanel.groups,
+				patterns,
+				patternsResolved
+			),
+		},
+	};
 }
 
 function resolveGroups(
