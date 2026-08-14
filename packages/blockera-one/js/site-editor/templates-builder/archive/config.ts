@@ -14,6 +14,7 @@ import { FILTER_IDS } from '../../templates/constants';
 import type {
 	ControlDef,
 	InnerOrderRule,
+	NestedPanelDef,
 	TemplateOptionsConfig,
 } from '../shared/types';
 
@@ -37,12 +38,28 @@ const PAGE_HEADER_INNER_ORDER: InnerOrderRule = {
 	leadId: 'page-title-breadcrumbs',
 };
 
-const BREADCRUMBS_TARGET = {
-	kind: 'section' as const,
+type SectionTarget = {
+	kind: 'section';
+	id: string;
+};
+
+const TITLE_TARGET: SectionTarget = {
+	kind: 'section',
+	id: 'page-title-title',
+};
+
+const DESCRIPTION_TARGET: SectionTarget = {
+	kind: 'section',
+	id: 'page-title-description',
+};
+
+const BREADCRUMBS_TARGET: SectionTarget = {
+	kind: 'section',
 	id: 'page-title-breadcrumbs',
 };
 
-function breadcrumbsColorControl(
+function sectionColorControl(
+	target: SectionTarget,
 	id: string,
 	label: string,
 	attributePath: string
@@ -51,13 +68,104 @@ function breadcrumbsColorControl(
 		id,
 		type: 'color',
 		label,
-		target: BREADCRUMBS_TARGET,
+		target,
 		operation: 'setSectionAttribute',
 		attributePath,
 		controlAddonTypes: ['variable'],
 		variableTypes: ['color'],
 	};
 }
+
+function sectionFontSizeControl(target: SectionTarget, id: string): ControlDef {
+	return {
+		id,
+		type: 'input',
+		label: __('Font Size', 'blockera'),
+		target,
+		operation: 'setSectionAttribute',
+		attributePath: 'blockeraFontSize.value',
+		unitType: 'essential',
+		controlAddonTypes: ['variable'],
+		variableTypes: ['font-size'],
+		min: 0,
+	};
+}
+
+function sectionStyleControl(target: SectionTarget, id: string): ControlDef {
+	return {
+		id,
+		type: 'select',
+		label: __('Style', 'blockera'),
+		target,
+		operation: 'setBlockStyle',
+		defaultValue: 'default',
+	};
+}
+
+function sectionCustomizeControl(
+	target: SectionTarget,
+	id: string
+): ControlDef {
+	return {
+		id,
+		type: 'button',
+		label: __('Customize in editor', 'blockera'),
+		target,
+		operation: 'selectInCanvas',
+	};
+}
+
+function elementDesignControls(target: SectionTarget, prefix: string) {
+	return {
+		color: sectionColorControl(
+			target,
+			`${prefix}-color`,
+			__('Text Color', 'blockera'),
+			'blockeraFontColor.value'
+		),
+		bgColor: sectionColorControl(
+			target,
+			`${prefix}-bg-color`,
+			__('BG Color', 'blockera'),
+			'blockeraBackgroundColor.value'
+		),
+		fontSize: sectionFontSizeControl(target, `${prefix}-font-size`),
+		style: sectionStyleControl(target, `${prefix}-style`),
+		customize: sectionCustomizeControl(target, `${prefix}-customize`),
+	};
+}
+
+function elementDesignPanel(
+	panelId: string,
+	title: string,
+	groupId: string,
+	target: SectionTarget,
+	prefix: string
+): NestedPanelDef {
+	const design = elementDesignControls(target, prefix);
+	return {
+		id: panelId,
+		title,
+		groups: [
+			{
+				id: groupId,
+				title: __('Design', 'blockera'),
+				controls: [
+					design.color,
+					design.bgColor,
+					design.fontSize,
+					design.style,
+					design.customize,
+				],
+			},
+		],
+	};
+}
+
+const BREADCRUMBS_DESIGN = elementDesignControls(
+	BREADCRUMBS_TARGET,
+	'breadcrumbs'
+);
 
 const PAGE_TITLE_DESIGN: ControlDef = {
 	id: 'page-title-design',
@@ -72,6 +180,14 @@ const PAGE_TITLE_DESIGN: ControlDef = {
 			'page-title-title',
 			'page-title-description',
 			'page-title-breadcrumbs',
+			'title-color',
+			'title-bg-color',
+			'title-font-size',
+			'title-style',
+			'description-color',
+			'description-bg-color',
+			'description-font-size',
+			'description-style',
 			'breadcrumbs-position',
 			'breadcrumbs-color',
 			'breadcrumbs-bg-color',
@@ -233,10 +349,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 								id: 'page-title-title',
 								type: 'toggle',
 								label: __('Title', 'blockera'),
-								target: {
-									kind: 'section',
-									id: 'page-title-title',
-								},
+								target: TITLE_TARGET,
 								operation: 'toggleSection',
 								onValue: true,
 								offValue: false,
@@ -253,15 +366,19 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 										equals: true,
 									},
 								],
+								nestedPanel: elementDesignPanel(
+									'page-header-title',
+									__('Title', 'blockera'),
+									'title-design',
+									TITLE_TARGET,
+									'title'
+								),
 							},
 							{
 								id: 'page-title-description',
 								type: 'toggle',
 								label: __('Description', 'blockera'),
-								target: {
-									kind: 'section',
-									id: 'page-title-description',
-								},
+								target: DESCRIPTION_TARGET,
 								operation: 'toggleSection',
 								onValue: true,
 								offValue: false,
@@ -278,15 +395,19 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 										equals: true,
 									},
 								],
+								nestedPanel: elementDesignPanel(
+									'page-header-description',
+									__('Description', 'blockera'),
+									'description-design',
+									DESCRIPTION_TARGET,
+									'description'
+								),
 							},
 							{
 								id: 'page-title-breadcrumbs',
 								type: 'toggle',
 								label: __('Breadcrumbs', 'blockera'),
-								target: {
-									kind: 'section',
-									id: 'page-title-breadcrumbs',
-								},
+								target: BREADCRUMBS_TARGET,
 								operation: 'toggleSection',
 								onValue: true,
 								offValue: false,
@@ -318,10 +439,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 														'Position',
 														'blockera'
 													),
-													target: {
-														kind: 'section',
-														id: 'page-title-breadcrumbs',
-													},
+													target: BREADCRUMBS_TARGET,
 													operation: 'placeSection',
 													defaultValue: 'bottom',
 													innerOrder:
@@ -355,43 +473,9 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 														},
 													],
 												},
-												breadcrumbsColorControl(
-													'breadcrumbs-color',
-													__(
-														'Text Color',
-														'blockera'
-													),
-													'blockeraFontColor.value'
-												),
-												breadcrumbsColorControl(
-													'breadcrumbs-bg-color',
-													__('BG Color', 'blockera'),
-													'blockeraBackgroundColor.value'
-												),
-												{
-													id: 'breadcrumbs-font-size',
-													type: 'input',
-													label: __(
-														'Font Size',
-														'blockera'
-													),
-													target: {
-														kind: 'section',
-														id: 'page-title-breadcrumbs',
-													},
-													operation:
-														'setSectionAttribute',
-													attributePath:
-														'blockeraFontSize.value',
-													unitType: 'essential',
-													controlAddonTypes: [
-														'variable',
-													],
-													variableTypes: [
-														'font-size',
-													],
-													min: 0,
-												},
+												BREADCRUMBS_DESIGN.color,
+												BREADCRUMBS_DESIGN.bgColor,
+												BREADCRUMBS_DESIGN.fontSize,
 												{
 													id: 'breadcrumbs-gap',
 													type: 'input',
@@ -399,10 +483,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 														'Gap',
 														'blockera'
 													),
-													target: {
-														kind: 'section',
-														id: 'page-title-breadcrumbs',
-													},
+													target: BREADCRUMBS_TARGET,
 													operation:
 														'setSectionAttribute',
 													attributePath:
@@ -413,33 +494,8 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 													],
 													variableTypes: ['spacing'],
 												},
-												{
-													id: 'breadcrumbs-style',
-													type: 'select',
-													label: __(
-														'Style',
-														'blockera'
-													),
-													target: {
-														kind: 'section',
-														id: 'page-title-breadcrumbs',
-													},
-													operation: 'setBlockStyle',
-													defaultValue: 'default',
-												},
-												{
-													id: 'breadcrumbs-customize',
-													type: 'button',
-													label: __(
-														'Customize in editor',
-														'blockera'
-													),
-													target: {
-														kind: 'section',
-														id: 'page-title-breadcrumbs',
-													},
-													operation: 'selectInCanvas',
-												},
+												BREADCRUMBS_DESIGN.style,
+												BREADCRUMBS_DESIGN.customize,
 											],
 										},
 										{
@@ -453,10 +509,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 														'Separator',
 														'blockera'
 													),
-													target: {
-														kind: 'section',
-														id: 'page-title-breadcrumbs',
-													},
+													target: BREADCRUMBS_TARGET,
 													operation:
 														'setSectionAttribute',
 													attributePath: 'separator',
@@ -469,10 +522,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 														'Show home breadcrumb',
 														'blockera'
 													),
-													target: {
-														kind: 'section',
-														id: 'page-title-breadcrumbs',
-													},
+													target: BREADCRUMBS_TARGET,
 													operation:
 														'setSectionAttribute',
 													attributePath:
@@ -486,10 +536,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 														'Show current breadcrumb',
 														'blockera'
 													),
-													target: {
-														kind: 'section',
-														id: 'page-title-breadcrumbs',
-													},
+													target: BREADCRUMBS_TARGET,
 													operation:
 														'setSectionAttribute',
 													attributePath:
