@@ -15,6 +15,12 @@ use Blockera\One\Theme\FrontStyles;
 use Blockera\One\Theme\Patterns;
 use Blockera\One\Theme\Performance;
 use Blockera\One\Theme\ResetTheme;
+use Blockera\One\Theme\TemplateBuilder;
+use Blockera\One\Theme\TemplateBuilder\AbstractCatalog;
+use Blockera\One\Theme\TemplateBuilder\ArchiveCatalog;
+use Blockera\One\Theme\TemplateBuilder\Catalog;
+use Blockera\One\Theme\TemplateBuilder\CatalogValidator;
+use Blockera\One\Theme\TemplateSettings;
 
 /**
  * Covers Blockera\One\Theme\Bootstrap.
@@ -62,6 +68,12 @@ class BootstrapTest extends TestCase {
 		$this->assertTrue( class_exists( BlockStyles::class ) );
 		$this->assertTrue( class_exists( Patterns::class ) );
 		$this->assertTrue( class_exists( Performance::class ) );
+		$this->assertTrue( class_exists( TemplateSettings::class ) );
+		$this->assertTrue( class_exists( TemplateBuilder::class ) );
+		$this->assertTrue( class_exists( Catalog::class ) );
+		$this->assertTrue( class_exists( AbstractCatalog::class ) );
+		$this->assertTrue( class_exists( ArchiveCatalog::class ) );
+		$this->assertTrue( class_exists( CatalogValidator::class ) );
 		$this->assertTrue( class_exists( ResetTheme::class ) );
 	}
 
