@@ -1,0 +1,166 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"title": "blockera-one/template-builder/catalog",
+	"description": "Templates Builder variant catalog payload: template type → pool id → Variant[]. This file is the single source of truth for the child-theme catalog API. PHP validates each variant against the definitions below (dev mode only) and the JS hydrate layer must consume every variant key. Keep `definitions` fully inline (no nested $ref) — the PHP validator feeds them straight into rest_validate_value_from_schema(), which does not resolve $ref.",
+	"type": "object",
+	"additionalProperties": false,
+	"patternProperties": {
+		"^[a-z0-9]+(?:-[a-z0-9]+)*$": {
+			"description": "One template type (archive, single, home, …): pool id → ordered variant list. The first variant in a pool is the toggle-on default.",
+			"type": "object",
+			"additionalProperties": false,
+			"patternProperties": {
+				"^[a-z0-9]+(?:-[a-z0-9]+)*$": {
+					"type": "array",
+					"minItems": 1,
+					"items": {
+						"oneOf": [
+							{ "$ref": "#/definitions/patternVariant" },
+							{ "$ref": "#/definitions/templatePartVariant" }
+						]
+					}
+				}
+			}
+		}
+	},
+	"definitions": {
+		"patternVariant": {
+			"description": "Variant whose markup is a registered block pattern, resolved at runtime from the core patterns store.",
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["id", "label", "patternSlug"],
+			"properties": {
+				"id": {
+					"description": "Kebab-case variant id; becomes the stamp variant ({role}/{poolId}:{id}).",
+					"type": "string",
+					"pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+				},
+				"label": {
+					"description": "Translated picker label.",
+					"type": "string",
+					"minLength": 1
+				},
+				"kind": {
+					"description": "Variant kind; defaults to pattern when omitted.",
+					"type": "string",
+					"enum": ["pattern"]
+				},
+				"patternSlug": {
+					"description": "Registered block pattern slug (namespace/name). Child themes overriding this exact slug restyle the variant; new slugs add tiles via the catalog filter.",
+					"type": "string",
+					"pattern": "^[a-z0-9-]+\\/[a-z0-9-]+$"
+				},
+				"thumbnail": {
+					"description": "Layout-picker thumbnail URL (theme file via get_theme_file_uri so child themes can override the file).",
+					"type": "string",
+					"minLength": 1
+				},
+				"placement": {
+					"description": "Where the section lives when this design is applied (swap relocates, toggle-on inserts, transplant re-attaches here).",
+					"type": "object",
+					"additionalProperties": false,
+					"required": ["relativeTo", "position"],
+					"properties": {
+						"relativeTo": {
+							"description": "Stamp id the placement is relative to.",
+							"type": "string",
+							"pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+						},
+						"position": {
+							"type": "string",
+							"enum": [
+								"before",
+								"after",
+								"inside-start",
+								"inside-end"
+							]
+						}
+					}
+				},
+				"areas": {
+					"description": "Area stamp ids this layout variant exposes (content required by the area lint).",
+					"type": "array",
+					"minItems": 1,
+					"items": {
+						"type": "string",
+						"pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+					}
+				},
+				"chromeLayout": {
+					"description": "Site chrome frame layout used by header/footer swaps.",
+					"type": "string",
+					"enum": ["stacked", "vertical-rail"]
+				}
+			}
+		},
+		"templatePartVariant": {
+			"description": "Variant whose markup is a self-closing core/template-part reference (site header/footer chrome). JS builds the wp:template-part comment from slug/area/tagName.",
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["id", "label", "kind", "slug"],
+			"properties": {
+				"id": {
+					"description": "Kebab-case variant id; becomes the stamp variant ({role}/{poolId}:{id}).",
+					"type": "string",
+					"pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+				},
+				"label": {
+					"description": "Translated picker label.",
+					"type": "string",
+					"minLength": 1
+				},
+				"kind": {
+					"type": "string",
+					"enum": ["templatePart"]
+				},
+				"slug": {
+					"description": "Theme template part slug (parts/<slug>.html).",
+					"type": "string",
+					"pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+				},
+				"area": {
+					"description": "Template part area (header/footer/uncategorized).",
+					"type": "string",
+					"pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+				},
+				"tagName": {
+					"description": "HTML tag for the rendered part (header, footer, aside, …).",
+					"type": "string",
+					"pattern": "^[a-z][a-z0-9]*$"
+				},
+				"thumbnail": {
+					"description": "Layout-picker thumbnail URL (theme file via get_theme_file_uri so child themes can override the file).",
+					"type": "string",
+					"minLength": 1
+				},
+				"placement": {
+					"description": "Where the section lives when this design is applied (swap relocates, toggle-on inserts, transplant re-attaches here).",
+					"type": "object",
+					"additionalProperties": false,
+					"required": ["relativeTo", "position"],
+					"properties": {
+						"relativeTo": {
+							"description": "Stamp id the placement is relative to.",
+							"type": "string",
+							"pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+						},
+						"position": {
+							"type": "string",
+							"enum": [
+								"before",
+								"after",
+								"inside-start",
+								"inside-end"
+							]
+						}
+					}
+				},
+				"chromeLayout": {
+					"description": "Site chrome frame layout used by header/footer swaps.",
+					"type": "string",
+					"enum": ["stacked", "vertical-rail"]
+				}
+			}
+		}
+	}
+}
