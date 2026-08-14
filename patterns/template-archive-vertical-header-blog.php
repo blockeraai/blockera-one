@@ -29,8 +29,8 @@
 			<!-- /wp:spacer -->
 			<!-- wp:group {"metadata":{"blockeraOne":"section/page-title:default"},"style":{"spacing":{"blockGap":"var:preset|spacing|20"}},"layout":{"type":"constrained"}} -->
 			<div class="wp-block-group">
-				<!-- wp:query-title {"type":"archive","fontSize":"large"} /-->
-				<!-- wp:term-description /-->
+				<!-- wp:query-title {"type":"archive","fontSize":"large","metadata":{"blockeraOne":"section/page-title-title:default"}} /-->
+				<!-- wp:term-description {"metadata":{"blockeraOne":"section/page-title-description:default"}} /-->
 			</div>
 			<!-- /wp:group -->
 			<!-- wp:spacer {"height":"var:preset|spacing|50"} -->

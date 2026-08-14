@@ -12,6 +12,9 @@ import type { StampDictionaryEntry } from '../shared/stamp';
 export const ARCHIVE_STAMPS: readonly StampDictionaryEntry[] = [
 	'layout/archive-body',
 	'section/page-title',
+	'section/page-title-title',
+	'section/page-title-description',
+	'section/page-title-breadcrumbs',
 	'section/posts-listing',
 	'section/pagination',
 	'section/sidebar',
