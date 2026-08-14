@@ -15,7 +15,6 @@
  */
 
 ?>
-
 <!-- wp:pattern {"slug":"blockera-one/banner-intro-image"} /-->
 <!-- wp:pattern {"slug":"blockera-one/grid-with-categories"} /-->
 <!-- wp:pattern {"slug":"blockera-one/media-instagram-grid"} /-->

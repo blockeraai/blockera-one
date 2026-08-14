@@ -15,7 +15,6 @@
  */
 
 ?>
-
 <!-- wp:pattern {"slug":"blockera-one/hero-podcast"} /-->
 <!-- wp:pattern {"slug":"blockera-one/heading-and-paragraph-with-image"} /-->
 <!-- wp:pattern {"slug":"blockera-one/logos"} /-->

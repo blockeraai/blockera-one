@@ -15,7 +15,6 @@
  */
 
 ?>
-
 <!-- wp:pattern {"slug":"blockera-one/hero-full-width-image"} /-->
 <!-- wp:pattern {"slug":"blockera-one/heading-and-paragraph-with-image"} /-->
 <!-- wp:pattern {"slug":"blockera-one/banner-description-images-grid"} /-->

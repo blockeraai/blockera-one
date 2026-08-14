@@ -15,7 +15,6 @@
  */
 
 ?>
-
 <!-- wp:pattern {"slug":"blockera-one/hero-book"} /-->
 <!-- wp:pattern {"slug":"blockera-one/cta-book-links"} /-->
 <!-- wp:pattern {"slug":"blockera-one/banner-about-book"} /-->
