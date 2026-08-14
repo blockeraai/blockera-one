@@ -11,19 +11,27 @@ import {
 } from './constants';
 import {
 	prepareHideChromeSection,
+	orderInnerSections,
+	placeSection,
 	setSectionAttribute,
+	setSectionBlockStyle,
 	swapSection,
 	swapTemplatePart,
 	toggleSection,
 	transplantLayout,
 } from './operations';
+import { getActiveBlockStyleName } from './block-style';
 import { getPostsPerPageMap } from './resolve-control-values';
-import { resolveSectionState } from './resolve-state';
+import { resolveSectionState, resolveToggleState } from './resolve-state';
 import { flattenPanelControls } from './resolve-options-panel';
+import { getAtPath } from './tree';
+import { getStamp } from './metadata';
 import type {
 	BlockNode,
 	ControlDef,
+	ControlValue,
 	InsertRule,
+	InnerOrderRule,
 	TemplateOptionsConfig,
 	VariantDef,
 } from './types';
@@ -74,7 +82,7 @@ function getActiveSectionPlacements(
 function applySwapSection(
 	blocks: BlockNode[],
 	control: ControlDef,
-	nextValue: string | number | boolean,
+	nextValue: ControlValue,
 	config: TemplateOptionsConfig
 ): OperationResult {
 	const variant = control.variants?.find((v) => v.id === String(nextValue));
@@ -82,19 +90,84 @@ function applySwapSection(
 		return null;
 	}
 
-	// Capture dependent-section variants before the swap — they may live
-	// inside the swapped markup (e.g. pagination inside the posts listing)
-	// and would reset to the default design that markup ships with. Skipped
-	// when the dependent already uses its default (first) variant.
+	// Capture dependent-section state before the swap — nested sections
+	// inside the swapped markup would reset to whatever the new pattern
+	// ships. Re-apply toggles, positions, and non-default swap variants.
 	const allControls = flattenPanelControls(config.groups);
-	const reapplyPlans: Array<{
-		sectionId: string;
-		variant: VariantDef;
-		knownVariants: VariantDef[];
-	}> = [];
+	type ReapplyPlan =
+		| {
+				kind: 'swap';
+				sectionId: string;
+				variant: VariantDef;
+				knownVariants: VariantDef[];
+		  }
+		| { kind: 'toggle'; control: ControlDef; enabled: boolean }
+		| { kind: 'place'; control: ControlDef; value: string }
+		| { kind: 'attribute'; control: ControlDef; value: unknown }
+		| { kind: 'style'; control: ControlDef; value: string };
+	const reapplyPlans: ReapplyPlan[] = [];
 	for (const depId of control.swapHints?.reapplyControls || []) {
 		const dep = allControls.find((c) => c.id === depId);
-		if (!dep || dep.target.kind !== 'section' || !dep.variants?.length) {
+		if (!dep || dep.target.kind !== 'section') {
+			continue;
+		}
+		if (dep.operation === 'toggleSection') {
+			const prev = resolveToggleState(blocks, dep.target.id);
+			reapplyPlans.push({
+				kind: 'toggle',
+				control: dep,
+				enabled: !!prev.value,
+			});
+			continue;
+		}
+		if (dep.operation === 'placeSection') {
+			const placeValue = resolvePlaceValue(blocks, dep);
+			if (placeValue) {
+				reapplyPlans.push({
+					kind: 'place',
+					control: dep,
+					value: placeValue,
+				});
+			}
+			continue;
+		}
+		if (dep.operation === 'setSectionAttribute' && dep.attributePath) {
+			const prev = resolveSectionState(blocks, dep.target.id);
+			if (!prev.path) {
+				continue;
+			}
+			const node = getAtPath(blocks, prev.path);
+			const raw = getAttributeAtPath(node?.attributes, dep.attributePath);
+			const value =
+				raw !== undefined && raw !== null ? raw : dep.defaultValue;
+			if (value === undefined) {
+				continue;
+			}
+			reapplyPlans.push({
+				kind: 'attribute',
+				control: dep,
+				value,
+			});
+			continue;
+		}
+		if (dep.operation === 'setBlockStyle') {
+			const prev = resolveSectionState(blocks, dep.target.id);
+			if (!prev.path) {
+				continue;
+			}
+			const node = getAtPath(blocks, prev.path);
+			const className =
+				typeof node?.attributes?.className === 'string'
+					? node.attributes.className
+					: '';
+			reapplyPlans.push({
+				kind: 'style',
+				control: dep,
+				value: getActiveBlockStyleName(className),
+			});
+			continue;
+		}
+		if (dep.operation !== 'swapSection' || !dep.variants?.length) {
 			continue;
 		}
 		const prev = resolveSectionState(blocks, dep.target.id);
@@ -108,6 +181,7 @@ function applySwapSection(
 		const depVariant = dep.variants.find((v) => v.id === prev.value);
 		if (depVariant) {
 			reapplyPlans.push({
+				kind: 'swap',
 				sectionId: dep.target.id,
 				variant: depVariant,
 				knownVariants: dep.variants,
@@ -126,17 +200,176 @@ function applySwapSection(
 		defaultOpsContext
 	);
 	for (const plan of reapplyPlans) {
-		next = swapSection(
-			next,
-			{
-				sectionId: plan.sectionId,
-				targetVariant: plan.variant,
-				knownVariants: plan.knownVariants,
-			},
-			defaultOpsContext
+		if (plan.kind === 'swap') {
+			next = swapSection(
+				next,
+				{
+					sectionId: plan.sectionId,
+					targetVariant: plan.variant,
+					knownVariants: plan.knownVariants,
+				},
+				defaultOpsContext
+			);
+			continue;
+		}
+		if (plan.kind === 'toggle') {
+			next = toggleSection(
+				next,
+				{
+					sectionId: plan.control.target.id,
+					enabled: plan.enabled,
+					defaultVariant: plan.control.variants?.[0],
+					insert: plan.control.insert,
+				},
+				defaultOpsContext
+			);
+			next = applyInnerOrder(next, plan.control, plan.enabled, blocks);
+			continue;
+		}
+		if (plan.kind === 'attribute' && plan.control.attributePath) {
+			next = setSectionAttribute(next, {
+				sectionId: plan.control.target.id,
+				attributePath: plan.control.attributePath,
+				value: plan.value,
+			});
+			continue;
+		}
+		if (plan.kind === 'style') {
+			next = setSectionBlockStyle(next, {
+				sectionId: plan.control.target.id,
+				styleName: plan.value,
+			});
+			continue;
+		}
+		const placeVariant = plan.control.variants?.find(
+			(v) => v.id === plan.value
 		);
+		if (placeVariant?.placement) {
+			next = placeSection(next, {
+				sectionId: plan.control.target.id,
+				placement: placeVariant.placement,
+			});
+			next = applyInnerOrder(next, plan.control, plan.value, next);
+		}
 	}
 	return { kind: 'blocks', blocks: next };
+}
+
+/**
+ * Infer Top/Bottom from whether the section is the first inner block of
+ * its placement parent. Missing section → defaultValue or "bottom".
+ */
+function resolvePlaceValue(
+	blocks: BlockNode[],
+	control: ControlDef
+): string | null {
+	const parentId =
+		control.innerOrder?.parentId ||
+		control.variants?.find((v) => v.placement)?.placement?.relativeTo;
+	if (!parentId) {
+		return typeof control.defaultValue === 'string'
+			? control.defaultValue
+			: 'bottom';
+	}
+	const child = resolveSectionState(blocks, control.target.id);
+	if (!child.path) {
+		return typeof control.defaultValue === 'string'
+			? control.defaultValue
+			: 'bottom';
+	}
+	const parent = resolveSectionState(blocks, parentId);
+	if (!parent.path) {
+		return 'bottom';
+	}
+	const parentNode = getAtPath(blocks, parent.path);
+	const first = parentNode?.innerBlocks?.[0];
+	return getStamp(first)?.id === control.target.id ? 'top' : 'bottom';
+}
+
+function resolveInnerOrderIds(
+	control: ControlDef,
+	nextValue: ControlValue,
+	blocks: BlockNode[]
+): string[] | null {
+	const rule = control.innerOrder;
+	if (!rule?.ids?.length) {
+		return null;
+	}
+	const leadId = rule.leadId;
+	if (!leadId) {
+		return rule.ids;
+	}
+	let leadFirst = false;
+	if (control.operation === 'placeSection') {
+		leadFirst = String(nextValue) === 'top';
+	} else {
+		leadFirst = isLeadFirst(blocks, rule);
+	}
+	if (!leadFirst) {
+		return rule.ids;
+	}
+	const rest: string[] = [];
+	for (let i = 0; i < rule.ids.length; i++) {
+		if (rule.ids[i] !== leadId) {
+			rest.push(rule.ids[i]);
+		}
+	}
+	return [leadId, ...rest];
+}
+
+function getAttributeAtPath(
+	attributes: Record<string, unknown> | undefined,
+	path: string
+): unknown {
+	if (!attributes || !path) {
+		return undefined;
+	}
+	const parts = path.split('.');
+	let cursor: unknown = attributes;
+	for (let i = 0; i < parts.length; i++) {
+		if (!cursor || typeof cursor !== 'object' || Array.isArray(cursor)) {
+			return undefined;
+		}
+		cursor = (cursor as Record<string, unknown>)[parts[i]];
+	}
+	return cursor;
+}
+
+function isLeadFirst(blocks: BlockNode[], rule: InnerOrderRule): boolean {
+	if (!rule.leadId) {
+		return false;
+	}
+	const parent = resolveSectionState(blocks, rule.parentId);
+	if (!parent.path) {
+		return false;
+	}
+	const node = getAtPath(blocks, parent.path);
+	const children = node?.innerBlocks || [];
+	for (let i = 0; i < children.length; i++) {
+		const id = getStamp(children[i])?.id;
+		if (!id) {
+			continue;
+		}
+		for (let j = 0; j < rule.ids.length; j++) {
+			if (rule.ids[j] === id) {
+				return id === rule.leadId;
+			}
+		}
+	}
+	return false;
+}
+
+function applyInnerOrder(
+	tree: BlockNode[],
+	control: ControlDef,
+	nextValue: ControlValue,
+	preOpBlocks: BlockNode[]
+): BlockNode[] {
+	const ids = resolveInnerOrderIds(control, nextValue, preOpBlocks);
+	if (!ids || !control.innerOrder) {
+		return tree;
+	}
+	return orderInnerSections(tree, control.innerOrder.parentId, ids);
 }
 
 /**
@@ -149,7 +382,7 @@ function applySwapSection(
 export function applyOperation(args: {
 	blocks: BlockNode[];
 	control: ControlDef;
-	nextValue: string | number | boolean;
+	nextValue: ControlValue;
 	config: TemplateOptionsConfig;
 	settings: TemplateSettingsRecord;
 	settingBucket: string;
@@ -255,19 +488,33 @@ export function applyOperation(args: {
 				config.layoutId
 			);
 		}
-		return {
-			kind: 'blocks',
-			blocks: toggleSection(
-				tree,
-				{
-					sectionId: control.target.id,
-					enabled,
-					defaultVariant: control.variants?.[0],
-					insert: control.insert,
-				},
-				defaultOpsContext
-			),
-		};
+		tree = toggleSection(
+			tree,
+			{
+				sectionId: control.target.id,
+				enabled,
+				defaultVariant: control.variants?.[0],
+				insert: control.insert,
+			},
+			defaultOpsContext
+		);
+		tree = applyInnerOrder(tree, control, nextValue, blocks);
+		return { kind: 'blocks', blocks: tree };
+	}
+
+	if (control.operation === 'placeSection') {
+		const variant = control.variants?.find(
+			(v) => v.id === String(nextValue)
+		);
+		if (!variant?.placement) {
+			return null;
+		}
+		let tree = placeSection(blocks, {
+			sectionId: control.target.id,
+			placement: variant.placement,
+		});
+		tree = applyInnerOrder(tree, control, nextValue, blocks);
+		return { kind: 'blocks', blocks: tree };
 	}
 
 	if (control.operation === 'setSectionAttribute' && control.attributePath) {
@@ -277,6 +524,16 @@ export function applyOperation(args: {
 				sectionId: control.target.id,
 				attributePath: control.attributePath,
 				value: nextValue,
+			}),
+		};
+	}
+
+	if (control.operation === 'setBlockStyle') {
+		return {
+			kind: 'blocks',
+			blocks: setSectionBlockStyle(blocks, {
+				sectionId: control.target.id,
+				styleName: String(nextValue || 'default'),
 			}),
 		};
 	}
