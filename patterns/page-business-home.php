@@ -15,7 +15,6 @@
  */
 
 ?>
-
 <!-- wp:pattern {"slug":"blockera-one/cta-centered-heading"} /-->
 <!-- wp:pattern {"slug":"blockera-one/overlapped-images"} /-->
 <!-- wp:pattern {"slug":"blockera-one/services-3-col"} /-->
