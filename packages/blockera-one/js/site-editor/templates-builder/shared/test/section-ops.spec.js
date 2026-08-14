@@ -4,7 +4,14 @@
  * patterns.
  */
 
-import { setSectionAttribute, swapSection, toggleSection } from '../operations';
+import {
+	orderInnerSections,
+	placeSection,
+	setSectionAttribute,
+	setSectionBlockStyle,
+	swapSection,
+	toggleSection,
+} from '../operations';
 import { findByStamp, getAtPath } from '../tree';
 
 const SECTION_ID = 'posts-listing';
@@ -350,5 +357,157 @@ describe('setSectionAttribute', () => {
 				value: 1,
 			})
 		).toBe(tree);
+	});
+});
+
+describe('setSectionBlockStyle', () => {
+	it('writes is-style-* and keeps Blockera class names', () => {
+		const tree = [
+			stamped(
+				'core/breadcrumbs',
+				'section/page-title-breadcrumbs:default',
+				{
+					className: 'blockera-block blockera-block-abc',
+				}
+			),
+		];
+		const next = setSectionBlockStyle(tree, {
+			sectionId: 'page-title-breadcrumbs',
+			styleName: 'underline',
+		});
+		expect(next[0].attributes.className).toBe(
+			'blockera-block blockera-block-abc is-style-underline'
+		);
+		expect(tree[0].attributes.className).toBe(
+			'blockera-block blockera-block-abc'
+		);
+	});
+
+	it('is a no-op when the section is missing', () => {
+		const tree = [block('core/paragraph')];
+		expect(
+			setSectionBlockStyle(tree, {
+				sectionId: 'page-title-breadcrumbs',
+				styleName: 'default',
+			})
+		).toBe(tree);
+	});
+});
+
+const PAGE_TITLE_INNER = {
+	title: 'page-title-title',
+	description: 'page-title-description',
+	breadcrumbs: 'page-title-breadcrumbs',
+};
+
+function pageHeader(inner) {
+	return [stamped('core/group', 'section/page-title:default', {}, inner)];
+}
+
+describe('placeSection', () => {
+	it('moves the stamped block to inside-start or inside-end of the parent', () => {
+		const tree = pageHeader([
+			stamped(
+				'core/query-title',
+				`section/${PAGE_TITLE_INNER.title}:default`
+			),
+			stamped(
+				'core/term-description',
+				`section/${PAGE_TITLE_INNER.description}:default`
+			),
+			stamped(
+				'core/breadcrumbs',
+				`section/${PAGE_TITLE_INNER.breadcrumbs}:default`
+			),
+		]);
+
+		const top = placeSection(tree, {
+			sectionId: PAGE_TITLE_INNER.breadcrumbs,
+			placement: { relativeTo: 'page-title', position: 'inside-start' },
+		});
+		expect(getAtPath(top, [0, 0]).name).toBe('core/breadcrumbs');
+		expect(getAtPath(top, [0, 2]).name).toBe('core/term-description');
+
+		const bottom = placeSection(top, {
+			sectionId: PAGE_TITLE_INNER.breadcrumbs,
+			placement: { relativeTo: 'page-title', position: 'inside-end' },
+		});
+		expect(getAtPath(bottom, [0, 2]).name).toBe('core/breadcrumbs');
+	});
+
+	it('is a no-op when the section is missing', () => {
+		const tree = pageHeader([]);
+		expect(
+			placeSection(tree, {
+				sectionId: PAGE_TITLE_INNER.breadcrumbs,
+				placement: { relativeTo: 'page-title', position: 'inside-end' },
+			})
+		).toBe(tree);
+	});
+});
+
+describe('orderInnerSections', () => {
+	it('orders managed stamps and keeps unstamped siblings after them', () => {
+		const extra = block('core/paragraph', { content: 'note' });
+		const tree = pageHeader([
+			stamped(
+				'core/breadcrumbs',
+				`section/${PAGE_TITLE_INNER.breadcrumbs}:default`
+			),
+			extra,
+			stamped(
+				'core/term-description',
+				`section/${PAGE_TITLE_INNER.description}:default`
+			),
+			stamped(
+				'core/query-title',
+				`section/${PAGE_TITLE_INNER.title}:default`
+			),
+		]);
+
+		const next = orderInnerSections(tree, 'page-title', [
+			PAGE_TITLE_INNER.title,
+			PAGE_TITLE_INNER.description,
+			PAGE_TITLE_INNER.breadcrumbs,
+		]);
+		const names = getAtPath(next, [0]).innerBlocks.map((b) => b.name);
+		expect(names).toEqual([
+			'core/query-title',
+			'core/term-description',
+			'core/breadcrumbs',
+			'core/paragraph',
+		]);
+	});
+});
+
+describe('toggleSection inner insert + banner align', () => {
+	beforeAll(() => {
+		MARKUP['title-block'] = [
+			stamped(
+				'core/query-title',
+				`section/${PAGE_TITLE_INNER.title}:default`
+			),
+		];
+	});
+
+	it('centers inserted blocks when the parent variant is banner', () => {
+		const tree = [
+			stamped('core/group', 'section/page-title:banner', {}, []),
+		];
+		const next = toggleSection(
+			tree,
+			{
+				sectionId: PAGE_TITLE_INNER.title,
+				enabled: true,
+				defaultVariant: {
+					id: 'default',
+					label: 'Title',
+					html: 'title-block',
+				},
+				insert: { relativeTo: 'page-title', position: 'inside-start' },
+			},
+			ctx
+		);
+		expect(getAtPath(next, [0, 0]).attributes.textAlign).toBe('center');
 	});
 });
