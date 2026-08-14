@@ -5,16 +5,14 @@
 
 import { Button } from '@wordpress/components';
 import { store as coreStore } from '@wordpress/core-data';
-import { useDispatch, useSelect } from '@wordpress/data';
-import { decodeEntities } from '@wordpress/html-entities';
-import { createInterpolateElement, useState } from '@wordpress/element';
+import { useSelect } from '@wordpress/data';
+import { useState } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
-import { store as noticesStore } from '@wordpress/notices';
 
 /**
  * Blockera dependencies
  */
-import { Flex } from '@blockera/controls';
+import { DynamicHtmlFormatter, Flex } from '@blockera/controls';
 
 /**
  * Internal dependencies
@@ -22,7 +20,6 @@ import { Flex } from '@blockera/controls';
 import '../admin-ui-card.scss';
 import { ROUTES } from '../constants';
 import {
-	TEMPLATE_POST_TYPE,
 	buildTemplateItemPath,
 	getCoreActiveViewForFilter,
 	navigateTemplates,
@@ -33,8 +30,8 @@ import {
 	getBaseSlugForFilter,
 	getFilterIdForSlug,
 	getTemplateTitle,
-	type TemplateLike,
 } from './templates-matchers';
+import useCreateTemplateAndOpen from './use-create-template';
 import useTemplatesData from './use-templates-data';
 import './templates-missing-base.scss';
 
@@ -62,7 +59,7 @@ export default function TemplatesMissingBase({
 
 	const defaultTypes = useSelect((select) => {
 		const theme = (
-			select(coreStore) as {
+			select(coreStore) as unknown as {
 				getCurrentTheme: () => {
 					default_template_types?: Array<{
 						slug: string;
@@ -75,20 +72,7 @@ export default function TemplatesMissingBase({
 		return theme?.default_template_types || [];
 	}, []);
 
-	const { saveEntityRecord } = useDispatch(coreStore) as {
-		saveEntityRecord: (
-			kind: string,
-			name: string,
-			record: Record<string, unknown>,
-			options?: { throwOnError?: boolean }
-		) => Promise<TemplateLike>;
-	};
-	const { createSuccessNotice, createErrorNotice } = useDispatch(
-		noticesStore
-	) as {
-		createSuccessNotice: (msg: string, opts?: { type?: string }) => void;
-		createErrorNotice: (msg: string, opts?: { type?: string }) => void;
-	};
+	const createTemplateAndOpen = useCreateTemplateAndOpen();
 
 	if (!baseSlug) {
 		return null;
@@ -137,91 +121,56 @@ export default function TemplatesMissingBase({
 		const title = typeInfo?.title || missingLabel;
 		const description = typeInfo?.description || '';
 
-		try {
-			const newTemplate = await saveEntityRecord(
-				'postType',
-				TEMPLATE_POST_TYPE,
-				{
-					description,
-					slug: String(baseSlug),
-					status: 'publish',
-					title,
-					meta: {
-						is_wp_suggestion: true,
-					},
+		await createTemplateAndOpen({
+			record: {
+				description,
+				slug: String(baseSlug),
+				title,
+				meta: {
+					is_wp_suggestion: true,
 				},
-				{ throwOnError: true }
-			);
-
-			createSuccessNotice(
-				sprintf(
-					/* translators: %s: template title */
-					__('"%s" successfully created.', 'blockera'),
-					decodeEntities(
-						(typeof newTemplate.title === 'object'
-							? newTemplate.title?.rendered
-							: newTemplate.title) || title
-					) || __('(no title)', 'blockera')
-				),
-				{ type: 'snackbar' }
-			);
-
-			if (newTemplate.id !== undefined) {
-				navigateTemplates(buildTemplateItemPath(newTemplate.id), {
-					filter,
-					partsArea: null,
-					activeView: null,
-					canvas: 'edit',
-				});
-			}
-		} catch (error) {
-			const err = error as { message?: string; code?: string };
-			createErrorNotice(
-				err?.message && err.code !== 'unknown_error'
-					? err.message
-					: __(
-							'An error occurred while creating the template.',
-							'blockera'
-						),
-				{ type: 'snackbar' }
-			);
-		} finally {
-			setIsSubmitting(false);
-		}
+			},
+			fallbackTitle: title,
+			filter,
+		});
+		setIsSubmitting(false);
 	};
 
-	const message = fallbackSlug
-		? createInterpolateElement(
-				sprintf(
-					/* translators: 1: missing template type name, 2: fallback template title */
-					__(
-						'There is no specific <strong>%1$s</strong> template. This view uses <link>%2$s</link> instead.',
-						'blockera'
-					),
-					missingLabel,
-					fallbackLabel
-				),
-				{
-					strong: <strong />,
-					link: (
-						// eslint-disable-next-line jsx-a11y/anchor-has-content -- children from interpolate
-						<Button
-							variant="link"
-							className="blockera-site-editor-templates-missing__fallback-link"
-							data-test="blockera-site-editor-templates-missing-fallback"
-							onClick={openFallbackFilter}
-						/>
-					),
-				}
-			)
-		: sprintf(
-				/* translators: %s: missing template type */
+	const message = fallbackSlug ? (
+		<DynamicHtmlFormatter
+			text={sprintf(
+				/* translators: 1: missing template type name, 2: fallback template title */
 				__(
-					'There is no specific %s template, and no fallback template was found.',
+					'There is no specific %1$s template. This view uses %2$s instead.',
 					'blockera'
 				),
-				missingLabel
-			);
+				'{missing}',
+				'{fallback}'
+			)}
+			replacements={{
+				missing: <strong>{missingLabel}</strong>,
+				fallback: (
+					<Button
+						variant="link"
+						className="blockera-site-editor-templates-missing__fallback-link"
+						data-test="blockera-site-editor-templates-missing-fallback"
+						onClick={openFallbackFilter}
+					>
+						{fallbackLabel}
+					</Button>
+				),
+			}}
+		/>
+	) : (
+		sprintf(
+			/* translators: %s: missing template type */
+			__(
+				'There is no specific %s template, and no fallback template was found.',
+				'blockera'
+			),
+			missingLabel
+		)
+	);
 
 	return (
 		<div
