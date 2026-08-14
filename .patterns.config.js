@@ -1,9 +1,9 @@
 /**
- * Pattern localization config for Blockera One.
+ * Pattern normalization config for Blockera One.
  *
  * Consumed by:
- * - `npm run patterns:localize` / `patterns:check`
- * - LocalizePatternsWebpackPlugin during `npm run start`
+ * - `npm run patterns:normalize` / `patterns:check`
+ * - NormalizePatternsWebpackPlugin during `npm run start`
  */
 
 module.exports = {

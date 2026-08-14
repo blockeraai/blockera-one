@@ -1,4 +1,4 @@
-name: Check Pattern Localization
+name: Check Pattern Normalization
 
 on:
     pull_request:
@@ -6,9 +6,9 @@ on:
         paths:
             - 'patterns/**'
             - '.patterns.config.js'
-            - 'packages/utils/js/patterns/**'
+            - 'packages/global-packages/packages/utils/js/patterns/**'
             - 'packages/global-packages/packages/dev-tools/js/patterns/**'
-            - 'packages/global-packages/packages/dev-tools/js/webpack/localize-patterns-plugin.js'
+            - 'packages/global-packages/packages/dev-tools/js/webpack/normalize-patterns-plugin.js'
             - '.github/workflows/check-patterns.yml'
     workflow_dispatch:
 
@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
     check-patterns:
-        name: patterns are localized
+        name: patterns are normalized
         runs-on: ubuntu-latest
         if: ${{ github.repository == 'blockeraai/blockera-one' || github.event_name == 'pull_request' }}
         env:
@@ -33,6 +33,6 @@ jobs:
 
             - uses: ./packages/global-packages/packages/dev-tools/github/actions/setup-node
 
-            - name: Check pattern files are localized
+            - name: Check pattern files are normalized
               run: |
-                  node ./packages/global-packages/packages/dev-tools/js/patterns/localize-patterns-cli.js --check --quiet
+                  node ./packages/global-packages/packages/dev-tools/js/patterns/normalize-patterns-cli.js --check --quiet
