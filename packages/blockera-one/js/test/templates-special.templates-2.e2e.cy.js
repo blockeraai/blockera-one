@@ -73,13 +73,13 @@ describe('Blockera One → Templates Special Templates purpose-nav', () => {
 
 			// Search is the first row; 404 is the second.
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav)
-				.find('.blockera-site-editor-templates-nav__section')
+				.find('.blockera-site-editor-nav__section')
 				.contains(
-					'.blockera-site-editor-templates-nav__section-title',
+					'.blockera-site-editor-nav__section-title',
 					'Special Templates'
 				)
-				.parents('.blockera-site-editor-templates-nav__section')
-				.find('.blockera-site-editor-templates-nav__items [data-test]')
+				.parents('.blockera-site-editor-nav__section')
+				.find('.blockera-site-editor-nav__items [data-test]')
 				.then(($rows) => {
 					const testIds = [...$rows].map((el) =>
 						el.getAttribute('data-test')

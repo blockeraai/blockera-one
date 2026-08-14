@@ -157,13 +157,13 @@ describe('Blockera One → Templates Single Templates purpose-nav', () => {
 
 			// Singular is the first row in the Single Templates section items list.
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav)
-				.find('.blockera-site-editor-templates-nav__section')
+				.find('.blockera-site-editor-nav__section')
 				.contains(
-					'.blockera-site-editor-templates-nav__section-title',
+					'.blockera-site-editor-nav__section-title',
 					'Single Templates'
 				)
-				.parents('.blockera-site-editor-templates-nav__section')
-				.find('.blockera-site-editor-templates-nav__items [data-test]')
+				.parents('.blockera-site-editor-nav__section')
+				.find('.blockera-site-editor-nav__items [data-test]')
 				.first()
 				.should(
 					'have.attr',

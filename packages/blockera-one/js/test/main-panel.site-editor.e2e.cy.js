@@ -63,7 +63,7 @@ describe('Blockera One → Site Editor main panel chrome', () => {
 		cy.get('.edit-site-layout__area').should('not.exist');
 		/* Duplicate Page title is hidden; Style Book lives on drill-down row. */
 		cy.get(
-			'.blockera-site-editor-styles-panel .admin-ui-page__header'
+			'.blockera-site-editor-styles-panel .admin-ui-page__header, .blockera-site-editor-styles-panel .edit-site-styles > :first-child'
 		).should('not.be.visible');
 		cy.getByDataTest(SITE_EDITOR_TEST_IDS.stylesActions, {
 			timeout: 20000,

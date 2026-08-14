@@ -63,7 +63,7 @@ describe('Blockera One → Templates WooCommerce purpose-nav', () => {
 			).should('have.class', 'is-active');
 
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavWooArchiveProduct)
-				.parents('.blockera-site-editor-templates-nav__item-shell')
+				.parents('.blockera-site-editor-nav__item-shell')
 				.parent()
 				.within(() => {
 					[
