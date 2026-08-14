@@ -7,51 +7,13 @@ import type { ReactNode } from 'react';
 import { createElement, Fragment } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
+import type { NavItemIcon } from '../components/nav-item';
 import { FILTER_IDS, type FilterId, type PartAreaId } from './constants';
-
-export type NavIcon =
-	| 'template'
-	| 'home'
-	| 'home-base'
-	| 'home-blog'
-	| 'page'
-	| 'post'
-	| 'post-new'
-	| 'post-base'
-	| 'archive'
-	| 'archive-new'
-	| 'archive-base'
-	| 'category'
-	| 'tag'
-	| 'author'
-	| 'search'
-	| 'not-found'
-	| 'post-not-found'
-	| 'header'
-	| 'footer'
-	| 'sidebar'
-	| 'plugins'
-	| 'custom'
-	| 'active'
-	| 'calendar'
-	| 'media'
-	| 'media-new'
-	| 'list'
-	| 'verse'
-	| 'blockera-one'
-	/** WooCommerce Templates section (ui/woocommerce-* + WP taxonomy icons) */
-	| 'woocommerce-store'
-	| 'woocommerce-product'
-	| 'woocommerce-cart'
-	| 'woocommerce-checkout'
-	| 'woocommerce-order'
-	| 'woocommerce-coming-soon'
-	| 'post-categories';
 
 export type TemplatesNavItemConfig = {
 	id: FilterId;
 	label: string;
-	icon: NavIcon;
+	icon: NavItemIcon;
 	/** Purpose / source filter applied to the browse list. */
 	filter: FilterId;
 	/** When set, opens the General Area Hub for this template-part area. */
@@ -95,6 +57,42 @@ export type TemplatesNavSectionConfig = {
 	items: TemplatesNavItemConfig[];
 };
 
+function matchNavItemLabel(
+	items: TemplatesNavItemConfig[],
+	filterId: FilterId
+): string | undefined {
+	for (const item of items) {
+		if (item.filter === filterId || String(item.id) === String(filterId)) {
+			return item.label;
+		}
+		if (item.navChildren?.length) {
+			const nested = matchNavItemLabel(item.navChildren, filterId);
+			if (nested) {
+				return nested;
+			}
+		}
+	}
+	return undefined;
+}
+
+/**
+ * Label of the nav item matching a filter id. Pass the *runtime* sections
+ * (from useTemplatesData) so dynamic CPT / WooCommerce rows resolve too;
+ * searches nested navChildren (e.g. Woo Shop taxonomies).
+ */
+export function findNavItemLabel(
+	sections: TemplatesNavSectionConfig[],
+	filterId: FilterId
+): string | undefined {
+	for (const section of sections) {
+		const label = matchNavItemLabel(section.items, filterId);
+		if (label) {
+			return label;
+		}
+	}
+	return undefined;
+}
+
 export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 	{
 		id: 'top',
@@ -102,7 +100,7 @@ export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 			{
 				id: FILTER_IDS.all,
 				label: __('All templates', 'blockera'),
-				icon: 'template',
+				icon: { library: 'ui', icon: 'template' },
 				filter: FILTER_IDS.all,
 			},
 		],
@@ -118,21 +116,21 @@ export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 			{
 				id: 'parts-header',
 				label: __('Header', 'blockera'),
-				icon: 'header',
+				icon: { library: 'ui', icon: 'template-header' },
 				filter: FILTER_IDS.parts,
 				partsArea: 'header',
 			},
 			{
 				id: 'parts-footer',
 				label: __('Footer', 'blockera'),
-				icon: 'footer',
+				icon: { library: 'ui', icon: 'template-footer' },
 				filter: FILTER_IDS.parts,
 				partsArea: 'footer',
 			},
 			{
 				id: 'parts-sidebar',
 				label: __('Sidebar', 'blockera'),
-				icon: 'sidebar',
+				icon: { library: 'ui', icon: 'template-sidebar' },
 				filter: FILTER_IDS.parts,
 				partsArea: 'sidebar',
 			},
@@ -145,7 +143,7 @@ export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 			{
 				id: FILTER_IDS.singular,
 				label: __('Singular', 'blockera'),
-				icon: 'post-base',
+				icon: { library: 'ui', icon: 'post-base' },
 				filter: FILTER_IDS.singular,
 				baseSlug: 'singular',
 				hideWhenEmpty: true,
@@ -172,7 +170,7 @@ export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 			{
 				id: FILTER_IDS.single,
 				label: __('Single Post', 'blockera'),
-				icon: 'post',
+				icon: { library: 'ui', icon: 'post' },
 				filter: FILTER_IDS.single,
 				baseSlug: 'single',
 				showChildren: true,
@@ -180,7 +178,7 @@ export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 			{
 				id: FILTER_IDS.page,
 				label: __('Single Page', 'blockera'),
-				icon: 'page',
+				icon: { library: 'wp', icon: 'page' },
 				filter: FILTER_IDS.page,
 				baseSlug: 'page',
 				showChildren: true,
@@ -188,7 +186,7 @@ export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 			{
 				id: FILTER_IDS.attachment,
 				label: __('Attachments', 'blockera'),
-				icon: 'media',
+				icon: { library: 'ui', icon: 'attachment' },
 				filter: FILTER_IDS.attachment,
 				baseSlug: 'attachment',
 				showChildren: true,
@@ -203,7 +201,7 @@ export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 			{
 				id: FILTER_IDS.archive,
 				label: __('All Archives', 'blockera'),
-				icon: 'archive-base',
+				icon: { library: 'ui', icon: 'archive-base' },
 				filter: FILTER_IDS.archive,
 				baseSlug: 'archive',
 				status: 'fallback',
@@ -229,7 +227,7 @@ export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 			{
 				id: FILTER_IDS.category,
 				label: __('Categories', 'blockera'),
-				icon: 'category',
+				icon: { library: 'ui', icon: 'categories' },
 				filter: FILTER_IDS.category,
 				baseSlug: 'category',
 				showChildren: true,
@@ -237,7 +235,7 @@ export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 			{
 				id: FILTER_IDS.tag,
 				label: __('Tags', 'blockera'),
-				icon: 'tag',
+				icon: { library: 'wp', icon: 'tag' },
 				filter: FILTER_IDS.tag,
 				baseSlug: 'tag',
 				showChildren: true,
@@ -246,7 +244,7 @@ export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 			{
 				id: FILTER_IDS.author,
 				label: __('Authors', 'blockera'),
-				icon: 'author',
+				icon: { library: 'wp', icon: 'comment-author-avatar' },
 				filter: FILTER_IDS.author,
 				baseSlug: 'author',
 				showChildren: true,
@@ -255,7 +253,7 @@ export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 			{
 				id: FILTER_IDS.date,
 				label: __('Date', 'blockera'),
-				icon: 'calendar',
+				icon: { library: 'wp', icon: 'calendar' },
 				filter: FILTER_IDS.date,
 				baseSlug: 'date',
 				hideWhenEmpty: true,
@@ -263,7 +261,7 @@ export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 			{
 				id: FILTER_IDS.taxonomy,
 				label: __('Taxonomy', 'blockera'),
-				icon: 'category',
+				icon: { library: 'ui', icon: 'categories' },
 				filter: FILTER_IDS.taxonomy,
 				baseSlug: 'taxonomy',
 				showChildren: true,
@@ -278,14 +276,14 @@ export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 			{
 				id: FILTER_IDS.search,
 				label: __('Search Page', 'blockera'),
-				icon: 'search',
+				icon: { library: 'wp', icon: 'search' },
 				filter: FILTER_IDS.search,
 				baseSlug: 'search',
 			},
 			{
 				id: FILTER_IDS.notFound,
 				label: __('404 Page', 'blockera'),
-				icon: 'post-not-found',
+				icon: { library: 'ui', icon: 'post-not-found' },
 				filter: FILTER_IDS.notFound,
 				baseSlug: '404',
 			},
@@ -304,7 +302,7 @@ export const TEMPLATES_NAV_SECTIONS: TemplatesNavSectionConfig[] = [
 			{
 				id: FILTER_IDS.custom,
 				label: __('Custom templates', 'blockera'),
-				icon: 'custom',
+				icon: { library: 'ui', icon: 'template-new' },
 				filter: FILTER_IDS.custom,
 			},
 		],

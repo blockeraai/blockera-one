@@ -67,9 +67,9 @@ const LAYER_LABEL: Record<HomepageLayerSlug, () => string> = {
 };
 
 const LAYER_ICON: Record<HomepageLayerSlug, TemplatesNavItemConfig['icon']> = {
-	'front-page': 'home',
-	home: 'home-blog',
-	index: 'home-base',
+	'front-page': { library: 'wp', icon: 'home' },
+	home: { library: 'ui', icon: 'home-blog' },
+	index: { library: 'ui', icon: 'home-base' },
 };
 
 export function getFilterIdForHomepageSlug(slug: HomepageLayerSlug): FilterId {
@@ -265,7 +265,7 @@ export function buildHomepageSectionItems(
 	const homepageItem: TemplatesNavItemConfig = {
 		id: HOMEPAGE_NAV_ID,
 		label: __('Homepage', 'blockera'),
-		icon: 'home',
+		icon: { library: 'wp', icon: 'home' },
 		showHomepageFallbacks: true,
 		filter: activeSlug
 			? getFilterIdForHomepageSlug(activeSlug)
@@ -293,7 +293,7 @@ export function buildHomepageSectionItems(
 		items.push({
 			id: BLOG_POSTS_NAV_ID,
 			label: __('Blog Home', 'blockera'),
-			icon: 'home-blog',
+			icon: { library: 'ui', icon: 'home-blog' },
 			filter: BLOG_POSTS_FILTER,
 			// Posts page entity — not the home.html template.
 			entityPath: buildPageItemPath(postsPageId),
