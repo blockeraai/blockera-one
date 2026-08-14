@@ -74,17 +74,26 @@ function hydrateControl(
 	control: ControlDef,
 	pools: CatalogPayload[string]
 ): ControlDef {
-	if (!control.catalogPool) {
-		return control;
+	let next = control;
+	if (control.catalogPool) {
+		const pool = pools[control.catalogPool] || [];
+		const exclude = control.catalogExclude;
+		const variants = pool
+			.filter((variant) => !exclude?.includes(variant.id))
+			.map(toVariantDef);
+		next = { ...control, variants };
 	}
 
-	const pool = pools[control.catalogPool] || [];
-	const exclude = control.catalogExclude;
-	const variants = pool
-		.filter((variant) => !exclude?.includes(variant.id))
-		.map(toVariantDef);
-
-	return { ...control, variants };
+	if (!next.nestedPanel?.groups?.length) {
+		return next;
+	}
+	return {
+		...next,
+		nestedPanel: {
+			...next.nestedPanel,
+			groups: hydrateGroups(next.nestedPanel.groups, pools),
+		},
+	};
 }
 
 function hydrateGroups(
