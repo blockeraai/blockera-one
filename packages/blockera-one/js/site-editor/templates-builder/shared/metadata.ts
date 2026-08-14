@@ -1,0 +1,40 @@
+/**
+ * Read / write the `metadata.blockeraOne` stamp string on block nodes.
+ */
+
+import { formatStamp, parseStamp, type Stamp, type StampRole } from './stamp';
+import type { BlockNode } from './types';
+
+export function getStamp(block: BlockNode | null | undefined): Stamp | null {
+	const metadata = block?.attributes?.metadata;
+	if (!metadata || typeof metadata !== 'object') {
+		return null;
+	}
+	return parseStamp((metadata as { blockeraOne?: unknown }).blockeraOne);
+}
+
+/** Return a copy of the block re-stamped as `role/id` / `role/id:variant`. */
+export function withStamp(
+	block: BlockNode,
+	role: StampRole,
+	id: string,
+	variant?: string | null
+): BlockNode {
+	const prevMeta =
+		block.attributes?.metadata &&
+		typeof block.attributes.metadata === 'object'
+			? (block.attributes.metadata as Record<string, unknown>)
+			: {};
+
+	return {
+		...block,
+		attributes: {
+			...(block.attributes || {}),
+			metadata: {
+				...prevMeta,
+				blockeraOne: formatStamp(role, id, variant),
+			},
+		},
+		innerBlocks: block.innerBlocks ? [...block.innerBlocks] : [],
+	};
+}
