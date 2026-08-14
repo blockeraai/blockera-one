@@ -35,7 +35,6 @@ export const CORE_NAV_UIDS = {
 	navigation: 'navigation-navigation-item',
 	patterns: 'patterns-navigation-item',
 	templates: 'template-navigation-item',
-	identity: 'identity-navigation-item',
 } as const;
 
 export const ROUTES = {
