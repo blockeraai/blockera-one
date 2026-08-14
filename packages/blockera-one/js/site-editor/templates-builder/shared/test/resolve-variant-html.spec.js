@@ -162,4 +162,40 @@ describe('resolveConfigVariantsHtml', () => {
 		const ids = resolved.groups[0].controls[0].variants.map((v) => v.id);
 		expect(ids).toEqual(['list', 'header']);
 	});
+
+	it('keeps position-only variants and does not treat them as unresolved', () => {
+		const position = {
+			id: 'top',
+			label: 'Top',
+			placement: { relativeTo: 'page-title', position: 'inside-start' },
+		};
+		const config = {
+			type: 'archive',
+			filters: ['archive'],
+			layoutId: 'archive-body',
+			groups: [
+				{
+					id: 'breadcrumbs',
+					title: 'Breadcrumbs',
+					controls: [
+						{
+							id: 'breadcrumbs-position',
+							type: 'segmented-choice',
+							label: 'Position',
+							target: {
+								kind: 'section',
+								id: 'page-title-breadcrumbs',
+							},
+							operation: 'placeSection',
+							variants: [position],
+						},
+					],
+				},
+			],
+		};
+		const resolved = resolveConfigVariantsHtml(config, PATTERNS, true);
+		const control = resolved.groups[0].controls[0];
+		expect(control.variants.map((v) => v.id)).toEqual(['top']);
+		expect(hasUnresolvedVariants(control)).toBe(false);
+	});
 });
