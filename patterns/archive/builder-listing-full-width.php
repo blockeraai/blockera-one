@@ -1,0 +1,53 @@
+<?php
+/**
+ * Title: Archive posts listing — full width cards
+ * Slug: blockera-one/builder-archive-listing-full-width
+ * Categories: blockera-one/template-builder
+ * Inserter: no
+ *
+ * @package WordPress
+ * @subpackage Blockera_One
+ * @since Blockera One 0.1.0
+ */
+
+?>
+<!-- wp:query {"query":{"perPage":10,"pages":0,"offset":0,"postType":"post","order":"desc","orderBy":"date","author":"","search":"","exclude":[],"sticky":"","inherit":true,"taxQuery":null,"parents":[]},"align":"full","metadata":{"blockeraOne":"section/posts-listing:full-width"},"layout":{"type":"default"}} -->
+<div class="wp-block-query alignfull">
+	<!-- wp:post-template {"align":"full","layout":{"type":"default"}} -->
+		<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"var:preset|spacing|50","bottom":"var:preset|spacing|50"}}},"layout":{"type":"constrained"}} -->
+		<div class="wp-block-group alignfull" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--50)">
+			<!-- wp:columns {"align":"wide","style":{"spacing":{"blockGap":{"left":"var:preset|spacing|50"}}}} -->
+			<div class="wp-block-columns alignwide">
+				<!-- wp:column {"width":"40%"} -->
+				<div class="wp-block-column" style="flex-basis:40%">
+					<!-- wp:post-featured-image {"isLink":true,"aspectRatio":"4/3"} /-->
+				</div>
+				<!-- /wp:column -->
+				<!-- wp:column {"verticalAlignment":"center","width":"60%"} -->
+				<div class="wp-block-column is-vertically-aligned-center" style="flex-basis:60%">
+					<!-- wp:post-title {"isLink":true,"fontSize":"x-large"} /-->
+					<!-- wp:post-excerpt {"fontSize":"medium"} /-->
+					<!-- wp:post-date {"isLink":true,"fontSize":"small"} /-->
+				</div>
+				<!-- /wp:column -->
+			</div>
+			<!-- /wp:columns -->
+		</div>
+		<!-- /wp:group -->
+	<!-- /wp:post-template -->
+	<!-- wp:query-no-results -->
+	<!-- wp:paragraph -->
+	<p><?php echo esc_html_x( 'Sorry, but nothing was found. Please try a search with different keywords.', 'Message explaining that there are no results returned from a search.', 'blockera-one' ); ?></p>
+	<!-- /wp:paragraph -->
+	<!-- /wp:query-no-results -->
+	<!-- wp:group {"align":"wide","layout":{"type":"constrained"}} -->
+	<div class="wp-block-group alignwide">
+		<!-- wp:query-pagination {"paginationArrow":"arrow","align":"wide","metadata":{"blockeraOne":"section/pagination:standard"},"layout":{"type":"flex","justifyContent":"space-between"}} -->
+			<!-- wp:query-pagination-previous /-->
+			<!-- wp:query-pagination-numbers /-->
+			<!-- wp:query-pagination-next /-->
+		<!-- /wp:query-pagination -->
+	</div>
+	<!-- /wp:group -->
+</div>
+<!-- /wp:query -->
