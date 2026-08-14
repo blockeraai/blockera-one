@@ -62,6 +62,30 @@
 				}
 			}
 		],
+		"page-title-title": [
+			{
+				"id": "default",
+				"label": "Title",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-page-title-title"
+			}
+		],
+		"page-title-description": [
+			{
+				"id": "default",
+				"label": "Description",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-page-title-description"
+			}
+		],
+		"page-title-breadcrumbs": [
+			{
+				"id": "default",
+				"label": "Breadcrumbs",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-page-title-breadcrumbs"
+			}
+		],
 		"posts-listing": [
 			{
 				"id": "list",

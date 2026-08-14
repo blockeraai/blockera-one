@@ -78,7 +78,7 @@ class ArchiveCatalog extends AbstractCatalog {
 					)
 				),
 			),
-			'page-title'    => array(
+			'page-title'             => array(
 				$this->patternVariant(
 					'default',
 					__( 'Simple', 'blockera-one' ),
@@ -104,7 +104,28 @@ class ArchiveCatalog extends AbstractCatalog {
 					)
 				),
 			),
-			'posts-listing' => array(
+			'page-title-title'       => array(
+				$this->patternVariant(
+					'default',
+					__( 'Title', 'blockera-one' ),
+					'blockera-one/builder-archive-page-title-title'
+				),
+			),
+			'page-title-description' => array(
+				$this->patternVariant(
+					'default',
+					__( 'Description', 'blockera-one' ),
+					'blockera-one/builder-archive-page-title-description'
+				),
+			),
+			'page-title-breadcrumbs' => array(
+				$this->patternVariant(
+					'default',
+					__( 'Breadcrumbs', 'blockera-one' ),
+					'blockera-one/builder-archive-page-title-breadcrumbs'
+				),
+			),
+			'posts-listing'          => array(
 				$this->patternVariant(
 					'list',
 					__( 'List', 'blockera-one' ),
