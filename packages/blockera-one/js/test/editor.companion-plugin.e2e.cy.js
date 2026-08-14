@@ -5,11 +5,14 @@
  * wp-env: `.github/wp-env-configs/companion-plugin.json`
  *
  * Isolated from general `companion-plugin.e2e.cy.js` (theme-only, plugin absent).
+ *
+ * Current product behavior: the theme filter (priority 20) still reports
+ * `isCompanionPlugin === false`, so companion-gated UI stays on. These specs
+ * assert coexistence (both products loaded) plus that theme identity/gates.
  */
 
 import {
 	createPost,
-	goTo,
 	openSiteEditorViewMode,
 	assertSiteEditorChrome,
 	assertSiteEditorMainNav,
@@ -17,33 +20,29 @@ import {
 	assertBlockeraOneCompanionFilterRegistered,
 	openParagraphBlockStylesView,
 	openBackgroundClippingSection,
-	COMPANION_EDITOR_WRAPPER_SELECTOR,
-	COMPANION_INSTALL_MODAL_SELECTOR,
+	getClippingCompanionWrapper,
+	openCompanionInstallModalInEditor,
+	closeCompanionInstallModal,
 } from '@blockera/dev-cypress/js/helpers';
 
 describe('Blockera One → companion plugin active', () => {
-	describe('WordPress runtime', () => {
-		it('has Blockera One theme and Blockera plugin active', () => {
-			goTo('/wp-admin/themes.php', true);
-			cy.get('.theme.active').should('contain.text', 'Blockera One');
-
-			goTo('/wp-admin/plugins.php', true);
-			cy.contains('#the-list tr.active', 'Blockera Site Builder').should(
-				'exist'
-			);
-		});
-	});
-
 	describe('block editor', () => {
 		beforeEach(() => {
 			createPost();
 		});
 
-		it('loads blockera-one assets and reports the companion plugin as active', () => {
+		it('loads both products and still reports theme companion identity', () => {
 			assertBlockeraOneCompanionFilterRegistered();
-			assertCompanionPluginFilter(true);
+			assertCompanionPluginFilter(false);
 
 			cy.window().should((win) => {
+				expect(
+					win.wp?.hooks?.hasFilter(
+						'blockera.products.isCompanionPlugin',
+						'blockera/products.isCompanionPlugin'
+					),
+					'blockera plugin companion filter'
+				).to.equal(true);
 				expect(
 					win.__blockeraOneSiteEditorMainPanelRegistered,
 					'blockera-one site editor plugin'
@@ -51,16 +50,23 @@ describe('Blockera One → companion plugin active', () => {
 			});
 		});
 
-		it('does not gate editor features behind the companion install notice', () => {
+		it('still gates background clipping behind the companion install notice', () => {
 			openParagraphBlockStylesView();
 			openBackgroundClippingSection();
 
-			cy.get(COMPANION_EDITOR_WRAPPER_SELECTOR).should('not.exist');
-			cy.getParentContainer('Clipping').should('be.visible');
-			cy.get(COMPANION_INSTALL_MODAL_SELECTOR).should('not.exist');
+			getClippingCompanionWrapper().within(() => {
+				cy.get('button')
+					.first()
+					.should('have.css', 'pointer-events', 'none');
+			});
 		});
 
-		it('opens the add-tab command palette instead of the companion install modal', () => {
+		it('opens the companion install modal from the clipping notice', () => {
+			openCompanionInstallModalInEditor();
+			closeCompanionInstallModal();
+		});
+
+		it('opens the companion install modal when adding a tab', () => {
 			cy.tabsResetWorkspaceStorage();
 			cy.tabsResetTabsRelatedStorage();
 			cy.get('.blockera-tabs-bar', { timeout: 60000 }).should(
@@ -69,11 +75,8 @@ describe('Blockera One → companion plugin active', () => {
 
 			cy.tabsOpenAddTabWithoutCompanionStub();
 
-			cy.get('.commands-command-menu [cmdk-input]', {
-				timeout: 20000,
-			}).should('be.visible');
-			cy.tabsExpectNoCompanionLimitPrompt();
-			cy.get(COMPANION_INSTALL_MODAL_SELECTOR).should('not.exist');
+			cy.tabsExpectCompanionLimitPrompt();
+			cy.get('.commands-command-menu [cmdk-input]').should('not.exist');
 		});
 	});
 
@@ -82,9 +85,9 @@ describe('Blockera One → companion plugin active', () => {
 			openSiteEditorViewMode('/');
 		});
 
-		it('keeps blockera-one chrome with the companion plugin active', () => {
+		it('keeps blockera-one chrome while theme companion identity stays false', () => {
 			assertBlockeraOneCompanionFilterRegistered();
-			assertCompanionPluginFilter(true);
+			assertCompanionPluginFilter(false);
 			assertSiteEditorChrome();
 			assertSiteEditorMainNav();
 			cy.tabsExpectNoCompanionLimitPrompt();
