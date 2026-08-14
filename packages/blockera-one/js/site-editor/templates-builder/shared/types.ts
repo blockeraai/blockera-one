@@ -38,7 +38,18 @@ export type ResolvedOptionState = {
 };
 
 export type ControlType =
-	'layout-picker' | 'toggle' | 'segmented-choice' | 'number';
+	| 'layout-picker'
+	| 'toggle'
+	| 'segmented-choice'
+	| 'number'
+	| 'input'
+	| 'color'
+	| 'select'
+	| 'button';
+
+/** Resolved UI value for a control (scalars plus Blockera value-addon objects). */
+export type ControlValue =
+	string | number | boolean | Record<string, unknown> | null;
 
 /**
  * Declarative fallback matcher used when a section block lost its stamp
@@ -65,6 +76,17 @@ export type SectionHeuristic =
 			 */
 			kind: 'groupWrapping';
 			childName: string;
+	  }
+	| {
+			/**
+			 * Match a direct inner block of a parent section (by stamp id)
+			 * with this block name. Used for title/description/breadcrumbs
+			 * inside the page header so a stray query-title elsewhere
+			 * cannot keep the toggle "on".
+			 */
+			kind: 'innerBlock';
+			parentId: string;
+			name: string;
 	  };
 
 export type OperationKind =
@@ -73,7 +95,10 @@ export type OperationKind =
 	| 'swapTemplatePart'
 	| 'toggleSection'
 	| 'setSectionAttribute'
-	| 'setTemplateSetting';
+	| 'setTemplateSetting'
+	| 'placeSection'
+	| 'setBlockStyle'
+	| 'selectInCanvas';
 
 /** Where to insert a block, relative to another stamped block. */
 export type InsertRule = {
@@ -124,6 +149,30 @@ export type VariantDef = {
 	chromeLayout?: ChromeLayout;
 };
 
+/**
+ * Nested DrillDown screen declared on a group (compact gateway card) or a
+ * control (toggle + chevron row). `gatewayLabel` is the in-card row title
+ * when the host group also renders body controls.
+ */
+export type NestedPanelDef = {
+	/** URL stack segment. */
+	id: string;
+	/** Nested DrillDownScreen title. */
+	title: string;
+	/** In-card gateway row label (falls back to `title`). */
+	gatewayLabel?: string;
+	groups: PanelGroupDef[];
+};
+
+/** Reorder stamped children of `parentId` after an inner-element op. */
+export type InnerOrderRule = {
+	parentId: string;
+	/** Child stamp ids in default (bottom-lead) order. */
+	ids: string[];
+	/** Child stamp moved to the front when its position is "top". */
+	leadId?: string;
+};
+
 export type ControlDef = {
 	id: string;
 	type: ControlType;
@@ -154,6 +203,19 @@ export type ControlDef = {
 	min?: number;
 	max?: number;
 	step?: number;
+	/** InputControl unit set (`essential` = px/em/rem/%). */
+	unitType?: string;
+	/** Value-addon kinds for InputControl (`variable`). */
+	controlAddonTypes?: string[];
+	/** Variable categories (`spacing`). */
+	variableTypes?: string[];
+	/**
+	 * After this op, reorder stamped children of `parentId`. Used so
+	 * toggling title back on cannot jump in front of a top breadcrumbs.
+	 */
+	innerOrder?: InnerOrderRule;
+	/** Control-level nested DrillDown (toggle + chevron rows). */
+	nestedPanel?: NestedPanelDef;
 	/** Show when another control has one of these values. */
 	conditions?: Array<{
 		controlId: string;
@@ -193,16 +255,13 @@ export type PanelGroupDef = {
 	headerToggle?: ControlDef;
 	controls: ControlDef[];
 	/**
-	 * When set, the group is a compact gateway: body controls live on a nested
-	 * DrillDown screen (URL stack). Nested groups may also declare nestedPanel.
+	 * When set with no body controls, the group is a compact gateway card
+	 * (title + toggle + chevron). When the group also has `controls`, the
+	 * heading still shows the chevron and opens the nested screen; body
+	 * controls stay on this card and a gateway row (`gatewayLabel`) also
+	 * opens the nested screen.
 	 */
-	nestedPanel?: {
-		/** URL stack segment. */
-		id: string;
-		/** Nested DrillDownScreen title. */
-		title: string;
-		groups: PanelGroupDef[];
-	};
+	nestedPanel?: NestedPanelDef;
 };
 
 /**
