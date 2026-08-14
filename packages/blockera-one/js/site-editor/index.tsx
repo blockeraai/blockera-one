@@ -5,12 +5,7 @@
 
 import type { ReactNode } from 'react';
 
-import {
-	createPortal,
-	useCallback,
-	useEffect,
-	useState,
-} from '@wordpress/element';
+import { createPortal, useCallback, useEffect } from '@wordpress/element';
 
 /**
  * Internal dependencies
@@ -22,15 +17,11 @@ import {
 	STABLE_SIDEBAR_CONTENT_SELECTOR,
 	STABLE_SIDEBAR_SELECTOR,
 } from './constants';
+import usePortalHost from './hooks/use-portal-host';
 import MainNavigation from './main-navigation';
 import MainPanelHeader from './main-panel-header';
 import SiteEditorMainPanelRoutes from './routes';
-import {
-	getSiteEditorPath,
-	isDesignRootPath,
-	isSiteEditorUrl,
-	useSiteEditorNavigate,
-} from './utils';
+import { getSiteEditorPath, isDesignRootPath, isSiteEditorUrl } from './utils';
 import './admin-ui-card.scss';
 import './style.scss';
 
@@ -83,36 +74,20 @@ function ensureMainPanelHeaderMount(sidebar: Element): Element {
  * sidebar is present (all Site Editor view-mode pages). Core SiteHub stays.
  */
 function MainPanelHeaderInjector(): ReactNode {
-	const [host, setHost] = useState<Element | null>(null);
-
-	const syncHost = useCallback(() => {
-		const sidebar = document.querySelector(STABLE_SIDEBAR_SELECTOR);
-		if (!sidebar) {
-			setHost(null);
-			return;
-		}
-		setHost(ensureMainPanelHeaderMount(sidebar));
-	}, []);
-
-	useEffect(() => {
-		if (!isSiteEditorUrl()) {
-			return;
-		}
-
-		syncHost();
-
-		const observer = new MutationObserver(syncHost);
-		observer.observe(document.body, { childList: true, subtree: true });
-
-		return () => {
-			observer.disconnect();
+	const host = usePortalHost(
+		useCallback(() => {
+			const sidebar = document.querySelector(STABLE_SIDEBAR_SELECTOR);
+			if (!sidebar) {
+				return null;
+			}
+			return ensureMainPanelHeaderMount(sidebar);
+		}, []),
+		() => {
 			document
 				.querySelectorAll(`.${MAIN_PANEL_HEADER_MOUNT_CLASS}`)
 				.forEach((node) => node.remove());
-		};
-	}, [syncHost]);
-
-	useSiteEditorNavigate(syncHost);
+		}
+	);
 
 	if (!host) {
 		return null;
@@ -126,34 +101,21 @@ function MainPanelHeaderInjector(): ReactNode {
  * routes only.
  */
 function SiteEditorMainPanelNavigationInjector(): ReactNode {
-	const [host, setHost] = useState<Element | null>(null);
-	const [isDesignRoot, setIsDesignRoot] = useState(() => isDesignRootPath());
+	const host = usePortalHost(
+		useCallback(() => {
+			const designRoot = isDesignRootPath(getSiteEditorPath());
+			document.body?.classList?.toggle(
+				DESIGN_ROOT_BODY_CLASS,
+				designRoot
+			);
+			if (!designRoot) {
+				return null;
+			}
+			return document.querySelector(STABLE_SIDEBAR_CONTENT_SELECTOR);
+		}, [])
+	);
 
-	const sync = useCallback(() => {
-		const designRoot = isDesignRootPath(getSiteEditorPath());
-		setIsDesignRoot(designRoot);
-		document.body?.classList?.toggle(DESIGN_ROOT_BODY_CLASS, designRoot);
-		setHost(document.querySelector(STABLE_SIDEBAR_CONTENT_SELECTOR));
-	}, []);
-
-	useEffect(() => {
-		if (!isSiteEditorUrl()) {
-			return;
-		}
-
-		sync();
-
-		const observer = new MutationObserver(sync);
-		observer.observe(document.body, { childList: true, subtree: true });
-
-		return () => {
-			observer.disconnect();
-		};
-	}, [sync]);
-
-	useSiteEditorNavigate(sync);
-
-	if (!host || !isDesignRoot) {
+	if (!host) {
 		return null;
 	}
 

@@ -11,7 +11,7 @@
  * inside the primary sidebar.
  */
 
-import type { ReactNode } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 
 import { useRegistry } from '@wordpress/data';
 import {
@@ -19,27 +19,23 @@ import {
 	isValidElement,
 	useLayoutEffect,
 } from '@wordpress/element';
-import { __ } from '@wordpress/i18n';
-
 import { getQueryArg } from '@wordpress/url';
 
-import { EDIT_SITE_STORE_NAME } from './constants';
-import DrillDownScreen from './drill-down-screen';
-import HomepageSettingsPanel from './homepage-settings-panel';
-import PerformancePanel from './performance-panel';
-import SiteIdentityPanel from './site-identity-panel';
-import StylesDrillDown from './styles-drill-down';
+import { EDIT_SITE_STORE_NAME } from '../constants';
+import DrillDownScreen from '../components/drill-down-screen';
+import { getSettingsRouteItems } from '../navigation/nav-config';
+import StylesDrillDown from '../styles-drill-down';
 import {
 	TEMPLATES_FILTER_QUERY,
 	TemplatesBrowseContent,
 	TemplatesDrillDown,
 	isTemplatesOwnedPagePreview,
-} from './templates';
-import TemplatesAreaHub from './templates/templates-area-hub';
-import TemplatesPurposePreview from './templates/templates-purpose-preview';
-import { getTemplatesUrlState } from './templates/constants';
-import { isSiteEditorUrl } from './utils';
-import './styles-panel.scss';
+} from '../templates';
+import TemplatesAreaHub from '../templates/templates-area-hub';
+import TemplatesPurposePreview from '../templates/templates-purpose-preview';
+import { getTemplatesUrlState } from '../templates/constants';
+import { isSiteEditorUrl } from '../utils';
+import '../styles-panel.scss';
 
 let didRegister = false;
 
@@ -98,8 +94,11 @@ function unregisterIfPresent(
 
 /**
  * Duplicate a route area node so sidebar + mobileSidebar each get an instance.
+ * Function areas pass through unchanged (the router invokes them per area).
  */
-function duplicateAreaNode(node: ReactNode): ReactNode {
+function duplicateAreaNode(
+	node: ReactNode | RouteAreaFn
+): ReactNode | RouteAreaFn {
 	if (isValidElement(node)) {
 		return cloneElement(node);
 	}
@@ -121,6 +120,24 @@ function resolveAreaNode(
 }
 
 /**
+ * Resolve a core route area and await it when async (core preview areas can
+ * return promises: list → Editor, grid → undefined).
+ */
+async function resolveAreaNodeAsync(
+	area: ReactNode | RouteAreaFn | undefined,
+	args: unknown
+): Promise<ReactNode> {
+	const resolved = resolveAreaNode(area, args);
+	if (
+		!!resolved &&
+		typeof (resolved as { then?: unknown }).then === 'function'
+	) {
+		return await (resolved as Promise<ReactNode>);
+	}
+	return resolved as ReactNode;
+}
+
+/**
  * Keep core area as a function so the router still passes `siteData` / `query`,
  * then gate the resolved node (e.g. missing-base empty state).
  */
@@ -128,19 +145,14 @@ function wrapTemplatesBrowseArea(
 	area: ReactNode | RouteAreaFn | undefined
 ): RouteAreaFn {
 	return async (args: unknown) => {
-		const resolved = resolveAreaNode(area, args);
-		const node =
-			!!resolved &&
-			typeof (resolved as { then?: unknown }).then === 'function'
-				? await (resolved as Promise<ReactNode>)
-				: resolved;
+		const node = await resolveAreaNodeAsync(area, args);
 		return <TemplatesBrowseContent>{node}</TemplatesBrowseContent>;
 	};
 }
 
 /**
- * Await core async preview (list → Editor, grid → undefined). Return null when
- * empty or when Area Hub owns the view so layout does not mount an empty canvas.
+ * Await core async preview. Return null when empty or when Area Hub owns the
+ * view so layout does not mount an empty canvas.
  */
 function wrapTemplatesBrowsePreview(
 	area: ReactNode | RouteAreaFn | undefined
@@ -150,14 +162,7 @@ function wrapTemplatesBrowsePreview(
 			return null;
 		}
 
-		const resolved = resolveAreaNode(area, args);
-		const node =
-			!!resolved &&
-			typeof (resolved as { then?: unknown }).then === 'function'
-				? await (resolved as Promise<ReactNode>)
-				: resolved;
-
-		return node ?? null;
+		return (await resolveAreaNodeAsync(area, args)) ?? null;
 	};
 }
 
@@ -170,19 +175,57 @@ function wrapTemplateItemPurposePreview(
 	area: ReactNode | RouteAreaFn | undefined
 ): RouteAreaFn {
 	return async (args: unknown) => {
-		const resolved = resolveAreaNode(area, args);
-		const node =
-			!!resolved &&
-			typeof (resolved as { then?: unknown }).then === 'function'
-				? await (resolved as Promise<ReactNode>)
-				: resolved;
-
+		const node = await resolveAreaNodeAsync(area, args);
 		return <TemplatesPurposePreview>{node}</TemplatesPurposePreview>;
 	};
 }
 
-function wrapStylesDrillDown(content: ReactNode): ReactNode {
-	return <StylesDrillDown>{content}</StylesDrillDown>;
+// Core styles content is an element in practice; a function area would pass
+// through untouched (same runtime behavior as before the type widening).
+function wrapStylesDrillDown(content: ReactNode | RouteAreaFn): ReactNode {
+	return <StylesDrillDown>{content as ReactNode}</StylesDrillDown>;
+}
+
+/**
+ * Register a sidebar-only settings route (drill-down title + panel), building
+ * separate sidebar / mobileSidebar screen instances. Route entries come from
+ * the navigation catalog (`getSettingsRouteItems`).
+ */
+function registerSettingsRoute(
+	reduxStore: NonNullable<ReturnType<typeof getEditSiteReduxStore>>,
+	{
+		name,
+		path,
+		title,
+		Panel,
+		preview,
+	}: {
+		name: string;
+		path: string;
+		title: string;
+		Panel: ComponentType;
+		preview: ReactNode | RouteAreaFn;
+	}
+): void {
+	const screen = () => (
+		<DrillDownScreen title={title}>
+			<Panel />
+		</DrillDownScreen>
+	);
+
+	unregisterIfPresent(reduxStore, name);
+	reduxStore.dispatch?.({
+		type: 'REGISTER_ROUTE',
+		route: {
+			name,
+			path,
+			areas: {
+				sidebar: screen(),
+				preview,
+				mobileSidebar: screen(),
+			},
+		},
+	});
 }
 
 /**
@@ -340,7 +383,7 @@ export default function SiteEditorMainPanelRoutes(): null {
 					pageItem.areas.mobileSidebar ?? pageItem.areas.sidebar;
 
 				const templatesOrPagesSidebar = (
-					coreSidebar: ReactNode | ((args: unknown) => ReactNode)
+					coreSidebar: ReactNode | RouteAreaFn
 				): RouteAreaFn => {
 					return (args: unknown) => {
 						const boFilter = getQueryArg(
@@ -377,83 +420,16 @@ export default function SiteEditorMainPanelRoutes(): null {
 				});
 			}
 
-			const identityScreen = (
-				<DrillDownScreen title={__('Site Identity', 'blockera')}>
-					<SiteIdentityPanel />
-				</DrillDownScreen>
-			);
-
-			unregisterIfPresent(reduxStore, 'identity');
-			reduxStore.dispatch({
-				type: 'REGISTER_ROUTE',
-				route: {
-					name: 'identity',
-					path: '/identity',
-					areas: {
-						sidebar: identityScreen,
-						preview: settingsPreview,
-						mobileSidebar: (
-							<DrillDownScreen
-								title={__('Site Identity', 'blockera')}
-							>
-								<SiteIdentityPanel />
-							</DrillDownScreen>
-						),
-					},
-				},
-			});
-
-			const homepageScreen = (
-				<DrillDownScreen title={__('Homepage Settings', 'blockera')}>
-					<HomepageSettingsPanel />
-				</DrillDownScreen>
-			);
-
-			unregisterIfPresent(reduxStore, 'homepage');
-			reduxStore.dispatch({
-				type: 'REGISTER_ROUTE',
-				route: {
-					name: 'homepage',
-					path: '/homepage',
-					areas: {
-						sidebar: homepageScreen,
-						preview: settingsPreview,
-						mobileSidebar: (
-							<DrillDownScreen
-								title={__('Homepage Settings', 'blockera')}
-							>
-								<HomepageSettingsPanel />
-							</DrillDownScreen>
-						),
-					},
-				},
-			});
-
-			unregisterIfPresent(reduxStore, 'performance');
-			reduxStore.dispatch({
-				type: 'REGISTER_ROUTE',
-				route: {
-					name: 'performance',
-					path: '/performance',
-					areas: {
-						sidebar: (
-							<DrillDownScreen
-								title={__('Performance', 'blockera')}
-							>
-								<PerformancePanel />
-							</DrillDownScreen>
-						),
-						preview: settingsPreview,
-						mobileSidebar: (
-							<DrillDownScreen
-								title={__('Performance', 'blockera')}
-							>
-								<PerformancePanel />
-							</DrillDownScreen>
-						),
-					},
-				},
-			});
+			// Identity / Homepage / Performance — one catalog entry each.
+			for (const item of getSettingsRouteItems()) {
+				registerSettingsRoute(reduxStore, {
+					name: item.key,
+					path: item.path,
+					title: item.label,
+					Panel: item.settingsPanel,
+					preview: settingsPreview,
+				});
+			}
 
 			didRegister = true;
 			return true;
