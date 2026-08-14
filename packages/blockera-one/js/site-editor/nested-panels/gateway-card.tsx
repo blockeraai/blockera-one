@@ -1,6 +1,8 @@
 /**
- * Compact gateway card: title + optional toggle + chevron.
- * When enabled, header/chevron opens a nested panel; toggle does not navigate.
+ * Gateway card: title + optional toggle + chevron.
+ * Compact when there is no body; expanded groups keep body controls below
+ * the heading. When enabled, header/chevron opens a nested panel; toggle
+ * does not navigate.
  */
 
 import type { ReactNode, KeyboardEvent, MouseEvent } from 'react';
@@ -29,6 +31,7 @@ export type GatewayCardProps = {
 	};
 	/** Open nested panel (only invoked when enabled). */
 	onOpen?: () => void;
+	className?: string;
 	'data-test'?: string;
 	children?: ReactNode;
 };
@@ -38,10 +41,12 @@ export default function GatewayCard({
 	enabled,
 	toggle,
 	onOpen,
+	className,
 	'data-test': dataTest,
 	children,
 }: GatewayCardProps) {
 	const canOpen = enabled && typeof onOpen === 'function';
+	const hasBody = Boolean(children);
 
 	const open = () => {
 		if (canOpen) {
@@ -74,8 +79,10 @@ export default function GatewayCard({
 				'blockera-se-admin-ui-card',
 				'admin-ui-page',
 				'blockera-site-editor-gateway-card',
-				'is-header-collapsed',
+				className,
 				{
+					'is-header-collapsed': !hasBody,
+					'has-body': hasBody,
 					'is-enabled': enabled,
 					'is-navigable': canOpen,
 				}

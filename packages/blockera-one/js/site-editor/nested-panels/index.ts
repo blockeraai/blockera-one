@@ -15,3 +15,4 @@ export {
 	type UrlPanelStackApi,
 } from './use-url-panel-stack';
 export { default as GatewayCard, type GatewayCardProps } from './gateway-card';
+export { default as GatewayRow, type GatewayRowProps } from './gateway-row';

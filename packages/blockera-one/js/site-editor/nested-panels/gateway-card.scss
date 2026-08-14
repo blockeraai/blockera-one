@@ -6,6 +6,29 @@
  * (`whileHover` scale 1.005, 0.5s easeOut).
  */
 
+.blockera-site-editor-gateway-row,
+.blockera-site-editor-gateway-card {
+	--hover-background-color: color-mix(
+		in srgb,
+		var(
+				--blockera-controls-primary-color,
+				var(--wp-admin-theme-color, #3858e9)
+			)
+			20%,
+		#ffffff 100%
+	);
+	--disabled-background-color: #f0f0f0;
+	--disabled-background-gradient:
+		repeating-linear-gradient(
+			-45deg,
+			rgba(0, 0, 0, 0.07) 0,
+			rgba(0, 0, 0, 0.07) 1px,
+			transparent 1px,
+			transparent 5px
+		),
+		var(--disabled-background-color);
+}
+
 .blockera-site-editor-gateway-card {
 	flex: 0 0 auto;
 	max-height: none;
@@ -23,7 +46,11 @@
 	}
 
 	&.is-navigable {
-		cursor: pointer;
+		transition: all 0.1s ease-out;
+
+		.admin-ui-page__header {
+			cursor: pointer;
+		}
 
 		@media not (prefers-reduced-motion) {
 			.blockera-site-editor-gateway-card__chevron {
@@ -31,14 +58,30 @@
 			}
 		}
 
-		&:hover {
-			.blockera-site-editor-gateway-card__chevron {
-				transform: translate(5px, 0);
+		// Compact card: hover the whole surface.
+		&:not(.has-body) {
+			cursor: pointer;
+
+			&:hover {
+				background-color: var(--hover-background-color);
+
+				.admin-ui-page__header {
+					background-color: var(--hover-background-color);
+				}
+
+				.blockera-site-editor-gateway-card__chevron {
+					transform: translate(5px, 0);
+				}
 			}
 		}
 
-		.admin-ui-page__header {
-			cursor: pointer;
+		// Expanded card: hover only the heading so body controls stay still.
+		&.has-body .admin-ui-page__header:hover {
+			background-color: var(--hover-background-color);
+
+			.blockera-site-editor-gateway-card__chevron {
+				transform: translate(5px, 0);
+			}
 		}
 	}
 
@@ -49,7 +92,7 @@
 
 	&:not(.is-navigable) {
 		.admin-ui-page__header {
-			background: #cbcbcb !important;
+			background: var(--disabled-background-gradient) !important;
 		}
 	}
 
@@ -80,5 +123,81 @@
 
 	&.is-enabled &__chevron {
 		color: var(--wp-admin-theme-color, #3858e9);
+	}
+}
+
+.blockera-site-editor-gateway-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	min-height: 36px;
+	transition: all 0.1s ease-out;
+	padding: 0 18px;
+	margin: 0 -18px;
+	--disabled-background-color: #f9f9f9;
+
+	&.is-navigable {
+		cursor: pointer;
+
+		@media not (prefers-reduced-motion) {
+			.blockera-site-editor-gateway-row__chevron {
+				transition: all 0.1s ease-out;
+			}
+		}
+
+		&:hover {
+			background-color: var(--hover-background-color);
+
+			.blockera-site-editor-gateway-row__chevron {
+				transform: translate(5px, 0);
+			}
+		}
+	}
+
+	&__label {
+		font-size: 13px;
+		font-weight: 500;
+		color: #1e1e1e;
+	}
+
+	&__trailing {
+		display: inline-flex;
+		align-items: center;
+		gap: 3px;
+		flex: 0 0 auto;
+		margin-right: -7px;
+	}
+
+	&__toggle {
+		display: inline-flex;
+		align-items: center;
+	}
+
+	&__chevron {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		color: #949494;
+		line-height: 0;
+
+		svg {
+			display: block;
+			fill: currentColor;
+		}
+	}
+
+	&.is-enabled {
+		.blockera-site-editor-gateway-row__chevron {
+			color: var(--wp-admin-theme-color, #3858e9);
+		}
+	}
+
+	&:not(.is-navigable) {
+		background: var(--disabled-background-gradient) !important;
+
+		.blockera-site-editor-gateway-row__chevron {
+			opacity: 0.45;
+		}
 	}
 }
