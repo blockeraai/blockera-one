@@ -70,7 +70,7 @@
 				}
 
 				.blockera-site-editor-gateway-card__chevron {
-					transform: translate(5px, 0);
+					transform: translate(3px, 0);
 				}
 			}
 		}
@@ -101,6 +101,7 @@
 		align-items: center;
 		gap: 4px;
 		flex: 0 0 auto;
+		margin-right: -4px;
 	}
 
 	&__toggle {
@@ -150,13 +151,9 @@
 			background-color: var(--hover-background-color);
 
 			.blockera-site-editor-gateway-row__chevron {
-				transform: translate(5px, 0);
+				transform: translate(3px, 0);
 			}
 		}
-	}
-
-	&:last-child {
-		margin-bottom: -5px;
 	}
 
 	&__label {
@@ -170,7 +167,7 @@
 		align-items: center;
 		gap: 4px;
 		flex: 0 0 auto;
-		margin-right: -7px;
+		margin-right: -10px;
 	}
 
 	&__toggle {
@@ -204,4 +201,12 @@
 			opacity: 0.45;
 		}
 	}
+}
+
+// Consecutive gateway rows sit in separate control wrappers; pull them together.
+.blockera-templates-builder-control:has(.blockera-site-editor-gateway-row)
+	+ .blockera-templates-builder-control:has(
+		.blockera-site-editor-gateway-row
+	) {
+	margin-top: -15px;
 }
