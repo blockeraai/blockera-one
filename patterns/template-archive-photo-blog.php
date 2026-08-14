@@ -19,8 +19,8 @@
 <main class="wp-block-group" style="margin-top:var(--wp--preset--spacing--60)">
 	<!-- wp:group {"metadata":{"blockeraOne":"section/page-title:default"},"style":{"spacing":{"blockGap":"var:preset|spacing|20","margin":{"bottom":"var:preset|spacing|50"}}},"layout":{"type":"constrained"}} -->
 	<div class="wp-block-group" style="margin-bottom:var(--wp--preset--spacing--50)">
-		<!-- wp:query-title {"type":"archive","textAlign":"center"} /-->
-		<!-- wp:term-description {"textAlign":"center"} /-->
+		<!-- wp:query-title {"type":"archive","textAlign":"center","metadata":{"blockeraOne":"section/page-title-title:default"}} /-->
+		<!-- wp:term-description {"textAlign":"center","metadata":{"blockeraOne":"section/page-title-description:default"}} /-->
 	</div>
 	<!-- /wp:group -->
 	<!-- wp:pattern {"slug":"blockera-one/template-query-loop-photo-blog"} /-->

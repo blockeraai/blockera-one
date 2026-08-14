@@ -14,7 +14,7 @@
 ?>
 <!-- wp:group {"metadata":{"blockeraOne":"section/page-title:default"},"align":"wide","style":{"spacing":{"blockGap":"var:preset|spacing|20","margin":{"bottom":"var:preset|spacing|50"}}},"layout":{"type":"constrained"}} -->
 <div class="wp-block-group alignwide" style="margin-bottom:var(--wp--preset--spacing--50)">
-	<!-- wp:query-title {"type":"archive"} /-->
-	<!-- wp:term-description /-->
+	<!-- wp:query-title {"type":"archive","metadata":{"blockeraOne":"section/page-title-title:default"}} /-->
+	<!-- wp:term-description {"metadata":{"blockeraOne":"section/page-title-description:default"}} /-->
 </div>
 <!-- /wp:group -->
