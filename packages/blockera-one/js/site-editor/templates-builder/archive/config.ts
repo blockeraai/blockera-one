@@ -11,7 +11,11 @@
 import { __ } from '@wordpress/i18n';
 
 import { FILTER_IDS } from '../../templates/constants';
-import type { TemplateOptionsConfig } from '../shared/types';
+import type {
+	ControlDef,
+	InnerOrderRule,
+	TemplateOptionsConfig,
+} from '../shared/types';
 
 const HEADER_STACKED_PLACEMENT = {
 	relativeTo: 'archive-body',
@@ -21,6 +25,64 @@ const HEADER_STACKED_PLACEMENT = {
 const FOOTER_STACKED_PLACEMENT = {
 	relativeTo: 'archive-body',
 	position: 'after' as const,
+};
+
+const PAGE_HEADER_INNER_ORDER: InnerOrderRule = {
+	parentId: 'page-title',
+	ids: [
+		'page-title-title',
+		'page-title-description',
+		'page-title-breadcrumbs',
+	],
+	leadId: 'page-title-breadcrumbs',
+};
+
+const BREADCRUMBS_TARGET = {
+	kind: 'section' as const,
+	id: 'page-title-breadcrumbs',
+};
+
+function breadcrumbsColorControl(
+	id: string,
+	label: string,
+	attributePath: string
+): ControlDef {
+	return {
+		id,
+		type: 'color',
+		label,
+		target: BREADCRUMBS_TARGET,
+		operation: 'setSectionAttribute',
+		attributePath,
+		controlAddonTypes: ['variable'],
+		variableTypes: ['color'],
+	};
+}
+
+const PAGE_TITLE_DESIGN: ControlDef = {
+	id: 'page-title-design',
+	type: 'layout-picker',
+	label: __('Header Design', 'blockera'),
+	target: { kind: 'section', id: 'page-title' },
+	operation: 'swapSection',
+	conditions: [{ controlId: 'page-title', equals: true }],
+	catalogPool: 'page-title',
+	swapHints: {
+		reapplyControls: [
+			'page-title-title',
+			'page-title-description',
+			'page-title-breadcrumbs',
+			'breadcrumbs-position',
+			'breadcrumbs-color',
+			'breadcrumbs-bg-color',
+			'breadcrumbs-font-size',
+			'breadcrumbs-gap',
+			'breadcrumbs-separator',
+			'breadcrumbs-style',
+			'breadcrumbs-show-home',
+			'breadcrumbs-show-current',
+		],
+	},
 };
 
 export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
@@ -50,6 +112,21 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 		},
 		sidebar: { kind: 'templatePart', slugPrefix: 'sidebar' },
 		'page-title': { kind: 'groupWrapping', childName: 'core/query-title' },
+		'page-title-title': {
+			kind: 'innerBlock',
+			parentId: 'page-title',
+			name: 'core/query-title',
+		},
+		'page-title-description': {
+			kind: 'innerBlock',
+			parentId: 'page-title',
+			name: 'core/term-description',
+		},
+		'page-title-breadcrumbs': {
+			kind: 'innerBlock',
+			parentId: 'page-title',
+			name: 'core/breadcrumbs',
+		},
 		'posts-listing': { kind: 'blockName', name: 'core/query' },
 		pagination: { kind: 'blockName', name: 'core/query-pagination' },
 	},
@@ -115,17 +192,319 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 				},
 				catalogPool: 'page-title',
 			},
-			controls: [
-				{
-					id: 'page-title-design',
-					type: 'layout-picker',
-					label: __('Header Design', 'blockera'),
-					target: { kind: 'section', id: 'page-title' },
-					operation: 'swapSection',
-					conditions: [{ controlId: 'page-title', equals: true }],
-					catalogPool: 'page-title',
-				},
-			],
+			controls: [PAGE_TITLE_DESIGN],
+			nestedPanel: {
+				id: 'page-header-settings',
+				title: __('Page Header', 'blockera'),
+				gatewayLabel: __('Design & Elements', 'blockera'),
+				groups: [
+					{
+						id: 'page-header-design',
+						title: __('Design', 'blockera'),
+						controls: [
+							PAGE_TITLE_DESIGN,
+							{
+								id: 'page-header-gap',
+								type: 'input',
+								label: __('Elements Gap', 'blockera'),
+								target: {
+									kind: 'section',
+									id: 'page-title',
+								},
+								operation: 'setSectionAttribute',
+								attributePath: 'blockeraGap.value',
+								unitType: 'essential',
+								controlAddonTypes: ['variable'],
+								variableTypes: ['spacing'],
+								conditions: [
+									{
+										controlId: 'page-title',
+										equals: true,
+									},
+								],
+							},
+						],
+					},
+					{
+						id: 'page-header-elements',
+						title: __('Elements', 'blockera'),
+						controls: [
+							{
+								id: 'page-title-title',
+								type: 'toggle',
+								label: __('Title', 'blockera'),
+								target: {
+									kind: 'section',
+									id: 'page-title-title',
+								},
+								operation: 'toggleSection',
+								onValue: true,
+								offValue: false,
+								defaultValue: true,
+								catalogPool: 'page-title-title',
+								insert: {
+									relativeTo: 'page-title',
+									position: 'inside-start',
+								},
+								innerOrder: PAGE_HEADER_INNER_ORDER,
+								conditions: [
+									{
+										controlId: 'page-title',
+										equals: true,
+									},
+								],
+							},
+							{
+								id: 'page-title-description',
+								type: 'toggle',
+								label: __('Description', 'blockera'),
+								target: {
+									kind: 'section',
+									id: 'page-title-description',
+								},
+								operation: 'toggleSection',
+								onValue: true,
+								offValue: false,
+								defaultValue: true,
+								catalogPool: 'page-title-description',
+								insert: {
+									relativeTo: 'page-title',
+									position: 'inside-end',
+								},
+								innerOrder: PAGE_HEADER_INNER_ORDER,
+								conditions: [
+									{
+										controlId: 'page-title',
+										equals: true,
+									},
+								],
+							},
+							{
+								id: 'page-title-breadcrumbs',
+								type: 'toggle',
+								label: __('Breadcrumbs', 'blockera'),
+								target: {
+									kind: 'section',
+									id: 'page-title-breadcrumbs',
+								},
+								operation: 'toggleSection',
+								onValue: true,
+								offValue: false,
+								defaultValue: false,
+								catalogPool: 'page-title-breadcrumbs',
+								insert: {
+									relativeTo: 'page-title',
+									position: 'inside-end',
+								},
+								innerOrder: PAGE_HEADER_INNER_ORDER,
+								conditions: [
+									{
+										controlId: 'page-title',
+										equals: true,
+									},
+								],
+								nestedPanel: {
+									id: 'page-header-breadcrumbs',
+									title: __('Breadcrumbs', 'blockera'),
+									groups: [
+										{
+											id: 'breadcrumbs-design',
+											title: __('Design', 'blockera'),
+											controls: [
+												{
+													id: 'breadcrumbs-position',
+													type: 'segmented-choice',
+													label: __(
+														'Position',
+														'blockera'
+													),
+													target: {
+														kind: 'section',
+														id: 'page-title-breadcrumbs',
+													},
+													operation: 'placeSection',
+													defaultValue: 'bottom',
+													innerOrder:
+														PAGE_HEADER_INNER_ORDER,
+													variants: [
+														{
+															id: 'top',
+															label: __(
+																'Top',
+																'blockera'
+															),
+															placement: {
+																relativeTo:
+																	'page-title',
+																position:
+																	'inside-start',
+															},
+														},
+														{
+															id: 'bottom',
+															label: __(
+																'Bottom',
+																'blockera'
+															),
+															placement: {
+																relativeTo:
+																	'page-title',
+																position:
+																	'inside-end',
+															},
+														},
+													],
+												},
+												breadcrumbsColorControl(
+													'breadcrumbs-color',
+													__(
+														'Text Color',
+														'blockera'
+													),
+													'blockeraFontColor.value'
+												),
+												breadcrumbsColorControl(
+													'breadcrumbs-bg-color',
+													__('BG Color', 'blockera'),
+													'blockeraBackgroundColor.value'
+												),
+												{
+													id: 'breadcrumbs-font-size',
+													type: 'input',
+													label: __(
+														'Font Size',
+														'blockera'
+													),
+													target: {
+														kind: 'section',
+														id: 'page-title-breadcrumbs',
+													},
+													operation:
+														'setSectionAttribute',
+													attributePath:
+														'blockeraFontSize.value',
+													unitType: 'essential',
+													controlAddonTypes: [
+														'variable',
+													],
+													variableTypes: [
+														'font-size',
+													],
+													min: 0,
+												},
+												{
+													id: 'breadcrumbs-gap',
+													type: 'input',
+													label: __(
+														'Gap',
+														'blockera'
+													),
+													target: {
+														kind: 'section',
+														id: 'page-title-breadcrumbs',
+													},
+													operation:
+														'setSectionAttribute',
+													attributePath:
+														'blockeraGap.value',
+													unitType: 'essential',
+													controlAddonTypes: [
+														'variable',
+													],
+													variableTypes: ['spacing'],
+												},
+												{
+													id: 'breadcrumbs-style',
+													type: 'select',
+													label: __(
+														'Style',
+														'blockera'
+													),
+													target: {
+														kind: 'section',
+														id: 'page-title-breadcrumbs',
+													},
+													operation: 'setBlockStyle',
+													defaultValue: 'default',
+												},
+												{
+													id: 'breadcrumbs-customize',
+													type: 'button',
+													label: __(
+														'Customize in editor',
+														'blockera'
+													),
+													target: {
+														kind: 'section',
+														id: 'page-title-breadcrumbs',
+													},
+													operation: 'selectInCanvas',
+												},
+											],
+										},
+										{
+											id: 'breadcrumbs-settings',
+											title: __('Settings', 'blockera'),
+											controls: [
+												{
+													id: 'breadcrumbs-separator',
+													type: 'input',
+													label: __(
+														'Separator',
+														'blockera'
+													),
+													target: {
+														kind: 'section',
+														id: 'page-title-breadcrumbs',
+													},
+													operation:
+														'setSectionAttribute',
+													attributePath: 'separator',
+													defaultValue: '/',
+												},
+												{
+													id: 'breadcrumbs-show-home',
+													type: 'toggle',
+													label: __(
+														'Show home breadcrumb',
+														'blockera'
+													),
+													target: {
+														kind: 'section',
+														id: 'page-title-breadcrumbs',
+													},
+													operation:
+														'setSectionAttribute',
+													attributePath:
+														'showHomeItem',
+													defaultValue: true,
+												},
+												{
+													id: 'breadcrumbs-show-current',
+													type: 'toggle',
+													label: __(
+														'Show current breadcrumb',
+														'blockera'
+													),
+													target: {
+														kind: 'section',
+														id: 'page-title-breadcrumbs',
+													},
+													operation:
+														'setSectionAttribute',
+													attributePath:
+														'showCurrentItem',
+													defaultValue: true,
+												},
+											],
+										},
+									],
+								},
+							},
+						],
+					},
+				],
+			},
 		},
 		{
 			id: 'page-layout',
