@@ -5,13 +5,19 @@
 import { addQueryArgs, getQueryArg, getQueryArgs } from '@wordpress/url';
 
 /**
+ * Blockera dependencies
+ */
+import { pushSiteEditorHistory } from '@blockera/utils';
+
+/**
  * Internal dependencies
  */
 import { ROUTES } from '../constants';
 import {
 	setPendingSidebarNavDirection,
 	type SidebarNavDirection,
-} from '../utils';
+} from '../navigation/history';
+import { readPanelStack } from '../nested-panels';
 import { rememberTemplatesSidebarScroll } from './templates-sidebar-scroll';
 
 /** Core Templates DataViews tab query key (`active` / `user` / author_text). */
@@ -22,6 +28,9 @@ export const TEMPLATES_FILTER_QUERY = 'boFilter';
 
 /** URL query key for General Area Hub (header / footer / sidebar). */
 export const TEMPLATES_PARTS_AREA_QUERY = 'partsArea';
+
+/** URL query key for Templates Builder nested options panel stack. */
+export const TEMPLATES_OPTIONS_PANEL_QUERY = 'boBuilder';
 
 export const TEMPLATE_POST_TYPE = 'wp_template';
 export const TEMPLATE_PART_POST_TYPE = 'wp_template_part';
@@ -82,6 +91,7 @@ export type PartAreaId = (typeof PART_AREA_IDS)[number];
 const TEMPLATES_QUERY_KEYS_TO_SCRUB = [
 	TEMPLATES_FILTER_QUERY,
 	TEMPLATES_PARTS_AREA_QUERY,
+	TEMPLATES_OPTIONS_PANEL_QUERY,
 	TEMPLATES_ACTIVE_VIEW_QUERY,
 	'canvas',
 ] as const;
@@ -89,6 +99,8 @@ const TEMPLATES_QUERY_KEYS_TO_SCRUB = [
 export type TemplatesUrlState = {
 	filter: FilterId;
 	partsArea: PartAreaId | null;
+	/** Nested options panel stack (e.g. `['sidebar']`). */
+	optionsPanel: string[];
 	path: string;
 };
 
@@ -127,7 +139,9 @@ export function getTemplatesUrlState(
 		partsArea = area as PartAreaId;
 	}
 
-	return { filter, partsArea, path };
+	const optionsPanel = readPanelStack(TEMPLATES_OPTIONS_PANEL_QUERY, href);
+
+	return { filter, partsArea, optionsPanel, path };
 }
 
 /**
@@ -154,47 +168,14 @@ export function getCoreActiveViewForFilter(
 }
 
 /**
- * SPA navigate via history + popstate; scrub empty Templates query keys.
+ * SPA navigate via shared history writer; scrub empty Templates query keys.
  */
 function pushSiteEditorQuery(
 	nextQuery: Record<string, string | undefined>
 ): void {
-	const absoluteUrl = addQueryArgs(window.location.href, nextQuery);
-	let nextUrl = absoluteUrl;
-
-	try {
-		const parsed = new URL(absoluteUrl);
-		TEMPLATES_QUERY_KEYS_TO_SCRUB.forEach((key) => {
-			const value = parsed.searchParams.get(key);
-			if (!value || value === 'undefined') {
-				parsed.searchParams.delete(key);
-			}
-		});
-		nextUrl = `${parsed.pathname}${parsed.search}${parsed.hash}`;
-	} catch (_e) {
-		// Keep absoluteUrl fallback.
-	}
-
-	const prevState =
-		typeof window.history.state === 'object' && window.history.state
-			? window.history.state
-			: {};
-	const nextIdx =
-		typeof (prevState as { idx?: number }).idx === 'number'
-			? (prevState as { idx: number }).idx + 1
-			: 0;
-
-	window.history.pushState(
-		{
-			...prevState,
-			usr: (prevState as { usr?: unknown }).usr ?? null,
-			key: Math.random().toString(36).slice(2, 10),
-			idx: nextIdx,
-		},
-		'',
-		nextUrl
-	);
-	window.dispatchEvent(new PopStateEvent('popstate'));
+	pushSiteEditorHistory(nextQuery, {
+		scrubKeys: TEMPLATES_QUERY_KEYS_TO_SCRUB,
+	});
 }
 
 /**
@@ -205,6 +186,8 @@ export function navigateTemplates(
 	options?: {
 		filter?: FilterId | null;
 		partsArea?: PartAreaId | null;
+		/** Nested options stack; pass `null` or `[]` to clear. */
+		optionsPanel?: string[] | null;
 		direction?: SidebarNavDirection;
 		clearFilter?: boolean;
 		/** Core DataViews tab; pass `null` to clear. */
@@ -246,6 +229,24 @@ export function navigateTemplates(
 		nextQuery[TEMPLATES_PARTS_AREA_QUERY] = options.partsArea || undefined;
 	} else if (current.partsArea) {
 		nextQuery[TEMPLATES_PARTS_AREA_QUERY] = current.partsArea;
+	}
+
+	if (
+		options?.clearFilter ||
+		options?.optionsPanel === null ||
+		(Array.isArray(options?.optionsPanel) &&
+			options.optionsPanel.length === 0)
+	) {
+		nextQuery[TEMPLATES_OPTIONS_PANEL_QUERY] = undefined;
+	} else if (options?.optionsPanel !== undefined) {
+		nextQuery[TEMPLATES_OPTIONS_PANEL_QUERY] =
+			options.optionsPanel.join('/') || undefined;
+	} else if (options?.filter !== undefined) {
+		// Changing purpose filter drops nested options screens.
+		nextQuery[TEMPLATES_OPTIONS_PANEL_QUERY] = undefined;
+	} else if (current.optionsPanel.length) {
+		nextQuery[TEMPLATES_OPTIONS_PANEL_QUERY] =
+			current.optionsPanel.join('/');
 	}
 
 	const isBrowsePath =
@@ -319,6 +320,7 @@ export function navigateToPatternsTemplatePartArea(area: PartAreaId): void {
 		...pathQuery,
 		[TEMPLATES_FILTER_QUERY]: undefined,
 		[TEMPLATES_PARTS_AREA_QUERY]: undefined,
+		[TEMPLATES_OPTIONS_PANEL_QUERY]: undefined,
 		[TEMPLATES_ACTIVE_VIEW_QUERY]: undefined,
 		canvas: undefined,
 	});
