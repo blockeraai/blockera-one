@@ -266,6 +266,200 @@ describe('resolveControlViewStates', () => {
 		).toBe(false); // list
 	});
 
+	it('reads setSectionAttribute values from the nested attribute path', () => {
+		const config = makeConfig([
+			{
+				id: 'page-header-gap',
+				type: 'input',
+				label: 'Items Spacing',
+				target: { kind: 'section', id: 'page-title' },
+				operation: 'setSectionAttribute',
+				attributePath: 'blockeraGap.value',
+			},
+		]);
+		const gapValue = {
+			lock: true,
+			gap: '20px',
+			columns: '',
+			rows: '',
+		};
+		const tree = [
+			...makeNoSidebarTree(),
+			stamped('core/group', 'section/page-title:default', {
+				blockeraGap: { value: gapValue },
+			}),
+		];
+
+		expect(byId(resolve(tree, config), 'page-header-gap').value).toEqual(
+			gapValue
+		);
+		expect(
+			byId(resolve(makeNoSidebarTree(), config), 'page-header-gap').value
+		).toBeNull();
+	});
+
+	it('uses Gutenberg defaults for omitted breadcrumbs attributes', () => {
+		const config = makeConfig([
+			{
+				id: 'breadcrumbs-separator',
+				type: 'input',
+				label: 'Separator',
+				target: { kind: 'section', id: 'page-title-breadcrumbs' },
+				operation: 'setSectionAttribute',
+				attributePath: 'separator',
+				defaultValue: '/',
+			},
+			{
+				id: 'breadcrumbs-show-home',
+				type: 'toggle',
+				label: 'Show home breadcrumb',
+				target: { kind: 'section', id: 'page-title-breadcrumbs' },
+				operation: 'setSectionAttribute',
+				attributePath: 'showHomeItem',
+				defaultValue: true,
+			},
+			{
+				id: 'breadcrumbs-style',
+				type: 'select',
+				label: 'Style variation',
+				target: { kind: 'section', id: 'page-title-breadcrumbs' },
+				operation: 'setBlockStyle',
+				defaultValue: 'default',
+			},
+		]);
+		const tree = [
+			stamped(
+				'core/breadcrumbs',
+				'section/page-title-breadcrumbs:default',
+				{ className: 'blockera-block is-style-underline' }
+			),
+		];
+
+		expect(byId(resolve(tree, config), 'breadcrumbs-separator').value).toBe(
+			'/'
+		);
+		expect(byId(resolve(tree, config), 'breadcrumbs-show-home').value).toBe(
+			true
+		);
+		expect(byId(resolve(tree, config), 'breadcrumbs-style').value).toBe(
+			'underline'
+		);
+		expect(byId(resolve(tree, config), 'breadcrumbs-style').blockName).toBe(
+			'core/breadcrumbs'
+		);
+	});
+
+	it('keeps an empty breadcrumbs separator instead of falling back to /', () => {
+		const config = makeConfig([
+			{
+				id: 'breadcrumbs-separator',
+				type: 'input',
+				label: 'Separator',
+				target: { kind: 'section', id: 'page-title-breadcrumbs' },
+				operation: 'setSectionAttribute',
+				attributePath: 'separator',
+				defaultValue: '/',
+			},
+		]);
+		const tree = [
+			stamped(
+				'core/breadcrumbs',
+				'section/page-title-breadcrumbs:default',
+				{ separator: '' }
+			),
+		];
+
+		expect(byId(resolve(tree, config), 'breadcrumbs-separator').value).toBe(
+			''
+		);
+	});
+
+	it('reads Blockera color and font-size values including empty inspector clears', () => {
+		const config = makeConfig([
+			{
+				id: 'breadcrumbs-color',
+				type: 'color',
+				label: 'Text Color',
+				target: { kind: 'section', id: 'page-title-breadcrumbs' },
+				operation: 'setSectionAttribute',
+				attributePath: 'blockeraFontColor.value',
+			},
+			{
+				id: 'breadcrumbs-font-size',
+				type: 'input',
+				label: 'Font Size',
+				target: { kind: 'section', id: 'page-title-breadcrumbs' },
+				operation: 'setSectionAttribute',
+				attributePath: 'blockeraFontSize.value',
+			},
+		]);
+		const tree = [
+			stamped(
+				'core/breadcrumbs',
+				'section/page-title-breadcrumbs:default',
+				{
+					blockeraFontColor: { value: '' },
+					blockeraFontSize: { value: '18px' },
+				}
+			),
+		];
+
+		expect(byId(resolve(tree, config), 'breadcrumbs-color').value).toBe('');
+		expect(byId(resolve(tree, config), 'breadcrumbs-font-size').value).toBe(
+			'18px'
+		);
+		expect(
+			byId(resolve(makeNoSidebarTree(), config), 'breadcrumbs-color')
+				.value
+		).toBeNull();
+	});
+
+	it('resolves placeSection as top when the section is the first inner block', () => {
+		const position = {
+			id: 'breadcrumbs-position',
+			type: 'segmented-choice',
+			label: 'Position',
+			target: { kind: 'section', id: 'page-title-breadcrumbs' },
+			operation: 'placeSection',
+			defaultValue: 'bottom',
+			innerOrder: { parentId: 'page-title' },
+			variants: [
+				{ id: 'top', label: 'Top' },
+				{ id: 'bottom', label: 'Bottom' },
+			],
+		};
+		const config = makeConfig([position]);
+		const topTree = [
+			stamped('core/group', 'section/page-title:default', {}, [
+				stamped(
+					'core/breadcrumbs',
+					'section/page-title-breadcrumbs:default'
+				),
+				stamped('core/query-title', 'section/page-title-title:default'),
+			]),
+		];
+		const bottomTree = [
+			stamped('core/group', 'section/page-title:default', {}, [
+				stamped('core/query-title', 'section/page-title-title:default'),
+				stamped(
+					'core/breadcrumbs',
+					'section/page-title-breadcrumbs:default'
+				),
+			]),
+		];
+
+		expect(
+			byId(resolve(topTree, config), 'breadcrumbs-position').value
+		).toBe('top');
+		expect(
+			byId(resolve(bottomTree, config), 'breadcrumbs-position').value
+		).toBe('bottom');
+		expect(
+			byId(resolve(makeNoSidebarTree(), config), 'breadcrumbs-position')
+				.value
+		).toBe('bottom');
+	});
+
 	it('resolves duplicate control ids exactly once (even with null values)', () => {
 		// A heuristic-detected section with no variants resolves to null —
 		// the dedupe must still hold (regression for the !== undefined guard).
