@@ -2,7 +2,7 @@
 /**
  * Title: Link in bio with profile, links and wide margins
  * Slug: blockera-one/page-link-in-bio-wide-margins
- * Categories: blockera_one_page, banner, featured
+ * Categories: blockera-one/page, banner, featured
  * Keywords: starter
  * Block Types: core/post-content
  * Viewport width: 1400

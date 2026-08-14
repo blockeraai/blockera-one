@@ -2,7 +2,7 @@
 /**
  * Title: Link in bio heading, paragraph, links and full-height image
  * Slug: blockera-one/page-link-in-bio-heading-paragraph-links-image
- * Categories: blockera_one_page, banner, featured
+ * Categories: blockera-one/page, banner, featured
  * Keywords: starter
  * Block Types: core/post-content
  * Viewport width: 1400

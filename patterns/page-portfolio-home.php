@@ -2,7 +2,7 @@
 /**
  * Title: Portfolio homepage
  * Slug: blockera-one/page-portfolio-home
- * Categories: blockera_one_page, posts
+ * Categories: blockera-one/page, posts
  * Keywords: starter
  * Block Types: core/post-content
  * Post Types: page, wp_template

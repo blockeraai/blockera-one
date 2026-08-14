@@ -2,7 +2,7 @@
 /**
  * Title: Shop homepage
  * Slug: blockera-one/page-shop-home
- * Categories: blockera_one_page
+ * Categories: blockera-one/page
  * Keywords: starter
  * Block Types: core/post-content
  * Post Types: page, wp_template
