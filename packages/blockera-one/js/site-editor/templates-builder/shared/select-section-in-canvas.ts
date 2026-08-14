@@ -1,7 +1,8 @@
 /**
  * Canvas jump for Templates Builder “Customize in editor”: switch the Site
- * Editor canvas to edit, open a parent content-only pattern if needed, select
- * the stamped section, and open the block inspector.
+ * Editor canvas to edit, enter pattern edit when the target is an unsynced
+ * pattern, open a parent content-only pattern if an inner block is disabled,
+ * select the stamped section, and open the block inspector.
  */
 
 import { store as blockEditorStore } from '@wordpress/block-editor';
@@ -42,6 +43,8 @@ type BlockEditorSelect = {
 	getTemplateLock?: (id: string) => string | false | undefined;
 	getSelectedBlockClientId?: () => string | null;
 	getSettings?: () => { isPreviewMode?: boolean };
+	getEditedContentOnlySection?: () => string | null | undefined;
+	__unstableGetTemporarilyEditingAsBlocks?: () => string | null | undefined;
 };
 
 type BlockEditorDispatch = {
@@ -71,10 +74,67 @@ function isContentOnlySectionClientId(
 	}
 	const attrs = sel.getBlockAttributes?.(clientId) || {};
 	const metadata = (attrs.metadata || {}) as Record<string, unknown>;
-	if (typeof metadata.patternName === 'string' && metadata.patternName) {
+	return shouldEnterPatternEditOnTarget({
+		blockName: name,
+		patternName: metadata.patternName,
+		templateLock: sel.getTemplateLock?.(clientId),
+	});
+}
+
+/**
+ * Whether Customize-in-editor should enter Gutenberg pattern edit on the
+ * target itself. Matches Gutenberg’s “Edit pattern” (`editContentOnlySection`
+ * + `selectBlock`). Synced patterns and template parts use isolated
+ * “Edit original” instead.
+ *
+ * @see source-codes/block-editor/packages/block-editor/src/components/block-inspector/edit-contents.js
+ *      InlineEditButton
+ */
+export function shouldEnterPatternEditOnTarget(params: {
+	blockName?: string;
+	patternName?: unknown;
+	templateLock?: string | false;
+}): boolean {
+	const { blockName, patternName, templateLock } = params;
+	if (blockName === 'core/block' || blockName === 'core/template-part') {
+		return false;
+	}
+	if (typeof patternName === 'string' && patternName) {
 		return true;
 	}
-	return sel.getTemplateLock?.(clientId) === 'contentOnly';
+	return templateLock === 'contentOnly';
+}
+
+function isUnsyncedPatternSection(
+	sel: BlockEditorSelect,
+	clientId: string
+): boolean {
+	const attrs = sel.getBlockAttributes?.(clientId) || {};
+	const metadata = (attrs.metadata || {}) as Record<string, unknown>;
+	return shouldEnterPatternEditOnTarget({
+		blockName: sel.getBlockName?.(clientId),
+		patternName: metadata.patternName,
+		templateLock: sel.getTemplateLock?.(clientId),
+	});
+}
+
+function getEditedContentOnlySectionId(sel: BlockEditorSelect): {
+	available: boolean;
+	id: string | null;
+} {
+	if (typeof sel.getEditedContentOnlySection === 'function') {
+		return {
+			available: true,
+			id: sel.getEditedContentOnlySection() || null,
+		};
+	}
+	if (typeof sel.__unstableGetTemporarilyEditingAsBlocks === 'function') {
+		return {
+			available: true,
+			id: sel.__unstableGetTemporarilyEditingAsBlocks() || null,
+		};
+	}
+	return { available: false, id: null };
 }
 
 function findNearestContentOnlySection(
@@ -91,9 +151,9 @@ function findNearestContentOnlySection(
 }
 
 /**
- * Open the parent pattern/section in Gutenberg’s temporary edit mode so inner
- * blocks (editingMode `disabled`) can be selected. Feature-detects the private
- * action if a later WP build exposes it, then the public deprecated wrapper.
+ * Enter Gutenberg’s temporary content-only edit on a pattern/section.
+ * Feature-detects the private action if a later WP build exposes it, then
+ * the public deprecated wrapper.
  */
 function enterContentOnlySection(
 	blockEditor: BlockEditorDispatch,
@@ -154,10 +214,19 @@ function peekSelection(sectionId: string): {
 	const editingMode = clientId
 		? sel.getBlockEditingMode?.(clientId)
 		: undefined;
+	const enterOnTarget = clientId
+		? isUnsyncedPatternSection(sel, clientId)
+		: false;
+	const edited = getEditedContentOnlySectionId(sel);
+	const patternEditReady =
+		!enterOnTarget || !edited.available || edited.id === clientId;
 	return {
 		clientId,
 		alreadyOk:
-			!!clientId && selected === clientId && editingMode !== 'disabled',
+			!!clientId &&
+			selected === clientId &&
+			editingMode !== 'disabled' &&
+			patternEditReady,
 	};
 }
 
@@ -217,7 +286,11 @@ function selectSectionBlock(sectionId: string): boolean {
 	};
 	const sel = select(blockEditorStore) as unknown as BlockEditorSelect;
 
-	if (sel.getBlockEditingMode?.(clientId) === 'disabled') {
+	if (isUnsyncedPatternSection(sel, clientId)) {
+		// Same as Gutenberg “Edit pattern”: enter content-only edit on the
+		// pattern, then select it so the inspector shows the section.
+		enterContentOnlySection(blockEditor, clientId);
+	} else if (sel.getBlockEditingMode?.(clientId) === 'disabled') {
 		const parentSectionId = findNearestContentOnlySection(sel, clientId);
 		if (parentSectionId) {
 			enterContentOnlySection(blockEditor, parentSectionId);
