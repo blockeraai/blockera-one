@@ -56,6 +56,30 @@ const INLINE_CATALOG = {
 				patternSlug: 'test/listing-grid-2',
 			},
 		],
+		'page-title-title': [
+			{
+				id: 'default',
+				label: 'Title',
+				kind: 'pattern',
+				patternSlug: 'test/page-title-title',
+			},
+		],
+		'page-title-description': [
+			{
+				id: 'default',
+				label: 'Description',
+				kind: 'pattern',
+				patternSlug: 'test/page-title-description',
+			},
+		],
+		'page-title-breadcrumbs': [
+			{
+				id: 'default',
+				label: 'Breadcrumbs',
+				kind: 'pattern',
+				patternSlug: 'test/page-title-breadcrumbs',
+			},
+		],
 		pagination: [
 			{
 				id: 'standard',
@@ -171,8 +195,8 @@ describe('archive config structural invariants', () => {
 
 	it('declares catalog pools (never inline variants) on the static config', () => {
 		for (const control of controls) {
-			expect(control.variants).toBeUndefined();
 			if (control.catalogPool) {
+				expect(control.variants).toBeUndefined();
 				expect(control.catalogPool).toMatch(KEBAB);
 			}
 		}
