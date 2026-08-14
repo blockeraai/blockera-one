@@ -160,13 +160,13 @@ describe('Blockera One → Templates Archive Templates purpose-nav', () => {
 
 			// All Archives is the first row in the Archive Templates section.
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav)
-				.find('.blockera-site-editor-templates-nav__section')
+				.find('.blockera-site-editor-nav__section')
 				.contains(
-					'.blockera-site-editor-templates-nav__section-title',
+					'.blockera-site-editor-nav__section-title',
 					'Archive Templates'
 				)
-				.parents('.blockera-site-editor-templates-nav__section')
-				.find('.blockera-site-editor-templates-nav__items [data-test]')
+				.parents('.blockera-site-editor-nav__section')
+				.find('.blockera-site-editor-nav__items [data-test]')
 				.first()
 				.should(
 					'have.attr',
@@ -180,7 +180,9 @@ describe('Blockera One → Templates Archive Templates purpose-nav', () => {
 				expect(decoded).to.include('archive');
 				expect(decoded).to.include('boFilter=archive');
 			});
-			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should('exist');
+			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesBuilderShell).should(
+				'exist'
+			);
 
 			// Always shown even when theme archive.html is temporarily hidden.
 			setThemeTemplateHidden('archive', true);
