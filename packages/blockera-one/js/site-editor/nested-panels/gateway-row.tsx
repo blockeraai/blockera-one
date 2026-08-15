@@ -3,7 +3,7 @@
  * When enabled, the row opens a nested panel; the toggle does not navigate.
  */
 
-import type { KeyboardEvent, MouseEvent } from 'react';
+import type { KeyboardEvent, MouseEvent, ReactNode } from 'react';
 
 import { FormToggle } from '@wordpress/components';
 import { Icon, chevronRight } from '@wordpress/icons';
@@ -27,7 +27,13 @@ export type GatewayRowProps = {
 	};
 	onOpen?: () => void;
 	'data-test'?: string;
+	/** Left-side drag handle (hidden until hover). */
+	dragHandle?: ReactNode;
+	isDragging?: boolean;
 };
+
+const IGNORE_ROW_CLICK =
+	'.blockera-site-editor-gateway-row__toggle, .blockera-site-editor-gateway-row__drag-handle';
 
 export default function GatewayRow({
 	title,
@@ -35,6 +41,8 @@ export default function GatewayRow({
 	toggle,
 	onOpen,
 	'data-test': dataTest,
+	dragHandle,
+	isDragging,
 }: GatewayRowProps) {
 	const canOpen = enabled && typeof onOpen === 'function';
 
@@ -46,7 +54,7 @@ export default function GatewayRow({
 
 	const onRowClick = (event: MouseEvent) => {
 		const target = event.target as HTMLElement | null;
-		if (target?.closest('.blockera-site-editor-gateway-row__toggle')) {
+		if (target?.closest(IGNORE_ROW_CLICK)) {
 			return;
 		}
 		open();
@@ -54,6 +62,10 @@ export default function GatewayRow({
 
 	const onRowKeyDown = (event: KeyboardEvent) => {
 		if (!canOpen) {
+			return;
+		}
+		const target = event.target as HTMLElement | null;
+		if (target?.closest(IGNORE_ROW_CLICK)) {
 			return;
 		}
 		if (event.key === 'Enter' || event.key === ' ') {
@@ -67,6 +79,8 @@ export default function GatewayRow({
 			className={classNames('blockera-site-editor-gateway-row', {
 				'is-enabled': enabled,
 				'is-navigable': canOpen,
+				'has-drag-handle': !!dragHandle,
+				'is-dragging': !!isDragging,
 			})}
 			data-test={dataTest}
 			data-enabled={enabled ? 'true' : 'false'}
@@ -75,6 +89,7 @@ export default function GatewayRow({
 			role={canOpen ? 'button' : undefined}
 			tabIndex={canOpen ? 0 : undefined}
 		>
+			{dragHandle}
 			<span className="blockera-site-editor-gateway-row__label">
 				{title}
 			</span>
@@ -83,6 +98,11 @@ export default function GatewayRow({
 					<span
 						className="blockera-site-editor-gateway-row__toggle"
 						data-test={dataTest ? `${dataTest}-toggle` : undefined}
+						onPointerDown={(event) => {
+							// Row is the drag activator; keep toggle clicks
+							// from starting a reorder (see RowPointerSensor).
+							event.stopPropagation();
+						}}
 						onClick={(event) => {
 							event.stopPropagation();
 						}}

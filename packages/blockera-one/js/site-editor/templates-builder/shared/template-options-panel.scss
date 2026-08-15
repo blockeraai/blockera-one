@@ -274,3 +274,39 @@
 	color: #cccccc;
 	padding: 0 12px;
 }
+
+.blockera-templates-builder-sortable-list {
+	display: flex;
+	flex-direction: column;
+	margin: 0 -18px;
+
+	&__item {
+		cursor: pointer;
+
+		.blockera-site-editor-gateway-row {
+			margin: 0;
+		}
+
+		// Original row stays as a slot; the overlay is what follows the pointer.
+		&.is-dragging {
+			opacity: 0.35;
+			pointer-events: none;
+		}
+	}
+
+	&__overlay {
+		cursor: grabbing;
+		z-index: 100000;
+
+		.blockera-site-editor-gateway-row {
+			margin: 0;
+			background: #ffffff;
+			box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
+		}
+
+		.blockera-site-editor-gateway-row__drag-handle {
+			opacity: 1;
+			cursor: grabbing;
+		}
+	}
+}

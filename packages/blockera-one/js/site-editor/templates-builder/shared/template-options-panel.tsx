@@ -14,7 +14,7 @@ import {
 } from '@wordpress/components';
 import { store as coreStore } from '@wordpress/core-data';
 import { useDispatch } from '@wordpress/data';
-import { useState } from '@wordpress/element';
+import { useCallback, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { moreVertical } from '@wordpress/icons';
 import { parse as parseBlocks } from '@wordpress/blocks';
@@ -40,8 +40,19 @@ import ToggleSelectRow from './controls/toggle-select';
 import { hasUnresolvedVariants } from './resolve-variant-html';
 import GroupHeaderEdit from './group-header-edit';
 import { getBlockeraAttributeId } from './blockera-attribute';
+import {
+	getGroupInnerOrder,
+	isSortableElementControl,
+	resolveElementOrder,
+} from './element-order';
+import SortableElementList, {
+	type SortableElementRenderProps,
+} from './sortable-element-list';
+import type { ControlViewState } from './resolve-control-values';
 import type {
+	ControlDef,
 	ControlValue,
+	InnerOrderRule,
 	PanelGroupDef,
 	TemplateOptionsConfig,
 } from './types';
@@ -83,6 +94,83 @@ type TemplateOptionsPanelProps = {
 	/** Open a nested panel by its nestedPanel.id (gateway rows). */
 	onOpenNested?: (panelId: string) => void;
 };
+
+function getSortableItemId(item: ControlViewState): string {
+	return item.control.target.id;
+}
+
+type SortableElementGroupProps = {
+	items: ControlViewState[];
+	groupId: string;
+	orderRule: InnerOrderRule;
+	disabled: boolean;
+	onReorderElements: (rule: InnerOrderRule, orderedIds: string[]) => void;
+	onChangeControl: (control: ControlDef, next: ControlValue) => void;
+	onOpenNested?: (panelId: string) => void;
+};
+
+/**
+ * Isolated so getId / onReorder / renderItem stay referentially stable
+ * across parent re-renders (SortableElementList memos ids from getId).
+ */
+function SortableElementGroup({
+	items,
+	groupId,
+	orderRule,
+	disabled,
+	onReorderElements,
+	onChangeControl,
+	onOpenNested,
+}: SortableElementGroupProps) {
+	const onReorder = useCallback(
+		(orderedIds: string[]) => {
+			onReorderElements(orderRule, orderedIds);
+		},
+		[onReorderElements, orderRule]
+	);
+
+	const renderItem = useCallback(
+		(
+			{ control, value }: ControlViewState,
+			{ dragHandle, isDragging }: SortableElementRenderProps
+		) => {
+			const waitingForContent = hasUnresolvedVariants(control);
+			const controlDisabled = disabled || waitingForContent;
+			return (
+				<GatewayRow
+					title={control.label}
+					enabled={!!value}
+					dragHandle={dragHandle}
+					isDragging={isDragging}
+					data-test={`blockera-templates-builder-gateway-${control.nestedPanel!.id}`}
+					toggle={{
+						checked: !!value,
+						disabled: controlDisabled,
+						'aria-label': control.label,
+						onChange: (next) => onChangeControl(control, next),
+					}}
+					onOpen={
+						onOpenNested
+							? () => onOpenNested(control.nestedPanel!.id)
+							: undefined
+					}
+				/>
+			);
+		},
+		[disabled, onChangeControl, onOpenNested]
+	);
+
+	return (
+		<SortableElementList
+			items={items}
+			getId={getSortableItemId}
+			disabled={disabled}
+			data-test={`blockera-templates-builder-sortable-${groupId}`}
+			onReorder={onReorder}
+			renderItem={renderItem}
+		/>
+	);
+}
 
 type TemplateOptionsTitleActionsProps = {
 	templateId: string | number | null;
@@ -222,9 +310,11 @@ export default function TemplateOptionsPanel({
 	onOpenNested,
 }: TemplateOptionsPanelProps) {
 	const {
+		blocks,
 		controlStates,
 		isDirty,
 		onChangeControl,
+		onReorderElements,
 		confirmMessage,
 		confirmPending,
 		cancelPending,
@@ -308,229 +398,284 @@ export default function TemplateOptionsPanel({
 
 		const showBody = headerEnabled && (controls.length > 0 || !!gatewayRow);
 
+		const orderRule =
+			group.sortable &&
+			controls.some((c) => isSortableElementControl(c.control))
+				? getGroupInnerOrder(group)
+				: null;
+		const order = orderRule ? resolveElementOrder(blocks, orderRule) : [];
+		const orderRank: Record<string, number> = {};
+		for (let i = 0; i < order.length; i++) {
+			orderRank[order[i]] = i;
+		}
+		const sortableViews = orderRule
+			? controls
+					.filter((c) => isSortableElementControl(c.control))
+					.sort((a, b) => {
+						const ai = orderRank[a.control.target.id] ?? 999;
+						const bi = orderRank[b.control.target.id] ?? 999;
+						return ai - bi;
+					})
+			: [];
+		const sortableControlIds = new Set(
+			sortableViews.map((c) => c.control.id)
+		);
+		const staticControls = orderRule
+			? controls.filter((c) => !sortableControlIds.has(c.control.id))
+			: controls;
+
 		const body = showBody ? (
 			<div className="admin-ui-page__content has-padding">
 				<Flex direction="column" gap="16px">
-					{controls.map(({ control, state, value, blockName }) => {
-						const missing = state.kind === 'missing';
-						// Pattern content not resolved yet (or slug
-						// unregistered) — keep the control visible
-						// but inert so ops never run on empty HTML.
-						const waitingForContent =
-							hasUnresolvedVariants(control);
-						const controlDisabled =
-							commonDisabled || waitingForContent;
-						const blockeraAttributeId = control.attributePath
-							? getBlockeraAttributeId(control.attributePath) ||
-								undefined
-							: undefined;
-						let controlNode = null;
+					{orderRule && sortableViews.length > 0 && (
+						<SortableElementGroup
+							items={sortableViews}
+							groupId={group.id}
+							orderRule={orderRule}
+							disabled={commonDisabled}
+							onReorderElements={onReorderElements}
+							onChangeControl={onChangeControl}
+							onOpenNested={onOpenNested}
+						/>
+					)}
+					{staticControls.map(
+						({ control, state, value, blockName }) => {
+							const missing = state.kind === 'missing';
+							// Pattern content not resolved yet (or slug
+							// unregistered) — keep the control visible
+							// but inert so ops never run on empty HTML.
+							const waitingForContent =
+								hasUnresolvedVariants(control);
+							const controlDisabled =
+								commonDisabled || waitingForContent;
+							const blockeraAttributeId = control.attributePath
+								? getBlockeraAttributeId(
+										control.attributePath
+									) || undefined
+								: undefined;
+							let controlNode = null;
 
-						if (control.type === 'layout-picker') {
-							controlNode = (
-								<LayoutPicker
-									label={control.label}
-									value={
-										typeof value === 'string' ? value : null
-									}
-									variants={control.variants || []}
-									disabled={controlDisabled}
-									missing={missing}
-									onAddBack={() =>
-										onChangeControl(
-											control,
-											control.variants?.[0]?.id ||
-												'default'
-										)
-									}
-									onChange={(id) =>
-										onChangeControl(control, id)
-									}
-								/>
-							);
-						} else if (
-							control.type === 'toggle' &&
-							control.nestedPanel
-						) {
-							controlNode = (
-								<GatewayRow
-									title={control.label}
-									enabled={!!value}
-									data-test={`blockera-templates-builder-gateway-${control.nestedPanel.id}`}
-									toggle={{
-										checked: !!value,
-										disabled: controlDisabled,
-										'aria-label': control.label,
-										onChange: (next) =>
-											onChangeControl(control, next),
-									}}
-									onOpen={
-										onOpenNested
-											? () =>
-													onOpenNested(
-														control.nestedPanel!.id
-													)
-											: undefined
-									}
-								/>
-							);
-						} else if (control.type === 'toggle') {
-							controlNode = (
-								<ToggleControlRow
-									label={control.label}
-									checked={!!value}
-									disabled={controlDisabled}
-									onChange={(next) =>
-										onChangeControl(control, next)
-									}
-								/>
-							);
-						} else if (control.operation === 'placeSection') {
-							controlNode = (
-								<ToggleSelectRow
-									controlId={control.id}
-									label={control.label}
-									value={
-										typeof value === 'string' ? value : null
-									}
-									variants={control.variants || []}
-									disabled={controlDisabled || missing}
-									defaultValue={
-										typeof control.defaultValue === 'string'
-											? control.defaultValue
-											: 'bottom'
-									}
-									onChange={(id) =>
-										onChangeControl(control, id)
-									}
-								/>
-							);
-						} else if (control.type === 'segmented-choice') {
-							controlNode = (
-								<SegmentedChoice
-									label={control.label}
-									value={
-										typeof value === 'string' ? value : null
-									}
-									variants={control.variants || []}
-									disabled={controlDisabled || missing}
-									onChange={(id) =>
-										onChangeControl(control, id)
-									}
-								/>
-							);
-						} else if (control.type === 'number') {
-							controlNode = (
-								<NumberControlRow
-									label={control.label}
-									value={Number(value) || 10}
-									min={control.min}
-									max={control.max}
-									step={control.step}
-									disabled={commonDisabled}
-									onChange={(next) =>
-										onChangeControl(control, next)
-									}
-								/>
-							);
-						} else if (control.type === 'input') {
-							const isGapPath =
-								blockeraAttributeId === 'blockeraGap';
-							controlNode = (
-								<InputControlRow
-									controlId={control.id}
-									label={control.label}
-									value={inputControlValue(value, isGapPath)}
-									disabled={commonDisabled}
-									unitType={control.unitType}
-									controlAddonTypes={
-										control.controlAddonTypes
-									}
-									variableTypes={control.variableTypes}
-									min={control.min}
-									attribute={blockeraAttributeId}
-									blockName={blockName}
-									defaultValue={
-										typeof control.defaultValue ===
-											'string' ||
-										typeof control.defaultValue === 'number'
-											? control.defaultValue
-											: ''
-									}
-									onChange={(next) =>
-										onChangeControl(
-											control,
+							if (control.type === 'layout-picker') {
+								controlNode = (
+									<LayoutPicker
+										label={control.label}
+										value={
+											typeof value === 'string'
+												? value
+												: null
+										}
+										variants={control.variants || []}
+										disabled={controlDisabled}
+										missing={missing}
+										onAddBack={() =>
+											onChangeControl(
+												control,
+												control.variants?.[0]?.id ||
+													'default'
+											)
+										}
+										onChange={(id) =>
+											onChangeControl(control, id)
+										}
+									/>
+								);
+							} else if (
+								control.type === 'toggle' &&
+								control.nestedPanel
+							) {
+								controlNode = (
+									<GatewayRow
+										title={control.label}
+										enabled={!!value}
+										data-test={`blockera-templates-builder-gateway-${control.nestedPanel.id}`}
+										toggle={{
+											checked: !!value,
+											disabled: controlDisabled,
+											'aria-label': control.label,
+											onChange: (next) =>
+												onChangeControl(control, next),
+										}}
+										onOpen={
+											onOpenNested
+												? () =>
+														onOpenNested(
+															control.nestedPanel!
+																.id
+														)
+												: undefined
+										}
+									/>
+								);
+							} else if (control.type === 'toggle') {
+								controlNode = (
+									<ToggleControlRow
+										label={control.label}
+										checked={!!value}
+										disabled={controlDisabled}
+										onChange={(next) =>
+											onChangeControl(control, next)
+										}
+									/>
+								);
+							} else if (control.operation === 'placeSection') {
+								controlNode = (
+									<ToggleSelectRow
+										controlId={control.id}
+										label={control.label}
+										value={
+											typeof value === 'string'
+												? value
+												: null
+										}
+										variants={control.variants || []}
+										disabled={controlDisabled || missing}
+										defaultValue={
+											typeof control.defaultValue ===
+											'string'
+												? control.defaultValue
+												: 'bottom'
+										}
+										onChange={(id) =>
+											onChangeControl(control, id)
+										}
+									/>
+								);
+							} else if (control.type === 'segmented-choice') {
+								controlNode = (
+									<SegmentedChoice
+										label={control.label}
+										value={
+											typeof value === 'string'
+												? value
+												: null
+										}
+										variants={control.variants || []}
+										disabled={controlDisabled || missing}
+										onChange={(id) =>
+											onChangeControl(control, id)
+										}
+									/>
+								);
+							} else if (control.type === 'number') {
+								controlNode = (
+									<NumberControlRow
+										label={control.label}
+										value={Number(value) || 10}
+										min={control.min}
+										max={control.max}
+										step={control.step}
+										disabled={commonDisabled}
+										onChange={(next) =>
+											onChangeControl(control, next)
+										}
+									/>
+								);
+							} else if (control.type === 'input') {
+								const isGapPath =
+									blockeraAttributeId === 'blockeraGap';
+								controlNode = (
+									<InputControlRow
+										controlId={control.id}
+										label={control.label}
+										value={inputControlValue(
+											value,
 											isGapPath
-												? wrapGapValue(next)
-												: (next as ControlValue)
-										)
+										)}
+										disabled={commonDisabled}
+										unitType={control.unitType}
+										controlAddonTypes={
+											control.controlAddonTypes
+										}
+										variableTypes={control.variableTypes}
+										min={control.min}
+										attribute={blockeraAttributeId}
+										blockName={blockName}
+										defaultValue={
+											typeof control.defaultValue ===
+												'string' ||
+											typeof control.defaultValue ===
+												'number'
+												? control.defaultValue
+												: ''
+										}
+										onChange={(next) =>
+											onChangeControl(
+												control,
+												isGapPath
+													? wrapGapValue(next)
+													: (next as ControlValue)
+											)
+										}
+									/>
+								);
+							} else if (control.type === 'color') {
+								controlNode = (
+									<ColorControlRow
+										controlId={control.id}
+										label={control.label}
+										value={value}
+										disabled={commonDisabled}
+										controlAddonTypes={
+											control.controlAddonTypes
+										}
+										variableTypes={control.variableTypes}
+										attribute={blockeraAttributeId}
+										blockName={blockName}
+										onChange={(next) =>
+											onChangeControl(
+												control,
+												next as ControlValue
+											)
+										}
+									/>
+								);
+							} else if (
+								control.type === 'select' &&
+								control.operation === 'setBlockStyle'
+							) {
+								controlNode = (
+									<BlockStyleSelect
+										controlId={control.id}
+										label={control.label}
+										value={
+											typeof value === 'string'
+												? value
+												: null
+										}
+										blockName={blockName}
+										sectionId={control.target.id}
+										disabled={controlDisabled || missing}
+										defaultValue={
+											typeof control.defaultValue ===
+											'string'
+												? control.defaultValue
+												: 'default'
+										}
+										onChange={(id) =>
+											onChangeControl(control, id)
+										}
+									/>
+								);
+							}
+
+							if (!controlNode) {
+								return null;
+							}
+
+							return (
+								<div
+									key={control.id}
+									className={
+										control.separatorBefore
+											? 'blockera-templates-builder-control has-separator-before'
+											: 'blockera-templates-builder-control'
 									}
-								/>
-							);
-						} else if (control.type === 'color') {
-							controlNode = (
-								<ColorControlRow
-									controlId={control.id}
-									label={control.label}
-									value={value}
-									disabled={commonDisabled}
-									controlAddonTypes={
-										control.controlAddonTypes
-									}
-									variableTypes={control.variableTypes}
-									attribute={blockeraAttributeId}
-									blockName={blockName}
-									onChange={(next) =>
-										onChangeControl(
-											control,
-											next as ControlValue
-										)
-									}
-								/>
-							);
-						} else if (
-							control.type === 'select' &&
-							control.operation === 'setBlockStyle'
-						) {
-							controlNode = (
-								<BlockStyleSelect
-									controlId={control.id}
-									label={control.label}
-									value={
-										typeof value === 'string' ? value : null
-									}
-									blockName={blockName}
-									sectionId={control.target.id}
-									disabled={controlDisabled || missing}
-									defaultValue={
-										typeof control.defaultValue === 'string'
-											? control.defaultValue
-											: 'default'
-									}
-									onChange={(id) =>
-										onChangeControl(control, id)
-									}
-								/>
+								>
+									{controlNode}
+								</div>
 							);
 						}
-
-						if (!controlNode) {
-							return null;
-						}
-
-						return (
-							<div
-								key={control.id}
-								className={
-									control.separatorBefore
-										? 'blockera-templates-builder-control has-separator-before'
-										: 'blockera-templates-builder-control'
-								}
-							>
-								{controlNode}
-							</div>
-						);
-					})}
+					)}
 					{gatewayRow}
 				</Flex>
 			</div>
