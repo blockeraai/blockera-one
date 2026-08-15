@@ -28,6 +28,7 @@ import type {
 	BlockNode,
 	ControlDef,
 	ControlValue,
+	InnerOrderRule,
 	TemplateOptionsConfig,
 } from './types';
 
@@ -286,11 +287,37 @@ export default function useTemplateOptions(
 		]
 	);
 
+	const onReorderElements = useCallback(
+		(rule: InnerOrderRule, orderedIds: string[]) => {
+			const result = applyOperation({
+				blocks,
+				control: {
+					id: `reorder-${rule.parentId}`,
+					type: 'button',
+					label: '',
+					target: { kind: 'section', id: rule.parentId },
+					operation: 'reorderInnerSections',
+					innerOrder: rule,
+				},
+				nextValue: orderedIds,
+				config: resolvedConfig,
+				settings: settings as TemplateSettingsRecord,
+				settingBucket,
+				needsConfirm: false,
+			});
+			if (result?.kind === 'blocks') {
+				applyBlocks(result.blocks);
+			}
+		},
+		[applyBlocks, blocks, resolvedConfig, settingBucket, settings]
+	);
+
 	return {
 		blocks,
 		controlStates,
 		isDirty,
 		onChangeControl,
+		onReorderElements,
 		/** False while the patterns REST request is still in flight. */
 		patternsReady: patternsResolved,
 		confirmMessage,

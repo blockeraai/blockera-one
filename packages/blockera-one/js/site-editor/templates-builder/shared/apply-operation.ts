@@ -21,6 +21,12 @@ import {
 	transplantLayout,
 } from './operations';
 import { getActiveBlockStyleName } from './block-style';
+import {
+	clearStoredElementOrder,
+	normalizeElementOrder,
+	persistElementOrder,
+	resolveElementOrder,
+} from './element-order';
 import { getPostsPerPageMap } from './resolve-control-values';
 import { resolveSectionState, resolveToggleState } from './resolve-state';
 import { flattenPanelControls } from './resolve-options-panel';
@@ -31,7 +37,6 @@ import type {
 	ControlDef,
 	ControlValue,
 	InsertRule,
-	InnerOrderRule,
 	TemplateOptionsConfig,
 	VariantDef,
 } from './types';
@@ -199,6 +204,8 @@ function applySwapSection(
 		},
 		defaultOpsContext
 	);
+	// New design pattern is the order source — drop any previous drag list.
+	next = clearStoredElementOrder(next, control.target.id);
 	for (const plan of reapplyPlans) {
 		if (plan.kind === 'swap') {
 			next = swapSection(
@@ -223,7 +230,7 @@ function applySwapSection(
 				},
 				defaultOpsContext
 			);
-			next = applyInnerOrder(next, plan.control, plan.enabled, blocks);
+			next = applyInnerOrder(next, plan.control, next);
 			continue;
 		}
 		if (plan.kind === 'attribute' && plan.control.attributePath) {
@@ -249,7 +256,7 @@ function applySwapSection(
 				sectionId: plan.control.target.id,
 				placement: placeVariant.placement,
 			});
-			next = applyInnerOrder(next, plan.control, plan.value, next);
+			next = applyInnerOrder(next, plan.control, next);
 		}
 	}
 	return { kind: 'blocks', blocks: next };
@@ -288,33 +295,13 @@ function resolvePlaceValue(
 
 function resolveInnerOrderIds(
 	control: ControlDef,
-	nextValue: ControlValue,
-	blocks: BlockNode[]
+	sourceBlocks: BlockNode[]
 ): string[] | null {
 	const rule = control.innerOrder;
 	if (!rule?.ids?.length) {
 		return null;
 	}
-	const leadId = rule.leadId;
-	if (!leadId) {
-		return rule.ids;
-	}
-	let leadFirst = false;
-	if (control.operation === 'placeSection') {
-		leadFirst = String(nextValue) === 'top';
-	} else {
-		leadFirst = isLeadFirst(blocks, rule);
-	}
-	if (!leadFirst) {
-		return rule.ids;
-	}
-	const rest: string[] = [];
-	for (let i = 0; i < rule.ids.length; i++) {
-		if (rule.ids[i] !== leadId) {
-			rest.push(rule.ids[i]);
-		}
-	}
-	return [leadId, ...rest];
+	return resolveElementOrder(sourceBlocks, rule);
 }
 
 function getAttributeAtPath(
@@ -335,37 +322,13 @@ function getAttributeAtPath(
 	return cursor;
 }
 
-function isLeadFirst(blocks: BlockNode[], rule: InnerOrderRule): boolean {
-	if (!rule.leadId) {
-		return false;
-	}
-	const parent = resolveSectionState(blocks, rule.parentId);
-	if (!parent.path) {
-		return false;
-	}
-	const node = getAtPath(blocks, parent.path);
-	const children = node?.innerBlocks || [];
-	for (let i = 0; i < children.length; i++) {
-		const id = getStamp(children[i])?.id;
-		if (!id) {
-			continue;
-		}
-		for (let j = 0; j < rule.ids.length; j++) {
-			if (rule.ids[j] === id) {
-				return id === rule.leadId;
-			}
-		}
-	}
-	return false;
-}
-
+/** Reorder present children to the stored/derived list after a toggle. */
 function applyInnerOrder(
 	tree: BlockNode[],
 	control: ControlDef,
-	nextValue: ControlValue,
-	preOpBlocks: BlockNode[]
+	sourceBlocks: BlockNode[]
 ): BlockNode[] {
-	const ids = resolveInnerOrderIds(control, nextValue, preOpBlocks);
+	const ids = resolveInnerOrderIds(control, sourceBlocks);
 	if (!ids || !control.innerOrder) {
 		return tree;
 	}
@@ -498,7 +461,25 @@ export function applyOperation(args: {
 			},
 			defaultOpsContext
 		);
-		tree = applyInnerOrder(tree, control, nextValue, blocks);
+		// Use the pre-toggle tree so stored/live order still includes the
+		// item being hidden; orderInnerSections then applies present ids.
+		tree = applyInnerOrder(tree, control, blocks);
+		return { kind: 'blocks', blocks: tree };
+	}
+
+	if (control.operation === 'reorderInnerSections') {
+		const rule = control.innerOrder;
+		if (!rule?.parentId) {
+			return null;
+		}
+		const ordered = normalizeElementOrder(nextValue, rule.ids);
+		if (!ordered.length) {
+			return null;
+		}
+		// Persist the full list (including off items) first, then reorder
+		// only the children that are currently in the tree.
+		let tree = persistElementOrder(blocks, rule.parentId, ordered);
+		tree = orderInnerSections(tree, rule.parentId, ordered);
 		return { kind: 'blocks', blocks: tree };
 	}
 
@@ -509,11 +490,10 @@ export function applyOperation(args: {
 		if (!variant?.placement) {
 			return null;
 		}
-		let tree = placeSection(blocks, {
+		const tree = placeSection(blocks, {
 			sectionId: control.target.id,
 			placement: variant.placement,
 		});
-		tree = applyInnerOrder(tree, control, nextValue, blocks);
 		return { kind: 'blocks', blocks: tree };
 	}
 

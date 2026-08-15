@@ -69,6 +69,8 @@ export function swapSection(
 			// Design/layout swaps must use the target variant's look. Carrying
 			// previous style/color/align (via mergeUserAttributes) made Banner →
 			// Simple keep the banner band. Only keep Blockera extensions.
+			// Do not copy metadata.blockeraOneInnerOrder — a new design
+			// resets element order to the pattern.
 			const extensions = pickBlockeraExtensionAttributes(
 				prev.attributes || {}
 			);

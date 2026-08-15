@@ -49,7 +49,7 @@ export type ControlType =
 
 /** Resolved UI value for a control (scalars plus Blockera value-addon objects). */
 export type ControlValue =
-	string | number | boolean | Record<string, unknown> | null;
+	string | number | boolean | string[] | Record<string, unknown> | null;
 
 /**
  * Declarative fallback matcher used when a section block lost its stamp
@@ -98,7 +98,8 @@ export type OperationKind =
 	| 'setTemplateSetting'
 	| 'placeSection'
 	| 'setBlockStyle'
-	| 'selectInCanvas';
+	| 'selectInCanvas'
+	| 'reorderInnerSections';
 
 /** Where to insert a block, relative to another stamped block. */
 export type InsertRule = {
@@ -167,9 +168,12 @@ export type NestedPanelDef = {
 /** Reorder stamped children of `parentId` after an inner-element op. */
 export type InnerOrderRule = {
 	parentId: string;
-	/** Child stamp ids in default (bottom-lead) order. */
+	/** Known child stamp ids (config fallback when a child is missing). */
 	ids: string[];
-	/** Child stamp moved to the front when its position is "top". */
+	/**
+	 * @deprecated Binary top/bottom lead. Drag order replaced this; kept so
+	 * older fixtures type-check. The engine no longer reads it.
+	 */
 	leadId?: string;
 };
 
@@ -210,8 +214,8 @@ export type ControlDef = {
 	/** Variable categories (`spacing`). */
 	variableTypes?: string[];
 	/**
-	 * After this op, reorder stamped children of `parentId`. Used so
-	 * toggling title back on cannot jump in front of a top breadcrumbs.
+	 * After this op, reorder stamped children of `parentId` using the
+	 * stored/derived element order (see `element-order.ts`).
 	 */
 	innerOrder?: InnerOrderRule;
 	/** Control-level nested DrillDown (toggle + chevron rows). */
@@ -254,6 +258,12 @@ export type PanelGroupDef = {
 	 */
 	headerToggle?: ControlDef;
 	controls: ControlDef[];
+	/**
+	 * When true, toggle+nestedPanel rows that share `innerOrder` become a
+	 * drag-sortable list. Order comes from the live parent (or stored
+	 * `metadata.blockeraOneInnerOrder` after the first drag).
+	 */
+	sortable?: boolean;
 	/**
 	 * When set with no body controls, the group is a compact gateway card
 	 * (title + toggle + chevron). When the group also has `controls`, the

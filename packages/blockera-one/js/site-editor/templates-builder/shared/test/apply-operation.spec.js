@@ -20,6 +20,7 @@ jest.mock('../blocks-adapter', () => {
 import { applyOperation } from '../apply-operation';
 import { __setMarkup } from '../blocks-adapter';
 import { TEMPLATE_SETTINGS_KEY } from '../constants';
+import { INNER_ORDER_META_KEY } from '../element-order';
 import { getStamp } from '../metadata';
 import { findByStamp } from '../tree';
 
@@ -30,9 +31,13 @@ function block(name, attributes = {}, innerBlocks = []) {
 }
 
 function stamped(name, stampValue, attributes = {}, innerBlocks = []) {
+	const { metadata, ...rest } = attributes;
 	return block(
 		name,
-		{ ...attributes, metadata: { blockeraOne: stampValue } },
+		{
+			...rest,
+			metadata: { ...(metadata || {}), blockeraOne: stampValue },
+		},
 		innerBlocks
 	);
 }
@@ -360,10 +365,18 @@ describe('toggleSection', () => {
 		expect(findStamp(result.blocks, 'header')).toBeNull();
 	});
 
-	it('reorders inner sections so a restored title stays after top breadcrumbs', () => {
+	it('appends a restored title after present children when no stored order exists', () => {
 		__setMarkup('page-title-title', [
 			stamped('core/query-title', 'section/page-title-title:default'),
 		]);
+		const innerOrder = {
+			parentId: 'page-title',
+			ids: [
+				'page-title-title',
+				'page-title-description',
+				'page-title-breadcrumbs',
+			],
+		};
 		const blocks = [
 			stamped('core/group', 'section/page-title:default', {}, [
 				stamped(
@@ -386,15 +399,66 @@ describe('toggleSection', () => {
 				{ id: 'default', label: 'Title', html: 'page-title-title' },
 			],
 			insert: { relativeTo: 'page-title', position: 'inside-start' },
-			innerOrder: {
-				parentId: 'page-title',
-				ids: [
-					'page-title-title',
-					'page-title-description',
-					'page-title-breadcrumbs',
-				],
-				leadId: 'page-title-breadcrumbs',
-			},
+			innerOrder,
+		};
+
+		const result = apply(control, true, { blocks });
+		expect(result.blocks[0].innerBlocks.map((b) => b.name)).toEqual([
+			'core/breadcrumbs',
+			'core/term-description',
+			'core/query-title',
+		]);
+	});
+
+	it('restores a toggled-on title at its stored list slot', () => {
+		__setMarkup('page-title-title', [
+			stamped('core/query-title', 'section/page-title-title:default'),
+		]);
+		const innerOrder = {
+			parentId: 'page-title',
+			ids: [
+				'page-title-title',
+				'page-title-description',
+				'page-title-breadcrumbs',
+			],
+		};
+		const blocks = [
+			stamped(
+				'core/group',
+				'section/page-title:default',
+				{
+					metadata: {
+						blockeraOne: 'section/page-title:default',
+						[INNER_ORDER_META_KEY]: [
+							'page-title-breadcrumbs',
+							'page-title-title',
+							'page-title-description',
+						],
+					},
+				},
+				[
+					stamped(
+						'core/breadcrumbs',
+						'section/page-title-breadcrumbs:default'
+					),
+					stamped(
+						'core/term-description',
+						'section/page-title-description:default'
+					),
+				]
+			),
+		];
+		const control = {
+			id: 'page-title-title',
+			type: 'toggle',
+			label: 'Title',
+			target: { kind: 'section', id: 'page-title-title' },
+			operation: 'toggleSection',
+			variants: [
+				{ id: 'default', label: 'Title', html: 'page-title-title' },
+			],
+			insert: { relativeTo: 'page-title', position: 'inside-start' },
+			innerOrder,
 		};
 
 		const result = apply(control, true, { blocks });
@@ -402,6 +466,57 @@ describe('toggleSection', () => {
 			'core/breadcrumbs',
 			'core/query-title',
 			'core/term-description',
+		]);
+	});
+});
+
+describe('reorderInnerSections', () => {
+	it('writes stored order and reorders present children', () => {
+		const innerOrder = {
+			parentId: 'page-title',
+			ids: [
+				'page-title-title',
+				'page-title-description',
+				'page-title-breadcrumbs',
+			],
+		};
+		const blocks = [
+			stamped('core/group', 'section/page-title:default', {}, [
+				stamped('core/query-title', 'section/page-title-title:default'),
+				stamped(
+					'core/term-description',
+					'section/page-title-description:default'
+				),
+			]),
+		];
+		const control = {
+			id: 'reorder-page-title',
+			type: 'button',
+			label: '',
+			target: { kind: 'section', id: 'page-title' },
+			operation: 'reorderInnerSections',
+			innerOrder,
+		};
+
+		const result = apply(
+			control,
+			[
+				'page-title-breadcrumbs',
+				'page-title-description',
+				'page-title-title',
+			],
+			{ blocks }
+		);
+		expect(
+			result.blocks[0].attributes.metadata[INNER_ORDER_META_KEY]
+		).toEqual([
+			'page-title-breadcrumbs',
+			'page-title-description',
+			'page-title-title',
+		]);
+		expect(result.blocks[0].innerBlocks.map((b) => b.name)).toEqual([
+			'core/term-description',
+			'core/query-title',
 		]);
 	});
 });
@@ -772,7 +887,7 @@ describe('swapSection reapply toggles', () => {
 		).not.toBeNull();
 	});
 
-	it('re-applies breadcrumbs on-state and top position after a design swap', () => {
+	it('re-applies breadcrumbs on-state after a design swap using the new pattern order', () => {
 		__setMarkup('page-title-breadcrumbs', [
 			stamped(
 				'core/breadcrumbs',
@@ -780,19 +895,6 @@ describe('swapSection reapply toggles', () => {
 			),
 		]);
 
-		const blocks = [
-			stamped('core/group', 'section/page-title:default', {}, [
-				stamped(
-					'core/breadcrumbs',
-					'section/page-title-breadcrumbs:default'
-				),
-				stamped('core/query-title', 'section/page-title-title:default'),
-				stamped(
-					'core/term-description',
-					'section/page-title-description:default'
-				),
-			]),
-		];
 		const innerOrder = {
 			parentId: 'page-title',
 			ids: [
@@ -800,8 +902,37 @@ describe('swapSection reapply toggles', () => {
 				'page-title-description',
 				'page-title-breadcrumbs',
 			],
-			leadId: 'page-title-breadcrumbs',
 		};
+		const blocks = [
+			stamped(
+				'core/group',
+				'section/page-title:default',
+				{
+					metadata: {
+						blockeraOne: 'section/page-title:default',
+						[INNER_ORDER_META_KEY]: [
+							'page-title-breadcrumbs',
+							'page-title-title',
+							'page-title-description',
+						],
+					},
+				},
+				[
+					stamped(
+						'core/breadcrumbs',
+						'section/page-title-breadcrumbs:default'
+					),
+					stamped(
+						'core/query-title',
+						'section/page-title-title:default'
+					),
+					stamped(
+						'core/term-description',
+						'section/page-title-description:default'
+					),
+				]
+			),
+		];
 		const breadcrumbToggle = {
 			id: 'page-title-breadcrumbs',
 			type: 'toggle',
@@ -818,33 +949,6 @@ describe('swapSection reapply toggles', () => {
 			insert: { relativeTo: 'page-title', position: 'inside-end' },
 			innerOrder,
 		};
-		const position = {
-			id: 'breadcrumbs-position',
-			type: 'segmented-choice',
-			label: 'Position',
-			target: { kind: 'section', id: 'page-title-breadcrumbs' },
-			operation: 'placeSection',
-			defaultValue: 'bottom',
-			innerOrder,
-			variants: [
-				{
-					id: 'top',
-					label: 'Top',
-					placement: {
-						relativeTo: 'page-title',
-						position: 'inside-start',
-					},
-				},
-				{
-					id: 'bottom',
-					label: 'Bottom',
-					placement: {
-						relativeTo: 'page-title',
-						position: 'inside-end',
-					},
-				},
-			],
-		};
 		const design = {
 			id: 'page-title-design',
 			type: 'layout-picker',
@@ -856,10 +960,7 @@ describe('swapSection reapply toggles', () => {
 				{ id: 'banner', label: 'Banner', html: 'page-title-banner' },
 			],
 			swapHints: {
-				reapplyControls: [
-					'page-title-breadcrumbs',
-					'breadcrumbs-position',
-				],
+				reapplyControls: ['page-title-breadcrumbs'],
 			},
 		};
 		const config = {
@@ -870,16 +971,20 @@ describe('swapSection reapply toggles', () => {
 				{
 					id: 'page-header',
 					title: 'Page Header',
-					controls: [design, breadcrumbToggle, position],
+					controls: [design, breadcrumbToggle],
 				},
 			],
 		};
 
 		const result = apply(design, 'banner', { blocks, config });
-		const names = result.blocks[0].innerBlocks.map((b) => b.name);
-		expect(names[0]).toBe('core/breadcrumbs');
-		expect(names).toContain('core/query-title');
-		expect(names).toContain('core/term-description');
+		expect(
+			result.blocks[0].attributes.metadata[INNER_ORDER_META_KEY]
+		).toBeUndefined();
+		expect(result.blocks[0].innerBlocks.map((b) => b.name)).toEqual([
+			'core/query-title',
+			'core/term-description',
+			'core/breadcrumbs',
+		]);
 	});
 
 	it('re-applies breadcrumbs attributes and style after a design swap', () => {
