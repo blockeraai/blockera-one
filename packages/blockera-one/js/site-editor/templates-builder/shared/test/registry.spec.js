@@ -211,6 +211,13 @@ describe('archive config structural invariants', () => {
 		expect(design.controls.map((c) => c.id)).toEqual([
 			'page-title-design',
 			'page-header-gap',
+			'page-header-bottom-spacing',
+			'page-header-align',
+			'page-header-align-banner',
+			'page-header-bg-color',
+			'page-header-min-height',
+			'page-header-padding',
+			'page-header-elements-width',
 			'page-title-customize',
 		]);
 
@@ -223,6 +230,15 @@ describe('archive config structural invariants', () => {
 			kind: 'section',
 			id: 'page-title',
 		});
+
+		const alignBanner = design.controls.find(
+			(c) => c.id === 'page-header-align-banner'
+		);
+		expect(alignBanner.target).toEqual({
+			kind: 'container',
+			id: 'elements',
+		});
+		expect(alignBanner.alsoSetOn).toBeUndefined();
 	});
 
 	it('gives title and description a Design nested panel without Settings', () => {
