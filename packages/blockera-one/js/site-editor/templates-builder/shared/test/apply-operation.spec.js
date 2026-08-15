@@ -535,9 +535,7 @@ describe('setSectionAttribute', () => {
 			columns: '',
 			rows: '',
 		};
-		const blocks = [
-			stamped('core/group', 'section/page-title:default', {}),
-		];
+		const blocks = [stamped('core/group', 'section/page-title:simple', {})];
 		const control = {
 			id: 'page-header-gap',
 			type: 'input',
@@ -551,6 +549,63 @@ describe('setSectionAttribute', () => {
 			findStamp(result.blocks, 'page-title').block.attributes.blockeraGap
 				.value
 		).toEqual(gapValue);
+	});
+
+	it('also writes the same attribute onto alsoSetOn stamps', () => {
+		const gapValue = {
+			lock: true,
+			gap: '24px',
+			columns: '',
+			rows: '',
+		};
+		const blocks = [
+			stamped('core/group', 'section/page-title:simple', {}, [
+				stamped('core/group', 'container/elements', {}),
+			]),
+		];
+		const control = {
+			id: 'page-header-gap',
+			type: 'input',
+			label: 'Items Spacing',
+			target: { kind: 'section', id: 'page-title' },
+			alsoSetOn: ['elements'],
+			operation: 'setSectionAttribute',
+			attributePath: 'blockeraGap.value',
+		};
+		const result = apply(control, gapValue, { blocks });
+		expect(
+			findStamp(result.blocks, 'page-title').block.attributes.blockeraGap
+				.value
+		).toEqual(gapValue);
+		expect(
+			findStamp(result.blocks, 'elements').block.attributes.blockeraGap
+				.value
+		).toEqual(gapValue);
+	});
+
+	it('skips a missing alsoSetOn stamp without changing the primary write', () => {
+		const gapValue = {
+			lock: true,
+			gap: '24px',
+			columns: '',
+			rows: '',
+		};
+		const blocks = [stamped('core/group', 'section/page-title:simple', {})];
+		const control = {
+			id: 'page-header-gap',
+			type: 'input',
+			label: 'Items Spacing',
+			target: { kind: 'section', id: 'page-title' },
+			alsoSetOn: ['elements'],
+			operation: 'setSectionAttribute',
+			attributePath: 'blockeraGap.value',
+		};
+		const result = apply(control, gapValue, { blocks });
+		expect(
+			findStamp(result.blocks, 'page-title').block.attributes.blockeraGap
+				.value
+		).toEqual(gapValue);
+		expect(findStamp(result.blocks, 'elements')).toBeNull();
 	});
 
 	it('persists blockera-block className for style-engine selectors', () => {
@@ -862,7 +917,7 @@ describe('swapSection reapply toggles', () => {
 			target: { kind: 'section', id: 'page-title' },
 			operation: 'swapSection',
 			variants: [
-				{ id: 'default', label: 'Simple', html: 'page-title-default' },
+				{ id: 'simple', label: 'Simple', html: 'page-title-default' },
 				{ id: 'banner', label: 'Banner', html: 'page-title-banner' },
 			],
 			swapHints: { reapplyControls: ['page-title-title'] },
@@ -956,7 +1011,7 @@ describe('swapSection reapply toggles', () => {
 			target: { kind: 'section', id: 'page-title' },
 			operation: 'swapSection',
 			variants: [
-				{ id: 'default', label: 'Simple', html: 'page-title-default' },
+				{ id: 'simple', label: 'Simple', html: 'page-title-default' },
 				{ id: 'banner', label: 'Banner', html: 'page-title-banner' },
 			],
 			swapHints: {
@@ -1075,7 +1130,7 @@ describe('swapSection reapply toggles', () => {
 			target: { kind: 'section', id: 'page-title' },
 			operation: 'swapSection',
 			variants: [
-				{ id: 'default', label: 'Simple', html: 'page-title-default' },
+				{ id: 'simple', label: 'Simple', html: 'page-title-default' },
 				{ id: 'banner', label: 'Banner', html: 'page-title-banner' },
 			],
 			swapHints: {
@@ -1217,7 +1272,7 @@ describe('swapSection reapply toggles', () => {
 			target: { kind: 'section', id: 'page-title' },
 			operation: 'swapSection',
 			variants: [
-				{ id: 'default', label: 'Simple', html: 'page-title-default' },
+				{ id: 'simple', label: 'Simple', html: 'page-title-default' },
 				{ id: 'banner', label: 'Banner', html: 'page-title-banner' },
 			],
 			swapHints: {

@@ -201,6 +201,15 @@ describe('resolveSectionState', () => {
 		expect(state.value).toBe('default');
 	});
 
+	it('aliases a leftover default stamp to simple when the catalog dropped default', () => {
+		const tree = [stamped('core/group', 'section/page-title:default')];
+		const state = resolveSectionState(tree, 'page-title', [
+			{ id: 'simple', label: 'Simple' },
+			{ id: 'banner', label: 'Banner' },
+		]);
+		expect(state).toEqual({ kind: 'value', value: 'simple', path: [0] });
+	});
+
 	it('detects unstamped sections via the blockName heuristic as customized', () => {
 		const tree = [
 			block('core/group', { tagName: 'main' }, [
@@ -234,6 +243,21 @@ describe('resolveSectionState', () => {
 			]),
 		];
 		expect(resolveSectionState(bare, 'page-title').kind).toBe('missing');
+	});
+
+	it('groupWrapping skips a container/elements stack and binds the outer group', () => {
+		const tree = [
+			block('core/group', { tagName: 'main' }, [
+				block('core/group', { className: 'title-band' }, [
+					stamped('core/group', 'container/elements', {}, [
+						block('core/query-title'),
+					]),
+				]),
+			]),
+		];
+		const state = resolveSectionState(tree, 'page-title');
+		expect(state.kind).toBe('customized');
+		expect(state.path).toEqual([0, 0]);
 	});
 
 	it('templatePart heuristic matches by area, slug prefix and slug substring', () => {

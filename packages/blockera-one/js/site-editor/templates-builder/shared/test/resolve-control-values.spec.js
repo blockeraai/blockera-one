@@ -285,7 +285,7 @@ describe('resolveControlViewStates', () => {
 		};
 		const tree = [
 			...makeNoSidebarTree(),
-			stamped('core/group', 'section/page-title:default', {
+			stamped('core/group', 'section/page-title:simple', {
 				blockeraGap: { value: gapValue },
 			}),
 		];
