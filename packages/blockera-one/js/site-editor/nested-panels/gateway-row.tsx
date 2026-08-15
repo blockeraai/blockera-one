@@ -13,6 +13,7 @@ import { Icon, chevronRight } from '@wordpress/icons';
  */
 import { classNames } from '@blockera/classnames';
 
+import useToggleNudge from './use-toggle-nudge';
 import './gateway-card.scss';
 
 export type GatewayRowProps = {
@@ -45,6 +46,8 @@ export default function GatewayRow({
 	isDragging,
 }: GatewayRowProps) {
 	const canOpen = enabled && typeof onOpen === 'function';
+	const canNudge = !!toggle && !enabled && !toggle.disabled;
+	const { isNudging, nudge, onNudgeAnimationEnd } = useToggleNudge();
 
 	const open = () => {
 		if (canOpen) {
@@ -57,20 +60,31 @@ export default function GatewayRow({
 		if (target?.closest(IGNORE_ROW_CLICK)) {
 			return;
 		}
-		open();
+		if (canOpen) {
+			open();
+			return;
+		}
+		if (canNudge) {
+			nudge();
+		}
 	};
 
 	const onRowKeyDown = (event: KeyboardEvent) => {
-		if (!canOpen) {
-			return;
-		}
 		const target = event.target as HTMLElement | null;
 		if (target?.closest(IGNORE_ROW_CLICK)) {
 			return;
 		}
-		if (event.key === 'Enter' || event.key === ' ') {
+		if (event.key !== 'Enter' && event.key !== ' ') {
+			return;
+		}
+		if (canOpen) {
 			event.preventDefault();
 			open();
+			return;
+		}
+		if (canNudge) {
+			event.preventDefault();
+			nudge();
 		}
 	};
 
@@ -96,8 +110,13 @@ export default function GatewayRow({
 			<span className="blockera-site-editor-gateway-row__trailing">
 				{toggle && (
 					<span
-						className="blockera-site-editor-gateway-row__toggle"
+						className={classNames(
+							'blockera-site-editor-gateway-row__toggle',
+							{ 'is-nudging': isNudging }
+						)}
 						data-test={dataTest ? `${dataTest}-toggle` : undefined}
+						data-nudging={isNudging ? 'true' : 'false'}
+						onAnimationEnd={onNudgeAnimationEnd}
 						onPointerDown={(event) => {
 							// Row is the drag activator; keep toggle clicks
 							// from starting a reorder (see RowPointerSensor).

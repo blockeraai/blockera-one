@@ -256,3 +256,42 @@
 	) {
 	margin-top: -14px;
 }
+
+/*
+ * Off-state hint: the thumb tries to slide on, hits a stop at the
+ * midpoint, then is pushed back. Click the toggle itself to enable.
+ * Midpoint is ~half of Gutenberg's on-state travel
+ * (`source-codes/block-editor/packages/components/src/form-toggle/style.scss`).
+ */
+@keyframes blockera-gateway-toggle-nudge {
+	0% {
+		transform: translateX(0);
+		animation-timing-function: cubic-bezier(0.2, 0.55, 0.25, 1);
+	}
+
+	/* Ease into the middle as if something blocked further travel. */
+	40% {
+		transform: translateX(5px);
+		animation-timing-function: linear;
+	}
+
+	/* Brief press against the stop. */
+	55% {
+		transform: translateX(5px);
+		animation-timing-function: cubic-bezier(0.45, 0, 0.2, 1);
+	}
+
+	100% {
+		transform: translateX(0);
+	}
+}
+
+.blockera-site-editor-gateway-row__toggle.is-nudging,
+.blockera-site-editor-gateway-card__toggle.is-nudging {
+	@media not (prefers-reduced-motion) {
+		.components-form-toggle__thumb {
+			transition: none;
+			animation: blockera-gateway-toggle-nudge 0.58s both;
+		}
+	}
+}

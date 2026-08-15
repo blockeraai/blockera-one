@@ -16,6 +16,7 @@ import { Icon, chevronRight } from '@wordpress/icons';
 import { classNames } from '@blockera/classnames';
 import { Flex } from '@blockera/controls';
 
+import useToggleNudge from './use-toggle-nudge';
 import './gateway-card.scss';
 
 export type GatewayCardProps = {
@@ -46,7 +47,9 @@ export default function GatewayCard({
 	children,
 }: GatewayCardProps) {
 	const canOpen = enabled && typeof onOpen === 'function';
+	const canNudge = !!toggle && !enabled && !toggle.disabled;
 	const hasBody = Boolean(children);
+	const { isNudging, nudge, onNudgeAnimationEnd } = useToggleNudge();
 
 	const open = () => {
 		if (canOpen) {
@@ -60,16 +63,27 @@ export default function GatewayCard({
 		if (target?.closest('.blockera-site-editor-gateway-card__toggle')) {
 			return;
 		}
-		open();
+		if (canOpen) {
+			open();
+			return;
+		}
+		if (canNudge) {
+			nudge();
+		}
 	};
 
 	const onHeaderKeyDown = (event: KeyboardEvent) => {
-		if (!canOpen) {
+		if (event.key !== 'Enter' && event.key !== ' ') {
 			return;
 		}
-		if (event.key === 'Enter' || event.key === ' ') {
+		if (canOpen) {
 			event.preventDefault();
 			open();
+			return;
+		}
+		if (canNudge) {
+			event.preventDefault();
+			nudge();
 		}
 	};
 
@@ -107,10 +121,15 @@ export default function GatewayCard({
 					<span className="blockera-site-editor-gateway-card__trailing">
 						{toggle && (
 							<span
-								className="blockera-site-editor-gateway-card__toggle"
+								className={classNames(
+									'blockera-site-editor-gateway-card__toggle',
+									{ 'is-nudging': isNudging }
+								)}
 								data-test={
 									dataTest ? `${dataTest}-toggle` : undefined
 								}
+								data-nudging={isNudging ? 'true' : 'false'}
+								onAnimationEnd={onNudgeAnimationEnd}
 								onClick={(event) => {
 									event.stopPropagation();
 								}}
