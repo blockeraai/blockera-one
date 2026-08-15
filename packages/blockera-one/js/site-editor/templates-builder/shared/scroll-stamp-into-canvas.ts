@@ -3,9 +3,9 @@
  * Templates Builder nested panel is active. Scroll only — no select,
  * flash, or inspector switch.
  *
- * Visibility is the block **top** vs the canvas top: skip when the top is
- * already on-screen with more than SKIP_MIN_TOP_PX clearance. When we do
- * scroll, the top lands SCROLL_TOP_OFFSET_PX below the canvas top.
+ * Visibility is the block **top** vs the canvas: skip when the top is
+ * already in the viewport with more than SKIP_MIN_TOP_PX clearance. When
+ * we do scroll, the top lands SCROLL_TOP_OFFSET_PX below the canvas top.
  */
 
 import { store as blockEditorStore } from '@wordpress/block-editor';
@@ -18,18 +18,17 @@ const SCROLL_TIMEOUT_MS = 8000;
 /** Watch after the first reveal so query-loop growth can be followed. */
 const OBSERVE_SETTLE_MS = 2000;
 const CONTENT_MOVE_PX = 40;
-const DRIFT_SLACK_PX = 20;
 const CANVAS_IFRAME_SELECTOR =
 	'iframe[name="editor-canvas"], iframe.block-editor-iframe__iframe';
 
 /** Target gap from the canvas top to the block top after a scroll. */
 export const SCROLL_TOP_OFFSET_PX = 100;
 /**
- * If the block top is already in the canvas and more than this many px
- * below the canvas top, do not scroll (includes the 10–100px band).
+ * If the block top is already in the viewport and more than this many px
+ * below the canvas top, do not scroll.
  */
 export const SKIP_MIN_TOP_PX = 10;
-/** Subpixel / 100.007px must count as landed, or retry chases layout. */
+/** Subpixel leftover after a scroll counts as landed. */
 export const SKIP_TOP_EPSILON_PX = 1;
 
 function findStampClientId(stampId: string): string | null {
@@ -80,9 +79,9 @@ function findBlockElement(clientId: string): {
 }
 
 /**
- * Skip only when the top is already in the 10–100px band below the
- * canvas top. Off-screen, tighter than 10px, or further than 100px
- * (footer/pagination at the bottom) must scroll to the 100px offset.
+ * Scroll only when the top is off-screen or tighter than SKIP_MIN_TOP_PX
+ * to the canvas top. An in-viewport top with more than 10px clearance
+ * is already visible — do not move the canvas.
  */
 export function shouldScrollStampTop(
 	blockTop: number,
@@ -92,11 +91,7 @@ export function shouldScrollStampTop(
 	if (blockTop < portTop || blockTop > portBottom) {
 		return true;
 	}
-	const fromTop = blockTop - portTop;
-	return (
-		fromTop <= SKIP_MIN_TOP_PX ||
-		fromTop > SCROLL_TOP_OFFSET_PX + SKIP_TOP_EPSILON_PX
-	);
+	return blockTop - portTop <= SKIP_MIN_TOP_PX;
 }
 
 /**
@@ -124,13 +119,6 @@ const SCROLL_PAD_ATTR = 'data-blockera-one-scroll-pad';
 function stampDocumentY(el: Element, view: Window): number {
 	return (
 		el.getBoundingClientRect().top + view.document.documentElement.scrollTop
-	);
-}
-
-function isStampDrifted(rectTop: number): boolean {
-	return (
-		rectTop > SCROLL_TOP_OFFSET_PX + SKIP_TOP_EPSILON_PX + DRIFT_SLACK_PX ||
-		rectTop < -10
 	);
 }
 
@@ -226,7 +214,7 @@ function revealStampTop(el: Element, view: Window): boolean {
 
 /**
  * Scroll the stamped block into the canvas if its top is off-screen
- * (or tighter than SKIP_MIN_TOP_PX to the canvas top).
+ * or tighter than SKIP_MIN_TOP_PX to the canvas top.
  * Returns a cleanup that cancels the iframe/store retry.
  */
 let activeRevealStop: (() => void) | null = null;
@@ -309,7 +297,12 @@ export function scrollStampIntoCanvas(stampId: string): () => void {
 				if (observing) {
 					const rectTop = found.el.getBoundingClientRect().top;
 					const docY = stampDocumentY(found.el, found.view);
-					const drifted = isStampDrifted(rectTop);
+					// Same skip rule as reveal: iframe viewport, portTop 0.
+					const drifted = shouldScrollStampTop(
+						rectTop,
+						0,
+						found.view.innerHeight
+					);
 					// Viewport motion during smooth scroll keeps docY stable.
 					// Only follow when the stamp moved in the document
 					// (query loop hydration pushing footer/pagination down).
