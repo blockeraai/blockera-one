@@ -216,6 +216,41 @@ export function toggleSection(
 }
 
 /**
+ * Core's editor paints `label` as PlainText — empty means an invisible
+ * placeholder. PHP already falls back to these strings. Write them when
+ * Previous/Next exist but have no label so the canvas matches Settings.
+ */
+const PAGINATION_NAV_DEFAULT_LABELS: Array<{
+	sectionId: string;
+	label: string;
+}> = [
+	{ sectionId: 'pagination-previous', label: 'Previous Page' },
+	{ sectionId: 'pagination-next', label: 'Next Page' },
+];
+
+export function ensurePaginationNavLabels(blocks: BlockNode[]): BlockNode[] {
+	let next = blocks;
+	for (let i = 0; i < PAGINATION_NAV_DEFAULT_LABELS.length; i++) {
+		const item = PAGINATION_NAV_DEFAULT_LABELS[i];
+		const state = resolveSectionState(next, item.sectionId);
+		if (!state.path) {
+			continue;
+		}
+		const node = getAtPath(next, state.path);
+		const current = node?.attributes?.label;
+		if (typeof current === 'string' && current !== '') {
+			continue;
+		}
+		next = setSectionAttribute(next, {
+			sectionId: item.sectionId,
+			attributePath: 'label',
+			value: item.label,
+		});
+	}
+	return next;
+}
+
+/**
  * Set a nested attribute on a detected section block.
  */
 export function setSectionAttribute(

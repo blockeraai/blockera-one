@@ -49,8 +49,52 @@ function setAtDotPath(
 	cursor[parts[parts.length - 1]] = value;
 }
 
-function isEmptyMergeValue(value: unknown): boolean {
+export function isEmptyMergeValue(value: unknown): boolean {
 	return value === undefined || value === null || value === '';
+}
+
+/**
+ * True when `value` is already a Blockera spacing box (`margin` / `padding`
+ * sides). Used so a swap reapply cannot nest that box into `margin.top`.
+ */
+export function isSpacingBox(value: unknown): boolean {
+	return isPlainObject(value) && ('margin' in value || 'padding' in value);
+}
+
+const EMPTY_BORDER_SIDE = { width: '', style: '', color: '' };
+
+/** True when a BorderControl side has a width or color. */
+export function isBorderSideAssigned(value: unknown): boolean {
+	if (!isPlainObject(value)) {
+		return false;
+	}
+	const width = String(value.width ?? '');
+	const color = String(value.color ?? '');
+	const widthEmpty = !width || width === '0' || width === '0px';
+	return !widthEmpty || color !== '';
+}
+
+/**
+ * Write one side of the inspector `blockeraBorder` box (`type: custom`).
+ */
+export function mergeBorderSide(
+	current: unknown,
+	side: string,
+	nextSide: unknown
+): Record<string, unknown> {
+	const next = isPlainObject(current)
+		? clonePlain(current)
+		: {
+				type: 'custom',
+				all: { ...EMPTY_BORDER_SIDE },
+				top: { ...EMPTY_BORDER_SIDE },
+				right: { ...EMPTY_BORDER_SIDE },
+				bottom: { ...EMPTY_BORDER_SIDE },
+				left: { ...EMPTY_BORDER_SIDE },
+			};
+	next.type = 'custom';
+	next[side] = isPlainObject(nextSide) ? nextSide : { ...EMPTY_BORDER_SIDE };
+	return next;
 }
 
 /**

@@ -157,7 +157,95 @@ export function applyBlockeraInspectorAttribute(
 		blockDetail
 	);
 
-	return filtered && typeof filtered === 'object'
-		? (filtered as Record<string, unknown>)
-		: next;
+	const result =
+		filtered && typeof filtered === 'object'
+			? (filtered as Record<string, unknown>)
+			: next;
+
+	// Gutenberg useBlockProps calls style.marginTop.charAt() — objects/numbers crash.
+	return sanitizeWpSpacingStyle(result);
+}
+
+const SPACING_SIDES = ['top', 'right', 'bottom', 'left'] as const;
+
+/**
+ * Coerce WP `style.spacing` margin/padding sides to CSS strings. A nested
+ * box or ValueAddon leaked into `margin.top` becomes wrapperProps.style.marginTop
+ * and Gutenberg's negative-margin check throws.
+ */
+function sanitizeWpSpacingStyle(
+	attributes: Record<string, unknown>
+): Record<string, unknown> {
+	const style = attributes.style;
+	if (!style || typeof style !== 'object' || Array.isArray(style)) {
+		return attributes;
+	}
+	const spacing = (style as Record<string, unknown>).spacing;
+	if (!spacing || typeof spacing !== 'object' || Array.isArray(spacing)) {
+		return attributes;
+	}
+
+	let changed = false;
+	const nextSpacing: Record<string, unknown> = {
+		...(spacing as Record<string, unknown>),
+	};
+	for (const box of ['margin', 'padding'] as const) {
+		const sides = nextSpacing[box];
+		if (!sides || typeof sides !== 'object' || Array.isArray(sides)) {
+			continue;
+		}
+		const nextSides: Record<string, unknown> = {
+			...(sides as Record<string, unknown>),
+		};
+		let boxChanged = false;
+		for (let i = 0; i < SPACING_SIDES.length; i++) {
+			const side = SPACING_SIDES[i];
+			const sanitized = toWpSpacingCss(nextSides[side]);
+			if (sanitized !== nextSides[side]) {
+				nextSides[side] = sanitized;
+				boxChanged = true;
+			}
+		}
+		if (boxChanged) {
+			nextSpacing[box] = nextSides;
+			changed = true;
+		}
+	}
+
+	if (!changed) {
+		return attributes;
+	}
+	return {
+		...attributes,
+		style: {
+			...(style as Record<string, unknown>),
+			spacing: nextSpacing,
+		},
+	};
+}
+
+function toWpSpacingCss(value: unknown): unknown {
+	if (value === undefined || value === null || value === '') {
+		return value === undefined ? undefined : '';
+	}
+	if (typeof value === 'number' && !Number.isNaN(value)) {
+		return `${value}px`;
+	}
+	if (typeof value === 'string') {
+		return value;
+	}
+	if (value && typeof value === 'object' && !Array.isArray(value)) {
+		const obj = value as Record<string, unknown>;
+		if (typeof obj.var === 'string' && obj.var) {
+			return obj.var.startsWith('var(') ? obj.var : `var(${obj.var})`;
+		}
+		if (typeof obj.value === 'string') {
+			return obj.value;
+		}
+		if (typeof obj.value === 'number' && !Number.isNaN(obj.value)) {
+			return `${obj.value}px`;
+		}
+		return '';
+	}
+	return '';
 }

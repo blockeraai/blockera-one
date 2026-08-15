@@ -40,13 +40,13 @@ export type ResolvedOptionState = {
 export type ControlType =
 	| 'layout-picker'
 	| 'toggle'
-	| 'segmented-choice'
 	| 'number'
 	| 'input'
 	| 'color'
 	| 'select'
 	| 'button'
-	| 'layout-matrix';
+	| 'layout-matrix'
+	| 'border';
 
 /** Resolved UI value for a control (scalars plus Blockera value-addon objects). */
 export type ControlValue =
@@ -149,6 +149,18 @@ export type VariantDef = {
 	 * columns (narrow header | body); `stacked` is the default top/bottom part.
 	 */
 	chromeLayout?: ChromeLayout;
+	/** Tile is visible but not selectable (e.g. coming-soon designs). */
+	disabled?: boolean;
+	/** Overlay label on a disabled tile (e.g. "Coming soon"). */
+	badge?: string;
+};
+
+/** Companion section toggled with the primary `toggleSection` target. */
+export type AlsoToggleDef = {
+	id: string;
+	catalogPool?: string;
+	insert?: InsertRule;
+	variants?: VariantDef[];
 };
 
 /**
@@ -261,6 +273,32 @@ export type ControlDef = {
 	 * On change, toggleSection is called with enabled = !nextValue.
 	 */
 	invertPresence?: boolean;
+	/**
+	 * Extra sections toggled with this control (e.g. Next with Previous).
+	 * Enable inserts any missing companion; disable removes all of them.
+	 */
+	alsoToggle?: AlsoToggleDef[];
+	/**
+	 * Sibling toggle ids that must keep at least one on. When this control
+	 * is the last remaining on member, the UI locks its off switch.
+	 */
+	requireAtLeastOneOf?: string[];
+	/** BorderControl writes this side of `blockeraBorder` (`type: custom`). */
+	borderSide?: 'top' | 'right' | 'bottom' | 'left';
+	/**
+	 * After this attribute write, copy or clear `mergeKeys` on the spacing
+	 * object when a sibling divider/spacing pair is assigned.
+	 */
+	mirrorMergeWhen?: {
+		whenControlId: string;
+		mergeKeys: string[];
+		/** This control is the divider; sibling is spacing (or the reverse). */
+		role: 'divider' | 'spacing';
+		/** Attribute path for the mirrored keys (defaults to this control). */
+		attributePath?: string;
+	};
+	/** Help text under a number/input label (e.g. Numbers midSize). */
+	labelDescription?: string;
 	/** Engine hints for swapSection controls. */
 	swapHints?: {
 		/** Preserve query.* attributes across the swap (posts listings). */

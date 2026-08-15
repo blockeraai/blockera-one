@@ -320,12 +320,10 @@ export function resolveLayoutState(
  * `default` and now ships `simple` (page-title Simple rename).
  */
 function canonicalizeVariant(variant: string, knownIds: Set<string>): string {
-	if (
-		knownIds.size > 0 &&
-		!knownIds.has(variant) &&
-		variant === 'default' &&
-		knownIds.has('simple')
-	) {
+	if (knownIds.size === 0 || knownIds.has(variant)) {
+		return variant;
+	}
+	if (variant === 'default' && knownIds.has('simple')) {
 		return 'simple';
 	}
 	return variant;
@@ -386,6 +384,28 @@ export function resolveToggleState(
 		return { kind: 'value', value: false };
 	}
 	return { kind: 'value', value: true, path: state.path };
+}
+
+/**
+ * Toggle is on when the primary section or any alsoToggle companion exists.
+ */
+export function resolveCompoundToggleEnabled(
+	blocks: BlockNode[],
+	control: { target: { id: string }; alsoToggle?: Array<{ id: string }> }
+): boolean {
+	if (resolveToggleState(blocks, control.target.id).value) {
+		return true;
+	}
+	const extras = control.alsoToggle;
+	if (!extras?.length) {
+		return false;
+	}
+	for (let i = 0; i < extras.length; i++) {
+		if (resolveToggleState(blocks, extras[i].id).value) {
+			return true;
+		}
+	}
+	return false;
 }
 
 /**

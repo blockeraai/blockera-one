@@ -10,6 +10,7 @@ import {
 	type TemplateSettingsRecord,
 } from './constants';
 import {
+	ensurePaginationNavLabels,
 	prepareHideChromeSection,
 	orderInnerSections,
 	placeSection,
@@ -28,9 +29,19 @@ import {
 	resolveElementOrder,
 } from './element-order';
 import { getPostsPerPageMap } from './resolve-control-values';
-import { resolveSectionState, resolveToggleState } from './resolve-state';
+import {
+	resolveCompoundToggleEnabled,
+	resolveSectionState,
+} from './resolve-state';
 import { flattenPanelControls } from './resolve-options-panel';
-import { mergeAttributeKeys } from './attribute-merge';
+import {
+	isBorderSideAssigned,
+	isEmptyMergeValue,
+	isSpacingBox,
+	mergeAttributeKeys,
+	mergeBorderSide,
+	pickMergedAttributeValue,
+} from './attribute-merge';
 import { getAtPath } from './tree';
 import { getStamp } from './metadata';
 import type {
@@ -56,14 +67,25 @@ function resolveAttributeWriteValue(
 	control: ControlDef,
 	value: unknown
 ): unknown {
-	const mergeKeys = control.attributeMergeKeys;
 	const attributePath = control.attributePath;
-	if (!mergeKeys?.length || !attributePath) {
+	if (!attributePath) {
 		return value;
 	}
 	const state = resolveSectionState(blocks, control.target.id);
 	const node = state.path ? getAtPath(blocks, state.path) : undefined;
 	const current = getAttributeAtPath(node?.attributes, attributePath);
+	if (control.borderSide) {
+		return mergeBorderSide(current, control.borderSide, value);
+	}
+	const mergeKeys = control.attributeMergeKeys;
+	if (!mergeKeys?.length) {
+		return value;
+	}
+	// Swap reapply may pass the whole box; writing that into margin.top
+	// makes Gutenberg's useBlockProps call .charAt() on an object.
+	if (isSpacingBox(value)) {
+		return value;
+	}
 	return mergeAttributeKeys(current, mergeKeys, value);
 }
 
@@ -115,6 +137,158 @@ function applySectionAttribute(
 	return next;
 }
 
+function applyBlockStyle(
+	blocks: BlockNode[],
+	control: ControlDef,
+	styleName: string
+): BlockNode[] {
+	let next = setSectionBlockStyle(blocks, {
+		sectionId: control.target.id,
+		styleName,
+	});
+	const extras = control.alsoSetOn;
+	if (extras?.length) {
+		for (let i = 0; i < extras.length; i++) {
+			next = setSectionBlockStyle(next, {
+				sectionId: extras[i],
+				styleName,
+			});
+		}
+	}
+	return next;
+}
+
+function applyToggleControl(
+	blocks: BlockNode[],
+	control: ControlDef,
+	enabled: boolean,
+	orderSource: BlockNode[],
+	layoutId: string,
+	persistOrder = true
+): BlockNode[] {
+	let tree = blocks;
+	if (!enabled) {
+		tree = prepareHideChromeSection(tree, control.target.id, layoutId);
+	}
+	tree = toggleSection(
+		tree,
+		{
+			sectionId: control.target.id,
+			enabled,
+			defaultVariant: control.variants?.[0],
+			insert: control.insert,
+		},
+		defaultOpsContext
+	);
+	const extras = control.alsoToggle;
+	if (extras?.length) {
+		for (let i = 0; i < extras.length; i++) {
+			const companion = extras[i];
+			tree = toggleSection(
+				tree,
+				{
+					sectionId: companion.id,
+					enabled,
+					defaultVariant: companion.variants?.[0],
+					insert: companion.insert,
+				},
+				defaultOpsContext
+			);
+		}
+	}
+	tree = applyInnerOrder(tree, control, orderSource);
+	// User toggles persist the drag list. Design-swap reapply must not —
+	// the new pattern is the order source and stored order was just cleared.
+	if (persistOrder && control.innerOrder) {
+		const ids = resolveInnerOrderIds(control, orderSource);
+		if (ids) {
+			tree = persistElementOrder(tree, control.innerOrder.parentId, ids);
+		}
+	}
+	return tree;
+}
+
+function wouldLeaveZeroRequired(
+	blocks: BlockNode[],
+	control: ControlDef,
+	config: TemplateOptionsConfig
+): boolean {
+	const ids = control.requireAtLeastOneOf;
+	if (!ids?.length) {
+		return false;
+	}
+	const all = flattenPanelControls(config.groups);
+	let onCount = 0;
+	for (let i = 0; i < ids.length; i++) {
+		const sibling = all.find((item) => item.id === ids[i]);
+		if (!sibling) {
+			continue;
+		}
+		if (resolveCompoundToggleEnabled(blocks, sibling)) {
+			onCount++;
+		}
+	}
+	return onCount <= 1;
+}
+
+function readControlAttribute(
+	blocks: BlockNode[],
+	control: ControlDef
+): unknown {
+	if (!control.attributePath) {
+		return undefined;
+	}
+	const state = resolveSectionState(blocks, control.target.id);
+	const node = state.path ? getAtPath(blocks, state.path) : undefined;
+	const raw = getAttributeAtPath(node?.attributes, control.attributePath);
+	if (control.borderSide && raw && typeof raw === 'object') {
+		return (raw as Record<string, unknown>)[control.borderSide];
+	}
+	if (control.attributeMergeKeys?.length) {
+		return pickMergedAttributeValue(raw, control.attributeMergeKeys);
+	}
+	return raw;
+}
+
+function applyMirrorMergeWhen(
+	blocks: BlockNode[],
+	control: ControlDef,
+	config: TemplateOptionsConfig
+): BlockNode[] {
+	const spec = control.mirrorMergeWhen;
+	if (!spec?.whenControlId || !spec.mergeKeys?.length) {
+		return blocks;
+	}
+	const all = flattenPanelControls(config.groups);
+	const sibling = all.find((item) => item.id === spec.whenControlId);
+	if (!sibling) {
+		return blocks;
+	}
+
+	const divider = spec.role === 'divider' ? control : sibling;
+	const spacing = spec.role === 'spacing' ? control : sibling;
+	const dividerValue = readControlAttribute(blocks, divider);
+	const spacingValue = readControlAttribute(blocks, spacing);
+	const paddingValue =
+		isBorderSideAssigned(dividerValue) && !isEmptyMergeValue(spacingValue)
+			? spacingValue
+			: '';
+
+	const spacingPath =
+		spec.attributePath || spacing.attributePath || 'blockeraSpacing.value';
+	const current = (() => {
+		const state = resolveSectionState(blocks, spacing.target.id);
+		const node = state.path ? getAtPath(blocks, state.path) : undefined;
+		return getAttributeAtPath(node?.attributes, spacingPath);
+	})();
+
+	return setSectionAttribute(blocks, {
+		sectionId: spacing.target.id,
+		attributePath: spacingPath,
+		value: mergeAttributeKeys(current, spec.mergeKeys, paddingValue),
+	});
+}
+
 /**
  * Map each swappable section to its active design's placement rule so a
  * layout transplant can re-attach every section where its design expects
@@ -160,7 +334,7 @@ function applySwapSection(
 	config: TemplateOptionsConfig
 ): OperationResult {
 	const variant = control.variants?.find((v) => v.id === String(nextValue));
-	if (!variant) {
+	if (!variant || variant.disabled) {
 		return null;
 	}
 
@@ -186,11 +360,10 @@ function applySwapSection(
 			continue;
 		}
 		if (dep.operation === 'toggleSection') {
-			const prev = resolveToggleState(blocks, dep.target.id);
 			reapplyPlans.push({
 				kind: 'toggle',
 				control: dep,
-				enabled: !!prev.value,
+				enabled: resolveCompoundToggleEnabled(blocks, dep),
 			});
 			continue;
 		}
@@ -212,8 +385,20 @@ function applySwapSection(
 			}
 			const node = getAtPath(blocks, prev.path);
 			const raw = getAttributeAtPath(node?.attributes, dep.attributePath);
-			const value =
+			let value: unknown =
 				raw !== undefined && raw !== null ? raw : dep.defaultValue;
+			if (dep.borderSide && raw && typeof raw === 'object') {
+				value = (raw as Record<string, unknown>)[dep.borderSide];
+			} else if (dep.attributeMergeKeys?.length) {
+				const picked = pickMergedAttributeValue(
+					raw,
+					dep.attributeMergeKeys
+				);
+				if (isEmptyMergeValue(picked)) {
+					continue;
+				}
+				value = picked;
+			}
 			if (value === undefined) {
 				continue;
 			}
@@ -291,17 +476,14 @@ function applySwapSection(
 			continue;
 		}
 		if (plan.kind === 'toggle') {
-			next = toggleSection(
+			next = applyToggleControl(
 				next,
-				{
-					sectionId: plan.control.target.id,
-					enabled: plan.enabled,
-					defaultVariant: plan.control.variants?.[0],
-					insert: plan.control.insert,
-				},
-				defaultOpsContext
+				plan.control,
+				plan.enabled,
+				next,
+				config.layoutId,
+				false
 			);
-			next = applyInnerOrder(next, plan.control, next);
 			continue;
 		}
 		if (plan.kind === 'attribute' && plan.control.attributePath) {
@@ -309,10 +491,7 @@ function applySwapSection(
 			continue;
 		}
 		if (plan.kind === 'style') {
-			next = setSectionBlockStyle(next, {
-				sectionId: plan.control.target.id,
-				styleName: plan.value,
-			});
+			next = applyBlockStyle(next, plan.control, plan.value);
 			continue;
 		}
 		const placeVariant = plan.control.variants?.find(
@@ -326,7 +505,10 @@ function applySwapSection(
 			next = applyInnerOrder(next, plan.control, next);
 		}
 	}
-	return { kind: 'blocks', blocks: next };
+	return {
+		kind: 'blocks',
+		blocks: ensurePaginationNavLabels(next),
+	};
 }
 
 /**
@@ -510,39 +692,19 @@ export function applyOperation(args: {
 
 	if (control.operation === 'toggleSection') {
 		const enabled = control.invertPresence ? !nextValue : !!nextValue;
-		let tree = blocks;
-		if (!enabled) {
-			tree = prepareHideChromeSection(
-				tree,
-				control.target.id,
-				config.layoutId
-			);
+		if (!enabled && wouldLeaveZeroRequired(blocks, control, config)) {
+			return { kind: 'blocks', blocks };
 		}
-		tree = toggleSection(
-			tree,
-			{
-				sectionId: control.target.id,
+		return {
+			kind: 'blocks',
+			blocks: applyToggleControl(
+				blocks,
+				control,
 				enabled,
-				defaultVariant: control.variants?.[0],
-				insert: control.insert,
-			},
-			defaultOpsContext
-		);
-		// Use the pre-toggle tree so stored/live order still includes the
-		// item being hidden; persist that full list so off items keep their
-		// slot, then orderInnerSections applies present ids.
-		tree = applyInnerOrder(tree, control, blocks);
-		if (control.innerOrder) {
-			const ids = resolveInnerOrderIds(control, blocks);
-			if (ids) {
-				tree = persistElementOrder(
-					tree,
-					control.innerOrder.parentId,
-					ids
-				);
-			}
-		}
-		return { kind: 'blocks', blocks: tree };
+				blocks,
+				config.layoutId
+			),
+		};
 	}
 
 	if (control.operation === 'reorderInnerSections') {
@@ -576,19 +738,19 @@ export function applyOperation(args: {
 	}
 
 	if (control.operation === 'setSectionAttribute' && control.attributePath) {
-		return {
-			kind: 'blocks',
-			blocks: applySectionAttribute(blocks, control, nextValue),
-		};
+		let tree = applySectionAttribute(blocks, control, nextValue);
+		tree = applyMirrorMergeWhen(tree, control, config);
+		return { kind: 'blocks', blocks: tree };
 	}
 
 	if (control.operation === 'setBlockStyle') {
 		return {
 			kind: 'blocks',
-			blocks: setSectionBlockStyle(blocks, {
-				sectionId: control.target.id,
-				styleName: String(nextValue || 'default'),
-			}),
+			blocks: applyBlockStyle(
+				blocks,
+				control,
+				String(nextValue || 'default')
+			),
 		};
 	}
 

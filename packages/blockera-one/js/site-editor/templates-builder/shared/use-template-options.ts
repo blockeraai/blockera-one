@@ -6,7 +6,13 @@
 
 import { store as coreStore } from '@wordpress/core-data';
 import { useDispatch, useSelect } from '@wordpress/data';
-import { useCallback, useEffect, useMemo, useState } from '@wordpress/element';
+import {
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 import { parseBlocks, toEntityEdits } from './blocks-adapter';
@@ -15,6 +21,7 @@ import {
 	type TemplateSettingsRecord,
 } from './constants';
 import { applyOperation } from './apply-operation';
+import { ensurePaginationNavLabels } from './section-ops';
 import {
 	getPostsPerPageMap,
 	resolveControlViewStates,
@@ -180,6 +187,20 @@ export default function useTemplateOptions(
 		},
 		[editEntityRecord, templateId]
 	);
+
+	const didEnsureNavLabels = useRef(false);
+	useEffect(() => {
+		if (!templateId || didEnsureNavLabels.current || !blocks.length) {
+			return;
+		}
+		// One pass after the template tree is available. Do not re-walk on
+		// later block edits — that would run two section lookups per change.
+		const next = ensurePaginationNavLabels(blocks);
+		didEnsureNavLabels.current = true;
+		if (next !== blocks) {
+			applyBlocks(next);
+		}
+	}, [applyBlocks, blocks, templateId]);
 
 	const settingBucket = filterId || 'archive';
 

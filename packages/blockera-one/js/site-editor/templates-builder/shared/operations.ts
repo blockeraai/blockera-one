@@ -21,6 +21,7 @@ export {
 } from './op-context';
 export { transplantLayout } from './layout-transplant';
 export {
+	ensurePaginationNavLabels,
 	orderInnerSections,
 	placeSection,
 	setSectionAttribute,

@@ -54,7 +54,7 @@ export function resolveVariantHtml(
  * (placeSection) have neither a pattern slug nor a template-part kind.
  */
 export function variantNeedsPatternHtml(variant: VariantDef): boolean {
-	if (variant.kind === 'templatePart') {
+	if (variant.disabled || variant.kind === 'templatePart') {
 		return false;
 	}
 	return variant.kind === 'pattern' || !!variant.patternSlug;
@@ -66,9 +66,27 @@ export function variantNeedsPatternHtml(variant: VariantDef): boolean {
  * never swap in empty markup).
  */
 export function hasUnresolvedVariants(control: ControlDef): boolean {
-	return !!control.variants?.some(
-		(variant) => variantNeedsPatternHtml(variant) && !variant.html
-	);
+	if (
+		control.variants?.some(
+			(variant) => variantNeedsPatternHtml(variant) && !variant.html
+		)
+	) {
+		return true;
+	}
+	const extras = control.alsoToggle;
+	if (!extras?.length) {
+		return false;
+	}
+	for (let i = 0; i < extras.length; i++) {
+		if (
+			extras[i].variants?.some(
+				(variant) => variantNeedsPatternHtml(variant) && !variant.html
+			)
+		) {
+			return true;
+		}
+	}
+	return false;
 }
 
 function resolveControl(
@@ -97,6 +115,28 @@ function resolveControl(
 		}
 
 		next = { ...control, variants };
+	}
+
+	if (next.alsoToggle?.length) {
+		next = {
+			...next,
+			alsoToggle: next.alsoToggle.map((item) => {
+				if (!item.variants?.length) {
+					return item;
+				}
+				let variants = item.variants.map((variant) => {
+					const html = resolveVariantHtml(variant, item.id, patterns);
+					return html ? { ...variant, html } : variant;
+				});
+				if (patternsResolved) {
+					variants = variants.filter(
+						(variant) =>
+							!variantNeedsPatternHtml(variant) || !!variant.html
+					);
+				}
+				return { ...item, variants };
+			}),
+		};
 	}
 
 	if (!next.nestedPanel?.groups?.length) {

@@ -6,11 +6,13 @@
 import type { TemplateSettingsRecord } from './constants';
 import { flattenPanelControls } from './resolve-options-panel';
 import {
+	resolveCompoundToggleEnabled,
 	resolveLayoutState,
 	resolveSectionState,
 	resolveSidebarLayoutValue,
 	resolveToggleState,
 } from './resolve-state';
+import { pickMergedAttributeValue } from './attribute-merge';
 import { getAtPath } from './tree';
 import { getStamp } from './metadata';
 import { getActiveBlockStyleName } from './block-style';
@@ -28,6 +30,8 @@ export type ControlViewState = {
 	/** Resolved UI value (variant id, boolean, number, gap object). */
 	value: ControlValue;
 	visible: boolean;
+	/** Last remaining member of `requireAtLeastOneOf` — lock the off switch. */
+	disabled?: boolean;
 	needsConfirm: boolean;
 	/** Block name of the bound section, when detected. */
 	blockName?: string;
@@ -52,6 +56,43 @@ function evaluateConditions(
 		}
 	}
 	return true;
+}
+
+function isLastRequiredOn(
+	control: ControlDef,
+	values: Record<string, ControlValue>
+): boolean {
+	const ids = control.requireAtLeastOneOf;
+	if (!ids?.length || values[control.id] !== true) {
+		return false;
+	}
+	let onCount = 0;
+	for (let i = 0; i < ids.length; i++) {
+		if (values[ids[i]] === true) {
+			onCount++;
+		}
+	}
+	return onCount === 1;
+}
+
+const EMPTY_BORDER_SIDE = { width: '', style: '', color: '' };
+
+function pickBorderSideValue(
+	raw: unknown,
+	side: NonNullable<ControlDef['borderSide']>
+): ControlValue {
+	if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+		return EMPTY_BORDER_SIDE;
+	}
+	const sideValue = (raw as Record<string, unknown>)[side];
+	if (
+		sideValue &&
+		typeof sideValue === 'object' &&
+		!Array.isArray(sideValue)
+	) {
+		return sideValue as Record<string, unknown>;
+	}
+	return EMPTY_BORDER_SIDE;
 }
 
 /** posts_per_page map from the settings record ({ bucket: n }). */
@@ -200,7 +241,18 @@ export function resolveControlViewStates(
 					node?.attributes,
 					control.attributePath
 				);
-				if (isControlValue(raw) && raw !== null) {
+				if (control.borderSide) {
+					value = pickBorderSideValue(raw, control.borderSide);
+				} else if (control.attributeMergeKeys?.length) {
+					const picked = pickMergedAttributeValue(
+						raw,
+						control.attributeMergeKeys
+					);
+					value =
+						picked === '' && control.defaultValue !== undefined
+							? control.defaultValue
+							: picked;
+				} else if (isControlValue(raw) && raw !== null) {
 					value = raw;
 				} else if (control.defaultValue !== undefined) {
 					value = control.defaultValue;
@@ -233,8 +285,9 @@ export function resolveControlViewStates(
 			state = resolveToggleState(blocks, control.target.id);
 			value = resolvePlaceControlValue(blocks, control);
 		} else if (control.type === 'toggle') {
+			const enabled = resolveCompoundToggleEnabled(blocks, control);
 			state = resolveToggleState(blocks, control.target.id);
-			value = control.invertPresence ? !state.value : !!state.value;
+			value = control.invertPresence ? !enabled : enabled;
 		} else {
 			state = resolveCached(
 				`section:${control.target.id}:${variantsKey(control)}`,
@@ -265,8 +318,15 @@ export function resolveControlViewStates(
 			state,
 			value,
 			visible: true,
+			// Attribute/style edits must not ask to rebuild the layout.
+			// Confirm is only for ops that swap, toggle, or transplant.
 			needsConfirm:
-				state.kind === 'customized' || state.kind === 'unrecognized',
+				(control.operation === 'transplantLayout' ||
+					control.operation === 'swapSection' ||
+					control.operation === 'swapTemplatePart' ||
+					control.operation === 'toggleSection' ||
+					control.operation === 'placeSection') &&
+				(state.kind === 'customized' || state.kind === 'unrecognized'),
 			blockName,
 			clientId,
 		});
@@ -275,5 +335,6 @@ export function resolveControlViewStates(
 	return states.map((item) => ({
 		...item,
 		visible: evaluateConditions(item.control, values),
+		disabled: isLastRequiredOn(item.control, values),
 	}));
 }
