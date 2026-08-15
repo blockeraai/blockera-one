@@ -37,3 +37,6 @@ if ( ! function_exists( 'blockera_one_register_editor_assets_provider' ) ) :
 endif;
 
 add_filter( 'blockera.application.providers', 'blockera_one_register_editor_assets_provider' );
+
+// Register the theme as a product; the registry fires this once on first read access.
+add_action( 'blockera/products/registry/init', 'blockera_one_register_product' );
