@@ -41,6 +41,17 @@ const MARKUP = {
 		}),
 	],
 	'title-simple': [stamped('core/group', 'section/page-title:simple')],
+	'title-banner': [
+		stamped('core/group', 'section/page-title:banner', {
+			blockeraFlexLayout: {
+				value: {
+					direction: 'column',
+					alignItems: 'center',
+					justifyContent: 'center',
+				},
+			},
+		}),
+	],
 	empty: [],
 };
 
@@ -57,7 +68,7 @@ function findStamp(blocks, id) {
 }
 
 describe('swapSection', () => {
-	it('replaces the section, keeping only Blockera extension attributes', () => {
+	it('replaces the section without carrying Blockera extension attributes', () => {
 		const tree = [
 			stamped('core/query', `section/${SECTION_ID}:list`, {
 				className: 'user-class',
@@ -79,11 +90,69 @@ describe('swapSection', () => {
 		expect(swapped.attributes.metadata.blockeraOne).toBe(
 			`section/${SECTION_ID}:grid-2`
 		);
-		// Blockera extension attrs survive the design swap…
-		expect(swapped.attributes.blockeraFontColor).toBe('#abc');
-		// …but the previous design's look must not (Banner → Simple fix).
+		// Default: previous blockera* attrs must not overlay the new pattern.
+		expect(swapped.attributes.blockeraFontColor).toBeUndefined();
+		// Previous design look (WP native) must not carry either.
 		expect(swapped.attributes.className).toBeUndefined();
 		expect(swapped.attributes.style).toBeUndefined();
+	});
+
+	it('does not overlay previous flex layout onto the target pattern', () => {
+		const BANNER = {
+			id: 'banner',
+			label: 'Banner',
+			html: 'title-banner',
+		};
+		const tree = [
+			stamped('core/group', 'section/page-title:simple', {
+				blockeraFlexLayout: {
+					value: {
+						direction: 'column',
+						alignItems: 'flex-start',
+						justifyContent: 'center',
+					},
+				},
+			}),
+		];
+		const next = swapSection(
+			tree,
+			{
+				sectionId: 'page-title',
+				targetVariant: BANNER,
+				knownVariants: [{ id: 'simple', label: 'Simple' }, BANNER],
+			},
+			ctx
+		);
+
+		expect(next[0].attributes.blockeraFlexLayout).toEqual({
+			value: {
+				direction: 'column',
+				alignItems: 'center',
+				justifyContent: 'center',
+			},
+		});
+	});
+
+	it('carries Blockera extension attributes when preserveBlockeraExtensions is set', () => {
+		const tree = [
+			stamped('core/query', `section/${SECTION_ID}:list`, {
+				className: 'user-class',
+				blockeraFontColor: '#abc',
+			}),
+		];
+		const next = swapSection(
+			tree,
+			{
+				sectionId: SECTION_ID,
+				targetVariant: GRID_VARIANT,
+				knownVariants: KNOWN,
+				preserveBlockeraExtensions: true,
+			},
+			ctx
+		);
+
+		expect(next[0].attributes.blockeraFontColor).toBe('#abc');
+		expect(next[0].attributes.className).toBeUndefined();
 	});
 
 	it('preserves the query envelope when preserveQuery is set', () => {

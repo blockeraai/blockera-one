@@ -37,6 +37,12 @@ export function swapSection(
 		knownVariants?: VariantDef[];
 		/** Preserve query.inherit / query object keys when swapping listings. */
 		preserveQuery?: boolean;
+		/**
+		 * Overlay previous `blockera*` attributes onto the new pattern.
+		 * Off by default so the target design keeps its own look
+		 * (e.g. Simple `alignItems: flex-start` must not land on Banner).
+		 */
+		preserveBlockeraExtensions?: boolean;
 	},
 	ctx: OpsContext
 ): BlockNode[] {
@@ -68,24 +74,28 @@ export function swapSection(
 		if (prev) {
 			// Design/layout swaps must use the target variant's look. Carrying
 			// previous style/color/align (via mergeUserAttributes) made Banner →
-			// Simple keep the banner band. Only keep Blockera extensions.
+			// Simple keep the banner band. Native WP attrs are never copied.
+			// `blockera*` attrs are copied only when opted in — otherwise
+			// Simple flex-start / spacing would overwrite Banner defaults.
 			// Do not copy metadata.blockeraOneInnerOrder — a new design
 			// resets element order to the pattern.
-			const extensions = pickBlockeraExtensionAttributes(
-				prev.attributes || {}
-			);
-			nextBlock = withStamp(
-				{
-					...nextBlock,
-					attributes: {
-						...(nextBlock.attributes || {}),
-						...extensions,
+			if (params.preserveBlockeraExtensions) {
+				const extensions = pickBlockeraExtensionAttributes(
+					prev.attributes || {}
+				);
+				nextBlock = withStamp(
+					{
+						...nextBlock,
+						attributes: {
+							...(nextBlock.attributes || {}),
+							...extensions,
+						},
 					},
-				},
-				'section',
-				params.sectionId,
-				params.targetVariant.id
-			);
+					'section',
+					params.sectionId,
+					params.targetVariant.id
+				);
+			}
 
 			if (params.preserveQuery && prev.name === 'core/query') {
 				const prevQuery =
