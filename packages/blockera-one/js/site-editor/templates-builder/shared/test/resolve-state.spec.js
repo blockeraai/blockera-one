@@ -210,6 +210,17 @@ describe('resolveSectionState', () => {
 		expect(state).toEqual({ kind: 'value', value: 'simple', path: [0] });
 	});
 
+	it('aliases a leftover next-prev pagination stamp to standard', () => {
+		const tree = [
+			stamped('core/query-pagination', 'section/pagination:next-prev'),
+		];
+		const state = resolveSectionState(tree, 'pagination', [
+			{ id: 'standard', label: 'Standard' },
+			{ id: 'load-more', label: 'Load more' },
+		]);
+		expect(state).toEqual({ kind: 'value', value: 'standard', path: [0] });
+	});
+
 	it('detects unstamped sections via the blockName heuristic as customized', () => {
 		const tree = [
 			block('core/group', { tagName: 'main' }, [

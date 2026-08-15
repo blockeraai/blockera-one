@@ -5,6 +5,7 @@
  */
 
 import {
+	ensurePaginationNavLabels,
 	orderInnerSections,
 	placeSection,
 	setSectionAttribute,
@@ -12,6 +13,7 @@ import {
 	swapSection,
 	toggleSection,
 } from '../operations';
+import { registerSectionHeuristics } from '../resolve-state';
 import { findByStamp, getAtPath } from '../tree';
 
 const SECTION_ID = 'posts-listing';
@@ -578,5 +580,58 @@ describe('toggleSection inner insert + banner align', () => {
 			ctx
 		);
 		expect(getAtPath(next, [0, 0]).attributes.textAlign).toBe('center');
+	});
+});
+
+describe('ensurePaginationNavLabels', () => {
+	beforeAll(() => {
+		registerSectionHeuristics({
+			pagination: { kind: 'blockName', name: 'core/query-pagination' },
+			'pagination-previous': {
+				kind: 'innerBlock',
+				parentId: 'pagination',
+				name: 'core/query-pagination-previous',
+			},
+			'pagination-next': {
+				kind: 'innerBlock',
+				parentId: 'pagination',
+				name: 'core/query-pagination-next',
+			},
+		});
+	});
+
+	it('writes core default labels when Previous/Next have none', () => {
+		const tree = [
+			stamped(
+				'core/query-pagination',
+				'section/pagination:standard',
+				{},
+				[
+					block('core/query-pagination-previous'),
+					block('core/query-pagination-numbers'),
+					block('core/query-pagination-next'),
+				]
+			),
+		];
+		const next = ensurePaginationNavLabels(tree);
+		expect(getAtPath(next, [0, 0]).attributes.label).toBe('Previous Page');
+		expect(getAtPath(next, [0, 2]).attributes.label).toBe('Next Page');
+	});
+
+	it('does not overwrite a custom label', () => {
+		const tree = [
+			stamped(
+				'core/query-pagination',
+				'section/pagination:standard',
+				{},
+				[
+					block('core/query-pagination-previous', { label: 'Back' }),
+					block('core/query-pagination-next', { label: 'Forward' }),
+				]
+			),
+		];
+		const next = ensurePaginationNavLabels(tree);
+		expect(getAtPath(next, [0, 0]).attributes.label).toBe('Back');
+		expect(getAtPath(next, [0, 1]).attributes.label).toBe('Forward');
 	});
 });

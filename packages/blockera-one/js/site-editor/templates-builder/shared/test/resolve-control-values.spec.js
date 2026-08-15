@@ -235,6 +235,42 @@ describe('resolveControlViewStates', () => {
 		expect(clean.needsConfirm).toBe(false);
 	});
 
+	it('does not confirm attribute edits on a customized section', () => {
+		registerSectionHeuristics({
+			'pagination-previous': {
+				kind: 'innerBlock',
+				parentId: 'pagination',
+				name: 'core/query-pagination-previous',
+			},
+			pagination: { kind: 'blockName', name: 'core/query-pagination' },
+		});
+		const config = makeConfig([
+			{
+				id: 'pagination-previous-label',
+				type: 'input',
+				label: 'Label',
+				target: { kind: 'section', id: 'pagination-previous' },
+				operation: 'setSectionAttribute',
+				attributePath: 'label',
+				defaultValue: 'Previous Page',
+			},
+		]);
+		const tree = [
+			stamped('core/group', `layout/${LAYOUT_ID}:no-sidebar`, {}, [
+				stamped('core/group', 'area/content', {}, [
+					block('core/query-pagination', {}, [
+						block('core/query-pagination-previous', {
+							label: 'Previous Page',
+						}),
+					]),
+				]),
+			]),
+		];
+		const label = byId(resolve(tree, config), 'pagination-previous-label');
+		expect(label.state.kind).toBe('customized');
+		expect(label.needsConfirm).toBe(false);
+	});
+
 	it('evaluates visibility conditions against resolved values', () => {
 		const sidebarOn = resolve(makeSidebarTree());
 		expect(byId(sidebarOn, 'sidebar-position').visible).toBe(true);
@@ -417,7 +453,7 @@ describe('resolveControlViewStates', () => {
 	it('resolves placeSection as top when the section is the first inner block', () => {
 		const position = {
 			id: 'breadcrumbs-position',
-			type: 'segmented-choice',
+			type: 'select',
 			label: 'Position',
 			target: { kind: 'section', id: 'page-title-breadcrumbs' },
 			operation: 'placeSection',
@@ -683,6 +719,241 @@ describe('resolveControlViewStates', () => {
 		expect(byId(banner, 'page-header-align-banner').value).toEqual(
 			bannerFlex
 		);
+	});
+});
+
+describe('requireAtLeastOneOf and alsoToggle', () => {
+	const required = [
+		'pagination-previous',
+		'pagination-numbers',
+		'pagination-next',
+	];
+	const previous = {
+		id: 'pagination-previous',
+		type: 'toggle',
+		label: 'Previous Page',
+		target: { kind: 'section', id: 'pagination-previous' },
+		operation: 'toggleSection',
+		requireAtLeastOneOf: required,
+	};
+	const numbers = {
+		id: 'pagination-numbers',
+		type: 'toggle',
+		label: 'Numbers',
+		target: { kind: 'section', id: 'pagination-numbers' },
+		operation: 'toggleSection',
+		requireAtLeastOneOf: required,
+	};
+	const next = {
+		id: 'pagination-next',
+		type: 'toggle',
+		label: 'Next Page',
+		target: { kind: 'section', id: 'pagination-next' },
+		operation: 'toggleSection',
+		requireAtLeastOneOf: required,
+	};
+
+	function resolveElements(children) {
+		return resolve(
+			[
+				stamped(
+					'core/query-pagination',
+					'section/pagination:standard',
+					{},
+					children
+				),
+			],
+			makeConfig([previous, numbers, next])
+		);
+	}
+
+	it('treats previous and next as independent toggles', () => {
+		const states = resolveElements([
+			stamped(
+				'core/query-pagination-next',
+				'section/pagination-next:default'
+			),
+		]);
+		expect(byId(states, 'pagination-previous').value).toBe(false);
+		expect(byId(states, 'pagination-next').value).toBe(true);
+	});
+
+	it('disables the last remaining required toggle', () => {
+		const both = resolveElements([
+			stamped(
+				'core/query-pagination-previous',
+				'section/pagination-previous:default'
+			),
+			stamped(
+				'core/query-pagination-numbers',
+				'section/pagination-numbers:default'
+			),
+		]);
+		expect(byId(both, 'pagination-previous').disabled).toBe(false);
+		expect(byId(both, 'pagination-numbers').disabled).toBe(false);
+		expect(byId(both, 'pagination-next').disabled).toBe(false);
+
+		const onlyNumbers = resolveElements([
+			stamped(
+				'core/query-pagination-numbers',
+				'section/pagination-numbers:default'
+			),
+		]);
+		expect(byId(onlyNumbers, 'pagination-numbers').disabled).toBe(true);
+		expect(byId(onlyNumbers, 'pagination-previous').disabled).toBe(false);
+		expect(byId(onlyNumbers, 'pagination-next').disabled).toBe(false);
+	});
+
+	it('treats an alsoToggle companion as on when only the extra stamp is present', () => {
+		const paired = {
+			id: 'pagination-prev-next',
+			type: 'toggle',
+			label: 'Next/Prev',
+			target: { kind: 'section', id: 'pagination-previous' },
+			operation: 'toggleSection',
+			alsoToggle: [{ id: 'pagination-next' }],
+		};
+		const states = resolve(
+			[
+				stamped(
+					'core/query-pagination',
+					'section/pagination:standard',
+					{},
+					[
+						stamped(
+							'core/query-pagination-next',
+							'section/pagination-next:default'
+						),
+					]
+				),
+			],
+			makeConfig([paired])
+		);
+		expect(byId(states, 'pagination-prev-next').value).toBe(true);
+	});
+
+	it('reads previous/next labels and numbers midSize from the blocks', () => {
+		const config = makeConfig([
+			{
+				id: 'pagination-previous-label',
+				type: 'input',
+				label: 'Previous Label',
+				target: { kind: 'section', id: 'pagination-previous' },
+				operation: 'setSectionAttribute',
+				attributePath: 'label',
+				defaultValue: '',
+			},
+			{
+				id: 'pagination-next-label',
+				type: 'input',
+				label: 'Next Label',
+				target: { kind: 'section', id: 'pagination-next' },
+				operation: 'setSectionAttribute',
+				attributePath: 'label',
+				defaultValue: '',
+			},
+			{
+				id: 'pagination-numbers-mid-size',
+				type: 'number',
+				label: 'Number of links',
+				target: { kind: 'section', id: 'pagination-numbers' },
+				operation: 'setSectionAttribute',
+				attributePath: 'midSize',
+				defaultValue: 2,
+			},
+		]);
+		const withValues = resolve(
+			[
+				stamped(
+					'core/query-pagination',
+					'section/pagination:standard',
+					{},
+					[
+						stamped(
+							'core/query-pagination-previous',
+							'section/pagination-previous:default',
+							{ label: 'Back' }
+						),
+						stamped(
+							'core/query-pagination-numbers',
+							'section/pagination-numbers:default',
+							{ midSize: 4 }
+						),
+						stamped(
+							'core/query-pagination-next',
+							'section/pagination-next:default',
+							{ label: 'Forward' }
+						),
+					]
+				),
+			],
+			config
+		);
+		expect(byId(withValues, 'pagination-previous-label').value).toBe(
+			'Back'
+		);
+		expect(byId(withValues, 'pagination-next-label').value).toBe('Forward');
+		expect(byId(withValues, 'pagination-numbers-mid-size').value).toBe(4);
+
+		const defaults = resolve(
+			[
+				stamped(
+					'core/query-pagination',
+					'section/pagination:standard',
+					{},
+					[
+						stamped(
+							'core/query-pagination-previous',
+							'section/pagination-previous:default'
+						),
+						stamped(
+							'core/query-pagination-numbers',
+							'section/pagination-numbers:default'
+						),
+						stamped(
+							'core/query-pagination-next',
+							'section/pagination-next:default'
+						),
+					]
+				),
+			],
+			config
+		);
+		expect(byId(defaults, 'pagination-previous-label').value).toBe('');
+		expect(byId(defaults, 'pagination-next-label').value).toBe('');
+		expect(byId(defaults, 'pagination-numbers-mid-size').value).toBe(2);
+	});
+
+	it('reads a merged spacing side instead of the whole box', () => {
+		const config = makeConfig([
+			{
+				id: 'pagination-top-spacing',
+				type: 'input',
+				label: 'Top Spacing',
+				target: { kind: 'section', id: 'pagination' },
+				operation: 'setSectionAttribute',
+				attributePath: 'blockeraSpacing.value',
+				attributeMergeKeys: ['margin.top'],
+			},
+		]);
+		const states = resolve(
+			[
+				stamped(
+					'core/query-pagination',
+					'section/pagination:standard',
+					{
+						blockeraSpacing: {
+							value: {
+								margin: { top: '24px' },
+								padding: { top: '16px' },
+							},
+						},
+					}
+				),
+			],
+			config
+		);
+		expect(byId(states, 'pagination-top-spacing').value).toBe('24px');
 	});
 });
 

@@ -77,8 +77,23 @@ beforeAll(() => {
 	__setMarkup('pagination-standard', [
 		stamped('core/query-pagination', 'section/pagination:standard'),
 	]);
-	__setMarkup('pagination-next-prev', [
-		stamped('core/query-pagination', 'section/pagination:next-prev'),
+	__setMarkup('pagination-previous', [
+		stamped(
+			'core/query-pagination-previous',
+			'section/pagination-previous:default'
+		),
+	]);
+	__setMarkup('pagination-next', [
+		stamped(
+			'core/query-pagination-next',
+			'section/pagination-next:default'
+		),
+	]);
+	__setMarkup('pagination-numbers', [
+		stamped(
+			'core/query-pagination-numbers',
+			'section/pagination-numbers:default'
+		),
 	]);
 	__setMarkup('header-large', [
 		block('core/template-part', { slug: 'raw', area: 'header' }),
@@ -107,7 +122,12 @@ const LISTING_VARIANTS = [
 
 const PAGINATION_VARIANTS = [
 	{ id: 'standard', label: 'Standard', html: 'pagination-standard' },
-	{ id: 'next-prev', label: 'Next/Prev', html: 'pagination-next-prev' },
+	{
+		id: 'load-more',
+		label: 'Load more',
+		disabled: true,
+		badge: 'Coming soon',
+	},
 ];
 
 const CONTROLS = {
@@ -138,16 +158,101 @@ const CONTROLS = {
 		variants: LISTING_VARIANTS,
 		swapHints: {
 			preserveQuery: true,
-			reapplyControls: ['pagination-type'],
+			reapplyControls: [
+				'pagination',
+				'pagination-previous',
+				'pagination-numbers',
+				'pagination-next',
+			],
 		},
 	},
-	paginationType: {
-		id: 'pagination-type',
-		type: 'segmented',
+	pagination: {
+		id: 'pagination',
+		type: 'toggle',
 		label: 'Pagination',
+		target: { kind: 'section', id: 'pagination' },
+		operation: 'toggleSection',
+		variants: PAGINATION_VARIANTS,
+		insert: { relativeTo: 'posts-listing', position: 'inside-end' },
+	},
+	paginationDesign: {
+		id: 'pagination-design',
+		type: 'layout-picker',
+		label: 'Pagination Design',
 		target: { kind: 'section', id: 'pagination' },
 		operation: 'swapSection',
 		variants: PAGINATION_VARIANTS,
+	},
+	paginationPrevious: {
+		id: 'pagination-previous',
+		type: 'toggle',
+		label: 'Previous Page',
+		target: { kind: 'section', id: 'pagination-previous' },
+		operation: 'toggleSection',
+		catalogPool: 'pagination-previous',
+		variants: [
+			{ id: 'default', label: 'Previous', html: 'pagination-previous' },
+		],
+		insert: { relativeTo: 'pagination', position: 'inside-start' },
+		innerOrder: {
+			parentId: 'pagination',
+			ids: [
+				'pagination-previous',
+				'pagination-numbers',
+				'pagination-next',
+			],
+		},
+		requireAtLeastOneOf: [
+			'pagination-previous',
+			'pagination-numbers',
+			'pagination-next',
+		],
+	},
+	paginationNumbers: {
+		id: 'pagination-numbers',
+		type: 'toggle',
+		label: 'Numbers',
+		target: { kind: 'section', id: 'pagination-numbers' },
+		operation: 'toggleSection',
+		variants: [
+			{ id: 'default', label: 'Numbers', html: 'pagination-numbers' },
+		],
+		insert: { relativeTo: 'pagination', position: 'inside-start' },
+		innerOrder: {
+			parentId: 'pagination',
+			ids: [
+				'pagination-previous',
+				'pagination-numbers',
+				'pagination-next',
+			],
+		},
+		requireAtLeastOneOf: [
+			'pagination-previous',
+			'pagination-numbers',
+			'pagination-next',
+		],
+	},
+	paginationNext: {
+		id: 'pagination-next',
+		type: 'toggle',
+		label: 'Next Page',
+		target: { kind: 'section', id: 'pagination-next' },
+		operation: 'toggleSection',
+		variants: [{ id: 'default', label: 'Next', html: 'pagination-next' }],
+		insert: { relativeTo: 'pagination', position: 'inside-end' },
+		innerOrder: {
+			parentId: 'pagination',
+			ids: [
+				'pagination-previous',
+				'pagination-numbers',
+				'pagination-next',
+			],
+		},
+		requireAtLeastOneOf: [
+			'pagination-previous',
+			'pagination-numbers',
+			'pagination-next',
+		],
 	},
 	headerDesign: {
 		id: 'header-design',
@@ -208,7 +313,22 @@ function makeBlocks() {
 						[
 							stamped(
 								'core/query-pagination',
-								'section/pagination:next-prev'
+								'section/pagination:standard',
+								{},
+								[
+									stamped(
+										'core/query-pagination-previous',
+										'section/pagination-previous:default'
+									),
+									stamped(
+										'core/query-pagination-numbers',
+										'section/pagination-numbers:default'
+									),
+									stamped(
+										'core/query-pagination-next',
+										'section/pagination-next:default'
+									),
+								]
 							),
 						]
 					),
@@ -289,16 +409,23 @@ describe('transplantLayout', () => {
 });
 
 describe('swapSection', () => {
-	it('swaps the listing and re-applies dependent non-default sections', () => {
-		// Pagination currently uses next-prev (non-default); the grid markup
-		// ships with standard pagination inside — the hint restores it.
+	it('swaps the listing and re-applies pagination elements', () => {
+		// Grid markup ships an empty pagination wrapper; the hint restores
+		// the user's previous / numbers / next inner blocks.
 		const result = apply(CONTROLS.postsTemplate, 'grid-2');
 
 		const listing = findStamp(result.blocks, 'posts-listing');
 		expect(getStamp(listing.block).variant).toBe('grid-2');
 
 		const pagination = findStamp(result.blocks, 'pagination');
-		expect(getStamp(pagination.block).variant).toBe('next-prev');
+		expect(getStamp(pagination.block).variant).toBe('standard');
+		expect(findStamp(result.blocks, 'pagination-previous')).not.toBeNull();
+		expect(findStamp(result.blocks, 'pagination-numbers')).not.toBeNull();
+		expect(findStamp(result.blocks, 'pagination-next')).not.toBeNull();
+	});
+
+	it('does not swap a disabled catalog tile', () => {
+		expect(apply(CONTROLS.paginationDesign, 'load-more')).toBeNull();
 	});
 
 	it('skips the re-apply when the dependent already uses its default', () => {
@@ -1088,7 +1215,7 @@ describe('placeSection', () => {
 		];
 		const control = {
 			id: 'breadcrumbs-position',
-			type: 'segmented-choice',
+			type: 'select',
 			label: 'Position',
 			target: { kind: 'section', id: 'page-title-breadcrumbs' },
 			operation: 'placeSection',
@@ -1590,5 +1717,330 @@ describe('swapSection reapply toggles', () => {
 		expect(description.attributes.blockeraFontSize).toEqual({
 			value: '16px',
 		});
+	});
+});
+
+function paginationTree(children) {
+	return [
+		stamped(
+			'core/query-pagination',
+			'section/pagination:standard',
+			{},
+			children
+		),
+	];
+}
+
+function elementsConfig() {
+	return {
+		type: 'archive',
+		filters: ['archive'],
+		layoutId: LAYOUT_ID,
+		groups: [
+			{
+				id: 'elements',
+				title: 'Elements',
+				controls: [
+					CONTROLS.paginationPrevious,
+					CONTROLS.paginationNumbers,
+					CONTROLS.paginationNext,
+				],
+			},
+		],
+	};
+}
+
+describe('pagination elements and requireAtLeastOneOf', () => {
+	it('removes previous without touching next', () => {
+		const blocks = paginationTree([
+			stamped(
+				'core/query-pagination-previous',
+				'section/pagination-previous:default'
+			),
+			stamped(
+				'core/query-pagination-numbers',
+				'section/pagination-numbers:default'
+			),
+			stamped(
+				'core/query-pagination-next',
+				'section/pagination-next:default'
+			),
+		]);
+		const result = apply(CONTROLS.paginationPrevious, false, {
+			blocks,
+			config: elementsConfig(),
+		});
+		expect(findStamp(result.blocks, 'pagination-previous')).toBeNull();
+		expect(findStamp(result.blocks, 'pagination-next')).not.toBeNull();
+		expect(findStamp(result.blocks, 'pagination-numbers')).not.toBeNull();
+	});
+
+	it('refuses to turn off the last required element', () => {
+		const blocks = paginationTree([
+			stamped(
+				'core/query-pagination-numbers',
+				'section/pagination-numbers:default'
+			),
+		]);
+		const result = apply(CONTROLS.paginationNumbers, false, {
+			blocks,
+			config: elementsConfig(),
+		});
+		expect(findStamp(result.blocks, 'pagination-numbers')).not.toBeNull();
+	});
+
+	it('inserts previous independently of next', () => {
+		const blocks = paginationTree([
+			stamped(
+				'core/query-pagination-numbers',
+				'section/pagination-numbers:default'
+			),
+		]);
+		const result = apply(CONTROLS.paginationPrevious, true, {
+			blocks,
+			config: elementsConfig(),
+		});
+		expect(findStamp(result.blocks, 'pagination-previous')).not.toBeNull();
+		expect(findStamp(result.blocks, 'pagination-next')).toBeNull();
+		expect(findStamp(result.blocks, 'pagination-numbers')).not.toBeNull();
+	});
+
+	it('writes style onto alsoSetOn companions', () => {
+		const blocks = paginationTree([
+			stamped(
+				'core/query-pagination-previous',
+				'section/pagination-previous:default',
+				{ className: 'blockera-block' }
+			),
+			stamped(
+				'core/query-pagination-next',
+				'section/pagination-next:default',
+				{ className: 'blockera-block' }
+			),
+		]);
+		const style = {
+			id: 'pagination-prev-style',
+			type: 'select',
+			label: 'Style',
+			target: { kind: 'section', id: 'pagination-previous' },
+			operation: 'setBlockStyle',
+			alsoSetOn: ['pagination-next'],
+		};
+		const result = apply(style, 'underline', { blocks });
+		expect(
+			findStamp(result.blocks, 'pagination-previous').block.attributes
+				.className
+		).toContain('is-style-underline');
+		expect(
+			findStamp(result.blocks, 'pagination-next').block.attributes
+				.className
+		).toContain('is-style-underline');
+	});
+});
+
+describe('mirrorMergeWhen', () => {
+	const divider = {
+		id: 'pagination-top-divider',
+		type: 'border',
+		label: 'Top Divider',
+		target: { kind: 'section', id: 'pagination' },
+		operation: 'setSectionAttribute',
+		attributePath: 'blockeraBorder.value',
+		borderSide: 'top',
+		mirrorMergeWhen: {
+			whenControlId: 'pagination-top-spacing',
+			mergeKeys: ['padding.top'],
+			role: 'divider',
+			attributePath: 'blockeraSpacing.value',
+		},
+	};
+	const spacing = {
+		id: 'pagination-top-spacing',
+		type: 'input',
+		label: 'Top Spacing',
+		target: { kind: 'section', id: 'pagination' },
+		operation: 'setSectionAttribute',
+		attributePath: 'blockeraSpacing.value',
+		attributeMergeKeys: ['margin.top'],
+		mirrorMergeWhen: {
+			whenControlId: 'pagination-top-divider',
+			mergeKeys: ['padding.top'],
+			role: 'spacing',
+		},
+	};
+	const pairConfig = {
+		type: 'archive',
+		filters: ['archive'],
+		layoutId: LAYOUT_ID,
+		groups: [
+			{
+				id: 'design',
+				title: 'Design',
+				controls: [divider, spacing],
+			},
+		],
+	};
+
+	it('copies spacing into padding.top when a divider is assigned', () => {
+		const blocks = [
+			stamped('core/query-pagination', 'section/pagination:standard', {
+				blockeraBorder: {
+					value: {
+						type: 'custom',
+						top: { width: '1px', style: 'solid', color: '#111' },
+					},
+				},
+			}),
+		];
+		const result = apply(spacing, '24px', { blocks, config: pairConfig });
+		expect(
+			findStamp(result.blocks, 'pagination').block.attributes
+				.blockeraSpacing.value
+		).toEqual(
+			expect.objectContaining({
+				margin: expect.objectContaining({ top: '24px' }),
+				padding: expect.objectContaining({ top: '24px' }),
+			})
+		);
+	});
+
+	it('clears padding.top when the divider is removed', () => {
+		const blocks = [
+			stamped('core/query-pagination', 'section/pagination:standard', {
+				blockeraBorder: {
+					value: {
+						type: 'custom',
+						top: { width: '1px', style: 'solid', color: '#111' },
+					},
+				},
+				blockeraSpacing: {
+					value: {
+						margin: { top: '24px' },
+						padding: { top: '24px' },
+					},
+				},
+			}),
+		];
+		const result = apply(
+			divider,
+			{ width: '', style: 'solid', color: '' },
+			{ blocks, config: pairConfig }
+		);
+		expect(
+			findStamp(result.blocks, 'pagination').block.attributes
+				.blockeraSpacing.value.padding.top
+		).toBe('');
+	});
+
+	it('does not nest the spacing box into margin.top on listing swap reapply', () => {
+		const spacingControl = {
+			...spacing,
+			id: 'pagination-top-spacing',
+		};
+		const listing = {
+			...CONTROLS.postsTemplate,
+			swapHints: {
+				preserveQuery: true,
+				reapplyControls: ['pagination-top-spacing'],
+			},
+		};
+		const config = {
+			type: 'archive',
+			filters: ['archive'],
+			layoutId: LAYOUT_ID,
+			groups: [
+				{
+					id: 'main',
+					title: 'Main',
+					controls: [listing, spacingControl],
+				},
+			],
+		};
+		const blocks = makeBlocks();
+		const pagination = findStamp(blocks, 'pagination');
+		pagination.block.attributes.blockeraSpacing = {
+			value: {
+				margin: { top: '24px' },
+				padding: { top: '24px' },
+			},
+		};
+
+		const result = apply(listing, 'grid-2', { blocks, config });
+		expect(
+			findStamp(result.blocks, 'pagination').block.attributes
+				.blockeraSpacing.value.margin.top
+		).toBe('24px');
+	});
+});
+
+describe('pagination labels and midSize', () => {
+	it('writes previous and next labels onto the matching inner blocks', () => {
+		const blocks = paginationTree([
+			stamped(
+				'core/query-pagination-previous',
+				'section/pagination-previous:default'
+			),
+			stamped(
+				'core/query-pagination-next',
+				'section/pagination-next:default'
+			),
+		]);
+		const previousLabel = {
+			id: 'pagination-previous-label',
+			type: 'input',
+			label: 'Previous Label',
+			target: { kind: 'section', id: 'pagination-previous' },
+			operation: 'setSectionAttribute',
+			attributePath: 'label',
+			defaultValue: '',
+		};
+		const nextLabel = {
+			id: 'pagination-next-label',
+			type: 'input',
+			label: 'Next Label',
+			target: { kind: 'section', id: 'pagination-next' },
+			operation: 'setSectionAttribute',
+			attributePath: 'label',
+			defaultValue: '',
+		};
+
+		const withPrev = apply(previousLabel, 'Back', { blocks });
+		expect(
+			findStamp(withPrev.blocks, 'pagination-previous').block.attributes
+				.label
+		).toBe('Back');
+
+		const withNext = apply(nextLabel, 'Forward', {
+			blocks: withPrev.blocks,
+		});
+		expect(
+			findStamp(withNext.blocks, 'pagination-next').block.attributes.label
+		).toBe('Forward');
+	});
+
+	it('writes numbers midSize including zero', () => {
+		const blocks = paginationTree([
+			stamped(
+				'core/query-pagination-numbers',
+				'section/pagination-numbers:default'
+			),
+		]);
+		const midSize = {
+			id: 'pagination-numbers-mid-size',
+			type: 'number',
+			label: 'Number of links',
+			target: { kind: 'section', id: 'pagination-numbers' },
+			operation: 'setSectionAttribute',
+			attributePath: 'midSize',
+			defaultValue: 2,
+			min: 0,
+			max: 5,
+		};
+
+		const result = apply(midSize, 0, { blocks });
+		expect(
+			findStamp(result.blocks, 'pagination-numbers').block.attributes
+				.midSize
+		).toBe(0);
 	});
 });
