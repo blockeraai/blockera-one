@@ -38,7 +38,7 @@ import SegmentedChoice from './controls/segmented-choice';
 import ToggleControlRow from './controls/toggle-control';
 import ToggleSelectRow from './controls/toggle-select';
 import { hasUnresolvedVariants } from './resolve-variant-html';
-import { selectSectionInCanvas } from './select-section-in-canvas';
+import GroupHeaderEdit from './group-header-edit';
 import { getBlockeraAttributeId } from './blockera-attribute';
 import type {
 	ControlValue,
@@ -241,11 +241,19 @@ export default function TemplateOptionsPanel({
 			? !!headerToggleView?.value
 			: true;
 
-		const controls = controlStates.filter(
+		const visibleControls = controlStates.filter(
 			(c) =>
 				c.visible &&
 				group.controls.some((gc) => gc.id === c.control.id) &&
 				c.control.id !== headerToggleDef?.id
+		);
+		// Canvas-jump actions live on the heading Edit button.
+		const customizeView =
+			visibleControls.find(
+				(c) => c.control.operation === 'selectInCanvas'
+			) || null;
+		const controls = visibleControls.filter(
+			(c) => c.control.operation !== 'selectInCanvas'
 		);
 
 		const commonDisabled = !templateId;
@@ -275,9 +283,28 @@ export default function TemplateOptionsPanel({
 			) : null;
 
 		// Groups without a header toggle hide when empty; toggle groups always show.
-		if (!headerToggleDef && controls.length === 0 && !gatewayRow) {
+		if (
+			!headerToggleDef &&
+			controls.length === 0 &&
+			!customizeView &&
+			!gatewayRow
+		) {
 			return null;
 		}
+
+		const customizeDisabled =
+			commonDisabled ||
+			(customizeView
+				? hasUnresolvedVariants(customizeView.control) ||
+					customizeView.state.kind === 'missing'
+				: true);
+		const headerEdit = customizeView ? (
+			<GroupHeaderEdit
+				controlId={customizeView.control.id}
+				sectionId={customizeView.control.target.id}
+				disabled={customizeDisabled}
+			/>
+		) : null;
 
 		const showBody = headerEnabled && (controls.length > 0 || !!gatewayRow);
 
@@ -485,26 +512,6 @@ export default function TemplateOptionsPanel({
 									}
 								/>
 							);
-						} else if (control.type === 'button') {
-							controlNode = (
-								<div
-									className="blockera-templates-builder-action"
-									data-test="blockera-templates-builder-action"
-								>
-									<Button
-										variant="secondary"
-										disabled={controlDisabled || missing}
-										onClick={() =>
-											selectSectionInCanvas(
-												control.target.id
-											)
-										}
-										data-test={`blockera-templates-builder-customize-${control.id}`}
-									>
-										{control.label}
-									</Button>
-								</div>
-							);
 						}
 
 						if (!controlNode) {
@@ -580,23 +587,33 @@ export default function TemplateOptionsPanel({
 						<h2 className="admin-ui-page__header-title">
 							{group.title}
 						</h2>
-						{headerToggleDef && headerToggleView && (
-							<span
-								className="blockera-templates-builder-group__header-toggle"
-								data-test={`blockera-templates-builder-header-toggle-${group.id}`}
+						{(headerEdit ||
+							(headerToggleDef && headerToggleView)) && (
+							<Flex
+								gap="8px"
+								alignItems="center"
+								className="blockera-templates-builder-group__header-actions"
 							>
-								<FormToggle
-									checked={!!headerToggleView.value}
-									disabled={headerToggleDisabled}
-									onChange={() =>
-										onChangeControl(
-											headerToggleDef,
-											!headerToggleView.value
-										)
-									}
-									aria-label={headerToggleDef.label}
-								/>
-							</span>
+								{headerEdit}
+								{headerToggleDef && headerToggleView && (
+									<span
+										className="blockera-templates-builder-group__header-toggle"
+										data-test={`blockera-templates-builder-header-toggle-${group.id}`}
+									>
+										<FormToggle
+											checked={!!headerToggleView.value}
+											disabled={headerToggleDisabled}
+											onChange={() =>
+												onChangeControl(
+													headerToggleDef,
+													!headerToggleView.value
+												)
+											}
+											aria-label={headerToggleDef.label}
+										/>
+									</span>
+								)}
+							</Flex>
 						)}
 					</Flex>
 				</div>
