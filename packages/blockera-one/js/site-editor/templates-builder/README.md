@@ -64,6 +64,7 @@ variant are kebab-case. `/` binds the role to the id, `:` binds the variant.
 "metadata":{"blockeraOne":"layout/archive-body:no-sidebar"}  ← layout + variant
 "metadata":{"blockeraOne":"area/content"}                    ← area
 "metadata":{"blockeraOne":"container/layout-columns"}        ← container
+"metadata":{"blockeraOne":"container/elements"}              ← inner elements stack
 ```
 
 Rules:

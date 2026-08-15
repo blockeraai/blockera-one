@@ -201,6 +201,11 @@ export type ControlDef = {
 	offValue?: string | boolean;
 	/** Attribute path for setSectionAttribute (dot path). */
 	attributePath?: string;
+	/**
+	 * Extra stamp ids that receive the same setSectionAttribute write.
+	 * Missing ids are a no-op (no fallback).
+	 */
+	alsoSetOn?: string[];
 	/** Setting nested path under blockera_one_template_settings. */
 	settingPath?: string;
 	defaultValue?: string | number | boolean;

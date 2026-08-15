@@ -29,7 +29,7 @@ const FOOTER_STACKED_PLACEMENT = {
 };
 
 const PAGE_HEADER_INNER_ORDER: InnerOrderRule = {
-	parentId: 'page-title',
+	parentId: 'elements',
 	ids: [
 		'page-title-title',
 		'page-title-description',
@@ -228,17 +228,17 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 		'page-title': { kind: 'groupWrapping', childName: 'core/query-title' },
 		'page-title-title': {
 			kind: 'innerBlock',
-			parentId: 'page-title',
+			parentId: 'elements',
 			name: 'core/query-title',
 		},
 		'page-title-description': {
 			kind: 'innerBlock',
-			parentId: 'page-title',
+			parentId: 'elements',
 			name: 'core/term-description',
 		},
 		'page-title-breadcrumbs': {
 			kind: 'innerBlock',
-			parentId: 'page-title',
+			parentId: 'elements',
 			name: 'core/breadcrumbs',
 		},
 		'posts-listing': { kind: 'blockName', name: 'core/query' },
@@ -325,6 +325,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 									kind: 'section',
 									id: 'page-title',
 								},
+								alsoSetOn: ['elements'],
 								operation: 'setSectionAttribute',
 								attributePath: 'blockeraGap.value',
 								unitType: 'essential',
@@ -370,7 +371,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 								defaultValue: true,
 								catalogPool: 'page-title-title',
 								insert: {
-									relativeTo: 'page-title',
+									relativeTo: 'elements',
 									position: 'inside-start',
 								},
 								innerOrder: PAGE_HEADER_INNER_ORDER,
@@ -399,7 +400,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 								defaultValue: true,
 								catalogPool: 'page-title-description',
 								insert: {
-									relativeTo: 'page-title',
+									relativeTo: 'elements',
 									position: 'inside-end',
 								},
 								innerOrder: PAGE_HEADER_INNER_ORDER,
@@ -428,7 +429,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 								defaultValue: false,
 								catalogPool: 'page-title-breadcrumbs',
 								insert: {
-									relativeTo: 'page-title',
+									relativeTo: 'elements',
 									position: 'inside-end',
 								},
 								innerOrder: PAGE_HEADER_INNER_ORDER,

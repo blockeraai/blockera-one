@@ -80,9 +80,9 @@ class ArchiveCatalog extends AbstractCatalog {
 			),
 			'page-title'             => array(
 				$this->patternVariant(
-					'default',
+					'simple',
 					__( 'Simple', 'blockera-one' ),
-					'blockera-one/builder-archive-page-title',
+					'blockera-one/builder-archive-page-title-simple',
 					array(
 						'thumbnail' => $this->thumbnail( 'page-title-default' ),
 						'placement' => array(

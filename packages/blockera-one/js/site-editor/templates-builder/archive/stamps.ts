@@ -21,4 +21,5 @@ export const ARCHIVE_STAMPS: readonly StampDictionaryEntry[] = [
 	'container/layout-columns',
 	'container/content-column',
 	'container/sidebar-column',
+	'container/elements',
 ];

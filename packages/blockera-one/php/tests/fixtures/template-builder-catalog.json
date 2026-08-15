@@ -40,10 +40,10 @@
 		],
 		"page-title": [
 			{
-				"id": "default",
+				"id": "simple",
 				"label": "Simple",
 				"kind": "pattern",
-				"patternSlug": "blockera-one/builder-archive-page-title",
+				"patternSlug": "blockera-one/builder-archive-page-title-simple",
 				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/page-title-default.svg",
 				"placement": {
 					"relativeTo": "content",

@@ -47,6 +47,39 @@ export type OperationResult =
 	| null;
 
 /**
+ * Write one attribute onto the control target, then onto each alsoSetOn
+ * stamp. Missing extra stamps are a no-op.
+ */
+function applySectionAttribute(
+	blocks: BlockNode[],
+	control: ControlDef,
+	value: unknown
+): BlockNode[] {
+	const attributePath = control.attributePath;
+	if (!attributePath) {
+		return blocks;
+	}
+
+	let next = setSectionAttribute(blocks, {
+		sectionId: control.target.id,
+		attributePath,
+		value,
+	});
+	const extras = control.alsoSetOn;
+	if (!extras?.length) {
+		return next;
+	}
+	for (let i = 0; i < extras.length; i++) {
+		next = setSectionAttribute(next, {
+			sectionId: extras[i],
+			attributePath,
+			value,
+		});
+	}
+	return next;
+}
+
+/**
  * Map each swappable section to its active design's placement rule so a
  * layout transplant can re-attach every section where its design expects
  * it (e.g. Simple title inside content vs Banner at the layout root).
@@ -234,11 +267,7 @@ function applySwapSection(
 			continue;
 		}
 		if (plan.kind === 'attribute' && plan.control.attributePath) {
-			next = setSectionAttribute(next, {
-				sectionId: plan.control.target.id,
-				attributePath: plan.control.attributePath,
-				value: plan.value,
-			});
+			next = applySectionAttribute(next, plan.control, plan.value);
 			continue;
 		}
 		if (plan.kind === 'style') {
@@ -500,11 +529,7 @@ export function applyOperation(args: {
 	if (control.operation === 'setSectionAttribute' && control.attributePath) {
 		return {
 			kind: 'blocks',
-			blocks: setSectionAttribute(blocks, {
-				sectionId: control.target.id,
-				attributePath: control.attributePath,
-				value: nextValue,
-			}),
+			blocks: applySectionAttribute(blocks, control, nextValue),
 		};
 	}
 

@@ -96,17 +96,24 @@ function heuristicFindWrappingGroup(
 		return null;
 	}
 
+	let skippedContainer = false;
 	for (let depth = child.path.length - 1; depth >= 1; depth--) {
 		const ancestorPath = child.path.slice(0, depth);
 		const ancestor = getAtPath(blocks, ancestorPath);
 		if (!ancestor || ancestor.name !== 'core/group') {
 			continue;
 		}
+		// Skip structural wrappers (e.g. container/elements) so the
+		// section root stays the outer group, not the inner stack.
+		if (getStamp(ancestor)?.role === 'container') {
+			skippedContainer = true;
+			continue;
+		}
 		const children = ancestor.innerBlocks || [];
 		const hasMatchingChild = children.some(
 			(node) => node.name === childName
 		);
-		if (hasMatchingChild) {
+		if (hasMatchingChild || skippedContainer) {
 			return { block: ancestor, path: ancestorPath };
 		}
 	}
@@ -309,6 +316,22 @@ export function resolveLayoutState(
 }
 
 /**
+ * Map a leftover `default` stamp onto `simple` when the catalog dropped
+ * `default` and now ships `simple` (page-title Simple rename).
+ */
+function canonicalizeVariant(variant: string, knownIds: Set<string>): string {
+	if (
+		knownIds.size > 0 &&
+		!knownIds.has(variant) &&
+		variant === 'default' &&
+		knownIds.has('simple')
+	) {
+		return 'simple';
+	}
+	return variant;
+}
+
+/**
  * Resolve a leaf section state.
  */
 export function resolveSectionState(
@@ -326,7 +349,8 @@ export function resolveSectionState(
 			typeof byStamp.block.attributes?.slug === 'string'
 				? String(byStamp.block.attributes.slug)
 				: null;
-		const variant = slug || stamp?.variant || 'default';
+		const rawVariant = slug || stamp?.variant || 'default';
+		const variant = canonicalizeVariant(rawVariant, knownIds);
 		const kind =
 			knownIds.size > 0 && !knownIds.has(variant)
 				? 'customized'
