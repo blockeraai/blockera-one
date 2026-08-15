@@ -485,6 +485,205 @@ describe('resolveControlViewStates', () => {
 		expect(duplicates).toHaveLength(1);
 		expect(duplicates[0].value).toBeNull();
 	});
+
+	it('shows page-header design options by the active page-title variant', () => {
+		const pageTitleOn = { controlId: 'page-title', equals: true };
+		const config = {
+			type: 'archive',
+			filters: ['archive'],
+			layoutId: LAYOUT_ID,
+			groups: [
+				{
+					id: 'page-header',
+					title: 'Page Header',
+					headerToggle: {
+						id: 'page-title',
+						type: 'toggle',
+						label: 'Archive Title',
+						target: { kind: 'section', id: 'page-title' },
+						operation: 'toggleSection',
+						onValue: true,
+						offValue: false,
+					},
+					controls: [
+						{
+							id: 'page-title-design',
+							type: 'layout-picker',
+							label: 'Header Design',
+							target: { kind: 'section', id: 'page-title' },
+							operation: 'swapSection',
+							variants: [
+								{ id: 'simple', label: 'Simple' },
+								{ id: 'banner', label: 'Banner' },
+							],
+						},
+						{
+							id: 'page-header-gap',
+							type: 'input',
+							label: 'Elements Gap',
+							target: { kind: 'section', id: 'page-title' },
+							operation: 'setSectionAttribute',
+							attributePath: 'blockeraGap.value',
+							conditions: [pageTitleOn],
+						},
+						{
+							id: 'page-header-bottom-spacing',
+							type: 'input',
+							label: 'Container Bottom Spacing',
+							target: { kind: 'section', id: 'page-title' },
+							operation: 'setSectionAttribute',
+							attributePath: 'blockeraSpacing.value',
+							conditions: [
+								pageTitleOn,
+								{
+									controlId: 'page-title-design',
+									equals: 'simple',
+								},
+							],
+						},
+						{
+							id: 'page-header-align',
+							type: 'layout-matrix',
+							label: 'Items alignment',
+							target: { kind: 'section', id: 'page-title' },
+							alsoSetOn: ['elements'],
+							operation: 'setSectionAttribute',
+							attributePath: 'blockeraFlexLayout.value',
+							conditions: [
+								pageTitleOn,
+								{
+									controlId: 'page-title-design',
+									equals: 'simple',
+								},
+							],
+						},
+						{
+							id: 'page-header-align-banner',
+							type: 'layout-matrix',
+							label: 'Items alignment',
+							target: { kind: 'container', id: 'elements' },
+							operation: 'setSectionAttribute',
+							attributePath: 'blockeraFlexLayout.value',
+							conditions: [
+								pageTitleOn,
+								{
+									controlId: 'page-title-design',
+									equals: 'banner',
+								},
+							],
+						},
+						{
+							id: 'page-header-bg-color',
+							type: 'color',
+							label: 'BG Color',
+							target: { kind: 'section', id: 'page-title' },
+							operation: 'setSectionAttribute',
+							attributePath: 'blockeraBackgroundColor.value',
+							conditions: [
+								pageTitleOn,
+								{
+									controlId: 'page-title-design',
+									equals: 'banner',
+								},
+							],
+						},
+						{
+							id: 'page-header-elements-width',
+							type: 'input',
+							label: 'Elements Container Width',
+							target: { kind: 'container', id: 'elements' },
+							operation: 'setSectionAttribute',
+							attributePath: 'blockeraMaxWidth.value',
+							conditions: [
+								pageTitleOn,
+								{
+									controlId: 'page-title-design',
+									equals: 'banner',
+								},
+							],
+						},
+					],
+				},
+			],
+		};
+		const spacing = {
+			padding: {
+				top: '60px',
+				right: '50px',
+				bottom: '60px',
+				left: '50px',
+			},
+			margin: { top: '', right: '', bottom: '40px', left: '' },
+		};
+		const flex = {
+			direction: 'column',
+			alignItems: 'stretch',
+			justifyContent: 'center',
+		};
+		const simpleTree = [
+			stamped(
+				'core/group',
+				'section/page-title:simple',
+				{
+					blockeraSpacing: { value: spacing },
+					blockeraFlexLayout: { value: flex },
+				},
+				[stamped('core/group', 'container/elements', {})]
+			),
+		];
+		const bannerFlex = {
+			direction: 'column',
+			alignItems: 'center',
+			justifyContent: 'center',
+		};
+		const bannerTree = [
+			stamped(
+				'core/group',
+				'section/page-title:banner',
+				{
+					blockeraBackgroundColor: { value: '#111111' },
+					blockeraFlexLayout: {
+						value: {
+							direction: 'column',
+							alignItems: 'stretch',
+							justifyContent: 'center',
+						},
+					},
+				},
+				[
+					stamped('core/group', 'container/elements', {
+						blockeraMaxWidth: { value: '645px' },
+						blockeraFlexLayout: { value: bannerFlex },
+					}),
+				]
+			),
+		];
+
+		const simple = resolve(simpleTree, config);
+		expect(byId(simple, 'page-header-gap').visible).toBe(true);
+		expect(byId(simple, 'page-header-bottom-spacing').visible).toBe(true);
+		expect(byId(simple, 'page-header-align').visible).toBe(true);
+		expect(byId(simple, 'page-header-align-banner').visible).toBe(false);
+		expect(byId(simple, 'page-header-bg-color').visible).toBe(false);
+		expect(byId(simple, 'page-header-elements-width').visible).toBe(false);
+		expect(byId(simple, 'page-header-bottom-spacing').value).toEqual(
+			spacing
+		);
+		expect(byId(simple, 'page-header-align').value).toEqual(flex);
+
+		const banner = resolve(bannerTree, config);
+		expect(byId(banner, 'page-header-gap').visible).toBe(true);
+		expect(byId(banner, 'page-header-bottom-spacing').visible).toBe(false);
+		expect(byId(banner, 'page-header-align').visible).toBe(false);
+		expect(byId(banner, 'page-header-align-banner').visible).toBe(true);
+		expect(byId(banner, 'page-header-bg-color').visible).toBe(true);
+		expect(byId(banner, 'page-header-elements-width').visible).toBe(true);
+		expect(byId(banner, 'page-header-bg-color').value).toBe('#111111');
+		expect(byId(banner, 'page-header-elements-width').value).toBe('645px');
+		expect(byId(banner, 'page-header-align-banner').value).toEqual(
+			bannerFlex
+		);
+	});
 });
 
 describe('getPostsPerPageMap', () => {
