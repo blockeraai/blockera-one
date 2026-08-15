@@ -529,8 +529,19 @@ export function applyOperation(args: {
 			defaultOpsContext
 		);
 		// Use the pre-toggle tree so stored/live order still includes the
-		// item being hidden; orderInnerSections then applies present ids.
+		// item being hidden; persist that full list so off items keep their
+		// slot, then orderInnerSections applies present ids.
 		tree = applyInnerOrder(tree, control, blocks);
+		if (control.innerOrder) {
+			const ids = resolveInnerOrderIds(control, blocks);
+			if (ids) {
+				tree = persistElementOrder(
+					tree,
+					control.innerOrder.parentId,
+					ids
+				);
+			}
+		}
 		return { kind: 'blocks', blocks: tree };
 	}
 
