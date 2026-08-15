@@ -6,6 +6,8 @@
 import {
 	buildNestedPanelTree,
 	flattenPanelControls,
+	resolveEnableScrollTarget,
+	resolveNestedPanelScrollTarget,
 	resolveOptionsPanelGroups,
 } from '../resolve-options-panel';
 
@@ -228,5 +230,275 @@ describe('control-level nestedPanel', () => {
 			'page-title-breadcrumbs',
 			'breadcrumbs-position',
 		]);
+	});
+});
+
+describe('resolveNestedPanelScrollTarget', () => {
+	it('returns null for an empty stack', () => {
+		expect(resolveNestedPanelScrollTarget(CONFIG, [])).toBeNull();
+	});
+
+	it('returns null for an unknown segment', () => {
+		expect(resolveNestedPanelScrollTarget(CONFIG, ['nope'])).toBeNull();
+	});
+
+	it('uses a group headerToggle section target', () => {
+		expect(resolveNestedPanelScrollTarget(CONFIG, ['sidebar'])).toBe(
+			'sidebar'
+		);
+	});
+
+	it('falls back to panel id for a group nested panel without a section toggle', () => {
+		expect(
+			resolveNestedPanelScrollTarget(CONFIG, [
+				'sidebar',
+				'sidebar-advanced',
+			])
+		).toBe('sidebar-advanced');
+	});
+
+	it('uses a control-level section target (pagination-style)', () => {
+		const paginationConfig = {
+			type: 'archive',
+			filters: ['archive'],
+			layoutId: 'archive-body',
+			groups: [
+				{
+					id: 'listing',
+					title: 'Listing',
+					controls: [
+						{
+							...control('pagination'),
+							nestedPanel: {
+								id: 'pagination',
+								title: 'Pagination',
+								groups: [
+									{
+										id: 'pagination-elements',
+										title: 'Elements',
+										controls: [
+											{
+												...control('pagination-next'),
+												nestedPanel: {
+													id: 'pagination-next',
+													title: 'Next Page',
+													groups: [],
+												},
+											},
+										],
+									},
+								],
+							},
+						},
+					],
+				},
+			],
+		};
+
+		expect(
+			resolveNestedPanelScrollTarget(paginationConfig, ['pagination'])
+		).toBe('pagination');
+		expect(
+			resolveNestedPanelScrollTarget(paginationConfig, [
+				'pagination',
+				'pagination-next',
+			])
+		).toBe('pagination-next');
+	});
+
+	it('honors scrollIntoView: false', () => {
+		const disabled = {
+			...CONFIG,
+			groups: [
+				{
+					...CONFIG.groups[0],
+					nestedPanel: {
+						...CONFIG.groups[0].nestedPanel,
+						scrollIntoView: false,
+					},
+				},
+			],
+		};
+		expect(
+			resolveNestedPanelScrollTarget(disabled, ['sidebar'])
+		).toBeNull();
+	});
+
+	it('honors an explicit scrollTarget over inference', () => {
+		const override = {
+			...CONFIG,
+			groups: [
+				{
+					...CONFIG.groups[0],
+					nestedPanel: {
+						...CONFIG.groups[0].nestedPanel,
+						scrollTarget: 'sidebar-area',
+					},
+				},
+			],
+		};
+		expect(resolveNestedPanelScrollTarget(override, ['sidebar'])).toBe(
+			'sidebar-area'
+		);
+	});
+
+	it('does not use a layout-kind headerToggle; falls back to panel id', () => {
+		const layoutBound = {
+			type: 'archive',
+			filters: ['archive'],
+			layoutId: 'archive-body',
+			groups: [
+				{
+					id: 'sidebar',
+					title: 'Sidebar',
+					headerToggle: {
+						...control('sidebar'),
+						target: { kind: 'layout', id: 'archive-body' },
+					},
+					controls: [],
+					nestedPanel: {
+						id: 'sidebar',
+						title: 'Sidebar',
+						groups: [],
+					},
+				},
+			],
+		};
+		expect(resolveNestedPanelScrollTarget(layoutBound, ['sidebar'])).toBe(
+			'sidebar'
+		);
+	});
+
+	it('uses a group headerToggle for page-title / header / footer', () => {
+		const chrome = {
+			type: 'archive',
+			filters: ['archive'],
+			layoutId: 'archive-body',
+			groups: [
+				{
+					id: 'site-header',
+					title: 'Site Header',
+					headerToggle: control('header'),
+					controls: [],
+					nestedPanel: {
+						id: 'site-header',
+						title: 'Site Header',
+						groups: [],
+					},
+				},
+				{
+					id: 'page-header',
+					title: 'Page Header',
+					headerToggle: control('page-title'),
+					controls: [],
+					nestedPanel: {
+						id: 'page-header-settings',
+						title: 'Page Header',
+						groups: [],
+					},
+				},
+				{
+					id: 'site-footer',
+					title: 'Site Footer',
+					headerToggle: control('footer'),
+					controls: [],
+					nestedPanel: {
+						id: 'site-footer',
+						title: 'Site Footer',
+						groups: [],
+					},
+				},
+			],
+		};
+
+		expect(resolveNestedPanelScrollTarget(chrome, ['site-header'])).toBe(
+			'header'
+		);
+		expect(
+			resolveNestedPanelScrollTarget(chrome, ['page-header-settings'])
+		).toBe('page-title');
+		expect(resolveNestedPanelScrollTarget(chrome, ['site-footer'])).toBe(
+			'footer'
+		);
+	});
+});
+
+describe('resolveEnableScrollTarget', () => {
+	it('returns the section target when toggleSection turns on', () => {
+		expect(
+			resolveEnableScrollTarget(
+				{ ...control('pagination'), operation: 'toggleSection' },
+				true
+			)
+		).toBe('pagination');
+	});
+
+	it('returns null when toggleSection turns off', () => {
+		expect(
+			resolveEnableScrollTarget(
+				{ ...control('pagination'), operation: 'toggleSection' },
+				false
+			)
+		).toBeNull();
+	});
+
+	it('returns the section when invertPresence un-hides it', () => {
+		const hide = {
+			...control('page-title'),
+			operation: 'toggleSection',
+			invertPresence: true,
+		};
+		expect(resolveEnableScrollTarget(hide, false)).toBe('page-title');
+		expect(resolveEnableScrollTarget(hide, true)).toBeNull();
+	});
+
+	it('uses control id for a layout presence toggle (sidebar)', () => {
+		const sidebar = {
+			...control('sidebar'),
+			target: { kind: 'layout', id: 'archive-body' },
+			operation: 'transplantLayout',
+			type: 'toggle',
+		};
+		expect(resolveEnableScrollTarget(sidebar, true)).toBe('sidebar');
+		expect(resolveEnableScrollTarget(sidebar, false)).toBeNull();
+	});
+
+	it('does not scroll a layout-picker transplant (position change)', () => {
+		expect(
+			resolveEnableScrollTarget(
+				{
+					...control('sidebar-position'),
+					target: { kind: 'layout', id: 'archive-body' },
+					operation: 'transplantLayout',
+					type: 'layout-picker',
+				},
+				'sidebar-left'
+			)
+		).toBeNull();
+	});
+
+	it('honors scrollIntoView: false and scrollTarget', () => {
+		expect(
+			resolveEnableScrollTarget(
+				{
+					...control('pagination'),
+					operation: 'toggleSection',
+					scrollIntoView: false,
+				},
+				true
+			)
+		).toBeNull();
+		expect(
+			resolveEnableScrollTarget(
+				{
+					...control('sidebar'),
+					target: { kind: 'layout', id: 'archive-body' },
+					operation: 'transplantLayout',
+					type: 'toggle',
+					scrollTarget: 'sidebar-area',
+				},
+				true
+			)
+		).toBe('sidebar-area');
 	});
 });
