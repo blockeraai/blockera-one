@@ -87,6 +87,36 @@ const INLINE_CATALOG = {
 				kind: 'pattern',
 				patternSlug: 'test/pagination-standard',
 			},
+			{
+				id: 'load-more',
+				label: 'Load more',
+				disabled: true,
+				badge: 'Coming soon',
+			},
+		],
+		'pagination-previous': [
+			{
+				id: 'default',
+				label: 'Previous',
+				kind: 'pattern',
+				patternSlug: 'test/pagination-previous',
+			},
+		],
+		'pagination-next': [
+			{
+				id: 'default',
+				label: 'Next',
+				kind: 'pattern',
+				patternSlug: 'test/pagination-next',
+			},
+		],
+		'pagination-numbers': [
+			{
+				id: 'default',
+				label: 'Numbers',
+				kind: 'pattern',
+				patternSlug: 'test/pagination-numbers',
+			},
 		],
 		layout: [
 			{
@@ -284,5 +314,67 @@ describe('archive config structural invariants', () => {
 
 		expect(design.controls[0].id).toBe('breadcrumbs-style');
 		expect(design.controls[0].operation).toBe('setBlockStyle');
+	});
+
+	it('turns pagination into a gateway row with Design and Elements', () => {
+		const pagination = controls.find((c) => c.id === 'pagination');
+		expect(pagination.nestedPanel.id).toBe('pagination');
+		expect(pagination.nestedPanel.title).toBe('Pagination');
+		expect(pagination.nestedPanel.groups.map((g) => g.id)).toEqual([
+			'pagination-design',
+			'pagination-elements',
+		]);
+		expect(
+			pagination.nestedPanel.groups[0].controls.map((c) => c.id)
+		).toEqual([
+			'pagination-design',
+			'pagination-style',
+			'pagination-top-divider',
+			'pagination-top-spacing',
+			'pagination-customize',
+		]);
+		const customize = pagination.nestedPanel.groups[0].controls.find(
+			(c) => c.id === 'pagination-customize'
+		);
+		expect(customize.type).toBe('button');
+		expect(customize.operation).toBe('selectInCanvas');
+		expect(customize.target).toEqual({
+			kind: 'section',
+			id: 'pagination',
+		});
+		const elements = pagination.nestedPanel.groups[1].controls;
+		expect(elements.map((c) => c.id)).toEqual([
+			'pagination-previous',
+			'pagination-numbers',
+			'pagination-next',
+		]);
+		expect(elements[0].requireAtLeastOneOf).toEqual([
+			'pagination-previous',
+			'pagination-numbers',
+			'pagination-next',
+		]);
+		expect(elements[0].alsoToggle).toBeUndefined();
+		expect(
+			elements.map((c) => c.nestedPanel.groups.map((g) => g.id))
+		).toEqual([
+			['pagination-prev-design', 'pagination-prev-settings'],
+			['pagination-num-design', 'pagination-num-settings'],
+			['pagination-next-design', 'pagination-next-settings'],
+		]);
+		for (const element of elements) {
+			const design = element.nestedPanel.groups[0];
+			expect(
+				design.controls.some((c) => c.operation === 'selectInCanvas')
+			).toBe(true);
+		}
+	});
+
+	it('locks page header elements with requireAtLeastOneOf', () => {
+		const title = controls.find((c) => c.id === 'page-title-title');
+		expect(title.requireAtLeastOneOf).toEqual([
+			'page-title-title',
+			'page-title-description',
+			'page-title-breadcrumbs',
+		]);
 	});
 });
