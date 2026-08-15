@@ -4,6 +4,8 @@
 
 import { ControlContextProvider, SelectControl } from '@blockera/controls';
 
+import { CONTROL_COLUMNS } from './constants';
+
 export type SelectOption = {
 	label: string;
 	value: string;
@@ -41,7 +43,7 @@ export default function SelectControlRow({
 			>
 				<SelectControl
 					label={label}
-					columns="1.2fr 2fr"
+					columns={CONTROL_COLUMNS}
 					type="native"
 					options={options}
 					defaultValue={defaultValue}

@@ -7,6 +7,8 @@ import { useMemo } from '@wordpress/element';
 
 import { ControlContextProvider, InputControl } from '@blockera/controls';
 
+import { CONTROL_COLUMNS } from './constants';
+
 type InputControlRowProps = {
 	controlId: string;
 	label: string;
@@ -59,7 +61,7 @@ export default function InputControlRow({
 			<ControlContextProvider value={contextValue}>
 				<InputControl
 					label={label}
-					columns="1.2fr 2fr"
+					columns={CONTROL_COLUMNS}
 					unitType={unitType}
 					controlAddonTypes={controlAddonTypes}
 					variableTypes={variableTypes}

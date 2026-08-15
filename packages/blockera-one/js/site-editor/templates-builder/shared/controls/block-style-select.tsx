@@ -16,6 +16,7 @@ import {
 
 import { findByStamp } from '../tree';
 import type { BlockNode } from '../types';
+import { CONTROL_COLUMNS } from './constants';
 
 type BlockStyleSelectProps = {
 	controlId: string;
@@ -125,7 +126,7 @@ export default function BlockStyleSelect({
 		>
 			<BaseControl
 				label={label}
-				columns="1.2fr 2fr"
+				columns={CONTROL_COLUMNS}
 				controlName="style-variations"
 			>
 				{picker}
