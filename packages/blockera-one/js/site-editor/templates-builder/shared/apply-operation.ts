@@ -30,6 +30,7 @@ import {
 import { getPostsPerPageMap } from './resolve-control-values';
 import { resolveSectionState, resolveToggleState } from './resolve-state';
 import { flattenPanelControls } from './resolve-options-panel';
+import { mergeAttributeKeys } from './attribute-merge';
 import { getAtPath } from './tree';
 import { getStamp } from './metadata';
 import type {
@@ -47,8 +48,29 @@ export type OperationResult =
 	| null;
 
 /**
+ * Resolve the object written for setSectionAttribute. Merge keys patch the
+ * current nested object so sibling sides (e.g. padding left/right) survive.
+ */
+function resolveAttributeWriteValue(
+	blocks: BlockNode[],
+	control: ControlDef,
+	value: unknown
+): unknown {
+	const mergeKeys = control.attributeMergeKeys;
+	const attributePath = control.attributePath;
+	if (!mergeKeys?.length || !attributePath) {
+		return value;
+	}
+	const state = resolveSectionState(blocks, control.target.id);
+	const node = state.path ? getAtPath(blocks, state.path) : undefined;
+	const current = getAttributeAtPath(node?.attributes, attributePath);
+	return mergeAttributeKeys(current, mergeKeys, value);
+}
+
+/**
  * Write one attribute onto the control target, then onto each alsoSetOn
- * stamp. Missing extra stamps are a no-op.
+ * stamp. Missing extra stamps are a no-op. `alsoWrite` then applies extra
+ * inspector paths on the same target.
  */
 function applySectionAttribute(
 	blocks: BlockNode[],
@@ -60,21 +82,35 @@ function applySectionAttribute(
 		return blocks;
 	}
 
+	const writeValue = resolveAttributeWriteValue(blocks, control, value);
 	let next = setSectionAttribute(blocks, {
 		sectionId: control.target.id,
 		attributePath,
-		value,
+		value: writeValue,
 	});
 	const extras = control.alsoSetOn;
-	if (!extras?.length) {
-		return next;
+	if (extras?.length) {
+		for (let i = 0; i < extras.length; i++) {
+			next = setSectionAttribute(next, {
+				sectionId: extras[i],
+				attributePath,
+				value: writeValue,
+			});
+		}
 	}
-	for (let i = 0; i < extras.length; i++) {
-		next = setSectionAttribute(next, {
-			sectionId: extras[i],
-			attributePath,
-			value,
-		});
+	const alsoWrite = control.alsoWrite;
+	if (alsoWrite?.length) {
+		for (let i = 0; i < alsoWrite.length; i++) {
+			const extra = alsoWrite[i];
+			if (!extra.attributePath) {
+				continue;
+			}
+			next = setSectionAttribute(next, {
+				sectionId: control.target.id,
+				attributePath: extra.attributePath,
+				value: extra.value,
+			});
+		}
 	}
 	return next;
 }
@@ -234,6 +270,8 @@ function applySwapSection(
 			targetVariant: variant,
 			knownVariants: control.variants,
 			preserveQuery: !!control.swapHints?.preserveQuery,
+			preserveBlockeraExtensions:
+				!!control.swapHints?.preserveBlockeraExtensions,
 		},
 		defaultOpsContext
 	);

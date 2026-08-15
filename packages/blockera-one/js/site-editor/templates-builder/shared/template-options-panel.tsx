@@ -32,6 +32,7 @@ import { GatewayCard, GatewayRow } from '../../nested-panels';
 import BlockStyleSelect from './controls/block-style-select';
 import ColorControlRow from './controls/color-control';
 import InputControlRow from './controls/input-control';
+import LayoutMatrixControlRow from './controls/layout-matrix-control';
 import LayoutPicker from './controls/layout-picker';
 import NumberControlRow from './controls/number-control';
 import SegmentedChoice from './controls/segmented-choice';
@@ -40,6 +41,7 @@ import ToggleSelectRow from './controls/toggle-select';
 import { hasUnresolvedVariants } from './resolve-variant-html';
 import GroupHeaderEdit from './group-header-edit';
 import { getBlockeraAttributeId } from './blockera-attribute';
+import { pickMergedAttributeValue } from './attribute-merge';
 import {
 	getGroupInnerOrder,
 	isSortableElementControl,
@@ -573,14 +575,15 @@ export default function TemplateOptionsPanel({
 							} else if (control.type === 'input') {
 								const isGapPath =
 									blockeraAttributeId === 'blockeraGap';
+								const mergeKeys = control.attributeMergeKeys;
+								const inputValue = mergeKeys?.length
+									? pickMergedAttributeValue(value, mergeKeys)
+									: inputControlValue(value, isGapPath);
 								controlNode = (
 									<InputControlRow
 										controlId={control.id}
 										label={control.label}
-										value={inputControlValue(
-											value,
-											isGapPath
-										)}
+										value={inputValue}
 										disabled={commonDisabled}
 										unitType={control.unitType}
 										controlAddonTypes={
@@ -605,6 +608,29 @@ export default function TemplateOptionsPanel({
 													? wrapGapValue(next)
 													: (next as ControlValue)
 											)
+										}
+									/>
+								);
+							} else if (control.type === 'layout-matrix') {
+								controlNode = (
+									<LayoutMatrixControlRow
+										controlId={control.id}
+										label={control.label}
+										value={value}
+										disabled={commonDisabled}
+										attribute={blockeraAttributeId}
+										blockName={blockName}
+										isDirectionActive={
+											control.isDirectionActive
+										}
+										isAxisControlsActive={
+											control.isAxisControlsActive
+										}
+										defaultDirection={
+											control.defaultDirection
+										}
+										onChange={(next) =>
+											onChangeControl(control, next)
 										}
 									/>
 								);

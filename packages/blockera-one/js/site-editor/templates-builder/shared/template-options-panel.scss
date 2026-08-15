@@ -296,7 +296,8 @@
 }
 
 .blockera-templates-builder-style-variations.is-disabled,
-.blockera-templates-builder-color.is-disabled {
+.blockera-templates-builder-color.is-disabled,
+.blockera-templates-builder-layout-matrix.is-disabled {
 	opacity: 0.5;
 	pointer-events: none;
 }

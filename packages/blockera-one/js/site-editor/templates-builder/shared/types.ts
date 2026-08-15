@@ -45,7 +45,8 @@ export type ControlType =
 	| 'input'
 	| 'color'
 	| 'select'
-	| 'button';
+	| 'button'
+	| 'layout-matrix';
 
 /** Resolved UI value for a control (scalars plus Blockera value-addon objects). */
 export type ControlValue =
@@ -181,9 +182,9 @@ export type ControlDef = {
 	id: string;
 	type: ControlType;
 	label: string;
-	/** Section or layout id this control binds to. */
+	/** Section, layout, container, or setting id this control binds to. */
 	target: {
-		kind: 'layout' | 'section' | 'setting';
+		kind: 'layout' | 'section' | 'setting' | 'container';
 		id: string;
 	};
 	operation: OperationKind;
@@ -206,6 +207,26 @@ export type ControlDef = {
 	 * Missing ids are a no-op (no fallback).
 	 */
 	alsoSetOn?: string[];
+	/**
+	 * Extra inspector writes on the same target after the primary write
+	 * (e.g. force `blockeraWidth` to `stretch` when max-width changes).
+	 */
+	alsoWrite?: Array<{
+		attributePath: string;
+		value: unknown;
+	}>;
+	/**
+	 * InputControl edits these nested keys of the object at `attributePath`.
+	 * The engine merges them into the current object on write (e.g.
+	 * `margin.bottom`, or `padding.top` + `padding.bottom`).
+	 */
+	attributeMergeKeys?: string[];
+	/** Show the Row/Column radio on layout-matrix (default true in the control). */
+	isDirectionActive?: boolean;
+	/** Show the X/Y axis SelectControls on layout-matrix (default true in the control). */
+	isAxisControlsActive?: boolean;
+	/** Locked flex direction when the layout-matrix radio is hidden. */
+	defaultDirection?: 'row' | 'column';
 	/** Setting nested path under blockera_one_template_settings. */
 	settingPath?: string;
 	defaultValue?: string | number | boolean;
@@ -244,6 +265,11 @@ export type ControlDef = {
 	swapHints?: {
 		/** Preserve query.* attributes across the swap (posts listings). */
 		preserveQuery?: boolean;
+		/**
+		 * Overlay previous `blockera*` attributes onto the new pattern.
+		 * Off by default so the swapped design keeps its own look.
+		 */
+		preserveBlockeraExtensions?: boolean;
 		/**
 		 * Controls whose section variant is re-applied after this swap —
 		 * for dependent sections nested inside the swapped markup (e.g.
