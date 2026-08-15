@@ -163,6 +163,7 @@ describe('catalog schema sync (render contract)', () => {
 	const definitionKeys = new Set([
 		...Object.keys(schema.definitions.patternVariant.properties),
 		...Object.keys(schema.definitions.templatePartVariant.properties),
+		...Object.keys(schema.definitions.disabledVariant.properties),
 	]);
 
 	it('hydrate supports every variant key in the schema', () => {
@@ -182,9 +183,13 @@ describe('shared fixture obeys the schema contract', () => {
 	const defs = schema.definitions;
 
 	function definitionFor(variant) {
-		return variant.kind === 'templatePart'
-			? defs.templatePartVariant
-			: defs.patternVariant;
+		if (variant.kind === 'templatePart') {
+			return defs.templatePartVariant;
+		}
+		if (variant.disabled && !variant.patternSlug) {
+			return defs.disabledVariant;
+		}
+		return defs.patternVariant;
 	}
 
 	it('every fixture variant matches its kind definition (keys, required, enums, ids)', () => {

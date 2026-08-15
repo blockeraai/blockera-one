@@ -121,13 +121,39 @@
 				"id": "standard",
 				"label": "Standard",
 				"kind": "pattern",
-				"patternSlug": "blockera-one/builder-archive-pagination-standard"
+				"patternSlug": "blockera-one/builder-archive-pagination-standard",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/pagination-standard.svg"
 			},
 			{
-				"id": "next-prev",
-				"label": "Next/Prev",
+				"id": "load-more",
+				"label": "Load more",
+				"disabled": true,
+				"badge": "Coming soon",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/pagination-load-more.svg"
+			}
+		],
+		"pagination-previous": [
+			{
+				"id": "default",
+				"label": "Previous",
 				"kind": "pattern",
-				"patternSlug": "blockera-one/builder-archive-pagination-next-prev"
+				"patternSlug": "blockera-one/builder-archive-pagination-previous"
+			}
+		],
+		"pagination-next": [
+			{
+				"id": "default",
+				"label": "Next",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-pagination-next"
+			}
+		],
+		"pagination-numbers": [
+			{
+				"id": "default",
+				"label": "Numbers",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-pagination-numbers"
 			}
 		],
 		"layout": [

@@ -180,7 +180,7 @@ describe('resolveConfigVariantsHtml', () => {
 					controls: [
 						{
 							id: 'breadcrumbs-position',
-							type: 'segmented-choice',
+							type: 'select',
 							label: 'Position',
 							target: {
 								kind: 'section',
