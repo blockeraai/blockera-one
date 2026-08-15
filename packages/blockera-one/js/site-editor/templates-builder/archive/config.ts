@@ -35,7 +35,6 @@ const PAGE_HEADER_INNER_ORDER: InnerOrderRule = {
 		'page-title-description',
 		'page-title-breadcrumbs',
 	],
-	leadId: 'page-title-breadcrumbs',
 };
 
 type SectionTarget = {
@@ -188,7 +187,6 @@ const PAGE_TITLE_DESIGN: ControlDef = {
 			'description-bg-color',
 			'description-font-size',
 			'description-style',
-			'breadcrumbs-position',
 			'breadcrumbs-color',
 			'breadcrumbs-bg-color',
 			'breadcrumbs-font-size',
@@ -359,6 +357,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 					{
 						id: 'page-header-elements',
 						title: __('Elements', 'blockera'),
+						sortable: true,
 						controls: [
 							{
 								id: 'page-title-title',
@@ -447,47 +446,6 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 											id: 'breadcrumbs-design',
 											title: __('Design', 'blockera'),
 											controls: [
-												{
-													id: 'breadcrumbs-position',
-													type: 'segmented-choice',
-													label: __(
-														'Position',
-														'blockera'
-													),
-													target: BREADCRUMBS_TARGET,
-													operation: 'placeSection',
-													defaultValue: 'bottom',
-													innerOrder:
-														PAGE_HEADER_INNER_ORDER,
-													variants: [
-														{
-															id: 'top',
-															label: __(
-																'Top',
-																'blockera'
-															),
-															placement: {
-																relativeTo:
-																	'page-title',
-																position:
-																	'inside-start',
-															},
-														},
-														{
-															id: 'bottom',
-															label: __(
-																'Bottom',
-																'blockera'
-															),
-															placement: {
-																relativeTo:
-																	'page-title',
-																position:
-																	'inside-end',
-															},
-														},
-													],
-												},
 												BREADCRUMBS_DESIGN.color,
 												BREADCRUMBS_DESIGN.bgColor,
 												BREADCRUMBS_DESIGN.fontSize,
