@@ -4,6 +4,38 @@
 	min-height: 0;
 	max-height: 100%;
 	overflow: auto;
+
+	/*
+	 * Compact FormToggle for list rows, group headers, and option rows.
+	 * Gutenberg default is 32×16 track / 12px thumb
+	 * (`source-codes/block-editor/packages/components/src/form-toggle/style.scss`).
+	 * Scale to 28×14; 10px thumb with 2px inset; checked translateX = width − height.
+	 */
+	.components-form-toggle {
+		height: 14px;
+
+		.components-form-toggle__track {
+			height: 14px;
+			width: 28px;
+			border-radius: 7px;
+
+			&::after {
+				border-top-width: 14px;
+			}
+		}
+
+		.components-form-toggle__thumb {
+			top: 2px;
+			left: 2px;
+			width: 10px;
+			height: 10px;
+			border-width: 5px;
+		}
+
+		&.is-checked .components-form-toggle__thumb {
+			transform: translateX(14px);
+		}
+	}
 }
 
 /* Match `.blockera-se-admin-ui-card.admin-ui-page` parent-card chrome. */
