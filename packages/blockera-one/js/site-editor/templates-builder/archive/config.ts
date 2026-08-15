@@ -37,6 +37,45 @@ const PAGE_HEADER_INNER_ORDER: InnerOrderRule = {
 	],
 };
 
+const PAGE_HEADER_REQUIRED = [
+	'page-title-title',
+	'page-title-description',
+	'page-title-breadcrumbs',
+];
+
+const PAGINATION_INNER_ORDER: InnerOrderRule = {
+	parentId: 'pagination',
+	ids: ['pagination-previous', 'pagination-numbers', 'pagination-next'],
+};
+
+const PAGINATION_REQUIRED = [
+	'pagination-previous',
+	'pagination-numbers',
+	'pagination-next',
+];
+
+const PAGINATION_TARGET: SectionTarget = {
+	kind: 'section',
+	id: 'pagination',
+};
+
+const PAGINATION_PREV_TARGET: SectionTarget = {
+	kind: 'section',
+	id: 'pagination-previous',
+};
+
+const PAGINATION_NEXT_TARGET: SectionTarget = {
+	kind: 'section',
+	id: 'pagination-next',
+};
+
+const PAGINATION_NUMBERS_TARGET: SectionTarget = {
+	kind: 'section',
+	id: 'pagination-numbers',
+};
+
+const PAGINATION_ON = [{ controlId: 'pagination', equals: true }];
+
 type SectionTarget = {
 	kind: 'section';
 	id: string;
@@ -114,22 +153,36 @@ function sectionCustomizeControl(
 	};
 }
 
-function elementDesignControls(target: SectionTarget, prefix: string) {
+function elementDesignControls(
+	target: SectionTarget,
+	prefix: string,
+	alsoSetOn?: string[]
+) {
+	const color = sectionColorControl(
+		target,
+		`${prefix}-color`,
+		__('Text Color', 'blockera'),
+		'blockeraFontColor.value'
+	);
+	const bgColor = sectionColorControl(
+		target,
+		`${prefix}-bg-color`,
+		__('BG Color', 'blockera'),
+		'blockeraBackgroundColor.value'
+	);
+	const style = sectionStyleControl(target, `${prefix}-style`);
+	const fontSize = sectionFontSizeControl(target, `${prefix}-font-size`);
+	if (alsoSetOn?.length) {
+		color.alsoSetOn = alsoSetOn;
+		bgColor.alsoSetOn = alsoSetOn;
+		style.alsoSetOn = alsoSetOn;
+		fontSize.alsoSetOn = alsoSetOn;
+	}
 	return {
-		color: sectionColorControl(
-			target,
-			`${prefix}-color`,
-			__('Text Color', 'blockera'),
-			'blockeraFontColor.value'
-		),
-		bgColor: sectionColorControl(
-			target,
-			`${prefix}-bg-color`,
-			__('BG Color', 'blockera'),
-			'blockeraBackgroundColor.value'
-		),
-		style: sectionStyleControl(target, `${prefix}-style`),
-		fontSize: sectionFontSizeControl(target, `${prefix}-font-size`),
+		color,
+		bgColor,
+		style,
+		fontSize,
 		customize: sectionCustomizeControl(target, `${prefix}-customize`),
 	};
 }
@@ -139,9 +192,10 @@ function elementDesignPanel(
 	title: string,
 	groupId: string,
 	target: SectionTarget,
-	prefix: string
+	prefix: string,
+	alsoSetOn?: string[]
 ): NestedPanelDef {
-	const design = elementDesignControls(target, prefix);
+	const design = elementDesignControls(target, prefix, alsoSetOn);
 	return {
 		id: panelId,
 		title,
@@ -277,6 +331,21 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 		},
 		'posts-listing': { kind: 'blockName', name: 'core/query' },
 		pagination: { kind: 'blockName', name: 'core/query-pagination' },
+		'pagination-previous': {
+			kind: 'innerBlock',
+			parentId: 'pagination',
+			name: 'core/query-pagination-previous',
+		},
+		'pagination-next': {
+			kind: 'innerBlock',
+			parentId: 'pagination',
+			name: 'core/query-pagination-next',
+		},
+		'pagination-numbers': {
+			kind: 'innerBlock',
+			parentId: 'pagination',
+			name: 'core/query-pagination-numbers',
+		},
 	},
 	// Page-title sits full-width above the content/sidebar columns and must
 	// be carried across layout transplants.
@@ -478,6 +547,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 									position: 'inside-start',
 								},
 								innerOrder: PAGE_HEADER_INNER_ORDER,
+								requireAtLeastOneOf: PAGE_HEADER_REQUIRED,
 								conditions: [
 									{
 										controlId: 'page-title',
@@ -507,6 +577,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 									position: 'inside-end',
 								},
 								innerOrder: PAGE_HEADER_INNER_ORDER,
+								requireAtLeastOneOf: PAGE_HEADER_REQUIRED,
 								conditions: [
 									{
 										controlId: 'page-title',
@@ -536,6 +607,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 									position: 'inside-end',
 								},
 								innerOrder: PAGE_HEADER_INNER_ORDER,
+								requireAtLeastOneOf: PAGE_HEADER_REQUIRED,
 								conditions: [
 									{
 										controlId: 'page-title',
@@ -645,7 +717,15 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 					// across swaps.
 					swapHints: {
 						preserveQuery: true,
-						reapplyControls: ['pagination-type'],
+						reapplyControls: [
+							'pagination',
+							'pagination-previous',
+							'pagination-numbers',
+							'pagination-next',
+							'pagination-style',
+							'pagination-top-divider',
+							'pagination-top-spacing',
+						],
 					},
 					catalogPool: 'posts-listing',
 				},
@@ -666,7 +746,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 					type: 'toggle',
 					label: __('Pagination', 'blockera'),
 					separatorBefore: true,
-					target: { kind: 'section', id: 'pagination' },
+					target: PAGINATION_TARGET,
 					operation: 'toggleSection',
 					onValue: true,
 					offValue: false,
@@ -676,15 +756,284 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 						position: 'inside-end',
 					},
 					catalogPool: 'pagination',
-				},
-				{
-					id: 'pagination-type',
-					type: 'segmented-choice',
-					label: __('Pagination Type', 'blockera'),
-					target: { kind: 'section', id: 'pagination' },
-					operation: 'swapSection',
-					conditions: [{ controlId: 'pagination', equals: true }],
-					catalogPool: 'pagination',
+					nestedPanel: {
+						id: 'pagination',
+						title: __('Pagination', 'blockera'),
+						groups: [
+							{
+								id: 'pagination-design',
+								title: __('Design', 'blockera'),
+								controls: [
+									{
+										id: 'pagination-design',
+										type: 'layout-picker',
+										label: __(
+											'Pagination Design',
+											'blockera'
+										),
+										target: PAGINATION_TARGET,
+										operation: 'swapSection',
+										catalogPool: 'pagination',
+										conditions: PAGINATION_ON,
+										swapHints: {
+											reapplyControls: [
+												'pagination-previous',
+												'pagination-numbers',
+												'pagination-next',
+												'pagination-style',
+												'pagination-top-divider',
+												'pagination-top-spacing',
+											],
+										},
+									},
+									{
+										...sectionStyleControl(
+											PAGINATION_TARGET,
+											'pagination-style'
+										),
+										conditions: PAGINATION_ON,
+									},
+									{
+										id: 'pagination-top-divider',
+										type: 'border',
+										label: __('Top Divider', 'blockera'),
+										target: PAGINATION_TARGET,
+										operation: 'setSectionAttribute',
+										attributePath: 'blockeraBorder.value',
+										borderSide: 'top',
+										conditions: PAGINATION_ON,
+										mirrorMergeWhen: {
+											whenControlId:
+												'pagination-top-spacing',
+											mergeKeys: ['padding.top'],
+											role: 'divider',
+											attributePath:
+												'blockeraSpacing.value',
+										},
+									},
+									{
+										id: 'pagination-top-spacing',
+										type: 'input',
+										label: __('Top Spacing', 'blockera'),
+										target: PAGINATION_TARGET,
+										operation: 'setSectionAttribute',
+										attributePath: 'blockeraSpacing.value',
+										attributeMergeKeys: ['margin.top'],
+										unitType: 'margin',
+										controlAddonTypes: ['variable'],
+										variableTypes: ['spacing'],
+										conditions: PAGINATION_ON,
+										mirrorMergeWhen: {
+											whenControlId:
+												'pagination-top-divider',
+											mergeKeys: ['padding.top'],
+											role: 'spacing',
+										},
+									},
+									{
+										...sectionCustomizeControl(
+											PAGINATION_TARGET,
+											'pagination-customize'
+										),
+										conditions: PAGINATION_ON,
+									},
+								],
+							},
+							{
+								id: 'pagination-elements',
+								title: __('Elements', 'blockera'),
+								controls: [
+									{
+										id: 'pagination-previous',
+										type: 'toggle',
+										label: __('Previous Page', 'blockera'),
+										target: PAGINATION_PREV_TARGET,
+										operation: 'toggleSection',
+										onValue: true,
+										offValue: false,
+										defaultValue: true,
+										catalogPool: 'pagination-previous',
+										insert: {
+											relativeTo: 'pagination',
+											position: 'inside-start',
+										},
+										innerOrder: PAGINATION_INNER_ORDER,
+										requireAtLeastOneOf:
+											PAGINATION_REQUIRED,
+										conditions: PAGINATION_ON,
+										nestedPanel: {
+											id: 'pagination-previous',
+											title: __(
+												'Previous Page',
+												'blockera'
+											),
+											groups: [
+												...elementDesignPanel(
+													'pagination-previous-design',
+													__(
+														'Previous Page',
+														'blockera'
+													),
+													'pagination-prev-design',
+													PAGINATION_PREV_TARGET,
+													'pagination-prev'
+												).groups,
+												{
+													id: 'pagination-prev-settings',
+													title: __(
+														'Settings',
+														'blockera'
+													),
+													controls: [
+														{
+															id: 'pagination-previous-label',
+															type: 'input',
+															label: __(
+																'Label',
+																'blockera'
+															),
+															target: PAGINATION_PREV_TARGET,
+															operation:
+																'setSectionAttribute',
+															attributePath:
+																'label',
+															// Core edit() paints `label` as PlainText (placeholder
+															// only when empty). Persist the same default PHP uses.
+															defaultValue: __(
+																'Previous Page',
+																'blockera'
+															),
+														},
+													],
+												},
+											],
+										},
+									},
+									{
+										id: 'pagination-numbers',
+										type: 'toggle',
+										label: __('Numbers', 'blockera'),
+										target: PAGINATION_NUMBERS_TARGET,
+										operation: 'toggleSection',
+										onValue: true,
+										offValue: false,
+										defaultValue: true,
+										catalogPool: 'pagination-numbers',
+										insert: {
+											relativeTo: 'pagination',
+											position: 'inside-start',
+										},
+										innerOrder: PAGINATION_INNER_ORDER,
+										requireAtLeastOneOf:
+											PAGINATION_REQUIRED,
+										conditions: PAGINATION_ON,
+										nestedPanel: {
+											id: 'pagination-numbers',
+											title: __('Numbers', 'blockera'),
+											groups: [
+												...elementDesignPanel(
+													'pagination-numbers-design',
+													__('Numbers', 'blockera'),
+													'pagination-num-design',
+													PAGINATION_NUMBERS_TARGET,
+													'pagination-num'
+												).groups,
+												{
+													id: 'pagination-num-settings',
+													title: __(
+														'Settings',
+														'blockera'
+													),
+													controls: [
+														{
+															id: 'pagination-numbers-mid-size',
+															type: 'number',
+															label: __(
+																'Number of links',
+																'blockera'
+															),
+															target: PAGINATION_NUMBERS_TARGET,
+															operation:
+																'setSectionAttribute',
+															attributePath:
+																'midSize',
+															defaultValue: 2,
+															min: 0,
+															max: 5,
+															step: 1,
+															labelDescription:
+																__(
+																	'Specify how many links can appear before and after the current page number. Links to the first, current and last page are always visible.',
+																	'blockera'
+																),
+														},
+													],
+												},
+											],
+										},
+									},
+									{
+										id: 'pagination-next',
+										type: 'toggle',
+										label: __('Next Page', 'blockera'),
+										target: PAGINATION_NEXT_TARGET,
+										operation: 'toggleSection',
+										onValue: true,
+										offValue: false,
+										defaultValue: true,
+										catalogPool: 'pagination-next',
+										insert: {
+											relativeTo: 'pagination',
+											position: 'inside-end',
+										},
+										innerOrder: PAGINATION_INNER_ORDER,
+										requireAtLeastOneOf:
+											PAGINATION_REQUIRED,
+										conditions: PAGINATION_ON,
+										nestedPanel: {
+											id: 'pagination-next',
+											title: __('Next Page', 'blockera'),
+											groups: [
+												...elementDesignPanel(
+													'pagination-next-design',
+													__('Next Page', 'blockera'),
+													'pagination-next-design',
+													PAGINATION_NEXT_TARGET,
+													'pagination-next'
+												).groups,
+												{
+													id: 'pagination-next-settings',
+													title: __(
+														'Settings',
+														'blockera'
+													),
+													controls: [
+														{
+															id: 'pagination-next-label',
+															type: 'input',
+															label: __(
+																'Label',
+																'blockera'
+															),
+															target: PAGINATION_NEXT_TARGET,
+															operation:
+																'setSectionAttribute',
+															attributePath:
+																'label',
+															defaultValue: __(
+																'Next Page',
+																'blockera'
+															),
+														},
+													],
+												},
+											],
+										},
+									},
+								],
+							},
+						],
+					},
 				},
 			],
 		},
