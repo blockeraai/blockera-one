@@ -16,7 +16,8 @@
 					"items": {
 						"oneOf": [
 							{ "$ref": "#/definitions/patternVariant" },
-							{ "$ref": "#/definitions/templatePartVariant" }
+							{ "$ref": "#/definitions/templatePartVariant" },
+							{ "$ref": "#/definitions/disabledVariant" }
 						]
 					}
 				}
@@ -90,6 +91,48 @@
 					"description": "Site chrome frame layout used by header/footer swaps.",
 					"type": "string",
 					"enum": ["stacked", "vertical-rail"]
+				},
+				"disabled": {
+					"description": "When true the tile is visible but not selectable.",
+					"type": "boolean"
+				},
+				"badge": {
+					"description": "Overlay label on a disabled tile (e.g. Coming soon).",
+					"type": "string",
+					"minLength": 1
+				}
+			}
+		},
+		"disabledVariant": {
+			"description": "Coming-soon picker tile with no markup. patternSlug is omitted so a click cannot swap empty HTML.",
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["id", "label", "disabled"],
+			"properties": {
+				"id": {
+					"description": "Kebab-case variant id.",
+					"type": "string",
+					"pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+				},
+				"label": {
+					"description": "Translated picker label.",
+					"type": "string",
+					"minLength": 1
+				},
+				"disabled": {
+					"description": "Must be true for this variant kind.",
+					"type": "boolean",
+					"enum": [true]
+				},
+				"badge": {
+					"description": "Overlay label on the tile (e.g. Coming soon).",
+					"type": "string",
+					"minLength": 1
+				},
+				"thumbnail": {
+					"description": "Layout-picker thumbnail URL.",
+					"type": "string",
+					"minLength": 1
 				}
 			}
 		},

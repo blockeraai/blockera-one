@@ -19,7 +19,12 @@ abstract class AbstractCatalog {
 	/**
 	 * Optional variant keys accepted by patternVariant().
 	 */
-	protected const PATTERN_ARGS = array( 'thumbnail', 'placement', 'areas', 'chromeLayout' );
+	protected const PATTERN_ARGS = array( 'thumbnail', 'placement', 'areas', 'chromeLayout', 'disabled', 'badge' );
+
+	/**
+	 * Optional keys accepted by disabledVariant().
+	 */
+	protected const DISABLED_ARGS = array( 'thumbnail', 'badge' );
 
 	/**
 	 * Optional variant keys accepted by templatePartVariant().
@@ -83,6 +88,25 @@ abstract class AbstractCatalog {
 		);
 
 		return $this->withArgs( $variant, $args, self::TEMPLATE_PART_ARGS );
+	}
+
+	/**
+	 * Build a coming-soon tile with no markup (patternSlug omitted).
+	 *
+	 * @param string $id    Kebab-case variant id.
+	 * @param string $label Translated picker label.
+	 * @param array  $args  Optional keys: thumbnail, badge.
+	 *
+	 * @return array<string,mixed>
+	 */
+	protected function disabledVariant( string $id, string $label, array $args = array() ): array {
+		$variant = array(
+			'id'       => $id,
+			'label'    => $label,
+			'disabled' => true,
+		);
+
+		return $this->withArgs( $variant, $args, self::DISABLED_ARGS );
 	}
 
 	/**

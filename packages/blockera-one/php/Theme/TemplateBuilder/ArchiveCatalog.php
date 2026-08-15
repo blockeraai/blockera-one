@@ -151,16 +151,41 @@ class ArchiveCatalog extends AbstractCatalog {
 					array( 'thumbnail' => $this->thumbnail( 'full-width' ) )
 				),
 			),
-			'pagination'    => array(
+			'pagination'             => array(
 				$this->patternVariant(
 					'standard',
 					__( 'Standard', 'blockera-one' ),
-					'blockera-one/builder-archive-pagination-standard'
+					'blockera-one/builder-archive-pagination-standard',
+					array( 'thumbnail' => $this->thumbnail( 'pagination-standard' ) )
 				),
+				$this->disabledVariant(
+					'load-more',
+					__( 'Load more', 'blockera-one' ),
+					array(
+						'thumbnail' => $this->thumbnail( 'pagination-load-more' ),
+						'badge'     => __( 'Coming soon', 'blockera-one' ),
+					)
+				),
+			),
+			'pagination-previous'    => array(
 				$this->patternVariant(
-					'next-prev',
-					__( 'Next/Prev', 'blockera-one' ),
-					'blockera-one/builder-archive-pagination-next-prev'
+					'default',
+					__( 'Previous', 'blockera-one' ),
+					'blockera-one/builder-archive-pagination-previous'
+				),
+			),
+			'pagination-next'        => array(
+				$this->patternVariant(
+					'default',
+					__( 'Next', 'blockera-one' ),
+					'blockera-one/builder-archive-pagination-next'
+				),
+			),
+			'pagination-numbers'     => array(
+				$this->patternVariant(
+					'default',
+					__( 'Numbers', 'blockera-one' ),
+					'blockera-one/builder-archive-pagination-numbers'
 				),
 			),
 			// Order matters: no-sidebar first (toggle-off), then the nested

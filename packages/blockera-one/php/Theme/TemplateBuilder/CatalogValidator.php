@@ -152,7 +152,7 @@ class CatalogValidator {
 
 		$decoded = json_decode( (string) file_get_contents( $schema_file ), true );
 
-		if ( ! isset( $decoded['definitions']['patternVariant'], $decoded['definitions']['templatePartVariant'] ) ) {
+		if ( ! isset( $decoded['definitions']['patternVariant'], $decoded['definitions']['templatePartVariant'], $decoded['definitions']['disabledVariant'] ) ) {
 			return null;
 		}
 
@@ -162,6 +162,7 @@ class CatalogValidator {
 			'oneOf' => array(
 				$decoded['definitions']['patternVariant'],
 				$decoded['definitions']['templatePartVariant'],
+				$decoded['definitions']['disabledVariant'],
 			),
 		);
 

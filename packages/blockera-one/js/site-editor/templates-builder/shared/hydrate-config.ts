@@ -41,6 +41,8 @@ export const SUPPORTED_VARIANT_KEYS = [
 	'placement',
 	'areas',
 	'chromeLayout',
+	'disabled',
+	'badge',
 ] as const;
 
 /**
@@ -82,6 +84,22 @@ function hydrateControl(
 			.filter((variant) => !exclude?.includes(variant.id))
 			.map(toVariantDef);
 		next = { ...control, variants };
+	}
+
+	if (next.alsoToggle?.length) {
+		next = {
+			...next,
+			alsoToggle: next.alsoToggle.map((item) => {
+				if (!item.catalogPool) {
+					return item;
+				}
+				const pool = pools[item.catalogPool] || [];
+				return {
+					...item,
+					variants: pool.map(toVariantDef),
+				};
+			}),
+		};
 	}
 
 	if (!next.nestedPanel?.groups?.length) {
