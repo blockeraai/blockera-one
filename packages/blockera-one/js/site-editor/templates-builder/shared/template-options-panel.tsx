@@ -30,18 +30,17 @@ import { Flex } from '@blockera/controls';
  */
 import { GatewayCard, GatewayRow } from '../../nested-panels';
 import BlockStyleSelect from './controls/block-style-select';
+import BorderControlRow from './controls/border-control';
 import ColorControlRow from './controls/color-control';
 import InputControlRow from './controls/input-control';
 import LayoutMatrixControlRow from './controls/layout-matrix-control';
 import LayoutPicker from './controls/layout-picker';
 import NumberControlRow from './controls/number-control';
-import SegmentedChoice from './controls/segmented-choice';
 import ToggleControlRow from './controls/toggle-control';
 import ToggleSelectRow from './controls/toggle-select';
 import { hasUnresolvedVariants } from './resolve-variant-html';
 import GroupHeaderEdit from './group-header-edit';
 import { getBlockeraAttributeId } from './blockera-attribute';
-import { pickMergedAttributeValue } from './attribute-merge';
 import {
 	getGroupInnerOrder,
 	isSortableElementControl,
@@ -133,11 +132,13 @@ function SortableElementGroup({
 
 	const renderItem = useCallback(
 		(
-			{ control, value }: ControlViewState,
+			item: ControlViewState,
 			{ dragHandle, isDragging }: SortableElementRenderProps
 		) => {
+			const { control, value, disabled: viewDisabled } = item;
 			const waitingForContent = hasUnresolvedVariants(control);
-			const controlDisabled = disabled || waitingForContent;
+			const controlDisabled =
+				disabled || waitingForContent || !!viewDisabled;
 			return (
 				<GatewayRow
 					title={control.label}
@@ -441,7 +442,13 @@ export default function TemplateOptionsPanel({
 						/>
 					)}
 					{staticControls.map(
-						({ control, state, value, blockName }) => {
+						({
+							control,
+							state,
+							value,
+							blockName,
+							disabled: viewDisabled,
+						}) => {
 							const missing = state.kind === 'missing';
 							// Pattern content not resolved yet (or slug
 							// unregistered) — keep the control visible
@@ -449,7 +456,9 @@ export default function TemplateOptionsPanel({
 							const waitingForContent =
 								hasUnresolvedVariants(control);
 							const controlDisabled =
-								commonDisabled || waitingForContent;
+								commonDisabled ||
+								waitingForContent ||
+								!!viewDisabled;
 							const blockeraAttributeId = control.attributePath
 								? getBlockeraAttributeId(
 										control.attributePath
@@ -542,31 +551,44 @@ export default function TemplateOptionsPanel({
 										}
 									/>
 								);
-							} else if (control.type === 'segmented-choice') {
+							} else if (control.type === 'border') {
 								controlNode = (
-									<SegmentedChoice
+									<BorderControlRow
+										controlId={control.id}
 										label={control.label}
-										value={
-											typeof value === 'string'
-												? value
-												: null
-										}
-										variants={control.variants || []}
-										disabled={controlDisabled || missing}
-										onChange={(id) =>
-											onChangeControl(control, id)
+										value={value}
+										disabled={commonDisabled}
+										attribute={blockeraAttributeId}
+										blockName={blockName}
+										onChange={(next) =>
+											onChangeControl(
+												control,
+												next as ControlValue
+											)
 										}
 									/>
 								);
 							} else if (control.type === 'number') {
+								const numberFallback =
+									typeof control.defaultValue === 'number'
+										? control.defaultValue
+										: 10;
+								const numberValue =
+									typeof value === 'number' &&
+									!Number.isNaN(value)
+										? value
+										: numberFallback;
 								controlNode = (
 									<NumberControlRow
 										label={control.label}
-										value={Number(value) || 10}
+										value={numberValue}
 										min={control.min}
 										max={control.max}
 										step={control.step}
 										disabled={commonDisabled}
+										labelDescription={
+											control.labelDescription
+										}
 										onChange={(next) =>
 											onChangeControl(control, next)
 										}
@@ -575,10 +597,12 @@ export default function TemplateOptionsPanel({
 							} else if (control.type === 'input') {
 								const isGapPath =
 									blockeraAttributeId === 'blockeraGap';
-								const mergeKeys = control.attributeMergeKeys;
-								const inputValue = mergeKeys?.length
-									? pickMergedAttributeValue(value, mergeKeys)
-									: inputControlValue(value, isGapPath);
+								// Value is already the merge-key side from
+								// resolveControlViewStates — do not pick again.
+								const inputValue = inputControlValue(
+									value,
+									isGapPath
+								);
 								controlNode = (
 									<InputControlRow
 										controlId={control.id}

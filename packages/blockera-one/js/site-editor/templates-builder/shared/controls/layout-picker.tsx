@@ -63,19 +63,31 @@ export default function LayoutPicker({
 				<div className="blockera-templates-builder-layout-picker__grid">
 					{variants.map((variant) => {
 						const isActive = value === variant.id;
+						const tileDisabled = disabled || !!variant.disabled;
 						return (
 							<button
 								key={variant.id}
 								type="button"
-								disabled={disabled}
+								disabled={tileDisabled}
 								className={classNames(
 									'blockera-templates-builder-layout-picker__option',
-									{ 'is-selected': isActive }
+									{
+										'is-selected': isActive,
+										'is-coming-soon': !!variant.disabled,
+									}
 								)}
 								aria-pressed={isActive}
-								aria-label={variant.label}
+								aria-label={
+									variant.badge
+										? `${variant.label} (${variant.badge})`
+										: variant.label
+								}
 								data-test={`blockera-templates-builder-layout-${variant.id}`}
-								onClick={() => onChange(variant.id)}
+								onClick={() => {
+									if (!tileDisabled) {
+										onChange(variant.id);
+									}
+								}}
 							>
 								{variant.thumbnail ? (
 									<img
@@ -89,6 +101,11 @@ export default function LayoutPicker({
 										{variant.label}
 									</span>
 								)}
+								{variant.badge ? (
+									<span className="blockera-templates-builder-layout-picker__badge">
+										{variant.badge}
+									</span>
+								) : null}
 							</button>
 						);
 					})}

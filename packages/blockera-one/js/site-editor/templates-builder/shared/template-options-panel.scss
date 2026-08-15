@@ -151,6 +151,27 @@
 		opacity: 0.5;
 		cursor: not-allowed;
 	}
+
+	&.is-coming-soon {
+		position: relative;
+		opacity: 1;
+	}
+}
+
+.blockera-templates-builder-layout-picker__badge {
+	position: absolute;
+	left: 4px;
+	right: 4px;
+	bottom: 4px;
+	padding: 2px 4px;
+	border-radius: 3px;
+	background: rgba(30, 30, 30, 0.82);
+	color: #ffffff;
+	font-size: 9px;
+	font-weight: 600;
+	line-height: 1.2;
+	text-align: center;
+	pointer-events: none;
 }
 
 .blockera-templates-builder-layout-picker__fallback {
@@ -295,9 +316,17 @@
 	}
 }
 
+.blockera-templates-builder-number__description {
+	margin: 6px 0 0;
+	font-size: 12px;
+	line-height: 1.4;
+	color: #757575;
+}
+
 .blockera-templates-builder-style-variations.is-disabled,
 .blockera-templates-builder-color.is-disabled,
-.blockera-templates-builder-layout-matrix.is-disabled {
+.blockera-templates-builder-layout-matrix.is-disabled,
+.blockera-templates-builder-border.is-disabled {
 	opacity: 0.5;
 	pointer-events: none;
 }

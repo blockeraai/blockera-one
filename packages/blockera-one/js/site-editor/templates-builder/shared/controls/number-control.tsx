@@ -8,6 +8,7 @@ type NumberControlProps = {
 	max?: number;
 	step?: number;
 	disabled?: boolean;
+	labelDescription?: string;
 	onChange: (next: number) => void;
 };
 
@@ -18,6 +19,7 @@ export default function NumberControlRow({
 	max = 50,
 	step = 1,
 	disabled,
+	labelDescription,
 	onChange,
 }: NumberControlProps) {
 	const inputId = useId();
@@ -71,6 +73,11 @@ export default function NumberControlRow({
 					+
 				</button>
 			</div>
+			{labelDescription ? (
+				<p className="blockera-templates-builder-number__description">
+					{labelDescription}
+				</p>
+			) : null}
 		</div>
 	);
 }
