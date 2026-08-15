@@ -176,6 +176,16 @@ export type NestedPanelDef = {
 	/** In-card gateway row label (falls back to `title`). */
 	gatewayLabel?: string;
 	groups: PanelGroupDef[];
+	/**
+	 * Scroll the related stamp into the canvas viewport when this panel is
+	 * active. Default true. Set false to keep the current canvas scroll.
+	 */
+	scrollIntoView?: boolean;
+	/**
+	 * Stamp id to reveal. Defaults to the owning control/group section or
+	 * container target, then this panel's `id`.
+	 */
+	scrollTarget?: string;
 };
 
 /** Reorder stamped children of `parentId` after an inner-element op. */
@@ -258,6 +268,16 @@ export type ControlDef = {
 	innerOrder?: InnerOrderRule;
 	/** Control-level nested DrillDown (toggle + chevron rows). */
 	nestedPanel?: NestedPanelDef;
+	/**
+	 * Scroll the related stamp into the canvas when this presence toggle
+	 * turns a stamp on. Default true. Set false to keep the current scroll.
+	 */
+	scrollIntoView?: boolean;
+	/**
+	 * Stamp id to reveal on enable. Defaults to the section/container
+	 * target, then this control's `id` (layout toggles such as sidebar).
+	 */
+	scrollTarget?: string;
 	/** Show when another control has one of these values. */
 	conditions?: Array<{
 		controlId: string;

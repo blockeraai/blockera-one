@@ -24,6 +24,35 @@ function controlList(group: PanelGroupDef): ControlDef[] {
 	return list;
 }
 
+type NestedPanelOwner = {
+	panel: NestedPanelDef;
+	control?: ControlDef;
+	group?: PanelGroupDef;
+};
+
+/**
+ * Nested panel declared on a group or on one of its controls, plus the
+ * owner used to infer a canvas scroll stamp.
+ */
+function findNestedPanelOwner(
+	groups: PanelGroupDef[],
+	segment: string
+): NestedPanelOwner | null {
+	for (const group of groups) {
+		if (group.nestedPanel?.id === segment) {
+			return { panel: group.nestedPanel, group };
+		}
+		const controls = controlList(group);
+		for (let i = 0; i < controls.length; i++) {
+			const nested = controls[i].nestedPanel;
+			if (nested?.id === segment) {
+				return { panel: nested, control: controls[i] };
+			}
+		}
+	}
+	return null;
+}
+
 /**
  * Nested panel declared on a group or on one of its controls.
  */
@@ -31,18 +60,94 @@ function findNestedPanel(
 	groups: PanelGroupDef[],
 	segment: string
 ): NestedPanelDef | null {
-	for (const group of groups) {
-		if (group.nestedPanel?.id === segment) {
-			return group.nestedPanel;
-		}
-		const controls = controlList(group);
-		for (let i = 0; i < controls.length; i++) {
-			if (controls[i].nestedPanel?.id === segment) {
-				return controls[i].nestedPanel as NestedPanelDef;
-			}
-		}
+	return findNestedPanelOwner(groups, segment)?.panel || null;
+}
+
+function stampIdFromTarget(target?: ControlDef['target']): string | null {
+	if (!target) {
+		return null;
+	}
+	if (target.kind === 'section' || target.kind === 'container') {
+		return target.id;
 	}
 	return null;
+}
+
+/**
+ * Stamp id to reveal in the canvas for the stack leaf. Empty / invalid
+ * stack, or `scrollIntoView: false`, returns null. Layout-kind targets
+ * are never used; those panels fall back to `scrollTarget` or panel id.
+ */
+export function resolveNestedPanelScrollTarget(
+	config: TemplateOptionsConfig,
+	stack: string[]
+): string | null {
+	if (!stack.length) {
+		return null;
+	}
+
+	let groups = config.groups;
+	let owner: NestedPanelOwner | null = null;
+	for (let i = 0; i < stack.length; i++) {
+		owner = findNestedPanelOwner(groups, stack[i]);
+		if (!owner) {
+			return null;
+		}
+		groups = owner.panel.groups;
+	}
+
+	if (!owner || owner.panel.scrollIntoView === false) {
+		return null;
+	}
+	if (owner.panel.scrollTarget) {
+		return owner.panel.scrollTarget;
+	}
+
+	const fromControl = stampIdFromTarget(owner.control?.target);
+	if (fromControl) {
+		return fromControl;
+	}
+
+	const fromToggle = stampIdFromTarget(owner.group?.headerToggle?.target);
+	if (fromToggle) {
+		return fromToggle;
+	}
+
+	return owner.panel.id;
+}
+
+function isPresenceEnable(control: ControlDef, nextValue: unknown): boolean {
+	if (control.operation === 'toggleSection') {
+		return control.invertPresence ? !nextValue : !!nextValue;
+	}
+	if (control.operation === 'transplantLayout' && control.type === 'toggle') {
+		return !!nextValue;
+	}
+	return false;
+}
+
+/**
+ * Stamp id to reveal after a presence toggle turns a stamp on. Off,
+ * invert-hide, layout pickers, and `scrollIntoView: false` return null.
+ */
+export function resolveEnableScrollTarget(
+	control: ControlDef,
+	nextValue: unknown
+): string | null {
+	if (
+		control.scrollIntoView === false ||
+		!isPresenceEnable(control, nextValue)
+	) {
+		return null;
+	}
+	if (control.scrollTarget) {
+		return control.scrollTarget;
+	}
+	const fromTarget = stampIdFromTarget(control.target);
+	if (fromTarget) {
+		return fromTarget;
+	}
+	return control.id;
 }
 
 /**
