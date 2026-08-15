@@ -34,26 +34,13 @@ describe('shouldScrollStampTop', () => {
 		expect(shouldScrollStampTop(10, PORT_TOP, PORT_BOTTOM)).toBe(true);
 	});
 
-	it('does not scroll when the top is 10–100px below the canvas top', () => {
+	it('does not scroll when the top is in the viewport and more than 10px from the canvas top', () => {
 		expect(shouldScrollStampTop(11, PORT_TOP, PORT_BOTTOM)).toBe(false);
 		expect(shouldScrollStampTop(50, PORT_TOP, PORT_BOTTOM)).toBe(false);
-		expect(shouldScrollStampTop(99, PORT_TOP, PORT_BOTTOM)).toBe(false);
-		expect(shouldScrollStampTop(100, PORT_TOP, PORT_BOTTOM)).toBe(false);
-		expect(shouldScrollStampTop(100.007, PORT_TOP, PORT_BOTTOM)).toBe(
-			false
-		);
-	});
-
-	it('scrolls when the top is in view but further than 100px from the canvas top', () => {
-		expect(shouldScrollStampTop(102, PORT_TOP, PORT_BOTTOM)).toBe(true);
-		expect(shouldScrollStampTop(150, PORT_TOP, PORT_BOTTOM)).toBe(true);
-		expect(shouldScrollStampTop(650, PORT_TOP, PORT_BOTTOM)).toBe(true);
-		expect(shouldScrollStampTop(990, PORT_TOP, 1265)).toBe(true);
-	});
-
-	it('scrolls when the top is a sliver near the bottom', () => {
-		expect(shouldScrollStampTop(720, PORT_TOP, PORT_BOTTOM)).toBe(true);
-		expect(shouldScrollStampTop(790, PORT_TOP, PORT_BOTTOM)).toBe(true);
+		expect(shouldScrollStampTop(150, PORT_TOP, PORT_BOTTOM)).toBe(false);
+		expect(shouldScrollStampTop(650, PORT_TOP, PORT_BOTTOM)).toBe(false);
+		expect(shouldScrollStampTop(790, PORT_TOP, PORT_BOTTOM)).toBe(false);
+		expect(shouldScrollStampTop(990, PORT_TOP, 1265)).toBe(false);
 	});
 });
 
