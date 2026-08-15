@@ -325,6 +325,14 @@ describe('templates-builder patterns lint', () => {
 							`${config.type}/${control.id}: section target "${id}"`
 						);
 					}
+					if (
+						kind === 'container' &&
+						ALL_STAMPS[id] !== 'container'
+					) {
+						offenders.push(
+							`${config.type}/${control.id}: container target "${id}"`
+						);
+					}
 					if (kind === 'layout' && ALL_STAMPS[id] !== 'layout') {
 						offenders.push(
 							`${config.type}/${control.id}: layout target "${id}"`
