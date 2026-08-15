@@ -21,6 +21,11 @@ import {
 	type TemplateSettingsRecord,
 } from './constants';
 import { applyOperation } from './apply-operation';
+import { resolveEnableScrollTarget } from './resolve-options-panel';
+import {
+	cancelStampCanvasReveal,
+	scrollStampIntoCanvas,
+} from './scroll-stamp-into-canvas';
 import { ensurePaginationNavLabels } from './section-ops';
 import {
 	getPostsPerPageMap,
@@ -292,6 +297,17 @@ export default function useTemplateOptions(
 					return;
 				}
 				applyBlocks(result.blocks);
+				const revealId = resolveEnableScrollTarget(
+					resolvedControl,
+					nextValue
+				);
+				if (revealId) {
+					scrollStampIntoCanvas(revealId);
+				} else {
+					// A leftover footer observe must not re-scroll when the
+					// next toggle is an off / non-presence change.
+					cancelStampCanvasReveal();
+				}
 			};
 
 			runWithConfirm(needsConfirm, action);

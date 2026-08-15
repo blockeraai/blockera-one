@@ -23,8 +23,10 @@ import { ROUTES } from '../constants';
 import { resolveNestedPanel, useUrlPanelStack } from '../nested-panels';
 import {
 	getOptionsConfigForFilter,
+	resolveNestedPanelScrollTarget,
 	resolveOptionsPanelGroups,
 	resolveTemplateIdForFilter,
+	scrollStampIntoCanvas,
 	TemplateOptionsPanel,
 	TemplateOptionsTitleActions,
 } from '../templates-builder';
@@ -105,6 +107,19 @@ export default function TemplatesDrillDown() {
 			replace([]);
 		}
 	}, [optionsResolution, replace, stack.length]);
+
+	// Single reveal path for gateway open (via push → stack), Back,
+	// breadcrumb, and URL restore. Do not also scroll from onOpenNested.
+	useEffect(() => {
+		if (!builderConfig || !stack.length) {
+			return;
+		}
+		const stampId = resolveNestedPanelScrollTarget(builderConfig, stack);
+		if (!stampId) {
+			return;
+		}
+		return scrollStampIntoCanvas(stampId);
+	}, [builderConfig, stack]);
 
 	const nestedNav = useMemo(() => {
 		if (!optionsResolution) {
