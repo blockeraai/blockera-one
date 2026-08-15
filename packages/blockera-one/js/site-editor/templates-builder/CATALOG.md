@@ -42,6 +42,10 @@ JS controls bind to pools by id (`catalogPool` in `<type>/config.ts`);
 | `placement` | both | no | `{ relativeTo: <stamp id>, position: before\|after\|inside-start\|inside-end }` — where the section lives when this design is applied |
 | `areas` | pattern | no | Area stamp ids a layout variant exposes (`content` required by the area lint) |
 | `chromeLayout` | both | no | `stacked` or `vertical-rail` (site header/footer frame). `vertical-rail` variants are pattern-kind — the pattern ships the full rail frame (see “Chrome” below) |
+| `disabled` | pattern / disabled | no | When `true` the layout-picker tile is visible but not selectable |
+| `badge` | pattern / disabled | no | Overlay label on a disabled tile (e.g. `Coming soon`) |
+
+A **disabled variant** (coming-soon tile) omits `patternSlug` and requires `disabled: true`. It is a third schema kind (`disabledVariant`) so a click cannot swap empty markup.
 
 Unknown keys are rejected (`additionalProperties: false`). Every schema key
 must be consumed by `shared/hydrate-config.ts` (`SUPPORTED_VARIANT_KEYS`) —
