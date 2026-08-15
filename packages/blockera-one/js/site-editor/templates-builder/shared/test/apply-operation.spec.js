@@ -475,6 +475,50 @@ describe('toggleSection', () => {
 		]);
 	});
 
+	it('persists pre-toggle order so a hidden title keeps its list slot', () => {
+		const innerOrder = {
+			parentId: 'page-title',
+			ids: [
+				'page-title-title',
+				'page-title-description',
+				'page-title-breadcrumbs',
+			],
+		};
+		const blocks = [
+			stamped('core/group', 'section/page-title:default', {}, [
+				stamped('core/query-title', 'section/page-title-title:default'),
+				stamped(
+					'core/term-description',
+					'section/page-title-description:default'
+				),
+			]),
+		];
+		const control = {
+			id: 'page-title-title',
+			type: 'toggle',
+			label: 'Title',
+			target: { kind: 'section', id: 'page-title-title' },
+			operation: 'toggleSection',
+			variants: [
+				{ id: 'default', label: 'Title', html: 'page-title-title' },
+			],
+			insert: { relativeTo: 'page-title', position: 'inside-start' },
+			innerOrder,
+		};
+
+		const result = apply(control, false, { blocks });
+		expect(result.blocks[0].innerBlocks.map((b) => b.name)).toEqual([
+			'core/term-description',
+		]);
+		expect(
+			result.blocks[0].attributes.metadata[INNER_ORDER_META_KEY]
+		).toEqual([
+			'page-title-title',
+			'page-title-description',
+			'page-title-breadcrumbs',
+		]);
+	});
+
 	it('restores a toggled-on title at its stored list slot', () => {
 		__setMarkup('page-title-title', [
 			stamped('core/query-title', 'section/page-title-title:default'),
