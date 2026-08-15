@@ -236,10 +236,10 @@ describe('archive config structural invariants', () => {
 			'title-design',
 		]);
 		expect(title.nestedPanel.groups[0].controls.map((c) => c.id)).toEqual([
+			'title-style',
 			'title-color',
 			'title-bg-color',
 			'title-font-size',
-			'title-style',
 			'title-customize',
 		]);
 
@@ -250,11 +250,23 @@ describe('archive config structural invariants', () => {
 		expect(
 			description.nestedPanel.groups[0].controls.map((c) => c.id)
 		).toEqual([
+			'description-style',
 			'description-color',
 			'description-bg-color',
 			'description-font-size',
-			'description-style',
 			'description-customize',
 		]);
+	});
+
+	it('puts Style first in Design groups that change block style variation', () => {
+		const breadcrumbs = controls.find(
+			(c) => c.id === 'page-title-breadcrumbs'
+		);
+		const design = breadcrumbs.nestedPanel.groups.find(
+			(g) => g.id === 'breadcrumbs-design'
+		);
+
+		expect(design.controls[0].id).toBe('breadcrumbs-style');
+		expect(design.controls[0].operation).toBe('setBlockStyle');
 	});
 });

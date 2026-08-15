@@ -128,8 +128,8 @@ function elementDesignControls(target: SectionTarget, prefix: string) {
 			__('BG Color', 'blockera'),
 			'blockeraBackgroundColor.value'
 		),
-		fontSize: sectionFontSizeControl(target, `${prefix}-font-size`),
 		style: sectionStyleControl(target, `${prefix}-style`),
+		fontSize: sectionFontSizeControl(target, `${prefix}-font-size`),
 		customize: sectionCustomizeControl(target, `${prefix}-customize`),
 	};
 }
@@ -150,10 +150,10 @@ function elementDesignPanel(
 				id: groupId,
 				title: __('Design', 'blockera'),
 				controls: [
+					design.style,
 					design.color,
 					design.bgColor,
 					design.fontSize,
-					design.style,
 					design.customize,
 				],
 			},
@@ -446,6 +446,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 											id: 'breadcrumbs-design',
 											title: __('Design', 'blockera'),
 											controls: [
+												BREADCRUMBS_DESIGN.style,
 												BREADCRUMBS_DESIGN.color,
 												BREADCRUMBS_DESIGN.bgColor,
 												BREADCRUMBS_DESIGN.fontSize,
@@ -467,7 +468,6 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 													],
 													variableTypes: ['spacing'],
 												},
-												BREADCRUMBS_DESIGN.style,
 												BREADCRUMBS_DESIGN.customize,
 											],
 										},
