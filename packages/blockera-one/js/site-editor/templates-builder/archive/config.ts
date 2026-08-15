@@ -175,6 +175,10 @@ const PAGE_TITLE_DESIGN: ControlDef = {
 	conditions: [{ controlId: 'page-title', equals: true }],
 	catalogPool: 'page-title',
 	swapHints: {
+		// Title/description/breadcrumb settings survive the design swap.
+		// Gap, alignment, padding, and width stay with the new pattern:
+		// they are not listed here, and swapSection does not copy blockera*
+		// attrs unless preserveBlockeraExtensions is set.
 		reapplyControls: [
 			'page-title-title',
 			'page-title-description',
@@ -197,6 +201,36 @@ const PAGE_TITLE_DESIGN: ControlDef = {
 			'breadcrumbs-show-current',
 		],
 	},
+};
+
+const PAGE_TITLE_ON = [{ controlId: 'page-title', equals: true }];
+const PAGE_TITLE_SIMPLE = [
+	...PAGE_TITLE_ON,
+	{ controlId: 'page-title-design', equals: 'simple' },
+];
+const PAGE_TITLE_BANNER = [
+	...PAGE_TITLE_ON,
+	{ controlId: 'page-title-design', equals: 'banner' },
+];
+
+const PAGE_TITLE_SECTION = {
+	kind: 'section' as const,
+	id: 'page-title',
+};
+
+const ELEMENTS_CONTAINER = {
+	kind: 'container' as const,
+	id: 'elements',
+};
+
+const PAGE_HEADER_ALIGN = {
+	type: 'layout-matrix' as const,
+	label: __('Alignment', 'blockera'),
+	operation: 'setSectionAttribute' as const,
+	attributePath: 'blockeraFlexLayout.value',
+	isDirectionActive: false,
+	isAxisControlsActive: false,
+	defaultDirection: 'column' as const,
 };
 
 export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
@@ -320,38 +354,107 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 							{
 								id: 'page-header-gap',
 								type: 'input',
-								label: __('Elements Gap', 'blockera'),
-								target: {
-									kind: 'section',
-									id: 'page-title',
-								},
+								label: __('Gap', 'blockera'),
+								target: PAGE_TITLE_SECTION,
 								alsoSetOn: ['elements'],
 								operation: 'setSectionAttribute',
 								attributePath: 'blockeraGap.value',
 								unitType: 'essential',
 								controlAddonTypes: ['variable'],
 								variableTypes: ['spacing'],
-								conditions: [
+								conditions: [...PAGE_TITLE_ON],
+							},
+							{
+								id: 'page-header-bottom-spacing',
+								type: 'input',
+								label: __('Bottom Space', 'blockera'),
+								target: PAGE_TITLE_SECTION,
+								operation: 'setSectionAttribute',
+								attributePath: 'blockeraSpacing.value',
+								attributeMergeKeys: ['margin.bottom'],
+								unitType: 'margin',
+								controlAddonTypes: ['variable'],
+								variableTypes: ['spacing'],
+								conditions: PAGE_TITLE_SIMPLE,
+							},
+							{
+								...PAGE_HEADER_ALIGN,
+								id: 'page-header-align',
+								target: PAGE_TITLE_SECTION,
+								alsoSetOn: ['elements'],
+								conditions: PAGE_TITLE_SIMPLE,
+							},
+							{
+								...PAGE_HEADER_ALIGN,
+								id: 'page-header-align-banner',
+								target: ELEMENTS_CONTAINER,
+								conditions: PAGE_TITLE_BANNER,
+							},
+							{
+								id: 'page-header-bg-color',
+								type: 'color',
+								label: __('BG Color', 'blockera'),
+								target: PAGE_TITLE_SECTION,
+								operation: 'setSectionAttribute',
+								attributePath: 'blockeraBackgroundColor.value',
+								controlAddonTypes: ['variable'],
+								variableTypes: ['color'],
+								conditions: PAGE_TITLE_BANNER,
+							},
+							{
+								id: 'page-header-min-height',
+								type: 'input',
+								label: __('Min Height', 'blockera'),
+								target: PAGE_TITLE_SECTION,
+								operation: 'setSectionAttribute',
+								attributePath: 'blockeraMinHeight.value',
+								unitType: 'min-height',
+								controlAddonTypes: ['variable'],
+								variableTypes: ['width-size', 'spacing'],
+								min: 0,
+								conditions: PAGE_TITLE_BANNER,
+							},
+							{
+								id: 'page-header-padding',
+								type: 'input',
+								label: __('Inner Padding', 'blockera'),
+								target: PAGE_TITLE_SECTION,
+								operation: 'setSectionAttribute',
+								attributePath: 'blockeraSpacing.value',
+								attributeMergeKeys: [
+									'padding.top',
+									'padding.bottom',
+								],
+								unitType: 'padding',
+								controlAddonTypes: ['variable'],
+								variableTypes: ['spacing'],
+								conditions: PAGE_TITLE_BANNER,
+							},
+							{
+								id: 'page-header-elements-width',
+								type: 'input',
+								label: __('Inner Width', 'blockera'),
+								target: ELEMENTS_CONTAINER,
+								operation: 'setSectionAttribute',
+								attributePath: 'blockeraMaxWidth.value',
+								alsoWrite: [
 									{
-										controlId: 'page-title',
-										equals: true,
+										attributePath: 'blockeraWidth.value',
+										value: 'stretch',
 									},
 								],
+								unitType: 'max-width',
+								controlAddonTypes: ['variable'],
+								variableTypes: ['width-size', 'spacing'],
+								min: 0,
+								conditions: PAGE_TITLE_BANNER,
 							},
 							{
 								...sectionCustomizeControl(
-									{
-										kind: 'section',
-										id: 'page-title',
-									},
+									PAGE_TITLE_SECTION,
 									'page-title-customize'
 								),
-								conditions: [
-									{
-										controlId: 'page-title',
-										equals: true,
-									},
-								],
+								conditions: [...PAGE_TITLE_ON],
 							},
 						],
 					},
