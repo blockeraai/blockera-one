@@ -100,7 +100,8 @@
 	"autoload-dev": {
 		"psr-4": {
 			"Blockera\\Tests\\": "tests/phpunit/main/",
-			"Blockera\\One\\Tests\\": "packages/blockera-one/php/tests/"
+			"Blockera\\One\\Tests\\": "packages/blockera-one/php/tests/",
+			"Blockera\\Products\\Tests\\": "packages/global-packages/packages/products/php/tests/"
 		},
 		"files": [
 			"tests/phpunit/main/helpers.php"
