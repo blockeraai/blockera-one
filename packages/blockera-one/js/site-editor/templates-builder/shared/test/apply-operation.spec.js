@@ -315,6 +315,71 @@ describe('swapSection', () => {
 	it('returns null for an unknown variant id', () => {
 		expect(apply(CONTROLS.postsTemplate, 'nope')).toBeNull();
 	});
+
+	it('does not carry previous blockera* attrs onto the new pattern by default', () => {
+		__setMarkup('page-title-banner', [
+			stamped('core/group', 'section/page-title:banner', {
+				blockeraFlexLayout: {
+					value: {
+						direction: 'column',
+						alignItems: 'center',
+						justifyContent: 'center',
+					},
+				},
+			}),
+		]);
+		const blocks = [
+			stamped('core/group', 'section/page-title:simple', {
+				blockeraFlexLayout: {
+					value: {
+						direction: 'column',
+						alignItems: 'flex-start',
+						justifyContent: 'center',
+					},
+				},
+				blockeraFontColor: { value: '#abc' },
+			}),
+		];
+		const design = {
+			id: 'page-title-design',
+			type: 'layout-picker',
+			label: 'Header Design',
+			target: { kind: 'section', id: 'page-title' },
+			operation: 'swapSection',
+			variants: [
+				{ id: 'simple', label: 'Simple', html: 'page-title-simple' },
+				{ id: 'banner', label: 'Banner', html: 'page-title-banner' },
+			],
+		};
+		const config = {
+			type: 'archive',
+			filters: ['archive'],
+			layoutId: LAYOUT_ID,
+			groups: [
+				{
+					id: 'page-header',
+					title: 'Page Header',
+					controls: [design],
+				},
+			],
+		};
+
+		const result = apply(design, 'banner', { blocks, config });
+		expect(
+			findStamp(result.blocks, 'page-title').block.attributes
+				.blockeraFlexLayout
+		).toEqual({
+			value: {
+				direction: 'column',
+				alignItems: 'center',
+				justifyContent: 'center',
+			},
+		});
+		expect(
+			findStamp(result.blocks, 'page-title').block.attributes
+				.blockeraFontColor
+		).toBeUndefined();
+	});
 });
 
 describe('swapTemplatePart', () => {
@@ -606,6 +671,151 @@ describe('setSectionAttribute', () => {
 				.value
 		).toEqual(gapValue);
 		expect(findStamp(result.blocks, 'elements')).toBeNull();
+	});
+
+	it('merges spacing sides into the current object without wiping siblings', () => {
+		const blocks = [
+			stamped('core/group', 'section/page-title:simple', {
+				blockeraSpacing: {
+					value: {
+						padding: {
+							top: '60px',
+							right: '50px',
+							bottom: '60px',
+							left: '50px',
+						},
+						margin: {
+							top: '',
+							right: '',
+							bottom: '40px',
+							left: '',
+						},
+					},
+				},
+			}),
+		];
+		const control = {
+			id: 'page-header-padding',
+			type: 'input',
+			label: 'Container Padding',
+			target: { kind: 'section', id: 'page-title' },
+			operation: 'setSectionAttribute',
+			attributePath: 'blockeraSpacing.value',
+			attributeMergeKeys: ['padding.top', 'padding.bottom'],
+		};
+		const result = apply(control, '80px', { blocks });
+		expect(
+			findStamp(result.blocks, 'page-title').block.attributes
+				.blockeraSpacing.value
+		).toEqual({
+			padding: {
+				top: '80px',
+				right: '50px',
+				bottom: '80px',
+				left: '50px',
+			},
+			margin: {
+				top: '',
+				right: '',
+				bottom: '40px',
+				left: '',
+			},
+		});
+	});
+
+	it('writes flex layout onto alsoSetOn stamps', () => {
+		const layout = {
+			direction: 'column',
+			alignItems: 'center',
+			justifyContent: 'flex-end',
+		};
+		const blocks = [
+			stamped('core/group', 'section/page-title:simple', {}, [
+				stamped('core/group', 'container/elements', {}),
+			]),
+		];
+		const control = {
+			id: 'page-header-align',
+			type: 'layout-matrix',
+			label: 'Items alignment',
+			target: { kind: 'section', id: 'page-title' },
+			alsoSetOn: ['elements'],
+			operation: 'setSectionAttribute',
+			attributePath: 'blockeraFlexLayout.value',
+		};
+		const result = apply(control, layout, { blocks });
+		expect(
+			findStamp(result.blocks, 'page-title').block.attributes
+				.blockeraFlexLayout.value
+		).toEqual(layout);
+		expect(
+			findStamp(result.blocks, 'elements').block.attributes
+				.blockeraFlexLayout.value
+		).toEqual(layout);
+	});
+
+	it('writes banner items alignment only onto the elements container', () => {
+		const layout = {
+			direction: 'column',
+			alignItems: 'flex-end',
+			justifyContent: 'center',
+		};
+		const sectionLayout = {
+			direction: 'column',
+			alignItems: 'center',
+			justifyContent: 'center',
+		};
+		const blocks = [
+			stamped(
+				'core/group',
+				'section/page-title:banner',
+				{ blockeraFlexLayout: { value: sectionLayout } },
+				[stamped('core/group', 'container/elements', {})]
+			),
+		];
+		const control = {
+			id: 'page-header-align-banner',
+			type: 'layout-matrix',
+			label: 'Items alignment',
+			target: { kind: 'container', id: 'elements' },
+			operation: 'setSectionAttribute',
+			attributePath: 'blockeraFlexLayout.value',
+		};
+		const result = apply(control, layout, { blocks });
+		expect(
+			findStamp(result.blocks, 'elements').block.attributes
+				.blockeraFlexLayout.value
+		).toEqual(layout);
+		expect(
+			findStamp(result.blocks, 'page-title').block.attributes
+				.blockeraFlexLayout.value
+		).toEqual(sectionLayout);
+	});
+
+	it('also writes a fixed attribute on the same target', () => {
+		const blocks = [
+			stamped('core/group', 'container/elements', {
+				blockeraWidth: { value: '100%' },
+			}),
+		];
+		const control = {
+			id: 'page-header-elements-width',
+			type: 'input',
+			label: 'Elements Container Width',
+			target: { kind: 'container', id: 'elements' },
+			operation: 'setSectionAttribute',
+			attributePath: 'blockeraMaxWidth.value',
+			alsoWrite: [
+				{
+					attributePath: 'blockeraWidth.value',
+					value: 'stretch',
+				},
+			],
+		};
+		const result = apply(control, '720px', { blocks });
+		const attrs = findStamp(result.blocks, 'elements').block.attributes;
+		expect(attrs.blockeraMaxWidth.value).toBe('720px');
+		expect(attrs.blockeraWidth.value).toBe('stretch');
 	});
 
 	it('persists blockera-block className for style-engine selectors', () => {
