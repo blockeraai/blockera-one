@@ -1,6 +1,5 @@
 /* Shared label typography for custom (non-BaseControl) control labels. */
 .blockera-templates-builder-layout-picker__label,
-.blockera-templates-builder-number__label,
 .blockera-templates-builder-toggle__label {
 	display: block;
 	margin-bottom: 8px;
@@ -13,7 +12,8 @@
 .blockera-templates-builder-style-variations.is-disabled,
 .blockera-templates-builder-color.is-disabled,
 .blockera-templates-builder-layout-matrix.is-disabled,
-.blockera-templates-builder-border.is-disabled {
+.blockera-templates-builder-border.is-disabled,
+.blockera-templates-builder-stepper.is-disabled {
 	opacity: 0.5;
 	pointer-events: none;
 }

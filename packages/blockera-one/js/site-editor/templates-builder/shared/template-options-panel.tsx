@@ -35,7 +35,7 @@ import ColorControlRow from './controls/color-control';
 import InputControlRow from './controls/input-control';
 import LayoutMatrixControlRow from './controls/layout-matrix-control';
 import LayoutPicker from './controls/layout-picker';
-import NumberControlRow from './controls/number-control';
+import StepperControlRow from './controls/stepper-control';
 import ToggleControlRow from './controls/toggle-control';
 import ToggleSelectRow from './controls/toggle-select';
 import { hasUnresolvedVariants } from './resolve-variant-html';
@@ -580,7 +580,8 @@ export default function TemplateOptionsPanel({
 										? value
 										: numberFallback;
 								controlNode = (
-									<NumberControlRow
+									<StepperControlRow
+										controlId={control.id}
 										label={control.label}
 										value={numberValue}
 										min={control.min}
@@ -590,6 +591,9 @@ export default function TemplateOptionsPanel({
 										labelDescription={
 											control.labelDescription
 										}
+										attribute={blockeraAttributeId}
+										blockName={blockName}
+										defaultValue={numberFallback}
 										onChange={(next) =>
 											onChangeControl(control, next)
 										}
