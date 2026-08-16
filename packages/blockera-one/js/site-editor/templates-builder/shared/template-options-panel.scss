@@ -127,13 +127,11 @@
 }
 
 .blockera-templates-builder-layout-picker__option {
-	appearance: none;
 	border: 2px solid transparent;
 	border-radius: 6px;
 	padding: 0;
 	background: #f6f6f6;
 	cursor: pointer;
-	overflow: hidden;
 	line-height: 0;
 
 	img {
@@ -147,7 +145,7 @@
 		box-shadow: 0 0 0 1px var(--blockera-controls-primary-color, #00ba88);
 	}
 
-	&:disabled {
+	&.is-disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
 	}
@@ -160,14 +158,13 @@
 
 .blockera-templates-builder-layout-picker__badge {
 	position: absolute;
-	left: 4px;
-	right: 4px;
-	bottom: 4px;
-	padding: 2px 4px;
+	right: -10px;
+	top: -9px;
+	padding: 3px 6px;
 	border-radius: 3px;
 	background: rgba(30, 30, 30, 0.82);
 	color: #ffffff;
-	font-size: 9px;
+	font-size: 10px;
 	font-weight: 600;
 	line-height: 1.2;
 	text-align: center;

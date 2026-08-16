@@ -8,6 +8,7 @@ import { __ } from '@wordpress/i18n';
  * Blockera dependencies
  */
 import { classNames } from '@blockera/classnames';
+import { Tooltip } from '@blockera/controls';
 
 /**
  * Internal dependencies
@@ -65,48 +66,69 @@ export default function LayoutPicker({
 						const isActive = value === variant.id;
 						const tileDisabled = disabled || !!variant.disabled;
 						return (
-							<button
+							<Tooltip
 								key={variant.id}
-								type="button"
-								disabled={tileDisabled}
-								className={classNames(
-									'blockera-templates-builder-layout-picker__option',
-									{
-										'is-selected': isActive,
-										'is-coming-soon': !!variant.disabled,
-									}
-								)}
-								aria-pressed={isActive}
-								aria-label={
-									variant.badge
-										? `${variant.label} (${variant.badge})`
-										: variant.label
-								}
-								data-test={`blockera-templates-builder-layout-${variant.id}`}
-								onClick={() => {
-									if (!tileDisabled) {
-										onChange(variant.id);
-									}
-								}}
+								text={variant.label}
+								delay={200}
 							>
-								{variant.thumbnail ? (
-									<img
-										src={variant.thumbnail}
-										alt=""
-										width={72}
-										height={56}
-									/>
-								) : (
-									<span className="blockera-templates-builder-layout-picker__fallback">
-										{variant.label}
-									</span>
-								)}
-								{variant.badge ? (
-									<span className="blockera-templates-builder-layout-picker__badge">
-										{variant.badge}
-									</span>
-								) : null}
-							</button>
+								<div
+									role="button"
+									tabIndex={tileDisabled ? -1 : 0}
+									aria-disabled={tileDisabled}
+									className={classNames(
+										'blockera-templates-builder-layout-picker__option',
+										{
+											'is-selected': isActive,
+											'is-coming-soon':
+												!!variant.disabled,
+											'is-disabled': tileDisabled,
+										}
+									)}
+									aria-pressed={isActive}
+									aria-label={
+										variant.badge
+											? `${variant.label} (${variant.badge})`
+											: variant.label
+									}
+									data-test={`blockera-templates-builder-layout-${variant.id}`}
+									onClick={() => {
+										if (!tileDisabled) {
+											onChange(variant.id);
+										}
+									}}
+									onKeyDown={(event) => {
+										if (tileDisabled) {
+											return;
+										}
+
+										if (
+											event.key === 'Enter' ||
+											event.key === ' '
+										) {
+											event.preventDefault();
+											onChange(variant.id);
+										}
+									}}
+								>
+									{variant.thumbnail ? (
+										<img
+											src={variant.thumbnail}
+											alt=""
+											width={72}
+											height={56}
+										/>
+									) : (
+										<span className="blockera-templates-builder-layout-picker__fallback">
+											{variant.label}
+										</span>
+									)}
+									{variant.badge ? (
+										<span className="blockera-templates-builder-layout-picker__badge">
+											{variant.badge}
+										</span>
+									) : null}
+								</div>
+							</Tooltip>
 						);
 					})}
 				</div>
