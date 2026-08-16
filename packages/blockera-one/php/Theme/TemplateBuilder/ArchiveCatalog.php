@@ -188,6 +188,114 @@ class ArchiveCatalog extends AbstractCatalog {
 					'blockera-one/builder-archive-pagination-numbers'
 				),
 			),
+			'post-featured-image'    => $this->listingElementPool(
+				__( 'Featured Image', 'blockera-one' ),
+				'blockera-one/builder-archive-listing-featured-image'
+			),
+			'post-title'             => $this->listingElementPool(
+				__( 'Title', 'blockera-one' ),
+				'blockera-one/builder-archive-listing-title'
+			),
+			'post-excerpt'           => $this->listingElementPool(
+				__( 'Excerpt', 'blockera-one' ),
+				'blockera-one/builder-archive-listing-excerpt'
+			),
+			'post-content'           => $this->listingElementPool(
+				__( 'Content', 'blockera-one' ),
+				'blockera-one/builder-archive-listing-content'
+			),
+			'post-read-more'         => $this->listingElementPool(
+				__( 'Read More', 'blockera-one' ),
+				'blockera-one/builder-archive-listing-read-more'
+			),
+			'post-meta'              => $this->listingElementPool(
+				__( 'Post Meta', 'blockera-one' ),
+				'blockera-one/builder-archive-listing-post-meta'
+			),
+			'post-meta-2'            => $this->listingElementPool(
+				__( 'Post Meta', 'blockera-one' ),
+				'blockera-one/builder-archive-listing-post-meta-2'
+			),
+			'post-meta-author-name'      => $this->listingElementPool(
+				__( 'Author Name', 'blockera-one' ),
+				'blockera-one/builder-archive-listing-post-meta-author-name'
+			),
+			'post-meta-comments-count'   => $this->listingElementPool(
+				__( 'Comments Count', 'blockera-one' ),
+				'blockera-one/builder-archive-listing-post-meta-comments-count'
+			),
+			'post-meta-comments-link'    => $this->listingElementPool(
+				__( 'Comments Link', 'blockera-one' ),
+				'blockera-one/builder-archive-listing-post-meta-comments-link'
+			),
+			'post-meta-date'             => $this->listingElementPool(
+				__( 'Date', 'blockera-one' ),
+				'blockera-one/builder-archive-listing-post-meta-date'
+			),
+			'post-meta-post-date'        => $this->listingElementPool(
+				__( 'Post Date', 'blockera-one' ),
+				'blockera-one/builder-archive-listing-post-meta-post-date'
+			),
+			'post-meta-modified-date'    => $this->listingElementPool(
+				__( 'Modified Date', 'blockera-one' ),
+				'blockera-one/builder-archive-listing-post-meta-modified-date'
+			),
+			'post-meta-categories'       => $this->listingElementPool(
+				__( 'Categories', 'blockera-one' ),
+				'blockera-one/builder-archive-listing-post-meta-categories'
+			),
+			'post-meta-tags'             => $this->listingElementPool(
+				__( 'Tags', 'blockera-one' ),
+				'blockera-one/builder-archive-listing-post-meta-tags'
+			),
+			'post-meta-time-to-read'     => $this->listingElementPool(
+				__( 'Time to Read', 'blockera-one' ),
+				'blockera-one/builder-archive-listing-post-meta-time-to-read'
+			),
+			'post-meta-word-count'       => $this->listingElementPool(
+				__( 'Word Count', 'blockera-one' ),
+				'blockera-one/builder-archive-listing-post-meta-word-count'
+			),
+			'post-meta-2-author-name'    => $this->listingElementPool(
+				__( 'Author Name', 'blockera-one' ),
+				'blockera-one/builder-archive-listing-post-meta-2-author-name'
+			),
+			'post-meta-2-comments-count' => $this->listingElementPool(
+				__( 'Comments Count', 'blockera-one' ),
+				'blockera-one/builder-archive-listing-post-meta-2-comments-count'
+			),
+			'post-meta-2-comments-link'  => $this->listingElementPool(
+				__( 'Comments Link', 'blockera-one' ),
+				'blockera-one/builder-archive-listing-post-meta-2-comments-link'
+			),
+			'post-meta-2-date'           => $this->listingElementPool(
+				__( 'Date', 'blockera-one' ),
+				'blockera-one/builder-archive-listing-post-meta-2-date'
+			),
+			'post-meta-2-post-date'      => $this->listingElementPool(
+				__( 'Post Date', 'blockera-one' ),
+				'blockera-one/builder-archive-listing-post-meta-2-post-date'
+			),
+			'post-meta-2-modified-date'  => $this->listingElementPool(
+				__( 'Modified Date', 'blockera-one' ),
+				'blockera-one/builder-archive-listing-post-meta-2-modified-date'
+			),
+			'post-meta-2-categories'     => $this->listingElementPool(
+				__( 'Categories', 'blockera-one' ),
+				'blockera-one/builder-archive-listing-post-meta-2-categories'
+			),
+			'post-meta-2-tags'           => $this->listingElementPool(
+				__( 'Tags', 'blockera-one' ),
+				'blockera-one/builder-archive-listing-post-meta-2-tags'
+			),
+			'post-meta-2-time-to-read'   => $this->listingElementPool(
+				__( 'Time to Read', 'blockera-one' ),
+				'blockera-one/builder-archive-listing-post-meta-2-time-to-read'
+			),
+			'post-meta-2-word-count'     => $this->listingElementPool(
+				__( 'Word Count', 'blockera-one' ),
+				'blockera-one/builder-archive-listing-post-meta-2-word-count'
+			),
 			// Order matters: no-sidebar first (toggle-off), then the nested
 			// position picker (catalogExclude: no-sidebar) shows Right, Left.
 			'layout'        => array(
@@ -268,5 +376,23 @@ class ArchiveCatalog extends AbstractCatalog {
 	 */
 	private function thumbnail( string $name ): string {
 		return get_theme_file_uri( 'assets/templates-builder/archive/' . $name . '.svg' );
+	}
+
+	/**
+	 * Single-variant restore pool for a Posts Loop / Post Meta element.
+	 *
+	 * @param string $label         Translated picker label.
+	 * @param string $pattern_slug  Full `blockera-one/builder-archive-listing-…` slug.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function listingElementPool( string $label, string $pattern_slug ): array {
+		return array(
+			$this->patternVariant(
+				'default',
+				$label,
+				$pattern_slug
+			),
+		);
 	}
 }
