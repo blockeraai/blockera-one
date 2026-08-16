@@ -134,9 +134,15 @@ export default function useTemplateRecords(): TemplateRecordsData {
 		return set;
 	}, [defaultTemplateTypes]);
 
-	const userTemplates = (userRecords || []) as TemplateLike[];
-	const staticTemplates = (staticRecords || []) as TemplateLike[];
-	const partRecords = (parts || []) as TemplateLike[];
+	const userTemplates = useMemo(
+		() => (userRecords || []) as TemplateLike[],
+		[userRecords]
+	);
+	const staticTemplates = useMemo(
+		() => (staticRecords || []) as TemplateLike[],
+		[staticRecords]
+	);
+	const partRecords = useMemo(() => (parts || []) as TemplateLike[], [parts]);
 
 	const activeParts = useMemo(
 		() => getActiveTemplateParts(partRecords, activeTheme?.stylesheet),

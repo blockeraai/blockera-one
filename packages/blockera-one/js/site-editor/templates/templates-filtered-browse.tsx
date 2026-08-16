@@ -140,19 +140,18 @@ function useSyncedTemplatesView() {
 	};
 
 	const baseView = persistedView ?? DEFAULT_VIEW;
-	const layoutTypeDefaults =
-		baseView.type in defaultLayouts
-			? defaultLayouts[baseView.type as keyof typeof defaultLayouts]
-			: {};
 
-	const view = useMemo(
-		() =>
-			({
-				...baseView,
-				...layoutTypeDefaults,
-			}) as View,
-		[baseView, layoutTypeDefaults]
-	);
+	const view = useMemo(() => {
+		const layoutTypeDefaults =
+			baseView.type in defaultLayouts
+				? defaultLayouts[baseView.type as keyof typeof defaultLayouts]
+				: {};
+
+		return {
+			...baseView,
+			...layoutTypeDefaults,
+		} as View;
+	}, [baseView]);
 
 	const isModified = !!persistedView;
 

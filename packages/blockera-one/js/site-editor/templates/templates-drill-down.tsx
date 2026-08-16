@@ -54,11 +54,13 @@ export default function TemplatesDrillDown() {
 		queryKey: TEMPLATES_OPTIONS_PANEL_QUERY,
 	});
 
+	const stackKey = stack.join('/');
+
 	useLayoutEffect(() => {
 		restoreTemplatesSidebarScroll(
 			panelRef.current?.closest('.blockera-site-editor-drill-down')
 		);
-	}, [urlState.filter, urlState.path, stack.join('/')]);
+	}, [urlState.filter, urlState.path, stackKey]);
 
 	const openPartsArea = (area: PartAreaId) => {
 		const canonical = findCanonicalPart(area, parts);
