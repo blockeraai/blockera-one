@@ -36,6 +36,7 @@
         <testsuite name="units">
             <directory suffix=".php">./packages/global-packages/packages/dev-phpunit/php/</directory>
             <directory suffix=".php">./packages/blockera-one/php/tests/</directory>
+            <directory suffix=".php">./packages/global-packages/packages/products/php/tests/</directory>
             <exclude>./node_modules/</exclude>
             <exclude>./dist/</exclude>
             <exclude>./packages/blockera-one/php/test-support/</exclude>
