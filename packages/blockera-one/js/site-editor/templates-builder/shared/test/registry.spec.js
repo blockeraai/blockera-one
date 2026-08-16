@@ -316,8 +316,19 @@ describe('archive config structural invariants', () => {
 		expect(design.controls[0].operation).toBe('setBlockStyle');
 	});
 
-	it('turns pagination into a gateway row with Design and Elements', () => {
-		const pagination = controls.find((c) => c.id === 'pagination');
+	it('gates pagination as its own group between Posts Loop and Sidebar', () => {
+		expect(config.groups.map((g) => g.id)).toEqual([
+			'site-header',
+			'page-header',
+			'page-layout',
+			'pagination',
+			'sidebar',
+			'site-footer',
+		]);
+		const pagination = config.groups.find((g) => g.id === 'pagination');
+		expect(pagination.headerToggle.id).toBe('pagination');
+		expect(pagination.headerToggle.operation).toBe('toggleSection');
+		expect(pagination.controls).toEqual([]);
 		expect(pagination.nestedPanel.id).toBe('pagination');
 		expect(pagination.nestedPanel.title).toBe('Pagination');
 		expect(pagination.nestedPanel.groups.map((g) => g.id)).toEqual([
@@ -390,7 +401,6 @@ describe('archive config structural invariants', () => {
 			'posts-template',
 			'posts-per-page',
 			'posts-loop',
-			'pagination',
 		]);
 		const gateway = pageLayout.controls.find((c) => c.id === 'posts-loop');
 		expect(gateway.type).toBe('gateway');
