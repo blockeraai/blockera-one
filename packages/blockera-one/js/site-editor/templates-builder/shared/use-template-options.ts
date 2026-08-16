@@ -294,9 +294,9 @@ export default function useTemplateOptions(
 				}
 				if (result.kind === 'site-edits') {
 					editEntityRecord('root', 'site', undefined, result.edits);
-					return;
+				} else {
+					applyBlocks(result.blocks);
 				}
-				applyBlocks(result.blocks);
 				const revealId = resolveEnableScrollTarget(
 					resolvedControl,
 					nextValue
@@ -304,8 +304,8 @@ export default function useTemplateOptions(
 				if (revealId) {
 					scrollStampIntoCanvas(revealId);
 				} else {
-					// A leftover footer observe must not re-scroll when the
-					// next toggle is an off / non-presence change.
+					// Presence-off: cancel a leftover observe so it cannot
+					// re-scroll after the stamp is removed.
 					cancelStampCanvasReveal();
 				}
 			};
@@ -344,6 +344,7 @@ export default function useTemplateOptions(
 			});
 			if (result?.kind === 'blocks') {
 				applyBlocks(result.blocks);
+				scrollStampIntoCanvas(rule.parentId);
 			}
 		},
 		[applyBlocks, blocks, resolvedConfig, settingBucket, settings]

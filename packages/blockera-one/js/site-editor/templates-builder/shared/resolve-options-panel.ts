@@ -116,30 +116,17 @@ export function resolveNestedPanelScrollTarget(
 	return owner.panel.id;
 }
 
-function isPresenceEnable(control: ControlDef, nextValue: unknown): boolean {
+function isPresenceOff(control: ControlDef, nextValue: unknown): boolean {
 	if (control.operation === 'toggleSection') {
-		return control.invertPresence ? !nextValue : !!nextValue;
+		return control.invertPresence ? !!nextValue : !nextValue;
 	}
 	if (control.operation === 'transplantLayout' && control.type === 'toggle') {
-		return !!nextValue;
+		return !nextValue;
 	}
 	return false;
 }
 
-/**
- * Stamp id to reveal after a presence toggle turns a stamp on. Off,
- * invert-hide, layout pickers, and `scrollIntoView: false` return null.
- */
-export function resolveEnableScrollTarget(
-	control: ControlDef,
-	nextValue: unknown
-): string | null {
-	if (
-		control.scrollIntoView === false ||
-		!isPresenceEnable(control, nextValue)
-	) {
-		return null;
-	}
+function stampIdForControl(control: ControlDef): string | null {
 	if (control.scrollTarget) {
 		return control.scrollTarget;
 	}
@@ -147,7 +134,28 @@ export function resolveEnableScrollTarget(
 	if (fromTarget) {
 		return fromTarget;
 	}
-	return control.id;
+	// Layout targets are the page frame (archive-body), not a stamp.
+	// The control id is the stamp (sidebar). Setting-kind ids are not
+	// stamps — require scrollTarget so we do not start a canvas hunt.
+	if (control.target?.kind === 'layout' && control.id) {
+		return control.id;
+	}
+	return null;
+}
+
+/**
+ * Stamp id to reveal after any control change. Presence-off (section
+ * removed) and `scrollIntoView: false` return null. In-viewport skip
+ * happens later in scrollStampIntoCanvas.
+ */
+export function resolveEnableScrollTarget(
+	control: ControlDef,
+	nextValue: unknown
+): string | null {
+	if (control.scrollIntoView === false || isPresenceOff(control, nextValue)) {
+		return null;
+	}
+	return stampIdForControl(control);
 }
 
 /**

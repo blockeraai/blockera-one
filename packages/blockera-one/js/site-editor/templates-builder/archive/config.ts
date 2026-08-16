@@ -735,6 +735,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 					label: __('Number of posts', 'blockera'),
 					target: { kind: 'setting', id: 'posts_per_page' },
 					operation: 'setTemplateSetting',
+					scrollTarget: 'posts-listing',
 					settingPath: 'posts_per_page',
 					defaultValue: 10,
 					min: 1,
@@ -1064,6 +1065,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 								id: 'sidebar-position',
 								type: 'layout-picker',
 								label: __('Sidebar Position', 'blockera'),
+								scrollTarget: 'sidebar',
 								target: {
 									kind: 'layout',
 									id: 'archive-body',
