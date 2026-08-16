@@ -4,7 +4,7 @@
  */
 
 import { formatStamp, parseStamp, stampDictionaryToMap } from '../stamp';
-import { getStamp, withStamp } from '../metadata';
+import { getMetaName, getStamp, withStamp } from '../metadata';
 
 describe('parseStamp', () => {
 	it('parses role/id and role/id:variant stamps', () => {
@@ -123,6 +123,34 @@ describe('getStamp', () => {
 				attributes: { metadata: { blockeraOne: 'NOT VALID' } },
 			})
 		).toBeNull();
+	});
+});
+
+describe('getMetaName', () => {
+	it('reads a trimmed metadata.name', () => {
+		expect(
+			getMetaName({
+				name: 'core/column',
+				attributes: { metadata: { name: '  Media Column  ' } },
+			})
+		).toBe('Media Column');
+	});
+
+	it('returns empty when the name is missing or not a string', () => {
+		expect(getMetaName(null)).toBe('');
+		expect(getMetaName({ name: 'core/group' })).toBe('');
+		expect(
+			getMetaName({
+				name: 'core/group',
+				attributes: { metadata: { blockeraOne: 'container/x' } },
+			})
+		).toBe('');
+		expect(
+			getMetaName({
+				name: 'core/group',
+				attributes: { metadata: { name: 12 } },
+			})
+		).toBe('');
 	});
 });
 

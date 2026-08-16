@@ -156,6 +156,222 @@
 				"patternSlug": "blockera-one/builder-archive-pagination-numbers"
 			}
 		],
+		"post-featured-image": [
+			{
+				"id": "default",
+				"label": "Featured Image",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-featured-image"
+			}
+		],
+		"post-title": [
+			{
+				"id": "default",
+				"label": "Title",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-title"
+			}
+		],
+		"post-excerpt": [
+			{
+				"id": "default",
+				"label": "Excerpt",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-excerpt"
+			}
+		],
+		"post-content": [
+			{
+				"id": "default",
+				"label": "Content",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-content"
+			}
+		],
+		"post-read-more": [
+			{
+				"id": "default",
+				"label": "Read More",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-read-more"
+			}
+		],
+		"post-meta": [
+			{
+				"id": "default",
+				"label": "Post Meta",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-post-meta"
+			}
+		],
+		"post-meta-2": [
+			{
+				"id": "default",
+				"label": "Post Meta",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-post-meta-2"
+			}
+		],
+		"post-meta-author-name": [
+			{
+				"id": "default",
+				"label": "Author Name",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-post-meta-author-name"
+			}
+		],
+		"post-meta-comments-count": [
+			{
+				"id": "default",
+				"label": "Comments Count",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-post-meta-comments-count"
+			}
+		],
+		"post-meta-comments-link": [
+			{
+				"id": "default",
+				"label": "Comments Link",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-post-meta-comments-link"
+			}
+		],
+		"post-meta-date": [
+			{
+				"id": "default",
+				"label": "Date",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-post-meta-date"
+			}
+		],
+		"post-meta-post-date": [
+			{
+				"id": "default",
+				"label": "Post Date",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-post-meta-post-date"
+			}
+		],
+		"post-meta-modified-date": [
+			{
+				"id": "default",
+				"label": "Modified Date",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-post-meta-modified-date"
+			}
+		],
+		"post-meta-categories": [
+			{
+				"id": "default",
+				"label": "Categories",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-post-meta-categories"
+			}
+		],
+		"post-meta-tags": [
+			{
+				"id": "default",
+				"label": "Tags",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-post-meta-tags"
+			}
+		],
+		"post-meta-time-to-read": [
+			{
+				"id": "default",
+				"label": "Time to Read",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-post-meta-time-to-read"
+			}
+		],
+		"post-meta-word-count": [
+			{
+				"id": "default",
+				"label": "Word Count",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-post-meta-word-count"
+			}
+		],
+		"post-meta-2-author-name": [
+			{
+				"id": "default",
+				"label": "Author Name",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-post-meta-2-author-name"
+			}
+		],
+		"post-meta-2-comments-count": [
+			{
+				"id": "default",
+				"label": "Comments Count",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-post-meta-2-comments-count"
+			}
+		],
+		"post-meta-2-comments-link": [
+			{
+				"id": "default",
+				"label": "Comments Link",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-post-meta-2-comments-link"
+			}
+		],
+		"post-meta-2-date": [
+			{
+				"id": "default",
+				"label": "Date",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-post-meta-2-date"
+			}
+		],
+		"post-meta-2-post-date": [
+			{
+				"id": "default",
+				"label": "Post Date",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-post-meta-2-post-date"
+			}
+		],
+		"post-meta-2-modified-date": [
+			{
+				"id": "default",
+				"label": "Modified Date",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-post-meta-2-modified-date"
+			}
+		],
+		"post-meta-2-categories": [
+			{
+				"id": "default",
+				"label": "Categories",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-post-meta-2-categories"
+			}
+		],
+		"post-meta-2-tags": [
+			{
+				"id": "default",
+				"label": "Tags",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-post-meta-2-tags"
+			}
+		],
+		"post-meta-2-time-to-read": [
+			{
+				"id": "default",
+				"label": "Time to Read",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-post-meta-2-time-to-read"
+			}
+		],
+		"post-meta-2-word-count": [
+			{
+				"id": "default",
+				"label": "Word Count",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-post-meta-2-word-count"
+			}
+		],
 		"layout": [
 			{
 				"id": "no-sidebar",
