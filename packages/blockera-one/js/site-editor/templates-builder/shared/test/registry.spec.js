@@ -369,6 +369,12 @@ describe('archive config structural invariants', () => {
 		}
 	});
 
+	it('overrides Number of posts to an even label/field split', () => {
+		const postsPerPage = controls.find((c) => c.id === 'posts-per-page');
+		expect(postsPerPage.type).toBe('number');
+		expect(postsPerPage.columns).toBe('2fr 2fr');
+	});
+
 	it('locks page header elements with requireAtLeastOneOf', () => {
 		const title = controls.find((c) => c.id === 'page-header-title');
 		expect(title.requireAtLeastOneOf).toEqual([
