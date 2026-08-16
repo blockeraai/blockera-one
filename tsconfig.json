@@ -1,3 +1,5 @@
+// Edit packages/global-packages/packages/dev-tools/root-configs/tsconfig.json
+// project:bootstrap copies this to the host repo root.
 {
 	"extends": "./packages/global-packages/packages/dev-tools/js/typescript/tsconfig.base.json",
 	"include": [
@@ -5,10 +7,5 @@
 		"packages/**/js/**/*.tsx",
 		"packages/global-packages/packages/dev-tools/types/**/*.d.ts"
 	],
-	"exclude": [
-		"node_modules",
-		"build",
-		"source-code-block-editor",
-		"source-code-wordpress"
-	]
+	"exclude": ["node_modules", "build", "dist", "source-codes"]
 }
