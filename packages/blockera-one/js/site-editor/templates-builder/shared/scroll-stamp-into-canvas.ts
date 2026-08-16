@@ -321,7 +321,13 @@ export function scrollStampIntoCanvas(stampId: string): () => void {
 					}
 					return;
 				}
-				revealStampTop(found.el, found.view);
+				const didScroll = revealStampTop(found.el, found.view);
+				// Already in view: do not keep subscribe alive for 2s
+				// (color/number/design picks fire often).
+				if (!didScroll) {
+					stop();
+					return;
+				}
 				observing = true;
 				lastDocY = stampDocumentY(found.el, found.view);
 				armSettle();
