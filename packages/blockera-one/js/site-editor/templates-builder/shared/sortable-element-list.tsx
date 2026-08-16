@@ -98,7 +98,7 @@ const TOGGLE_IGNORE = '.blockera-site-editor-gateway-row__toggle';
  * there cannot start a reorder.
  */
 class RowPointerSensor extends PointerSensor {
-	static activators = [
+	static override activators = [
 		{
 			eventName: 'onPointerDown' as const,
 			handler: ({ nativeEvent }: { nativeEvent: PointerEvent }) => {
