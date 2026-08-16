@@ -383,4 +383,142 @@ describe('archive config structural invariants', () => {
 			'page-header-breadcrumbs',
 		]);
 	});
+
+	it('adds a Design and Elements gateway on the Posts Loop card', () => {
+		const pageLayout = config.groups.find((g) => g.id === 'page-layout');
+		expect(pageLayout.controls.map((c) => c.id)).toEqual([
+			'posts-template',
+			'posts-per-page',
+			'posts-loop',
+			'pagination',
+		]);
+		const gateway = pageLayout.controls.find((c) => c.id === 'posts-loop');
+		expect(gateway.type).toBe('gateway');
+		expect(gateway.nestedPanel.id).toBe('posts-loop');
+		expect(gateway.nestedPanel.groups.map((g) => g.id)).toEqual([
+			'posts-loop-design',
+			'posts-loop-elements',
+		]);
+		expect(gateway.nestedPanel.groups[0].controls.map((c) => c.id)).toEqual(
+			['posts-template']
+		);
+		const elements = gateway.nestedPanel.groups[1].controls;
+		expect(elements.map((c) => c.id)).toEqual([
+			'post-featured-image',
+			'post-title',
+			'post-excerpt',
+			'post-content',
+			'post-read-more',
+			'post-meta',
+			'post-meta-2',
+		]);
+		expect(elements[0].requireAtLeastOneOf).toEqual(
+			elements.map((c) => c.id)
+		);
+		expect(elements[0].innerOrder.bucketParents).toEqual([
+			'loop-item-media',
+			'loop-item-content',
+		]);
+		expect(elements[0].innerOrder.showParentNames).toBe(true);
+		expect(elements[5].label).toBe('Post Meta');
+		expect(elements[6].label).toBe('Post Meta');
+	});
+
+	it('gives every Posts Loop element Design a customize-in-editor action', () => {
+		const postsLoop = config.groups
+			.find((g) => g.id === 'page-layout')
+			.controls.find((c) => c.id === 'posts-loop');
+		const elements = postsLoop.nestedPanel.groups[1].controls;
+
+		for (const element of elements) {
+			const design = element.nestedPanel.groups[0];
+			const customize = design.controls.find(
+				(c) => c.operation === 'selectInCanvas'
+			);
+			expect(customize).toBeDefined();
+			expect(customize.type).toBe('button');
+			expect(customize.id).toBe(`${element.id}-customize`);
+			expect(customize.target).toEqual({
+				kind: 'section',
+				id: element.id,
+			});
+		}
+
+		for (const meta of [elements[5], elements[6]]) {
+			const metaChildren = meta.nestedPanel.groups[1].controls;
+			for (const child of metaChildren) {
+				const design = child.nestedPanel.groups[0];
+				const customize = design.controls.find(
+					(c) => c.operation === 'selectInCanvas'
+				);
+				expect(customize).toBeDefined();
+				expect(customize.id).toBe(`${child.id}-customize`);
+				expect(customize.target).toEqual({
+					kind: 'section',
+					id: child.id,
+				});
+			}
+		}
+	});
+
+	it('keeps two Post Meta rows on independent stamps and child lists', () => {
+		const meta1 = controls.find((c) => c.id === 'post-meta');
+		const meta2 = controls.find((c) => c.id === 'post-meta-2');
+		expect(meta1.target.id).toBe('post-meta');
+		expect(meta2.target.id).toBe('post-meta-2');
+		expect(meta1.nestedPanel.groups.map((g) => g.id)).toEqual([
+			'post-meta-design',
+			'post-meta-elements',
+		]);
+		expect(meta2.nestedPanel.groups.map((g) => g.id)).toEqual([
+			'post-meta-2-design',
+			'post-meta-2-elements',
+		]);
+		expect(meta1.nestedPanel.groups[0].keepVisible).toBe(true);
+		expect(meta1.nestedPanel.groups[0].controls.map((c) => c.id)).toEqual([
+			'post-meta-customize',
+		]);
+		expect(meta1.nestedPanel.groups[0].controls[0].operation).toBe(
+			'selectInCanvas'
+		);
+		expect(meta1.nestedPanel.groups[0].controls[0].target).toEqual({
+			kind: 'section',
+			id: 'post-meta',
+		});
+		expect(meta2.nestedPanel.groups[0].controls.map((c) => c.id)).toEqual([
+			'post-meta-2-customize',
+		]);
+		const children1 = meta1.nestedPanel.groups[1].controls.map((c) => c.id);
+		const children2 = meta2.nestedPanel.groups[1].controls.map((c) => c.id);
+		expect(children1).toEqual([
+			'post-meta-author-name',
+			'post-meta-comments-count',
+			'post-meta-comments-link',
+			'post-meta-date',
+			'post-meta-post-date',
+			'post-meta-modified-date',
+			'post-meta-categories',
+			'post-meta-tags',
+			'post-meta-time-to-read',
+			'post-meta-word-count',
+		]);
+		expect(children2).toEqual(
+			children1.map((id) => id.replace('post-meta-', 'post-meta-2-'))
+		);
+		expect(
+			meta1.nestedPanel.groups[1].controls[0].innerOrder.parentId
+		).toBe('post-meta');
+		expect(
+			meta1.nestedPanel.groups[1].controls[0].innerOrder.showParentNames
+		).toBeUndefined();
+		expect(
+			meta2.nestedPanel.groups[1].controls[0].innerOrder.parentId
+		).toBe('post-meta-2');
+		expect(
+			meta1.nestedPanel.groups[1].controls[0].requireAtLeastOneOf
+		).toEqual(children1);
+		expect(
+			meta2.nestedPanel.groups[1].controls[0].requireAtLeastOneOf
+		).toEqual(children2);
+	});
 });
