@@ -1,8 +1,8 @@
 <?php
 /**
- * Title: Archive Page Title Breadcrumbs
+ * Title: Archive Page Header Breadcrumbs
  * Description: Breadcrumbs trail for the Page Header breadcrumbs toggle.
- * Slug: blockera-one/builder-archive-page-title-breadcrumbs
+ * Slug: blockera-one/builder-archive-page-header-breadcrumbs
  * Categories: blockera-one/template-builder
  * Inserter: no
  *
@@ -12,4 +12,4 @@
  */
 
 ?>
-<!-- wp:breadcrumbs {"metadata":{"blockeraOne":"section/page-title-breadcrumbs:default"}} /-->
+<!-- wp:breadcrumbs {"metadata":{"blockeraOne":"section/page-header-breadcrumbs:default"}} /-->
