@@ -119,17 +119,17 @@
 		"pagination": [
 			{
 				"id": "standard",
-				"label": "Standard",
+				"label": "Standard Buttons",
 				"kind": "pattern",
 				"patternSlug": "blockera-one/builder-archive-pagination-standard",
 				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/pagination-standard.svg"
 			},
 			{
 				"id": "load-more",
-				"label": "Load more",
+				"label": "Load More Ajax Button",
 				"disabled": true,
-				"badge": "Coming soon",
-				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/pagination-load-more.svg"
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/pagination-load-more.svg",
+				"badge": "Coming soon"
 			}
 		],
 		"pagination-previous": [
