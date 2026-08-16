@@ -463,7 +463,7 @@ describe('resolveEnableScrollTarget', () => {
 		expect(resolveEnableScrollTarget(sidebar, false)).toBeNull();
 	});
 
-	it('does not scroll a layout-picker transplant (position change)', () => {
+	it('reveals a layout-picker transplant via scrollTarget or control id', () => {
 		expect(
 			resolveEnableScrollTarget(
 				{
@@ -471,10 +471,82 @@ describe('resolveEnableScrollTarget', () => {
 					target: { kind: 'layout', id: 'archive-body' },
 					operation: 'transplantLayout',
 					type: 'layout-picker',
+					scrollTarget: 'sidebar',
 				},
 				'sidebar-left'
 			)
+		).toBe('sidebar');
+	});
+
+	it('reveals a design swap (Header Design / swapSection)', () => {
+		expect(
+			resolveEnableScrollTarget(
+				{
+					...control('page-title-design'),
+					type: 'layout-picker',
+					operation: 'swapSection',
+					target: { kind: 'section', id: 'page-title' },
+				},
+				'page-title-stacked'
+			)
+		).toBe('page-title');
+	});
+
+	it('reveals a template-part design swap', () => {
+		expect(
+			resolveEnableScrollTarget(
+				{
+					...control('header-design'),
+					type: 'layout-picker',
+					operation: 'swapTemplatePart',
+					target: { kind: 'section', id: 'header' },
+				},
+				'header-stacked'
+			)
+		).toBe('header');
+	});
+
+	it('reveals attribute and style controls on the same section stamp', () => {
+		expect(
+			resolveEnableScrollTarget(
+				{
+					...control('page-title-color'),
+					type: 'color',
+					operation: 'setSectionAttribute',
+					target: { kind: 'section', id: 'page-title' },
+				},
+				'#111'
+			)
+		).toBe('page-title');
+	});
+
+	it('does not hunt a setting control without scrollTarget', () => {
+		expect(
+			resolveEnableScrollTarget(
+				{
+					...control('posts-per-page'),
+					type: 'number',
+					operation: 'setTemplateSetting',
+					target: { kind: 'setting', id: 'posts_per_page' },
+				},
+				12
+			)
 		).toBeNull();
+	});
+
+	it('reveals a setting control via scrollTarget', () => {
+		expect(
+			resolveEnableScrollTarget(
+				{
+					...control('posts-per-page'),
+					type: 'number',
+					operation: 'setTemplateSetting',
+					target: { kind: 'setting', id: 'posts_per_page' },
+					scrollTarget: 'posts-listing',
+				},
+				12
+			)
+		).toBe('posts-listing');
 	});
 
 	it('honors scrollIntoView: false and scrollTarget', () => {
