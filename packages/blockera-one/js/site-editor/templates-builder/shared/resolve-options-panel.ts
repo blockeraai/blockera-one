@@ -116,14 +116,22 @@ export function resolveNestedPanelScrollTarget(
 	return owner.panel.id;
 }
 
+/** Section / layout toggles that insert or remove a stamp. */
+export function isPresenceToggle(control: ControlDef): boolean {
+	return (
+		control.operation === 'toggleSection' ||
+		(control.operation === 'transplantLayout' && control.type === 'toggle')
+	);
+}
+
 function isPresenceOff(control: ControlDef, nextValue: unknown): boolean {
+	if (!isPresenceToggle(control)) {
+		return false;
+	}
 	if (control.operation === 'toggleSection') {
 		return control.invertPresence ? !!nextValue : !nextValue;
 	}
-	if (control.operation === 'transplantLayout' && control.type === 'toggle') {
-		return !nextValue;
-	}
-	return false;
+	return !nextValue;
 }
 
 function stampIdForControl(control: ControlDef): string | null {
@@ -146,7 +154,8 @@ function stampIdForControl(control: ControlDef): string | null {
 /**
  * Stamp id to reveal after any control change. Presence-off (section
  * removed) and `scrollIntoView: false` return null. In-viewport skip
- * happens later in scrollStampIntoCanvas.
+ * happens later in scrollStampIntoCanvas, except presence-on which
+ * force-lands (inserted stamps are often already in the lower canvas).
  */
 export function resolveEnableScrollTarget(
 	control: ControlDef,

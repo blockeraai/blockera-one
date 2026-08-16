@@ -21,7 +21,10 @@ import {
 	type TemplateSettingsRecord,
 } from './constants';
 import { applyOperation } from './apply-operation';
-import { resolveEnableScrollTarget } from './resolve-options-panel';
+import {
+	isPresenceToggle,
+	resolveEnableScrollTarget,
+} from './resolve-options-panel';
 import {
 	cancelStampCanvasReveal,
 	scrollStampIntoCanvas,
@@ -302,7 +305,12 @@ export default function useTemplateOptions(
 					nextValue
 				);
 				if (revealId) {
-					scrollStampIntoCanvas(revealId);
+					// Presence-on often inserts a stamp that is already in
+					// the lower viewport (e.g. pagination-numbers at ~680px).
+					// The in-view skip would no-op; still land at 100px / page top.
+					scrollStampIntoCanvas(revealId, {
+						forceLand: isPresenceToggle(resolvedControl),
+					});
 				} else {
 					// Presence-off: cancel a leftover observe so it cannot
 					// re-scroll after the stamp is removed.
