@@ -6,11 +6,15 @@
 import {
 	INNER_ORDER_META_KEY,
 	clearStoredElementOrder,
+	findLiveParentStampId,
 	getGroupInnerOrder,
 	isSortableElementControl,
 	normalizeElementOrder,
 	persistElementOrder,
+	resolveBucketInsertParent,
+	resolveElementBuckets,
 	resolveElementOrder,
+	resolveParentStampName,
 } from '../element-order';
 
 const RULE = {
@@ -206,5 +210,174 @@ describe('group helpers', () => {
 				operation: 'setSectionAttribute',
 			})
 		).toBe(false);
+	});
+});
+
+const LOOP_RULE = {
+	parentId: 'loop-item-content',
+	bucketParents: ['loop-item-media', 'loop-item-content'],
+	ids: [
+		'post-featured-image',
+		'post-title',
+		'post-excerpt',
+		'post-content',
+		'post-read-more',
+		'post-meta',
+		'post-meta-2',
+	],
+};
+
+function fullWidthLoop() {
+	return [
+		stamped('core/query', 'section/posts-listing:full-width', {}, [
+			block('core/post-template', {}, [
+				block('core/columns', {}, [
+					stamped(
+						'core/column',
+						'container/loop-item-media',
+						{ metadata: { name: 'Media Column' } },
+						[
+							stamped(
+								'core/post-featured-image',
+								'section/post-featured-image:default'
+							),
+						]
+					),
+					stamped(
+						'core/column',
+						'container/loop-item-content',
+						{ metadata: { name: 'Content Column' } },
+						[
+							stamped(
+								'core/post-title',
+								'section/post-title:default'
+							),
+							stamped(
+								'core/post-excerpt',
+								'section/post-excerpt:default'
+							),
+							stamped('core/group', 'section/post-meta:default'),
+						]
+					),
+				]),
+			]),
+		]),
+	];
+}
+
+describe('resolveElementBuckets', () => {
+	it('splits live stamps by immediate parent in document order', () => {
+		expect(resolveElementBuckets(fullWidthLoop(), LOOP_RULE)).toEqual([
+			{ parentId: 'loop-item-media', ids: ['post-featured-image'] },
+			{
+				parentId: 'loop-item-content',
+				ids: [
+					'post-title',
+					'post-excerpt',
+					'post-meta',
+					'post-content',
+					'post-read-more',
+					'post-meta-2',
+				],
+			},
+		]);
+	});
+
+	it('keeps off items on the last stored parent', () => {
+		const blocks = persistElementOrder(fullWidthLoop(), 'loop-item-media', [
+			'post-featured-image',
+			'post-excerpt',
+		]);
+		const content = blocks[0].innerBlocks[0].innerBlocks[0].innerBlocks[1];
+		content.innerBlocks = content.innerBlocks.filter(
+			(child) =>
+				child.attributes.metadata.blockeraOne !==
+				'section/post-excerpt:default'
+		);
+		const buckets = resolveElementBuckets(blocks, LOOP_RULE);
+		expect(buckets[0].ids).toEqual(['post-featured-image', 'post-excerpt']);
+		expect(buckets[1].ids).not.toContain('post-excerpt');
+	});
+
+	it('falls back to a single parent when bucketParents is empty', () => {
+		expect(resolveElementBuckets(header([]), RULE)).toEqual([
+			{
+				parentId: 'page-header',
+				ids: [
+					'page-header-title',
+					'page-header-description',
+					'page-header-breadcrumbs',
+				],
+			},
+		]);
+	});
+});
+
+describe('resolveParentStampName', () => {
+	it('reads the live metadata.name on a stamped parent', () => {
+		expect(resolveParentStampName(fullWidthLoop(), 'loop-item-media')).toBe(
+			'Media Column'
+		);
+		expect(
+			resolveParentStampName(fullWidthLoop(), 'loop-item-content')
+		).toBe('Content Column');
+	});
+
+	it('returns empty when the parent is missing or unnamed', () => {
+		expect(resolveParentStampName(fullWidthLoop(), 'missing-parent')).toBe(
+			''
+		);
+		expect(resolveParentStampName(header([]), 'page-header')).toBe('');
+	});
+
+	it('reads Content Blocks from a single-parent listing', () => {
+		const grid = [
+			stamped('core/query', 'section/posts-listing:grid-2', {}, [
+				block('core/post-template', {}, [
+					stamped(
+						'core/group',
+						'container/loop-item-content',
+						{ metadata: { name: 'Content Blocks' } },
+						[]
+					),
+				]),
+			]),
+		];
+		expect(resolveParentStampName(grid, 'loop-item-content')).toBe(
+			'Content Blocks'
+		);
+	});
+});
+
+describe('findLiveParentStampId / resolveBucketInsertParent', () => {
+	it('reads the stamped immediate parent', () => {
+		expect(
+			findLiveParentStampId(fullWidthLoop(), 'post-featured-image')
+		).toBe('loop-item-media');
+		expect(findLiveParentStampId(fullWidthLoop(), 'post-title')).toBe(
+			'loop-item-content'
+		);
+	});
+
+	it('inserts into the stored home, else the last existing parent', () => {
+		const stored = persistElementOrder(fullWidthLoop(), 'loop-item-media', [
+			'post-excerpt',
+		]);
+		expect(
+			resolveBucketInsertParent(
+				stored,
+				'post-excerpt',
+				LOOP_RULE.bucketParents,
+				'loop-item-content'
+			)
+		).toBe('loop-item-media');
+		expect(
+			resolveBucketInsertParent(
+				fullWidthLoop(),
+				'post-content',
+				LOOP_RULE.bucketParents,
+				'loop-item-content'
+			)
+		).toBe('loop-item-content');
 	});
 });

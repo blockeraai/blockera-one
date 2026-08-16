@@ -335,6 +335,42 @@ describe('resolveSectionState', () => {
 			'missing'
 		);
 	});
+
+	it('descendantBlock matches the first nested block under the parent', () => {
+		registerSectionHeuristics({
+			'posts-listing': { kind: 'blockName', name: 'core/query' },
+			'post-featured-image': {
+				kind: 'descendantBlock',
+				parentId: 'posts-listing',
+				name: 'core/post-featured-image',
+			},
+			'post-title': {
+				kind: 'descendantBlock',
+				parentId: 'posts-listing',
+				name: 'core/post-title',
+			},
+		});
+
+		const tree = [
+			stamped('core/query', 'section/posts-listing:list', {}, [
+				block('core/post-template', {}, [
+					block('core/group', {}, [
+						block('core/post-featured-image'),
+						block('core/post-title'),
+					]),
+				]),
+			]),
+			block('core/post-featured-image'),
+		];
+
+		const image = resolveSectionState(tree, 'post-featured-image');
+		expect(image.kind).toBe('customized');
+		expect(image.path).toEqual([0, 0, 0, 0]);
+
+		const title = resolveSectionState(tree, 'post-title');
+		expect(title.kind).toBe('customized');
+		expect(title.path).toEqual([0, 0, 0, 1]);
+	});
 });
 
 describe('resolveToggleState', () => {

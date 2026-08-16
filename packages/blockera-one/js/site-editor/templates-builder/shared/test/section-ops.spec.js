@@ -6,6 +6,7 @@
 
 import {
 	ensurePaginationNavLabels,
+	moveInnerSection,
 	orderInnerSections,
 	placeSection,
 	setSectionAttribute,
@@ -517,6 +518,62 @@ describe('placeSection', () => {
 				},
 			})
 		).toBe(tree);
+	});
+});
+
+describe('moveInnerSection', () => {
+	it('moves a stamped child into another parent at the given index', () => {
+		const tree = [
+			stamped('core/query', 'section/posts-listing:full-width', {}, [
+				block('core/columns', {}, [
+					stamped('core/column', 'container/loop-item-media', {}, [
+						stamped(
+							'core/post-featured-image',
+							'section/post-featured-image:default'
+						),
+					]),
+					stamped('core/column', 'container/loop-item-content', {}, [
+						stamped(
+							'core/post-title',
+							'section/post-title:default'
+						),
+					]),
+				]),
+			]),
+		];
+		const next = moveInnerSection(
+			tree,
+			'post-featured-image',
+			'loop-item-content',
+			0
+		);
+		const media = getAtPath(next, [0, 0, 0]);
+		const content = getAtPath(next, [0, 0, 1]);
+		expect(media.innerBlocks).toEqual([]);
+		expect(content.innerBlocks.map((b) => b.name)).toEqual([
+			'core/post-featured-image',
+			'core/post-title',
+		]);
+	});
+
+	it('reorders within the same parent', () => {
+		const tree = pageHeader([
+			stamped(
+				'core/query-title',
+				`section/${PAGE_HEADER_INNER.title}:default`
+			),
+			stamped(
+				'core/breadcrumbs',
+				`section/${PAGE_HEADER_INNER.breadcrumbs}:default`
+			),
+		]);
+		const next = moveInnerSection(
+			tree,
+			PAGE_HEADER_INNER.breadcrumbs,
+			'page-header',
+			0
+		);
+		expect(getAtPath(next, [0, 0]).name).toBe('core/breadcrumbs');
 	});
 });
 

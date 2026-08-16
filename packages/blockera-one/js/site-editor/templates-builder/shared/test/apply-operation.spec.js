@@ -2062,3 +2062,202 @@ describe('pagination labels and midSize', () => {
 		).toBe(0);
 	});
 });
+
+const LOOP_ITEM_ORDER = {
+	parentId: 'loop-item-content',
+	bucketParents: ['loop-item-media', 'loop-item-content'],
+	ids: [
+		'post-featured-image',
+		'post-title',
+		'post-excerpt',
+		'post-content',
+		'post-read-more',
+		'post-meta',
+		'post-meta-2',
+	],
+};
+
+function fullWidthListing() {
+	return [
+		stamped('core/query', 'section/posts-listing:full-width', {}, [
+			block('core/post-template', {}, [
+				block('core/columns', {}, [
+					stamped('core/column', 'container/loop-item-media', {}, [
+						stamped(
+							'core/post-featured-image',
+							'section/post-featured-image:default'
+						),
+					]),
+					stamped('core/column', 'container/loop-item-content', {}, [
+						stamped(
+							'core/post-title',
+							'section/post-title:default'
+						),
+						stamped('core/group', 'section/post-meta:default', {}, [
+							stamped(
+								'core/post-date',
+								'section/post-meta-post-date:default'
+							),
+						]),
+					]),
+				]),
+			]),
+		]),
+	];
+}
+
+describe('reorderInnerSections buckets', () => {
+	it('moves a loop-item across parents and persists both orders', () => {
+		const result = apply(
+			{
+				id: 'reorder-loop-item-content',
+				type: 'button',
+				label: '',
+				target: { kind: 'section', id: 'loop-item-content' },
+				operation: 'reorderInnerSections',
+				innerOrder: LOOP_ITEM_ORDER,
+			},
+			{
+				move: {
+					sectionId: 'post-featured-image',
+					toParentId: 'loop-item-content',
+					index: 0,
+				},
+				buckets: [
+					{ parentId: 'loop-item-media', ids: [] },
+					{
+						parentId: 'loop-item-content',
+						ids: ['post-featured-image', 'post-title', 'post-meta'],
+					},
+				],
+			},
+			{ blocks: fullWidthListing() }
+		);
+		const media = findStamp(result.blocks, 'loop-item-media').block;
+		const content = findStamp(result.blocks, 'loop-item-content').block;
+		expect(media.innerBlocks).toEqual([]);
+		expect(content.innerBlocks.map((b) => getStamp(b)?.id)).toEqual([
+			'post-featured-image',
+			'post-title',
+			'post-meta',
+		]);
+		expect(media.attributes.metadata[INNER_ORDER_META_KEY]).toEqual([]);
+		expect(content.attributes.metadata[INNER_ORDER_META_KEY]).toEqual([
+			'post-featured-image',
+			'post-title',
+			'post-meta',
+		]);
+	});
+});
+
+describe('toggleSection bucket home', () => {
+	it('toggles a media-column item back into media, not content', () => {
+		__setMarkup('listing-featured-image', [
+			stamped(
+				'core/post-featured-image',
+				'section/post-featured-image:default'
+			),
+		]);
+		const control = {
+			id: 'post-featured-image',
+			type: 'toggle',
+			label: 'Featured Image',
+			target: { kind: 'section', id: 'post-featured-image' },
+			operation: 'toggleSection',
+			variants: [
+				{
+					id: 'default',
+					label: 'Featured Image',
+					html: 'listing-featured-image',
+				},
+			],
+			insert: {
+				relativeTo: 'loop-item-content',
+				position: 'inside-end',
+			},
+			innerOrder: LOOP_ITEM_ORDER,
+		};
+		const off = apply(control, false, { blocks: fullWidthListing() });
+		expect(findStamp(off.blocks, 'post-featured-image')).toBeNull();
+		const on = apply(control, true, { blocks: off.blocks });
+		expect(
+			getStamp(findStamp(on.blocks, 'post-featured-image').block)
+		).toEqual({
+			role: 'section',
+			id: 'post-featured-image',
+			variant: 'default',
+		});
+		expect(
+			getStamp(
+				findStamp(on.blocks, 'loop-item-media').block.innerBlocks[0]
+			)?.id
+		).toBe('post-featured-image');
+	});
+});
+
+describe('independent Post Meta instances', () => {
+	it('toggling a Meta 2 child does not remove Meta 1 children', () => {
+		__setMarkup('meta-2-author', [
+			stamped(
+				'core/post-author-name',
+				'section/post-meta-2-author-name:default'
+			),
+		]);
+		const blocks = [
+			stamped('core/group', 'section/post-meta:default', {}, [
+				stamped(
+					'core/post-date',
+					'section/post-meta-post-date:default'
+				),
+				stamped(
+					'core/post-author-name',
+					'section/post-meta-author-name:default'
+				),
+			]),
+			stamped('core/group', 'section/post-meta-2:default', {}, [
+				stamped(
+					'core/post-date',
+					'section/post-meta-2-post-date:default'
+				),
+			]),
+		];
+		const result = apply(
+			{
+				id: 'post-meta-2-author-name',
+				type: 'toggle',
+				label: 'Author Name',
+				target: { kind: 'section', id: 'post-meta-2-author-name' },
+				operation: 'toggleSection',
+				variants: [
+					{
+						id: 'default',
+						label: 'Author',
+						html: 'meta-2-author',
+					},
+				],
+				insert: {
+					relativeTo: 'post-meta-2',
+					position: 'inside-end',
+				},
+				innerOrder: {
+					parentId: 'post-meta-2',
+					ids: ['post-meta-2-author-name', 'post-meta-2-post-date'],
+				},
+			},
+			true,
+			{ blocks }
+		);
+		expect(
+			findStamp(result.blocks, 'post-meta-author-name')
+		).not.toBeNull();
+		expect(findStamp(result.blocks, 'post-meta-post-date')).not.toBeNull();
+		expect(
+			findStamp(result.blocks, 'post-meta-2-author-name')
+		).not.toBeNull();
+		expect(
+			findStamp(result.blocks, 'post-meta-2').block.innerBlocks.map(
+				(b) => getStamp(b)?.id
+			)
+		).toEqual(['post-meta-2-post-date', 'post-meta-2-author-name']);
+	});
+});
