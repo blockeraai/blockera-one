@@ -478,6 +478,7 @@ export default function TemplateOptionsPanel({
 										}
 										variants={control.variants || []}
 										disabled={controlDisabled}
+										columns={control.columns}
 										missing={missing}
 										onAddBack={() =>
 											onChangeControl(
@@ -524,6 +525,7 @@ export default function TemplateOptionsPanel({
 										label={control.label}
 										checked={!!value}
 										disabled={controlDisabled}
+										columns={control.columns}
 										onChange={(next) =>
 											onChangeControl(control, next)
 										}
@@ -541,6 +543,7 @@ export default function TemplateOptionsPanel({
 										}
 										variants={control.variants || []}
 										disabled={controlDisabled || missing}
+										columns={control.columns}
 										defaultValue={
 											typeof control.defaultValue ===
 											'string'
@@ -561,6 +564,7 @@ export default function TemplateOptionsPanel({
 										disabled={commonDisabled}
 										attribute={blockeraAttributeId}
 										blockName={blockName}
+										columns={control.columns}
 										onChange={(next) =>
 											onChangeControl(
 												control,
@@ -594,6 +598,7 @@ export default function TemplateOptionsPanel({
 										attribute={blockeraAttributeId}
 										blockName={blockName}
 										defaultValue={numberFallback}
+										columns={control.columns}
 										onChange={(next) =>
 											onChangeControl(control, next)
 										}
@@ -622,6 +627,7 @@ export default function TemplateOptionsPanel({
 										min={control.min}
 										attribute={blockeraAttributeId}
 										blockName={blockName}
+										columns={control.columns}
 										defaultValue={
 											typeof control.defaultValue ===
 												'string' ||
@@ -658,6 +664,7 @@ export default function TemplateOptionsPanel({
 										defaultDirection={
 											control.defaultDirection
 										}
+										columns={control.columns}
 										onChange={(next) =>
 											onChangeControl(control, next)
 										}
@@ -676,6 +683,7 @@ export default function TemplateOptionsPanel({
 										variableTypes={control.variableTypes}
 										attribute={blockeraAttributeId}
 										blockName={blockName}
+										columns={control.columns}
 										onChange={(next) =>
 											onChangeControl(
 												control,
@@ -700,6 +708,7 @@ export default function TemplateOptionsPanel({
 										blockName={blockName}
 										sectionId={control.target.id}
 										disabled={controlDisabled || missing}
+										columns={control.columns}
 										defaultValue={
 											typeof control.defaultValue ===
 											'string'

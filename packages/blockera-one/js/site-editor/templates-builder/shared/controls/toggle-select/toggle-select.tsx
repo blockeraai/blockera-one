@@ -17,6 +17,7 @@ type ToggleSelectRowProps = {
 	variants: VariantDef[];
 	disabled?: boolean;
 	defaultValue?: string;
+	columns?: string;
 	onChange: (next: string) => void;
 };
 
@@ -27,6 +28,7 @@ export default function ToggleSelectRow({
 	variants,
 	disabled,
 	defaultValue = '',
+	columns = CONTROL_COLUMNS,
 	onChange,
 }: ToggleSelectRowProps) {
 	return (
@@ -42,7 +44,7 @@ export default function ToggleSelectRow({
 			>
 				<ToggleSelectControl
 					label={label}
-					columns={CONTROL_COLUMNS}
+					columns={columns}
 					defaultValue={defaultValue}
 					isDeselectable={false}
 					options={variants.map((variant) => ({

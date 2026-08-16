@@ -8,11 +8,12 @@ import { __ } from '@wordpress/i18n';
  * Blockera dependencies
  */
 import { classNames } from '@blockera/classnames';
-import { Tooltip } from '@blockera/controls';
+import { BaseControl, Tooltip } from '@blockera/controls';
 
 /**
  * Internal dependencies
  */
+import { CONTROL_COLUMNS_1 } from '../constants';
 import type { VariantDef } from '../../types';
 import './layout-picker.scss';
 
@@ -21,6 +22,7 @@ type LayoutPickerProps = {
 	value: string | null;
 	variants: VariantDef[];
 	disabled?: boolean;
+	columns?: string;
 	onChange: (variantId: string) => void;
 	missing?: boolean;
 	onAddBack?: () => void;
@@ -31,6 +33,7 @@ export default function LayoutPicker({
 	value,
 	variants,
 	disabled,
+	columns = CONTROL_COLUMNS_1,
 	onChange,
 	missing,
 	onAddBack,
@@ -40,105 +43,108 @@ export default function LayoutPicker({
 			className="blockera-templates-builder-layout-picker"
 			data-test="blockera-templates-builder-layout-picker"
 		>
-			<div className="blockera-templates-builder-layout-picker__label">
-				{label}
-			</div>
-			{missing ? (
-				<div className="blockera-templates-builder-missing">
-					<span>
-						{__(
-							'This section was removed from the template.',
-							'blockera'
-						)}
-					</span>
-					{onAddBack && (
-						<button
-							type="button"
-							className="blockera-templates-builder-missing__action"
-							onClick={onAddBack}
-						>
-							{__('Add it back', 'blockera')}
-						</button>
-					)}
-				</div>
-			) : (
-				<div className="blockera-templates-builder-layout-picker__grid">
-					{variants.map((variant) => {
-						const isActive = value === variant.id;
-						const tileDisabled = disabled || !!variant.disabled;
-						return (
-							<Tooltip
-								key={variant.id}
-								text={variant.label}
-								delay={200}
+			<BaseControl
+				label={label}
+				columns={columns}
+				controlName="layout-picker"
+			>
+				{missing ? (
+					<div className="blockera-templates-builder-missing">
+						<span>
+							{__(
+								'This section was removed from the template.',
+								'blockera'
+							)}
+						</span>
+						{onAddBack && (
+							<button
+								type="button"
+								className="blockera-templates-builder-missing__action"
+								onClick={onAddBack}
 							>
-								<div
-									role="button"
-									tabIndex={tileDisabled ? -1 : 0}
-									aria-disabled={tileDisabled}
-									className={classNames(
-										'blockera-templates-builder-layout-picker__option',
-										{
-											'is-selected': isActive,
-											'is-coming-soon':
-												!!variant.disabled,
-											'is-disabled': tileDisabled,
-										}
-									)}
-									aria-pressed={isActive}
-									aria-label={
-										variant.badge
-											? `${variant.label} (${variant.badge})`
-											: variant.label
-									}
-									data-test={`blockera-templates-builder-layout-${variant.id}`}
-									onClick={() => {
-										if (!tileDisabled) {
-											onChange(variant.id);
-										}
-									}}
-									onKeyDown={(event) => {
-										if (tileDisabled) {
-											return;
-										}
-
-										if (
-											event.key === 'Enter' ||
-											event.key === ' '
-										) {
-											event.preventDefault();
-											onChange(variant.id);
-										}
-									}}
+								{__('Add it back', 'blockera')}
+							</button>
+						)}
+					</div>
+				) : (
+					<div className="blockera-templates-builder-layout-picker__grid">
+						{variants.map((variant) => {
+							const isActive = value === variant.id;
+							const tileDisabled = disabled || !!variant.disabled;
+							return (
+								<Tooltip
+									key={variant.id}
+									text={variant.label}
+									delay={200}
 								>
-									{variant.thumbnail ? (
-										<img
-											src={variant.thumbnail}
-											alt=""
-											width={72}
-											height={56}
-										/>
-									) : (
-										<span className="blockera-templates-builder-layout-picker__fallback">
-											{variant.label}
-										</span>
-									)}
-									{variant.badge ? (
-										<span className="blockera-templates-builder-layout-picker__badge">
-											{variant.badge}
-										</span>
-									) : null}
-								</div>
-							</Tooltip>
-						);
-					})}
-				</div>
-			)}
-			{value === null && !missing && (
-				<p className="blockera-templates-builder-custom-hint">
-					{__('Custom layout', 'blockera')}
-				</p>
-			)}
+									<div
+										role="button"
+										tabIndex={tileDisabled ? -1 : 0}
+										aria-disabled={tileDisabled}
+										className={classNames(
+											'blockera-templates-builder-layout-picker__option',
+											{
+												'is-selected': isActive,
+												'is-coming-soon':
+													!!variant.disabled,
+												'is-disabled': tileDisabled,
+											}
+										)}
+										aria-pressed={isActive}
+										aria-label={
+											variant.badge
+												? `${variant.label} (${variant.badge})`
+												: variant.label
+										}
+										data-test={`blockera-templates-builder-layout-${variant.id}`}
+										onClick={() => {
+											if (!tileDisabled) {
+												onChange(variant.id);
+											}
+										}}
+										onKeyDown={(event) => {
+											if (tileDisabled) {
+												return;
+											}
+
+											if (
+												event.key === 'Enter' ||
+												event.key === ' '
+											) {
+												event.preventDefault();
+												onChange(variant.id);
+											}
+										}}
+									>
+										{variant.thumbnail ? (
+											<img
+												src={variant.thumbnail}
+												alt=""
+												width={72}
+												height={56}
+											/>
+										) : (
+											<span className="blockera-templates-builder-layout-picker__fallback">
+												{variant.label}
+											</span>
+										)}
+										{variant.badge ? (
+											<span className="blockera-templates-builder-layout-picker__badge">
+												{variant.badge}
+											</span>
+										) : null}
+									</div>
+								</Tooltip>
+							);
+						})}
+					</div>
+				)}
+				{value === null && !missing && (
+					<p className="blockera-templates-builder-custom-hint">
+						{__('Custom layout', 'blockera')}
+					</p>
+				)}
+			</BaseControl>
 		</div>
 	);
 }

@@ -27,6 +27,7 @@ type BlockStyleSelectProps = {
 	sectionId?: string;
 	disabled?: boolean;
 	defaultValue?: string;
+	columns?: string;
 	onChange: (next: string) => void;
 };
 
@@ -54,6 +55,7 @@ export default function BlockStyleSelect({
 	blockName,
 	sectionId,
 	disabled,
+	columns = CONTROL_COLUMNS,
 	onChange,
 }: BlockStyleSelectProps) {
 	const clientId = useSelect(
@@ -127,7 +129,7 @@ export default function BlockStyleSelect({
 		>
 			<BaseControl
 				label={label}
-				columns={CONTROL_COLUMNS}
+				columns={columns}
 				controlName="style-variations"
 			>
 				{picker}

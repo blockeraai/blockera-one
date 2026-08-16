@@ -18,6 +18,7 @@ type SelectControlRowProps = {
 	options: SelectOption[];
 	disabled?: boolean;
 	defaultValue?: string;
+	columns?: string;
 	onChange: (next: string) => void;
 };
 
@@ -28,6 +29,7 @@ export default function SelectControlRow({
 	options,
 	disabled,
 	defaultValue = '',
+	columns = CONTROL_COLUMNS,
 	onChange,
 }: SelectControlRowProps) {
 	return (
@@ -43,7 +45,7 @@ export default function SelectControlRow({
 			>
 				<SelectControl
 					label={label}
-					columns={CONTROL_COLUMNS}
+					columns={columns}
 					type="native"
 					options={options}
 					defaultValue={defaultValue}

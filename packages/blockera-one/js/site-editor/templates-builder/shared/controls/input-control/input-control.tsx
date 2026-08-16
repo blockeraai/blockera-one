@@ -21,6 +21,7 @@ type InputControlRowProps = {
 	attribute?: string;
 	blockName?: string;
 	defaultValue?: string | number | boolean;
+	columns?: string;
 	onChange: (next: unknown) => void;
 };
 
@@ -36,6 +37,7 @@ export default function InputControlRow({
 	attribute,
 	blockName,
 	defaultValue = '',
+	columns = CONTROL_COLUMNS,
 	onChange,
 }: InputControlRowProps) {
 	const hasUnits = !!unitType;
@@ -61,7 +63,7 @@ export default function InputControlRow({
 			<ControlContextProvider value={contextValue}>
 				<InputControl
 					label={label}
-					columns={CONTROL_COLUMNS}
+					columns={columns}
 					unitType={unitType}
 					controlAddonTypes={controlAddonTypes}
 					variableTypes={variableTypes}

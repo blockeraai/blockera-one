@@ -741,6 +741,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 					min: 1,
 					max: 50,
 					step: 1,
+					columns: '2fr 2fr',
 				},
 				{
 					id: 'pagination',

@@ -19,6 +19,7 @@ type ColorControlRowProps = {
 	variableTypes?: string[];
 	attribute?: string;
 	blockName?: string;
+	columns?: string;
 	onChange: (next: unknown) => void;
 };
 
@@ -31,6 +32,7 @@ export default function ColorControlRow({
 	variableTypes,
 	attribute,
 	blockName,
+	columns = CONTROL_COLUMNS,
 	onChange,
 }: ColorControlRowProps) {
 	// ControlContextProvider's useSelect deps on this object identity.
@@ -54,7 +56,7 @@ export default function ColorControlRow({
 			<ControlContextProvider value={contextValue}>
 				<ColorControl
 					label={label}
-					columns={CONTROL_COLUMNS}
+					columns={columns}
 					controlAddonTypes={controlAddonTypes}
 					variableTypes={variableTypes}
 					defaultValue=""

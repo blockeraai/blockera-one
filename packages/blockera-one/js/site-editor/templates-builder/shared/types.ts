@@ -319,6 +319,12 @@ export type ControlDef = {
 	};
 	/** Help text under a number/input label (e.g. Numbers midSize). */
 	labelDescription?: string;
+	/**
+	 * Label / field grid, or a BaseControl token (`columns-1` / `columns-2`).
+	 * Omit to use the control default (`CONTROL_COLUMNS`, except layout-picker
+	 * which stacks with `CONTROL_COLUMNS_1`).
+	 */
+	columns?: string;
 	/** Engine hints for swapSection controls. */
 	swapHints?: {
 		/** Preserve query.* attributes across the swap (posts listings). */

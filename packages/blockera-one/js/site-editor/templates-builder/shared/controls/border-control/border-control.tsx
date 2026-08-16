@@ -16,6 +16,7 @@ type BorderControlRowProps = {
 	disabled?: boolean;
 	attribute?: string;
 	blockName?: string;
+	columns?: string;
 	onChange: (next: unknown) => void;
 };
 
@@ -32,6 +33,7 @@ export default function BorderControlRow({
 	disabled,
 	attribute,
 	blockName,
+	columns = CONTROL_COLUMNS,
 	onChange,
 }: BorderControlRowProps) {
 	const contextValue = useMemo(
@@ -54,7 +56,7 @@ export default function BorderControlRow({
 			<ControlContextProvider value={contextValue}>
 				<BorderControl
 					label={label}
-					columns={CONTROL_COLUMNS}
+					columns={columns}
 					defaultValue={EMPTY_SIDE}
 					controlAddonTypes={['variable']}
 					variableTypes={['border']}

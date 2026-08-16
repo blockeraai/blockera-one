@@ -31,6 +31,7 @@ type LayoutMatrixControlRowProps = {
 	isDirectionActive?: boolean;
 	isAxisControlsActive?: boolean;
 	defaultDirection?: 'row' | 'column';
+	columns?: string;
 	onChange: (next: Record<string, unknown>) => void;
 };
 
@@ -44,6 +45,7 @@ export default function LayoutMatrixControlRow({
 	isDirectionActive = false,
 	isAxisControlsActive = false,
 	defaultDirection = 'column',
+	columns = CONTROL_COLUMNS,
 	onChange,
 }: LayoutMatrixControlRowProps) {
 	const layoutValue =
@@ -84,7 +86,7 @@ export default function LayoutMatrixControlRow({
 			<ControlContextProvider value={contextValue}>
 				<LayoutMatrixControl
 					label={label}
-					columns={CONTROL_COLUMNS}
+					columns={columns}
 					isDirectionActive={isDirectionActive}
 					isAxisControlsActive={isAxisControlsActive}
 					defaultDirection={defaultDirection}

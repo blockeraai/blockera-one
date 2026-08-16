@@ -21,6 +21,7 @@ type StepperControlRowProps = {
 	attribute?: string;
 	blockName?: string;
 	defaultValue?: number;
+	columns?: string;
 	onChange: (next: number) => void;
 };
 
@@ -36,6 +37,7 @@ export default function StepperControlRow({
 	attribute,
 	blockName,
 	defaultValue = 0,
+	columns = CONTROL_COLUMNS,
 	onChange,
 }: StepperControlRowProps) {
 	// ControlContextProvider's useSelect deps on this object identity.
@@ -67,7 +69,7 @@ export default function StepperControlRow({
 			<ControlContextProvider value={contextValue}>
 				<StepperControl
 					label={label}
-					columns={CONTROL_COLUMNS}
+					columns={columns}
 					min={min}
 					max={max}
 					step={step}
