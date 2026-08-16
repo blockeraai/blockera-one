@@ -475,4 +475,63 @@ describe('templates-builder patterns lint', () => {
 			expect(orphans).toEqual([]);
 		});
 	});
+
+	describe('loop-item parent metadata.name', () => {
+		const LOOP_PARENT_STAMPS = new Set([
+			'container/loop-item-media',
+			'container/loop-item-content',
+		]);
+		const LOOP_PARENT_NAMES = {
+			'builder-listing-full-width.php': {
+				'container/loop-item-media': 'Media Column',
+				'container/loop-item-content': 'Content Column',
+			},
+			'builder-listing-grid-2.php': {
+				'container/loop-item-content': 'Content Blocks',
+			},
+			'builder-listing-grid-3.php': {
+				'container/loop-item-content': 'Content Blocks',
+			},
+			'builder-listing-list.php': {
+				'container/loop-item-content': 'Content Blocks',
+			},
+		};
+
+		function extractLoopParentNames(source) {
+			const names = {};
+			const metaRe = /"metadata"\s*:\s*\{([^}]*)\}/g;
+			let match;
+			while ((match = metaRe.exec(source))) {
+				const body = match[1];
+				const name = body.match(/"name"\s*:\s*"([^"]*)"/);
+				const stamp = body.match(/"blockeraOne"\s*:\s*"([^"]*)"/);
+				if (name && stamp && LOOP_PARENT_STAMPS.has(stamp[1])) {
+					names[stamp[1]] = name[1];
+				}
+			}
+			return names;
+		}
+
+		it('uses Media Column / Content Column / Content Blocks on listing parents', () => {
+			const mismatches = [];
+			for (const [fileName, expected] of Object.entries(
+				LOOP_PARENT_NAMES
+			)) {
+				const entry = builderPatterns.find(
+					(pattern) => pattern.name === fileName
+				);
+				if (!entry) {
+					mismatches.push(`missing pattern file ${fileName}`);
+					continue;
+				}
+				const source = fs.readFileSync(
+					path.join(themeRoot, entry.file),
+					'utf8'
+				);
+				const actual = extractLoopParentNames(source);
+				expect(actual).toEqual(expected);
+			}
+			expect(mismatches).toEqual([]);
+		});
+	});
 });
