@@ -83,7 +83,7 @@ export function registerSectionHeuristics(
 
 /**
  * Nearest group ancestor directly wrapping a child of the given block name.
- * Used for group-wrapped sections (e.g. page-title group around query-title):
+ * Used for group-wrapped sections (e.g. page-header group around query-title):
  * never treat the bare child as the section root — that kept the toggle "on"
  * after remove when a similar block existed inside the listing.
  */
@@ -317,7 +317,7 @@ export function resolveLayoutState(
 
 /**
  * Map a leftover `default` stamp onto `simple` when the catalog dropped
- * `default` and now ships `simple` (page-title Simple rename).
+ * `default` and now ships `simple` (page-header Simple rename).
  */
 function canonicalizeVariant(variant: string, knownIds: Set<string>): string {
 	if (knownIds.size === 0 || knownIds.has(variant)) {

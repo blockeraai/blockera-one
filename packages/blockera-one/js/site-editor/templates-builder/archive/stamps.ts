@@ -11,10 +11,10 @@ import type { StampDictionaryEntry } from '../shared/stamp';
 
 export const ARCHIVE_STAMPS: readonly StampDictionaryEntry[] = [
 	'layout/archive-body',
-	'section/page-title',
-	'section/page-title-title',
-	'section/page-title-description',
-	'section/page-title-breadcrumbs',
+	'section/page-header',
+	'section/page-header-title',
+	'section/page-header-description',
+	'section/page-header-breadcrumbs',
 	'section/posts-listing',
 	'section/pagination',
 	'section/pagination-previous',

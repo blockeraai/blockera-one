@@ -1,8 +1,8 @@
 <?php
 /**
- * Title: Archive Page Title Description
+ * Title: Archive Page Header Description
  * Description: Term description for the Page Header description toggle.
- * Slug: blockera-one/builder-archive-page-title-description
+ * Slug: blockera-one/builder-archive-page-header-description
  * Categories: blockera-one/template-builder
  * Inserter: no
  *
@@ -12,4 +12,4 @@
  */
 
 ?>
-<!-- wp:term-description {"metadata":{"blockeraOne":"section/page-title-description:default"}} /-->
+<!-- wp:term-description {"metadata":{"blockeraOne":"section/page-header-description:default"}} /-->

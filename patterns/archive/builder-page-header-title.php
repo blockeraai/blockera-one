@@ -1,8 +1,8 @@
 <?php
 /**
- * Title: Archive Page Title Heading
+ * Title: Archive Page Header Heading
  * Description: Archive query title for the Page Header title toggle.
- * Slug: blockera-one/builder-archive-page-title-title
+ * Slug: blockera-one/builder-archive-page-header-title
  * Categories: blockera-one/template-builder
  * Inserter: no
  *
@@ -12,4 +12,4 @@
  */
 
 ?>
-<!-- wp:query-title {"type":"archive","metadata":{"blockeraOne":"section/page-title-title:default"}} /-->
+<!-- wp:query-title {"type":"archive","metadata":{"blockeraOne":"section/page-header-title:default"}} /-->

@@ -14,7 +14,7 @@ they look like; JS only wires controls and applies operations.
 [
     'archive' => [                       // template type
         'posts-listing' => [ Variant… ], // pool (first item = toggle-on default)
-        'page-title'    => [ Variant… ],
+        'page-header'   => [ Variant… ],
         'pagination'    => [ Variant… ],
         'layout'        => [ Variant… ],
         'header'        => [ Variant… ], // templatePart (stacked) + pattern (vertical rail)
@@ -97,7 +97,7 @@ New variants use the child text domain in the slug
 
 - File: `patterns/<type>/builder-<section>-<variant>.php` — the folder
   scopes the type; the **slug keeps it** because pattern slugs are global
-  and other types reuse section names (`page-title`, `pagination`, …)
+  and other types reuse section names (`page-header`, `pagination`, …)
 - Header: `Slug: blockera-one/builder-<type>-<section>-<variant>`,
   `Categories: blockera-one/template-builder`, `Inserter: no`
 - Root block stamps `metadata.blockeraOne` = `section/{poolId}:{variantId}`

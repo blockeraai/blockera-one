@@ -78,13 +78,13 @@ class ArchiveCatalog extends AbstractCatalog {
 					)
 				),
 			),
-			'page-title'             => array(
+			'page-header'             => array(
 				$this->patternVariant(
 					'simple',
 					__( 'Simple', 'blockera-one' ),
-					'blockera-one/builder-archive-page-title-simple',
+					'blockera-one/builder-archive-page-header-simple',
 					array(
-						'thumbnail' => $this->thumbnail( 'page-title-default' ),
+						'thumbnail' => $this->thumbnail( 'page-header-default' ),
 						'placement' => array(
 							'relativeTo' => 'content',
 							'position'   => 'inside-start',
@@ -94,9 +94,9 @@ class ArchiveCatalog extends AbstractCatalog {
 				$this->patternVariant(
 					'banner',
 					__( 'Banner', 'blockera-one' ),
-					'blockera-one/builder-archive-page-title-banner',
+					'blockera-one/builder-archive-page-header-banner',
 					array(
-						'thumbnail' => $this->thumbnail( 'page-title-banner' ),
+						'thumbnail' => $this->thumbnail( 'page-header-banner' ),
 						'placement' => array(
 							'relativeTo' => 'archive-body',
 							'position'   => 'inside-start',
@@ -104,25 +104,25 @@ class ArchiveCatalog extends AbstractCatalog {
 					)
 				),
 			),
-			'page-title-title'       => array(
+			'page-header-title'       => array(
 				$this->patternVariant(
 					'default',
 					__( 'Title', 'blockera-one' ),
-					'blockera-one/builder-archive-page-title-title'
+					'blockera-one/builder-archive-page-header-title'
 				),
 			),
-			'page-title-description' => array(
+			'page-header-description' => array(
 				$this->patternVariant(
 					'default',
 					__( 'Description', 'blockera-one' ),
-					'blockera-one/builder-archive-page-title-description'
+					'blockera-one/builder-archive-page-header-description'
 				),
 			),
-			'page-title-breadcrumbs' => array(
+			'page-header-breadcrumbs' => array(
 				$this->patternVariant(
 					'default',
 					__( 'Breadcrumbs', 'blockera-one' ),
-					'blockera-one/builder-archive-page-title-breadcrumbs'
+					'blockera-one/builder-archive-page-header-breadcrumbs'
 				),
 			),
 			'posts-listing'          => array(

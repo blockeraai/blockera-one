@@ -73,7 +73,7 @@ export type SectionHeuristic =
 	| {
 			/**
 			 * Match the nearest core/group ancestor directly wrapping a child
-			 * with this block name (e.g. page-title group around query-title).
+			 * with this block name (e.g. page-header group around query-title).
 			 */
 			kind: 'groupWrapping';
 			childName: string;

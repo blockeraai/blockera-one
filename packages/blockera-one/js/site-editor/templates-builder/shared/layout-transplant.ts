@@ -86,7 +86,7 @@ export function transplantLayout(
 		/** When true, collect unmatched body into content (unrecognized). */
 		bestEffort?: boolean;
 		/**
-		 * Active design placement per sibling section id (e.g. page-title).
+		 * Active design placement per sibling section id (e.g. page-header).
 		 * Sections without an entry re-attach at the layout root start.
 		 */
 		sectionPlacements?: Record<string, InsertRule>;
@@ -111,7 +111,7 @@ export function transplantLayout(
 		params.knownVariants || []
 	);
 
-	// Collect full-width sibling sections (e.g. page-title) before the layout
+	// Collect full-width sibling sections (e.g. page-header) before the layout
 	// is replaced so they stay above content/sidebar columns.
 	const siblingSections: BlockNode[] = [];
 	for (const sectionId of siblingSectionIds) {

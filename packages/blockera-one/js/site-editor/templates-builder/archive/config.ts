@@ -31,16 +31,16 @@ const FOOTER_STACKED_PLACEMENT = {
 const PAGE_HEADER_INNER_ORDER: InnerOrderRule = {
 	parentId: 'elements',
 	ids: [
-		'page-title-title',
-		'page-title-description',
-		'page-title-breadcrumbs',
+		'page-header-title',
+		'page-header-description',
+		'page-header-breadcrumbs',
 	],
 };
 
 const PAGE_HEADER_REQUIRED = [
-	'page-title-title',
-	'page-title-description',
-	'page-title-breadcrumbs',
+	'page-header-title',
+	'page-header-description',
+	'page-header-breadcrumbs',
 ];
 
 const PAGINATION_INNER_ORDER: InnerOrderRule = {
@@ -83,17 +83,17 @@ type SectionTarget = {
 
 const TITLE_TARGET: SectionTarget = {
 	kind: 'section',
-	id: 'page-title-title',
+	id: 'page-header-title',
 };
 
 const DESCRIPTION_TARGET: SectionTarget = {
 	kind: 'section',
-	id: 'page-title-description',
+	id: 'page-header-description',
 };
 
 const BREADCRUMBS_TARGET: SectionTarget = {
 	kind: 'section',
-	id: 'page-title-breadcrumbs',
+	id: 'page-header-breadcrumbs',
 };
 
 function sectionColorControl(
@@ -220,23 +220,23 @@ const BREADCRUMBS_DESIGN = elementDesignControls(
 	'breadcrumbs'
 );
 
-const PAGE_TITLE_DESIGN: ControlDef = {
-	id: 'page-title-design',
+const PAGE_HEADER_DESIGN: ControlDef = {
+	id: 'page-header-design',
 	type: 'layout-picker',
 	label: __('Header Design', 'blockera'),
-	target: { kind: 'section', id: 'page-title' },
+	target: { kind: 'section', id: 'page-header' },
 	operation: 'swapSection',
-	conditions: [{ controlId: 'page-title', equals: true }],
-	catalogPool: 'page-title',
+	conditions: [{ controlId: 'page-header', equals: true }],
+	catalogPool: 'page-header',
 	swapHints: {
 		// Title/description/breadcrumb settings survive the design swap.
 		// Gap, alignment, padding, and width stay with the new pattern:
 		// they are not listed here, and swapSection does not copy blockera*
 		// attrs unless preserveBlockeraExtensions is set.
 		reapplyControls: [
-			'page-title-title',
-			'page-title-description',
-			'page-title-breadcrumbs',
+			'page-header-title',
+			'page-header-description',
+			'page-header-breadcrumbs',
 			'title-color',
 			'title-bg-color',
 			'title-font-size',
@@ -257,19 +257,19 @@ const PAGE_TITLE_DESIGN: ControlDef = {
 	},
 };
 
-const PAGE_TITLE_ON = [{ controlId: 'page-title', equals: true }];
-const PAGE_TITLE_SIMPLE = [
-	...PAGE_TITLE_ON,
-	{ controlId: 'page-title-design', equals: 'simple' },
+const PAGE_HEADER_ON = [{ controlId: 'page-header', equals: true }];
+const PAGE_HEADER_SIMPLE = [
+	...PAGE_HEADER_ON,
+	{ controlId: 'page-header-design', equals: 'simple' },
 ];
-const PAGE_TITLE_BANNER = [
-	...PAGE_TITLE_ON,
-	{ controlId: 'page-title-design', equals: 'banner' },
+const PAGE_HEADER_BANNER = [
+	...PAGE_HEADER_ON,
+	{ controlId: 'page-header-design', equals: 'banner' },
 ];
 
-const PAGE_TITLE_SECTION = {
+const PAGE_HEADER_SECTION = {
 	kind: 'section' as const,
-	id: 'page-title',
+	id: 'page-header',
 };
 
 const ELEMENTS_CONTAINER = {
@@ -313,18 +313,18 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 			slugIncludes: 'footer',
 		},
 		sidebar: { kind: 'templatePart', slugPrefix: 'sidebar' },
-		'page-title': { kind: 'groupWrapping', childName: 'core/query-title' },
-		'page-title-title': {
+		'page-header': { kind: 'groupWrapping', childName: 'core/query-title' },
+		'page-header-title': {
 			kind: 'innerBlock',
 			parentId: 'elements',
 			name: 'core/query-title',
 		},
-		'page-title-description': {
+		'page-header-description': {
 			kind: 'innerBlock',
 			parentId: 'elements',
 			name: 'core/term-description',
 		},
-		'page-title-breadcrumbs': {
+		'page-header-breadcrumbs': {
 			kind: 'innerBlock',
 			parentId: 'elements',
 			name: 'core/breadcrumbs',
@@ -347,9 +347,9 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 			name: 'core/query-pagination-numbers',
 		},
 	},
-	// Page-title sits full-width above the content/sidebar columns and must
+	// Page header sits full-width above the content/sidebar columns and must
 	// be carried across layout transplants.
-	layoutSiblingSections: ['page-title'],
+	layoutSiblingSections: ['page-header'],
 	groups: [
 		{
 			id: 'site-header',
@@ -395,10 +395,10 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 			id: 'page-header',
 			title: __('Page Header', 'blockera'),
 			headerToggle: {
-				id: 'page-title',
+				id: 'page-header',
 				type: 'toggle',
-				label: __('Archive Title', 'blockera'),
-				target: { kind: 'section', id: 'page-title' },
+				label: __('Page Header', 'blockera'),
+				target: { kind: 'section', id: 'page-header' },
 				operation: 'toggleSection',
 				onValue: true,
 				offValue: false,
@@ -407,9 +407,9 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 					relativeTo: 'archive-body',
 					position: 'inside-start',
 				},
-				catalogPool: 'page-title',
+				catalogPool: 'page-header',
 			},
-			controls: [PAGE_TITLE_DESIGN],
+			controls: [PAGE_HEADER_DESIGN],
 			nestedPanel: {
 				id: 'page-header-settings',
 				title: __('Page Header', 'blockera'),
@@ -419,75 +419,75 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 						id: 'page-header-design',
 						title: __('Design', 'blockera'),
 						controls: [
-							PAGE_TITLE_DESIGN,
+							PAGE_HEADER_DESIGN,
 							{
 								id: 'page-header-gap',
 								type: 'input',
 								label: __('Gap', 'blockera'),
-								target: PAGE_TITLE_SECTION,
+								target: PAGE_HEADER_SECTION,
 								alsoSetOn: ['elements'],
 								operation: 'setSectionAttribute',
 								attributePath: 'blockeraGap.value',
 								unitType: 'essential',
 								controlAddonTypes: ['variable'],
 								variableTypes: ['spacing'],
-								conditions: [...PAGE_TITLE_ON],
+								conditions: [...PAGE_HEADER_ON],
 							},
 							{
 								id: 'page-header-bottom-spacing',
 								type: 'input',
 								label: __('Bottom Space', 'blockera'),
-								target: PAGE_TITLE_SECTION,
+								target: PAGE_HEADER_SECTION,
 								operation: 'setSectionAttribute',
 								attributePath: 'blockeraSpacing.value',
 								attributeMergeKeys: ['margin.bottom'],
 								unitType: 'margin',
 								controlAddonTypes: ['variable'],
 								variableTypes: ['spacing'],
-								conditions: PAGE_TITLE_SIMPLE,
+								conditions: PAGE_HEADER_SIMPLE,
 							},
 							{
 								...PAGE_HEADER_ALIGN,
 								id: 'page-header-align',
-								target: PAGE_TITLE_SECTION,
+								target: PAGE_HEADER_SECTION,
 								alsoSetOn: ['elements'],
-								conditions: PAGE_TITLE_SIMPLE,
+								conditions: PAGE_HEADER_SIMPLE,
 							},
 							{
 								...PAGE_HEADER_ALIGN,
 								id: 'page-header-align-banner',
 								target: ELEMENTS_CONTAINER,
-								conditions: PAGE_TITLE_BANNER,
+								conditions: PAGE_HEADER_BANNER,
 							},
 							{
 								id: 'page-header-bg-color',
 								type: 'color',
 								label: __('BG Color', 'blockera'),
-								target: PAGE_TITLE_SECTION,
+								target: PAGE_HEADER_SECTION,
 								operation: 'setSectionAttribute',
 								attributePath: 'blockeraBackgroundColor.value',
 								controlAddonTypes: ['variable'],
 								variableTypes: ['color'],
-								conditions: PAGE_TITLE_BANNER,
+								conditions: PAGE_HEADER_BANNER,
 							},
 							{
 								id: 'page-header-min-height',
 								type: 'input',
 								label: __('Min Height', 'blockera'),
-								target: PAGE_TITLE_SECTION,
+								target: PAGE_HEADER_SECTION,
 								operation: 'setSectionAttribute',
 								attributePath: 'blockeraMinHeight.value',
 								unitType: 'min-height',
 								controlAddonTypes: ['variable'],
 								variableTypes: ['width-size', 'spacing'],
 								min: 0,
-								conditions: PAGE_TITLE_BANNER,
+								conditions: PAGE_HEADER_BANNER,
 							},
 							{
 								id: 'page-header-padding',
 								type: 'input',
 								label: __('Inner Padding', 'blockera'),
-								target: PAGE_TITLE_SECTION,
+								target: PAGE_HEADER_SECTION,
 								operation: 'setSectionAttribute',
 								attributePath: 'blockeraSpacing.value',
 								attributeMergeKeys: [
@@ -497,7 +497,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 								unitType: 'padding',
 								controlAddonTypes: ['variable'],
 								variableTypes: ['spacing'],
-								conditions: PAGE_TITLE_BANNER,
+								conditions: PAGE_HEADER_BANNER,
 							},
 							{
 								id: 'page-header-elements-width',
@@ -516,14 +516,14 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 								controlAddonTypes: ['variable'],
 								variableTypes: ['width-size', 'spacing'],
 								min: 0,
-								conditions: PAGE_TITLE_BANNER,
+								conditions: PAGE_HEADER_BANNER,
 							},
 							{
 								...sectionCustomizeControl(
-									PAGE_TITLE_SECTION,
-									'page-title-customize'
+									PAGE_HEADER_SECTION,
+									'page-header-customize'
 								),
-								conditions: [...PAGE_TITLE_ON],
+								conditions: [...PAGE_HEADER_ON],
 							},
 						],
 					},
@@ -533,7 +533,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 						sortable: true,
 						controls: [
 							{
-								id: 'page-title-title',
+								id: 'page-header-title',
 								type: 'toggle',
 								label: __('Title', 'blockera'),
 								target: TITLE_TARGET,
@@ -541,7 +541,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 								onValue: true,
 								offValue: false,
 								defaultValue: true,
-								catalogPool: 'page-title-title',
+								catalogPool: 'page-header-title',
 								insert: {
 									relativeTo: 'elements',
 									position: 'inside-start',
@@ -550,7 +550,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 								requireAtLeastOneOf: PAGE_HEADER_REQUIRED,
 								conditions: [
 									{
-										controlId: 'page-title',
+										controlId: 'page-header',
 										equals: true,
 									},
 								],
@@ -563,7 +563,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 								),
 							},
 							{
-								id: 'page-title-description',
+								id: 'page-header-description',
 								type: 'toggle',
 								label: __('Description', 'blockera'),
 								target: DESCRIPTION_TARGET,
@@ -571,7 +571,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 								onValue: true,
 								offValue: false,
 								defaultValue: true,
-								catalogPool: 'page-title-description',
+								catalogPool: 'page-header-description',
 								insert: {
 									relativeTo: 'elements',
 									position: 'inside-end',
@@ -580,7 +580,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 								requireAtLeastOneOf: PAGE_HEADER_REQUIRED,
 								conditions: [
 									{
-										controlId: 'page-title',
+										controlId: 'page-header',
 										equals: true,
 									},
 								],
@@ -593,7 +593,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 								),
 							},
 							{
-								id: 'page-title-breadcrumbs',
+								id: 'page-header-breadcrumbs',
 								type: 'toggle',
 								label: __('Breadcrumbs', 'blockera'),
 								target: BREADCRUMBS_TARGET,
@@ -601,7 +601,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 								onValue: true,
 								offValue: false,
 								defaultValue: false,
-								catalogPool: 'page-title-breadcrumbs',
+								catalogPool: 'page-header-breadcrumbs',
 								insert: {
 									relativeTo: 'elements',
 									position: 'inside-end',
@@ -610,7 +610,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 								requireAtLeastOneOf: PAGE_HEADER_REQUIRED,
 								conditions: [
 									{
-										controlId: 'page-title',
+										controlId: 'page-header',
 										equals: true,
 									},
 								],
