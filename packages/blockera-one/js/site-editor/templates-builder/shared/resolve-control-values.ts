@@ -251,7 +251,7 @@ export function resolveControlViewStates(
 					value =
 						picked === '' && control.defaultValue !== undefined
 							? control.defaultValue
-							: picked;
+							: (picked as ControlValue);
 				} else if (isControlValue(raw) && raw !== null) {
 					value = raw;
 				} else if (control.defaultValue !== undefined) {

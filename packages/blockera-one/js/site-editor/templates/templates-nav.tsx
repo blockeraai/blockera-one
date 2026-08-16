@@ -107,7 +107,7 @@ function NavRow({
 		badge = statusBadge;
 	}
 
-	let indent = 0;
+	let indent: 0 | 1 | 2 = 0;
 
 	if (isGrandchild) {
 		indent = 2;
