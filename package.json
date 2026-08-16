@@ -227,7 +227,7 @@
 		"patterns:check": "node ./packages/global-packages/packages/dev-tools/js/patterns/normalize-patterns-cli.js --check",
 		"clean": "rm -rf build dist/* node_modules vendor wordpress",
 		"prepare": "husky install",
-		"flow": "npx flow status",
+		"flow": "npx flow check",
 		"typecheck": "tsc --noEmit",
 		"setup": "npm install && npm run build",
 		"test:e2e": "NODE_OPTIONS=--max_old_space_size=4096 npx cypress run --config video=false --browser chrome",
