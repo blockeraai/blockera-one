@@ -76,6 +76,45 @@ const PAGINATION_NUMBERS_TARGET: SectionTarget = {
 
 const PAGINATION_ON = [{ controlId: 'pagination', equals: true }];
 
+const LOOP_ITEM_IDS = [
+	'post-featured-image',
+	'post-title',
+	'post-excerpt',
+	'post-content',
+	'post-read-more',
+	'post-meta',
+	'post-meta-2',
+];
+
+const LOOP_ITEM_INNER_ORDER: InnerOrderRule = {
+	parentId: 'loop-item-content',
+	bucketParents: ['loop-item-media', 'loop-item-content'],
+	ids: LOOP_ITEM_IDS,
+	showParentNames: true,
+};
+
+const POST_META_CHILD_DEFS = [
+	{ suffix: 'author-name', label: __('Author Name', 'blockera') },
+	{ suffix: 'comments-count', label: __('Comments Count', 'blockera') },
+	{ suffix: 'comments-link', label: __('Comments Link', 'blockera') },
+	{ suffix: 'date', label: __('Date', 'blockera') },
+	{ suffix: 'post-date', label: __('Post Date', 'blockera') },
+	{ suffix: 'modified-date', label: __('Modified Date', 'blockera') },
+	{ suffix: 'categories', label: __('Categories', 'blockera') },
+	{ suffix: 'tags', label: __('Tags', 'blockera') },
+	{ suffix: 'time-to-read', label: __('Time to Read', 'blockera') },
+	{ suffix: 'word-count', label: __('Word Count', 'blockera') },
+] as const;
+
+const UNIQUE_META_HEURISTICS: Array<{
+	suffix: string;
+	name: string;
+}> = [
+	{ suffix: 'author-name', name: 'core/post-author-name' },
+	{ suffix: 'comments-count', name: 'core/post-comments-count' },
+	{ suffix: 'comments-link', name: 'core/post-comments-link' },
+];
+
 type SectionTarget = {
 	kind: 'section';
 	id: string;
@@ -187,6 +226,110 @@ function elementDesignControls(
 	};
 }
 
+function emptyDesignPanel(panelId: string, title: string): NestedPanelDef {
+	const target: SectionTarget = { kind: 'section', id: panelId };
+	return {
+		id: panelId,
+		title,
+		groups: [
+			{
+				id: `${panelId}-design`,
+				title: __('Design', 'blockera'),
+				keepVisible: true,
+				controls: [
+					sectionCustomizeControl(target, `${panelId}-customize`),
+				],
+			},
+		],
+	};
+}
+
+function loopItemElement(id: string, label: string): ControlDef {
+	return {
+		id,
+		type: 'toggle',
+		label,
+		target: { kind: 'section', id },
+		operation: 'toggleSection',
+		catalogPool: id,
+		insert: {
+			relativeTo: 'loop-item-content',
+			position: 'inside-end',
+		},
+		innerOrder: LOOP_ITEM_INNER_ORDER,
+		requireAtLeastOneOf: LOOP_ITEM_IDS,
+		nestedPanel: emptyDesignPanel(id, label),
+	};
+}
+
+function postMetaElement(instance: 1 | 2): ControlDef {
+	const rowId = instance === 1 ? 'post-meta' : 'post-meta-2';
+	const prefix = rowId;
+	const childIds = POST_META_CHILD_DEFS.map(
+		(item) => `${prefix}-${item.suffix}`
+	);
+	const childOrder: InnerOrderRule = {
+		parentId: rowId,
+		ids: childIds,
+	};
+	const rowTarget: SectionTarget = { kind: 'section', id: rowId };
+
+	return {
+		id: rowId,
+		type: 'toggle',
+		label: __('Post Meta', 'blockera'),
+		target: rowTarget,
+		operation: 'toggleSection',
+		catalogPool: rowId,
+		insert: {
+			relativeTo: 'loop-item-content',
+			position: 'inside-end',
+		},
+		innerOrder: LOOP_ITEM_INNER_ORDER,
+		requireAtLeastOneOf: LOOP_ITEM_IDS,
+		nestedPanel: {
+			id: rowId,
+			title: __('Post Meta', 'blockera'),
+			groups: [
+				{
+					id: `${rowId}-design`,
+					title: __('Design', 'blockera'),
+					keepVisible: true,
+					controls: [
+						sectionCustomizeControl(
+							rowTarget,
+							`${rowId}-customize`
+						),
+					],
+				},
+				{
+					id: `${rowId}-elements`,
+					title: __('Elements', 'blockera'),
+					sortable: true,
+					controls: POST_META_CHILD_DEFS.map((item) => {
+						const childId = `${prefix}-${item.suffix}`;
+						return {
+							id: childId,
+							type: 'toggle' as const,
+							label: item.label,
+							target: { kind: 'section' as const, id: childId },
+							operation: 'toggleSection' as const,
+							catalogPool: childId,
+							insert: {
+								relativeTo: rowId,
+								position: 'inside-end' as const,
+							},
+							innerOrder: childOrder,
+							requireAtLeastOneOf: childIds,
+							nestedPanel: emptyDesignPanel(childId, item.label),
+						};
+					}),
+				},
+			],
+		},
+	};
+}
+
 function elementDesignPanel(
 	panelId: string,
 	title: string,
@@ -287,6 +430,31 @@ const PAGE_HEADER_ALIGN = {
 	defaultDirection: 'column' as const,
 };
 
+const POSTS_TEMPLATE: ControlDef = {
+	id: 'posts-template',
+	type: 'layout-picker',
+	label: __('Posts Template', 'blockera'),
+	target: { kind: 'section', id: 'posts-listing' },
+	operation: 'swapSection',
+	// Listing patterns ship with standard pagination inside;
+	// keep the user's query setup and pagination design
+	// across swaps. Loop-item toggles are not reapplied — a
+	// listing swap takes the new pattern's composition.
+	swapHints: {
+		preserveQuery: true,
+		reapplyControls: [
+			'pagination',
+			'pagination-previous',
+			'pagination-numbers',
+			'pagination-next',
+			'pagination-style',
+			'pagination-top-divider',
+			'pagination-top-spacing',
+		],
+	},
+	catalogPool: 'posts-listing',
+};
+
 export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 	type: 'archive',
 	filters: [
@@ -330,6 +498,51 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 			name: 'core/breadcrumbs',
 		},
 		'posts-listing': { kind: 'blockName', name: 'core/query' },
+		'post-featured-image': {
+			kind: 'descendantBlock',
+			parentId: 'posts-listing',
+			name: 'core/post-featured-image',
+		},
+		'post-title': {
+			kind: 'descendantBlock',
+			parentId: 'posts-listing',
+			name: 'core/post-title',
+		},
+		'post-excerpt': {
+			kind: 'descendantBlock',
+			parentId: 'posts-listing',
+			name: 'core/post-excerpt',
+		},
+		'post-content': {
+			kind: 'descendantBlock',
+			parentId: 'posts-listing',
+			name: 'core/post-content',
+		},
+		'post-read-more': {
+			kind: 'descendantBlock',
+			parentId: 'posts-listing',
+			name: 'core/read-more',
+		},
+		...Object.fromEntries(
+			UNIQUE_META_HEURISTICS.flatMap((item) => [
+				[
+					`post-meta-${item.suffix}`,
+					{
+						kind: 'innerBlock' as const,
+						parentId: 'post-meta',
+						name: item.name,
+					},
+				],
+				[
+					`post-meta-2-${item.suffix}`,
+					{
+						kind: 'innerBlock' as const,
+						parentId: 'post-meta-2',
+						name: item.name,
+					},
+				],
+			])
+		),
 		pagination: { kind: 'blockName', name: 'core/query-pagination' },
 		'pagination-previous': {
 			kind: 'innerBlock',
@@ -706,29 +919,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 			id: 'page-layout',
 			title: __('Posts Loop', 'blockera'),
 			controls: [
-				{
-					id: 'posts-template',
-					type: 'layout-picker',
-					label: __('Posts Template', 'blockera'),
-					target: { kind: 'section', id: 'posts-listing' },
-					operation: 'swapSection',
-					// Listing patterns ship with standard pagination inside;
-					// keep the user's query setup and pagination design
-					// across swaps.
-					swapHints: {
-						preserveQuery: true,
-						reapplyControls: [
-							'pagination',
-							'pagination-previous',
-							'pagination-numbers',
-							'pagination-next',
-							'pagination-style',
-							'pagination-top-divider',
-							'pagination-top-spacing',
-						],
-					},
-					catalogPool: 'posts-listing',
-				},
+				POSTS_TEMPLATE,
 				{
 					id: 'posts-per-page',
 					type: 'number',
@@ -742,6 +933,54 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 					max: 50,
 					step: 1,
 					columns: '2fr 2fr',
+				},
+				{
+					id: 'posts-loop',
+					type: 'gateway',
+					label: __('Design and Elements', 'blockera'),
+					target: { kind: 'section', id: 'posts-listing' },
+					operation: 'selectInCanvas',
+					nestedPanel: {
+						id: 'posts-loop',
+						title: __('Posts Loop', 'blockera'),
+						scrollTarget: 'posts-listing',
+						groups: [
+							{
+								id: 'posts-loop-design',
+								title: __('Design', 'blockera'),
+								controls: [POSTS_TEMPLATE],
+							},
+							{
+								id: 'posts-loop-elements',
+								title: __('Elements', 'blockera'),
+								sortable: true,
+								controls: [
+									loopItemElement(
+										'post-featured-image',
+										__('Featured Image', 'blockera')
+									),
+									loopItemElement(
+										'post-title',
+										__('Title', 'blockera')
+									),
+									loopItemElement(
+										'post-excerpt',
+										__('Excerpt', 'blockera')
+									),
+									loopItemElement(
+										'post-content',
+										__('Content', 'blockera')
+									),
+									loopItemElement(
+										'post-read-more',
+										__('Read More', 'blockera')
+									),
+									postMetaElement(1),
+									postMetaElement(2),
+								],
+							},
+						],
+					},
 				},
 				{
 					id: 'pagination',

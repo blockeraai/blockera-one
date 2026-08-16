@@ -14,7 +14,7 @@ import {
 } from '@wordpress/components';
 import { store as coreStore } from '@wordpress/core-data';
 import { useDispatch } from '@wordpress/data';
-import { useCallback, useState } from '@wordpress/element';
+import { useCallback, useMemo, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { moreVertical } from '@wordpress/icons';
 import { parse as parseBlocks } from '@wordpress/blocks';
@@ -44,17 +44,22 @@ import { getBlockeraAttributeId } from './blockera-attribute';
 import {
 	getGroupInnerOrder,
 	isSortableElementControl,
+	resolveElementBuckets,
 	resolveElementOrder,
+	resolveParentStampName,
 } from './element-order';
 import SortableElementList, {
+	type BucketReorderPayload,
 	type SortableElementRenderProps,
 } from './sortable-element-list';
 import type { ControlViewState } from './resolve-control-values';
 import type {
+	BlockNode,
 	ControlDef,
 	ControlValue,
 	InnerOrderRule,
 	PanelGroupDef,
+	ReorderElementsPayload,
 	TemplateOptionsConfig,
 } from './types';
 import useTemplateOptions from './use-template-options';
@@ -105,8 +110,12 @@ type SortableElementGroupProps = {
 	items: ControlViewState[];
 	groupId: string;
 	orderRule: InnerOrderRule;
+	blocks: BlockNode[];
 	disabled: boolean;
-	onReorderElements: (rule: InnerOrderRule, orderedIds: string[]) => void;
+	onReorderElements: (
+		rule: InnerOrderRule,
+		payload: ReorderElementsPayload
+	) => void;
 	onChangeControl: (control: ControlDef, next: ControlValue) => void;
 	onOpenNested?: (panelId: string) => void;
 };
@@ -119,6 +128,7 @@ function SortableElementGroup({
 	items,
 	groupId,
 	orderRule,
+	blocks,
 	disabled,
 	onReorderElements,
 	onChangeControl,
@@ -130,6 +140,34 @@ function SortableElementGroup({
 		},
 		[onReorderElements, orderRule]
 	);
+	const onReorderBuckets = useCallback(
+		(payload: BucketReorderPayload) => {
+			onReorderElements(orderRule, payload);
+		},
+		[onReorderElements, orderRule]
+	);
+	const useBuckets = !!orderRule.bucketParents?.length;
+	const showParentNames = !!orderRule.showParentNames;
+	const buckets = useMemo(() => {
+		if (!useBuckets) {
+			return undefined;
+		}
+		const byId: Record<string, ControlViewState> = {};
+		for (let i = 0; i < items.length; i++) {
+			byId[items[i].control.target.id] = items[i];
+		}
+		return resolveElementBuckets(blocks, orderRule).map((bucket) => ({
+			parentId: bucket.parentId,
+			items: bucket.ids.map((id) => byId[id]).filter(Boolean),
+			label: showParentNames
+				? resolveParentStampName(blocks, bucket.parentId)
+				: undefined,
+		}));
+	}, [blocks, items, orderRule, showParentNames, useBuckets]);
+	const listLabel =
+		!useBuckets && showParentNames
+			? resolveParentStampName(blocks, orderRule.parentId)
+			: undefined;
 
 	const renderItem = useCallback(
 		(
@@ -171,6 +209,9 @@ function SortableElementGroup({
 			disabled={disabled}
 			data-test={`blockera-templates-builder-sortable-${groupId}`}
 			onReorder={onReorder}
+			buckets={buckets}
+			onReorderBuckets={useBuckets ? onReorderBuckets : undefined}
+			listLabel={listLabel}
 			renderItem={renderItem}
 		/>
 	);
@@ -344,10 +385,14 @@ export default function TemplateOptionsPanel({
 		// Canvas-jump actions live on the heading Edit button.
 		const customizeView =
 			visibleControls.find(
-				(c) => c.control.operation === 'selectInCanvas'
+				(c) =>
+					c.control.operation === 'selectInCanvas' &&
+					c.control.type !== 'gateway'
 			) || null;
 		const controls = visibleControls.filter(
-			(c) => c.control.operation !== 'selectInCanvas'
+			(c) =>
+				c.control.operation !== 'selectInCanvas' ||
+				c.control.type === 'gateway'
 		);
 
 		const commonDisabled = !templateId;
@@ -381,7 +426,8 @@ export default function TemplateOptionsPanel({
 			!headerToggleDef &&
 			controls.length === 0 &&
 			!customizeView &&
-			!gatewayRow
+			!gatewayRow &&
+			!group.keepVisible
 		) {
 			return null;
 		}
@@ -400,7 +446,9 @@ export default function TemplateOptionsPanel({
 			/>
 		) : null;
 
-		const showBody = headerEnabled && (controls.length > 0 || !!gatewayRow);
+		const showBody =
+			headerEnabled &&
+			(controls.length > 0 || !!gatewayRow || !!group.keepVisible);
 
 		const orderRule =
 			group.sortable &&
@@ -436,6 +484,7 @@ export default function TemplateOptionsPanel({
 							items={sortableViews}
 							groupId={group.id}
 							orderRule={orderRule}
+							blocks={blocks}
 							disabled={commonDisabled}
 							onReorderElements={onReorderElements}
 							onChangeControl={onChangeControl}
@@ -467,7 +516,27 @@ export default function TemplateOptionsPanel({
 								: undefined;
 							let controlNode = null;
 
-							if (control.type === 'layout-picker') {
+							if (
+								control.type === 'gateway' &&
+								control.nestedPanel
+							) {
+								controlNode = (
+									<GatewayRow
+										title={control.label}
+										enabled={true}
+										data-test={`blockera-templates-builder-gateway-${control.nestedPanel.id}`}
+										onOpen={
+											onOpenNested
+												? () =>
+														onOpenNested(
+															control.nestedPanel!
+																.id
+														)
+												: undefined
+										}
+									/>
+								);
+							} else if (control.type === 'layout-picker') {
 								controlNode = (
 									<LayoutPicker
 										label={control.label}

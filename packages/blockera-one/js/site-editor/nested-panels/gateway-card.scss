@@ -260,6 +260,11 @@
 		.blockera-site-editor-gateway-row
 	) {
 	margin-top: -14px;
+
+	&.has-separator-before {
+		margin-top: -10px;
+		padding-top: 6px;
+	}
 }
 
 /*
