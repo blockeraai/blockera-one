@@ -38,13 +38,13 @@
 				"chromeLayout": "vertical-rail"
 			}
 		],
-		"page-title": [
+		"page-header": [
 			{
 				"id": "simple",
 				"label": "Simple",
 				"kind": "pattern",
-				"patternSlug": "blockera-one/builder-archive-page-title-simple",
-				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/page-title-default.svg",
+				"patternSlug": "blockera-one/builder-archive-page-header-simple",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/page-header-default.svg",
 				"placement": {
 					"relativeTo": "content",
 					"position": "inside-start"
@@ -54,36 +54,36 @@
 				"id": "banner",
 				"label": "Banner",
 				"kind": "pattern",
-				"patternSlug": "blockera-one/builder-archive-page-title-banner",
-				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/page-title-banner.svg",
+				"patternSlug": "blockera-one/builder-archive-page-header-banner",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/page-header-banner.svg",
 				"placement": {
 					"relativeTo": "archive-body",
 					"position": "inside-start"
 				}
 			}
 		],
-		"page-title-title": [
+		"page-header-title": [
 			{
 				"id": "default",
 				"label": "Title",
 				"kind": "pattern",
-				"patternSlug": "blockera-one/builder-archive-page-title-title"
+				"patternSlug": "blockera-one/builder-archive-page-header-title"
 			}
 		],
-		"page-title-description": [
+		"page-header-description": [
 			{
 				"id": "default",
 				"label": "Description",
 				"kind": "pattern",
-				"patternSlug": "blockera-one/builder-archive-page-title-description"
+				"patternSlug": "blockera-one/builder-archive-page-header-description"
 			}
 		],
-		"page-title-breadcrumbs": [
+		"page-header-breadcrumbs": [
 			{
 				"id": "default",
 				"label": "Breadcrumbs",
 				"kind": "pattern",
-				"patternSlug": "blockera-one/builder-archive-page-title-breadcrumbs"
+				"patternSlug": "blockera-one/builder-archive-page-header-breadcrumbs"
 			}
 		],
 		"posts-listing": [

@@ -34,12 +34,12 @@ const INLINE_CATALOG = {
 				area: 'footer',
 			},
 		],
-		'page-title': [
+		'page-header': [
 			{
 				id: 'default',
 				label: 'Default',
 				kind: 'pattern',
-				patternSlug: 'test/page-title-default',
+				patternSlug: 'test/page-header-default',
 			},
 		],
 		'posts-listing': [
@@ -56,28 +56,28 @@ const INLINE_CATALOG = {
 				patternSlug: 'test/listing-grid-2',
 			},
 		],
-		'page-title-title': [
+		'page-header-title': [
 			{
 				id: 'default',
 				label: 'Title',
 				kind: 'pattern',
-				patternSlug: 'test/page-title-title',
+				patternSlug: 'test/page-header-title',
 			},
 		],
-		'page-title-description': [
+		'page-header-description': [
 			{
 				id: 'default',
 				label: 'Description',
 				kind: 'pattern',
-				patternSlug: 'test/page-title-description',
+				patternSlug: 'test/page-header-description',
 			},
 		],
-		'page-title-breadcrumbs': [
+		'page-header-breadcrumbs': [
 			{
 				id: 'default',
 				label: 'Breadcrumbs',
 				kind: 'pattern',
-				patternSlug: 'test/page-title-breadcrumbs',
+				patternSlug: 'test/page-header-breadcrumbs',
 			},
 		],
 		pagination: [
@@ -239,7 +239,7 @@ describe('archive config structural invariants', () => {
 		);
 
 		expect(design.controls.map((c) => c.id)).toEqual([
-			'page-title-design',
+			'page-header-design',
 			'page-header-gap',
 			'page-header-bottom-spacing',
 			'page-header-align',
@@ -248,17 +248,17 @@ describe('archive config structural invariants', () => {
 			'page-header-min-height',
 			'page-header-padding',
 			'page-header-elements-width',
-			'page-title-customize',
+			'page-header-customize',
 		]);
 
 		const customize = design.controls.find(
-			(c) => c.id === 'page-title-customize'
+			(c) => c.id === 'page-header-customize'
 		);
 		expect(customize.type).toBe('button');
 		expect(customize.operation).toBe('selectInCanvas');
 		expect(customize.target).toEqual({
 			kind: 'section',
-			id: 'page-title',
+			id: 'page-header',
 		});
 
 		const alignBanner = design.controls.find(
@@ -272,9 +272,9 @@ describe('archive config structural invariants', () => {
 	});
 
 	it('gives title and description a Design nested panel without Settings', () => {
-		const title = controls.find((c) => c.id === 'page-title-title');
+		const title = controls.find((c) => c.id === 'page-header-title');
 		const description = controls.find(
-			(c) => c.id === 'page-title-description'
+			(c) => c.id === 'page-header-description'
 		);
 
 		expect(title.nestedPanel.id).toBe('page-header-title');
@@ -306,7 +306,7 @@ describe('archive config structural invariants', () => {
 
 	it('puts Style first in Design groups that change block style variation', () => {
 		const breadcrumbs = controls.find(
-			(c) => c.id === 'page-title-breadcrumbs'
+			(c) => c.id === 'page-header-breadcrumbs'
 		);
 		const design = breadcrumbs.nestedPanel.groups.find(
 			(g) => g.id === 'breadcrumbs-design'
@@ -370,11 +370,11 @@ describe('archive config structural invariants', () => {
 	});
 
 	it('locks page header elements with requireAtLeastOneOf', () => {
-		const title = controls.find((c) => c.id === 'page-title-title');
+		const title = controls.find((c) => c.id === 'page-header-title');
 		expect(title.requireAtLeastOneOf).toEqual([
-			'page-title-title',
-			'page-title-description',
-			'page-title-breadcrumbs',
+			'page-header-title',
+			'page-header-description',
+			'page-header-breadcrumbs',
 		]);
 	});
 });

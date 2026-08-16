@@ -148,7 +148,7 @@ describe('flattenPanelControls', () => {
 
 describe('control-level nestedPanel', () => {
 	const BREADCRUMB_TOGGLE = {
-		...control('page-title-breadcrumbs'),
+		...control('page-header-breadcrumbs'),
 		nestedPanel: {
 			id: 'page-header-breadcrumbs',
 			title: 'Breadcrumbs',
@@ -165,7 +165,7 @@ describe('control-level nestedPanel', () => {
 	const PAGE_HEADER = {
 		id: 'page-header',
 		title: 'Page Header',
-		controls: [control('page-title-design')],
+		controls: [control('page-header-design')],
 		nestedPanel: {
 			id: 'page-header-settings',
 			title: 'Page Header Settings',
@@ -227,8 +227,8 @@ describe('control-level nestedPanel', () => {
 		expect(
 			flattenPanelControls(PAGE_CONFIG.groups).map((c) => c.id)
 		).toEqual([
-			'page-title-design',
-			'page-title-breadcrumbs',
+			'page-header-design',
+			'page-header-breadcrumbs',
 			'breadcrumbs-position',
 		]);
 	});
@@ -370,7 +370,7 @@ describe('resolveNestedPanelScrollTarget', () => {
 		);
 	});
 
-	it('uses a group headerToggle for page-title / header / footer', () => {
+	it('uses a group headerToggle for page-header / header / footer', () => {
 		const chrome = {
 			type: 'archive',
 			filters: ['archive'],
@@ -390,7 +390,7 @@ describe('resolveNestedPanelScrollTarget', () => {
 				{
 					id: 'page-header',
 					title: 'Page Header',
-					headerToggle: control('page-title'),
+					headerToggle: control('page-header'),
 					controls: [],
 					nestedPanel: {
 						id: 'page-header-settings',
@@ -417,7 +417,7 @@ describe('resolveNestedPanelScrollTarget', () => {
 		);
 		expect(
 			resolveNestedPanelScrollTarget(chrome, ['page-header-settings'])
-		).toBe('page-title');
+		).toBe('page-header');
 		expect(resolveNestedPanelScrollTarget(chrome, ['site-footer'])).toBe(
 			'footer'
 		);
@@ -465,11 +465,11 @@ describe('resolveEnableScrollTarget', () => {
 
 	it('returns the section when invertPresence un-hides it', () => {
 		const hide = {
-			...control('page-title'),
+			...control('page-header'),
 			operation: 'toggleSection',
 			invertPresence: true,
 		};
-		expect(resolveEnableScrollTarget(hide, false)).toBe('page-title');
+		expect(resolveEnableScrollTarget(hide, false)).toBe('page-header');
 		expect(resolveEnableScrollTarget(hide, true)).toBeNull();
 	});
 
@@ -503,14 +503,14 @@ describe('resolveEnableScrollTarget', () => {
 		expect(
 			resolveEnableScrollTarget(
 				{
-					...control('page-title-design'),
+					...control('page-header-design'),
 					type: 'layout-picker',
 					operation: 'swapSection',
-					target: { kind: 'section', id: 'page-title' },
+					target: { kind: 'section', id: 'page-header' },
 				},
-				'page-title-stacked'
+				'page-header-stacked'
 			)
-		).toBe('page-title');
+		).toBe('page-header');
 	});
 
 	it('reveals a template-part design swap', () => {
@@ -531,14 +531,14 @@ describe('resolveEnableScrollTarget', () => {
 		expect(
 			resolveEnableScrollTarget(
 				{
-					...control('page-title-color'),
+					...control('page-header-color'),
 					type: 'color',
 					operation: 'setSectionAttribute',
-					target: { kind: 'section', id: 'page-title' },
+					target: { kind: 'section', id: 'page-header' },
 				},
 				'#111'
 			)
-		).toBe('page-title');
+		).toBe('page-header');
 	});
 
 	it('does not hunt a setting control without scrollTarget', () => {

@@ -14,7 +14,7 @@ describe('shouldEnterPatternEditOnTarget', () => {
 		expect(
 			shouldEnterPatternEditOnTarget({
 				blockName: 'core/group',
-				patternName: 'blockera-one/builder-archive-page-title-simple',
+				patternName: 'blockera-one/builder-archive-page-header-simple',
 			})
 		).toBe(true);
 	});
@@ -32,7 +32,7 @@ describe('shouldEnterPatternEditOnTarget', () => {
 		expect(
 			shouldEnterPatternEditOnTarget({
 				blockName: 'core/block',
-				patternName: 'blockera-one/builder-archive-page-title-simple',
+				patternName: 'blockera-one/builder-archive-page-header-simple',
 			})
 		).toBe(false);
 		expect(

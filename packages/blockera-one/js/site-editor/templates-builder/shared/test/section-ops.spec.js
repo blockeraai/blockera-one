@@ -42,9 +42,9 @@ const MARKUP = {
 			},
 		}),
 	],
-	'title-simple': [stamped('core/group', 'section/page-title:simple')],
+	'title-simple': [stamped('core/group', 'section/page-header:simple')],
 	'title-banner': [
-		stamped('core/group', 'section/page-title:banner', {
+		stamped('core/group', 'section/page-header:banner', {
 			blockeraFlexLayout: {
 				value: {
 					direction: 'column',
@@ -106,7 +106,7 @@ describe('swapSection', () => {
 			html: 'title-banner',
 		};
 		const tree = [
-			stamped('core/group', 'section/page-title:simple', {
+			stamped('core/group', 'section/page-header:simple', {
 				blockeraFlexLayout: {
 					value: {
 						direction: 'column',
@@ -119,7 +119,7 @@ describe('swapSection', () => {
 		const next = swapSection(
 			tree,
 			{
-				sectionId: 'page-title',
+				sectionId: 'page-header',
 				targetVariant: BANNER,
 				knownVariants: [{ id: 'simple', label: 'Simple' }, BANNER],
 			},
@@ -190,12 +190,12 @@ describe('swapSection', () => {
 	it('relocates the section when the target variant declares a placement', () => {
 		const tree = [
 			stamped('core/group', 'area/content', {}, []),
-			stamped('core/group', 'section/page-title:banner'),
+			stamped('core/group', 'section/page-header:banner'),
 		];
 		const next = swapSection(
 			tree,
 			{
-				sectionId: 'page-title',
+				sectionId: 'page-header',
 				targetVariant: {
 					id: 'simple',
 					label: 'Simple',
@@ -211,7 +211,7 @@ describe('swapSection', () => {
 
 		expect(next).toHaveLength(1);
 		expect(getAtPath(next, [0, 0]).attributes.metadata.blockeraOne).toBe(
-			'section/page-title:simple'
+			'section/page-header:simple'
 		);
 	});
 
@@ -436,14 +436,14 @@ describe('setSectionBlockStyle', () => {
 		const tree = [
 			stamped(
 				'core/breadcrumbs',
-				'section/page-title-breadcrumbs:default',
+				'section/page-header-breadcrumbs:default',
 				{
 					className: 'blockera-block blockera-block-abc',
 				}
 			),
 		];
 		const next = setSectionBlockStyle(tree, {
-			sectionId: 'page-title-breadcrumbs',
+			sectionId: 'page-header-breadcrumbs',
 			styleName: 'underline',
 		});
 		expect(next[0].attributes.className).toBe(
@@ -458,21 +458,21 @@ describe('setSectionBlockStyle', () => {
 		const tree = [block('core/paragraph')];
 		expect(
 			setSectionBlockStyle(tree, {
-				sectionId: 'page-title-breadcrumbs',
+				sectionId: 'page-header-breadcrumbs',
 				styleName: 'default',
 			})
 		).toBe(tree);
 	});
 });
 
-const PAGE_TITLE_INNER = {
-	title: 'page-title-title',
-	description: 'page-title-description',
-	breadcrumbs: 'page-title-breadcrumbs',
+const PAGE_HEADER_INNER = {
+	title: 'page-header-title',
+	description: 'page-header-description',
+	breadcrumbs: 'page-header-breadcrumbs',
 };
 
 function pageHeader(inner) {
-	return [stamped('core/group', 'section/page-title:default', {}, inner)];
+	return [stamped('core/group', 'section/page-header:default', {}, inner)];
 }
 
 describe('placeSection', () => {
@@ -480,28 +480,28 @@ describe('placeSection', () => {
 		const tree = pageHeader([
 			stamped(
 				'core/query-title',
-				`section/${PAGE_TITLE_INNER.title}:default`
+				`section/${PAGE_HEADER_INNER.title}:default`
 			),
 			stamped(
 				'core/term-description',
-				`section/${PAGE_TITLE_INNER.description}:default`
+				`section/${PAGE_HEADER_INNER.description}:default`
 			),
 			stamped(
 				'core/breadcrumbs',
-				`section/${PAGE_TITLE_INNER.breadcrumbs}:default`
+				`section/${PAGE_HEADER_INNER.breadcrumbs}:default`
 			),
 		]);
 
 		const top = placeSection(tree, {
-			sectionId: PAGE_TITLE_INNER.breadcrumbs,
-			placement: { relativeTo: 'page-title', position: 'inside-start' },
+			sectionId: PAGE_HEADER_INNER.breadcrumbs,
+			placement: { relativeTo: 'page-header', position: 'inside-start' },
 		});
 		expect(getAtPath(top, [0, 0]).name).toBe('core/breadcrumbs');
 		expect(getAtPath(top, [0, 2]).name).toBe('core/term-description');
 
 		const bottom = placeSection(top, {
-			sectionId: PAGE_TITLE_INNER.breadcrumbs,
-			placement: { relativeTo: 'page-title', position: 'inside-end' },
+			sectionId: PAGE_HEADER_INNER.breadcrumbs,
+			placement: { relativeTo: 'page-header', position: 'inside-end' },
 		});
 		expect(getAtPath(bottom, [0, 2]).name).toBe('core/breadcrumbs');
 	});
@@ -510,8 +510,11 @@ describe('placeSection', () => {
 		const tree = pageHeader([]);
 		expect(
 			placeSection(tree, {
-				sectionId: PAGE_TITLE_INNER.breadcrumbs,
-				placement: { relativeTo: 'page-title', position: 'inside-end' },
+				sectionId: PAGE_HEADER_INNER.breadcrumbs,
+				placement: {
+					relativeTo: 'page-header',
+					position: 'inside-end',
+				},
 			})
 		).toBe(tree);
 	});
@@ -523,23 +526,23 @@ describe('orderInnerSections', () => {
 		const tree = pageHeader([
 			stamped(
 				'core/breadcrumbs',
-				`section/${PAGE_TITLE_INNER.breadcrumbs}:default`
+				`section/${PAGE_HEADER_INNER.breadcrumbs}:default`
 			),
 			extra,
 			stamped(
 				'core/term-description',
-				`section/${PAGE_TITLE_INNER.description}:default`
+				`section/${PAGE_HEADER_INNER.description}:default`
 			),
 			stamped(
 				'core/query-title',
-				`section/${PAGE_TITLE_INNER.title}:default`
+				`section/${PAGE_HEADER_INNER.title}:default`
 			),
 		]);
 
-		const next = orderInnerSections(tree, 'page-title', [
-			PAGE_TITLE_INNER.title,
-			PAGE_TITLE_INNER.description,
-			PAGE_TITLE_INNER.breadcrumbs,
+		const next = orderInnerSections(tree, 'page-header', [
+			PAGE_HEADER_INNER.title,
+			PAGE_HEADER_INNER.description,
+			PAGE_HEADER_INNER.breadcrumbs,
 		]);
 		const names = getAtPath(next, [0]).innerBlocks.map((b) => b.name);
 		expect(names).toEqual([
@@ -556,26 +559,26 @@ describe('toggleSection inner insert + banner align', () => {
 		MARKUP['title-block'] = [
 			stamped(
 				'core/query-title',
-				`section/${PAGE_TITLE_INNER.title}:default`
+				`section/${PAGE_HEADER_INNER.title}:default`
 			),
 		];
 	});
 
 	it('centers inserted blocks when the parent variant is banner', () => {
 		const tree = [
-			stamped('core/group', 'section/page-title:banner', {}, []),
+			stamped('core/group', 'section/page-header:banner', {}, []),
 		];
 		const next = toggleSection(
 			tree,
 			{
-				sectionId: PAGE_TITLE_INNER.title,
+				sectionId: PAGE_HEADER_INNER.title,
 				enabled: true,
 				defaultVariant: {
 					id: 'default',
 					label: 'Title',
 					html: 'title-block',
 				},
-				insert: { relativeTo: 'page-title', position: 'inside-start' },
+				insert: { relativeTo: 'page-header', position: 'inside-start' },
 			},
 			ctx
 		);

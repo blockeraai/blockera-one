@@ -355,9 +355,9 @@ describe('insertAtPlacement', () => {
 describe('replaceSectionAtPath', () => {
 	const tree = [
 		stamped('core/group', 'area/content', []),
-		stamped('core/group', 'section/page-title:banner', []),
+		stamped('core/group', 'section/page-header:banner', []),
 	];
-	const replacement = [stamped('core/group', 'section/page-title:simple')];
+	const replacement = [stamped('core/group', 'section/page-header:simple')];
 
 	it('relocates to the placement anchor (old node removed first)', () => {
 		const result = replaceSectionAtPath(
@@ -369,7 +369,7 @@ describe('replaceSectionAtPath', () => {
 
 		expect(result).toHaveLength(1);
 		expect(getAtPath(result, [0, 0]).attributes.metadata.blockeraOne).toBe(
-			'section/page-title:simple'
+			'section/page-header:simple'
 		);
 	});
 
@@ -383,14 +383,14 @@ describe('replaceSectionAtPath', () => {
 
 		expect(result).toHaveLength(2);
 		expect(result[1].attributes.metadata.blockeraOne).toBe(
-			'section/page-title:simple'
+			'section/page-header:simple'
 		);
 	});
 
 	it('replaces in place without a placement', () => {
 		const result = replaceSectionAtPath(tree, [1], undefined, replacement);
 		expect(result[1].attributes.metadata.blockeraOne).toBe(
-			'section/page-title:simple'
+			'section/page-header:simple'
 		);
 	});
 });

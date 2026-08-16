@@ -167,7 +167,7 @@ describe('resolveConfigVariantsHtml', () => {
 		const position = {
 			id: 'top',
 			label: 'Top',
-			placement: { relativeTo: 'page-title', position: 'inside-start' },
+			placement: { relativeTo: 'page-header', position: 'inside-start' },
 		};
 		const config = {
 			type: 'archive',
@@ -184,7 +184,7 @@ describe('resolveConfigVariantsHtml', () => {
 							label: 'Position',
 							target: {
 								kind: 'section',
-								id: 'page-title-breadcrumbs',
+								id: 'page-header-breadcrumbs',
 							},
 							operation: 'placeSection',
 							variants: [position],

@@ -14,11 +14,11 @@ import {
 } from '../element-order';
 
 const RULE = {
-	parentId: 'page-title',
+	parentId: 'page-header',
 	ids: [
-		'page-title-title',
-		'page-title-description',
-		'page-title-breadcrumbs',
+		'page-header-title',
+		'page-header-description',
+		'page-header-breadcrumbs',
 	],
 };
 
@@ -42,7 +42,7 @@ function header(children, extraMeta = {}) {
 	return [
 		stamped(
 			'core/group',
-			'section/page-title:default',
+			'section/page-header:default',
 			{ metadata: extraMeta },
 			children
 		),
@@ -52,16 +52,16 @@ function header(children, extraMeta = {}) {
 describe('resolveElementOrder', () => {
 	it('reads live child stamps and appends missing config ids', () => {
 		const blocks = header([
-			stamped('core/query-title', 'section/page-title-title:default'),
+			stamped('core/query-title', 'section/page-header-title:default'),
 			stamped(
 				'core/term-description',
-				'section/page-title-description:default'
+				'section/page-header-description:default'
 			),
 		]);
 		expect(resolveElementOrder(blocks, RULE)).toEqual([
-			'page-title-title',
-			'page-title-description',
-			'page-title-breadcrumbs',
+			'page-header-title',
+			'page-header-description',
+			'page-header-breadcrumbs',
 		]);
 	});
 
@@ -69,42 +69,45 @@ describe('resolveElementOrder', () => {
 		const blocks = header([
 			stamped(
 				'core/breadcrumbs',
-				'section/page-title-breadcrumbs:default'
+				'section/page-header-breadcrumbs:default'
 			),
-			stamped('core/query-title', 'section/page-title-title:default'),
+			stamped('core/query-title', 'section/page-header-title:default'),
 			stamped(
 				'core/term-description',
-				'section/page-title-description:default'
+				'section/page-header-description:default'
 			),
 		]);
 		expect(resolveElementOrder(blocks, RULE)).toEqual([
-			'page-title-breadcrumbs',
-			'page-title-title',
-			'page-title-description',
+			'page-header-breadcrumbs',
+			'page-header-title',
+			'page-header-description',
 		]);
 	});
 
 	it('prefers stored metadata over the live child order', () => {
 		const blocks = header(
 			[
-				stamped('core/query-title', 'section/page-title-title:default'),
+				stamped(
+					'core/query-title',
+					'section/page-header-title:default'
+				),
 				stamped(
 					'core/term-description',
-					'section/page-title-description:default'
+					'section/page-header-description:default'
 				),
 			],
 			{
 				[INNER_ORDER_META_KEY]: [
-					'page-title-breadcrumbs',
-					'page-title-title',
-					'page-title-description',
+					'page-header-breadcrumbs',
+					'page-header-title',
+					'page-header-description',
 				],
 			}
 		);
 		expect(resolveElementOrder(blocks, RULE)).toEqual([
-			'page-title-breadcrumbs',
-			'page-title-title',
-			'page-title-description',
+			'page-header-breadcrumbs',
+			'page-header-title',
+			'page-header-description',
 		]);
 	});
 
@@ -117,13 +120,13 @@ describe('normalizeElementOrder', () => {
 	it('dedupes, drops unknown ids, and appends missing config ids', () => {
 		expect(
 			normalizeElementOrder(
-				['page-title-breadcrumbs', 'page-title-breadcrumbs', 'nope'],
+				['page-header-breadcrumbs', 'page-header-breadcrumbs', 'nope'],
 				RULE.ids
 			)
 		).toEqual([
-			'page-title-breadcrumbs',
-			'page-title-title',
-			'page-title-description',
+			'page-header-breadcrumbs',
+			'page-header-title',
+			'page-header-description',
 		]);
 	});
 });
@@ -131,27 +134,27 @@ describe('normalizeElementOrder', () => {
 describe('persistElementOrder / clearStoredElementOrder', () => {
 	it('writes and clears metadata.blockeraOneInnerOrder on the parent', () => {
 		const blocks = header([
-			stamped('core/query-title', 'section/page-title-title:default'),
+			stamped('core/query-title', 'section/page-header-title:default'),
 		]);
 		const ordered = [
-			'page-title-description',
-			'page-title-title',
-			'page-title-breadcrumbs',
+			'page-header-description',
+			'page-header-title',
+			'page-header-breadcrumbs',
 		];
-		const persisted = persistElementOrder(blocks, 'page-title', ordered);
+		const persisted = persistElementOrder(blocks, 'page-header', ordered);
 		expect(persisted[0].attributes.metadata[INNER_ORDER_META_KEY]).toEqual(
 			ordered
 		);
 		expect(resolveElementOrder(persisted, RULE)).toEqual(ordered);
 
-		const cleared = clearStoredElementOrder(persisted, 'page-title');
+		const cleared = clearStoredElementOrder(persisted, 'page-header');
 		expect(
 			cleared[0].attributes.metadata[INNER_ORDER_META_KEY]
 		).toBeUndefined();
 		expect(resolveElementOrder(cleared, RULE)).toEqual([
-			'page-title-title',
-			'page-title-description',
-			'page-title-breadcrumbs',
+			'page-header-title',
+			'page-header-description',
+			'page-header-breadcrumbs',
 		]);
 	});
 });
@@ -165,10 +168,10 @@ describe('group helpers', () => {
 				sortable: true,
 				controls: [
 					{
-						id: 'page-title-title',
+						id: 'page-header-title',
 						type: 'toggle',
 						label: 'Title',
-						target: { kind: 'section', id: 'page-title-title' },
+						target: { kind: 'section', id: 'page-header-title' },
 						operation: 'toggleSection',
 						innerOrder: RULE,
 						nestedPanel: {
@@ -185,10 +188,10 @@ describe('group helpers', () => {
 	it('detects toggle + nestedPanel + innerOrder rows', () => {
 		expect(
 			isSortableElementControl({
-				id: 'page-title-title',
+				id: 'page-header-title',
 				type: 'toggle',
 				label: 'Title',
-				target: { kind: 'section', id: 'page-title-title' },
+				target: { kind: 'section', id: 'page-header-title' },
 				operation: 'toggleSection',
 				innerOrder: RULE,
 				nestedPanel: { id: 'title', title: 'Title', groups: [] },
@@ -199,7 +202,7 @@ describe('group helpers', () => {
 				id: 'page-header-gap',
 				type: 'input',
 				label: 'Gap',
-				target: { kind: 'section', id: 'page-title' },
+				target: { kind: 'section', id: 'page-header' },
 				operation: 'setSectionAttribute',
 			})
 		).toBe(false);

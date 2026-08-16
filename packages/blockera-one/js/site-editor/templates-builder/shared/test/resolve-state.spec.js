@@ -20,7 +20,7 @@ const LAYOUT_ID = 'archive-body';
 beforeAll(() => {
 	registerSectionHeuristics({
 		'posts-listing': { kind: 'blockName', name: 'core/query' },
-		'page-title': { kind: 'groupWrapping', childName: 'core/query-title' },
+		'page-header': { kind: 'groupWrapping', childName: 'core/query-title' },
 		header: { kind: 'templatePart', area: 'header' },
 		footer: { kind: 'templatePart', slugPrefix: 'footer' },
 		sidebar: { kind: 'templatePart', slugIncludes: 'sidebar' },
@@ -195,15 +195,15 @@ describe('resolveSectionState', () => {
 	});
 
 	it('falls back to "default" when a stamp has no variant', () => {
-		const tree = [stamped('core/group', 'section/page-title')];
-		const state = resolveSectionState(tree, 'page-title');
+		const tree = [stamped('core/group', 'section/page-header')];
+		const state = resolveSectionState(tree, 'page-header');
 		expect(state.kind).toBe('value');
 		expect(state.value).toBe('default');
 	});
 
 	it('aliases a leftover default stamp to simple when the catalog dropped default', () => {
-		const tree = [stamped('core/group', 'section/page-title:default')];
-		const state = resolveSectionState(tree, 'page-title', [
+		const tree = [stamped('core/group', 'section/page-header:default')];
+		const state = resolveSectionState(tree, 'page-header', [
 			{ id: 'simple', label: 'Simple' },
 			{ id: 'banner', label: 'Banner' },
 		]);
@@ -244,7 +244,7 @@ describe('resolveSectionState', () => {
 				]),
 			]),
 		];
-		const state = resolveSectionState(tree, 'page-title');
+		const state = resolveSectionState(tree, 'page-header');
 		expect(state.kind).toBe('customized');
 		expect(state.path).toEqual([0, 0]);
 
@@ -257,7 +257,7 @@ describe('resolveSectionState', () => {
 				]),
 			]),
 		];
-		expect(resolveSectionState(bare, 'page-title').kind).toBe('missing');
+		expect(resolveSectionState(bare, 'page-header').kind).toBe('missing');
 	});
 
 	it('groupWrapping skips a container/elements stack and binds the outer group', () => {
@@ -270,7 +270,7 @@ describe('resolveSectionState', () => {
 				]),
 			]),
 		];
-		const state = resolveSectionState(tree, 'page-title');
+		const state = resolveSectionState(tree, 'page-header');
 		expect(state.kind).toBe('customized');
 		expect(state.path).toEqual([0, 0]);
 	});
@@ -307,31 +307,31 @@ describe('resolveSectionState', () => {
 
 	it('innerBlock matches a named child of the parent section only', () => {
 		registerSectionHeuristics({
-			'page-title-title': {
+			'page-header-title': {
 				kind: 'innerBlock',
-				parentId: 'page-title',
+				parentId: 'page-header',
 				name: 'core/query-title',
 			},
-			'page-title-breadcrumbs': {
+			'page-header-breadcrumbs': {
 				kind: 'innerBlock',
-				parentId: 'page-title',
+				parentId: 'page-header',
 				name: 'core/breadcrumbs',
 			},
 		});
 
 		const tree = [
-			stamped('core/group', 'section/page-title:default', {}, [
+			stamped('core/group', 'section/page-header:default', {}, [
 				block('core/query-title'),
 				block('core/term-description'),
 			]),
 			block('core/query-title'),
 		];
 
-		const title = resolveSectionState(tree, 'page-title-title');
+		const title = resolveSectionState(tree, 'page-header-title');
 		expect(title.kind).toBe('customized');
 		expect(title.path).toEqual([0, 0]);
 
-		expect(resolveSectionState(tree, 'page-title-breadcrumbs').kind).toBe(
+		expect(resolveSectionState(tree, 'page-header-breadcrumbs').kind).toBe(
 			'missing'
 		);
 	});

@@ -444,8 +444,8 @@ describe('swapSection', () => {
 	});
 
 	it('does not carry previous blockera* attrs onto the new pattern by default', () => {
-		__setMarkup('page-title-banner', [
-			stamped('core/group', 'section/page-title:banner', {
+		__setMarkup('page-header-banner', [
+			stamped('core/group', 'section/page-header:banner', {
 				blockeraFlexLayout: {
 					value: {
 						direction: 'column',
@@ -456,7 +456,7 @@ describe('swapSection', () => {
 			}),
 		]);
 		const blocks = [
-			stamped('core/group', 'section/page-title:simple', {
+			stamped('core/group', 'section/page-header:simple', {
 				blockeraFlexLayout: {
 					value: {
 						direction: 'column',
@@ -468,14 +468,14 @@ describe('swapSection', () => {
 			}),
 		];
 		const design = {
-			id: 'page-title-design',
+			id: 'page-header-design',
 			type: 'layout-picker',
 			label: 'Header Design',
-			target: { kind: 'section', id: 'page-title' },
+			target: { kind: 'section', id: 'page-header' },
 			operation: 'swapSection',
 			variants: [
-				{ id: 'simple', label: 'Simple', html: 'page-title-simple' },
-				{ id: 'banner', label: 'Banner', html: 'page-title-banner' },
+				{ id: 'simple', label: 'Simple', html: 'page-header-simple' },
+				{ id: 'banner', label: 'Banner', html: 'page-header-banner' },
 			],
 		};
 		const config = {
@@ -493,7 +493,7 @@ describe('swapSection', () => {
 
 		const result = apply(design, 'banner', { blocks, config });
 		expect(
-			findStamp(result.blocks, 'page-title').block.attributes
+			findStamp(result.blocks, 'page-header').block.attributes
 				.blockeraFlexLayout
 		).toEqual({
 			value: {
@@ -503,7 +503,7 @@ describe('swapSection', () => {
 			},
 		});
 		expect(
-			findStamp(result.blocks, 'page-title').block.attributes
+			findStamp(result.blocks, 'page-header').block.attributes
 				.blockeraFontColor
 		).toBeUndefined();
 	});
@@ -558,39 +558,39 @@ describe('toggleSection', () => {
 	});
 
 	it('appends a restored title after present children when no stored order exists', () => {
-		__setMarkup('page-title-title', [
-			stamped('core/query-title', 'section/page-title-title:default'),
+		__setMarkup('page-header-title', [
+			stamped('core/query-title', 'section/page-header-title:default'),
 		]);
 		const innerOrder = {
-			parentId: 'page-title',
+			parentId: 'page-header',
 			ids: [
-				'page-title-title',
-				'page-title-description',
-				'page-title-breadcrumbs',
+				'page-header-title',
+				'page-header-description',
+				'page-header-breadcrumbs',
 			],
 		};
 		const blocks = [
-			stamped('core/group', 'section/page-title:default', {}, [
+			stamped('core/group', 'section/page-header:default', {}, [
 				stamped(
 					'core/breadcrumbs',
-					'section/page-title-breadcrumbs:default'
+					'section/page-header-breadcrumbs:default'
 				),
 				stamped(
 					'core/term-description',
-					'section/page-title-description:default'
+					'section/page-header-description:default'
 				),
 			]),
 		];
 		const control = {
-			id: 'page-title-title',
+			id: 'page-header-title',
 			type: 'toggle',
 			label: 'Title',
-			target: { kind: 'section', id: 'page-title-title' },
+			target: { kind: 'section', id: 'page-header-title' },
 			operation: 'toggleSection',
 			variants: [
-				{ id: 'default', label: 'Title', html: 'page-title-title' },
+				{ id: 'default', label: 'Title', html: 'page-header-title' },
 			],
-			insert: { relativeTo: 'page-title', position: 'inside-start' },
+			insert: { relativeTo: 'page-header', position: 'inside-start' },
 			innerOrder,
 		};
 
@@ -604,32 +604,35 @@ describe('toggleSection', () => {
 
 	it('persists pre-toggle order so a hidden title keeps its list slot', () => {
 		const innerOrder = {
-			parentId: 'page-title',
+			parentId: 'page-header',
 			ids: [
-				'page-title-title',
-				'page-title-description',
-				'page-title-breadcrumbs',
+				'page-header-title',
+				'page-header-description',
+				'page-header-breadcrumbs',
 			],
 		};
 		const blocks = [
-			stamped('core/group', 'section/page-title:default', {}, [
-				stamped('core/query-title', 'section/page-title-title:default'),
+			stamped('core/group', 'section/page-header:default', {}, [
+				stamped(
+					'core/query-title',
+					'section/page-header-title:default'
+				),
 				stamped(
 					'core/term-description',
-					'section/page-title-description:default'
+					'section/page-header-description:default'
 				),
 			]),
 		];
 		const control = {
-			id: 'page-title-title',
+			id: 'page-header-title',
 			type: 'toggle',
 			label: 'Title',
-			target: { kind: 'section', id: 'page-title-title' },
+			target: { kind: 'section', id: 'page-header-title' },
 			operation: 'toggleSection',
 			variants: [
-				{ id: 'default', label: 'Title', html: 'page-title-title' },
+				{ id: 'default', label: 'Title', html: 'page-header-title' },
 			],
-			insert: { relativeTo: 'page-title', position: 'inside-start' },
+			insert: { relativeTo: 'page-header', position: 'inside-start' },
 			innerOrder,
 		};
 
@@ -640,60 +643,60 @@ describe('toggleSection', () => {
 		expect(
 			result.blocks[0].attributes.metadata[INNER_ORDER_META_KEY]
 		).toEqual([
-			'page-title-title',
-			'page-title-description',
-			'page-title-breadcrumbs',
+			'page-header-title',
+			'page-header-description',
+			'page-header-breadcrumbs',
 		]);
 	});
 
 	it('restores a toggled-on title at its stored list slot', () => {
-		__setMarkup('page-title-title', [
-			stamped('core/query-title', 'section/page-title-title:default'),
+		__setMarkup('page-header-title', [
+			stamped('core/query-title', 'section/page-header-title:default'),
 		]);
 		const innerOrder = {
-			parentId: 'page-title',
+			parentId: 'page-header',
 			ids: [
-				'page-title-title',
-				'page-title-description',
-				'page-title-breadcrumbs',
+				'page-header-title',
+				'page-header-description',
+				'page-header-breadcrumbs',
 			],
 		};
 		const blocks = [
 			stamped(
 				'core/group',
-				'section/page-title:default',
+				'section/page-header:default',
 				{
 					metadata: {
-						blockeraOne: 'section/page-title:default',
+						blockeraOne: 'section/page-header:default',
 						[INNER_ORDER_META_KEY]: [
-							'page-title-breadcrumbs',
-							'page-title-title',
-							'page-title-description',
+							'page-header-breadcrumbs',
+							'page-header-title',
+							'page-header-description',
 						],
 					},
 				},
 				[
 					stamped(
 						'core/breadcrumbs',
-						'section/page-title-breadcrumbs:default'
+						'section/page-header-breadcrumbs:default'
 					),
 					stamped(
 						'core/term-description',
-						'section/page-title-description:default'
+						'section/page-header-description:default'
 					),
 				]
 			),
 		];
 		const control = {
-			id: 'page-title-title',
+			id: 'page-header-title',
 			type: 'toggle',
 			label: 'Title',
-			target: { kind: 'section', id: 'page-title-title' },
+			target: { kind: 'section', id: 'page-header-title' },
 			operation: 'toggleSection',
 			variants: [
-				{ id: 'default', label: 'Title', html: 'page-title-title' },
+				{ id: 'default', label: 'Title', html: 'page-header-title' },
 			],
-			insert: { relativeTo: 'page-title', position: 'inside-start' },
+			insert: { relativeTo: 'page-header', position: 'inside-start' },
 			innerOrder,
 		};
 
@@ -709,27 +712,30 @@ describe('toggleSection', () => {
 describe('reorderInnerSections', () => {
 	it('writes stored order and reorders present children', () => {
 		const innerOrder = {
-			parentId: 'page-title',
+			parentId: 'page-header',
 			ids: [
-				'page-title-title',
-				'page-title-description',
-				'page-title-breadcrumbs',
+				'page-header-title',
+				'page-header-description',
+				'page-header-breadcrumbs',
 			],
 		};
 		const blocks = [
-			stamped('core/group', 'section/page-title:default', {}, [
-				stamped('core/query-title', 'section/page-title-title:default'),
+			stamped('core/group', 'section/page-header:default', {}, [
+				stamped(
+					'core/query-title',
+					'section/page-header-title:default'
+				),
 				stamped(
 					'core/term-description',
-					'section/page-title-description:default'
+					'section/page-header-description:default'
 				),
 			]),
 		];
 		const control = {
-			id: 'reorder-page-title',
+			id: 'reorder-page-header',
 			type: 'button',
 			label: '',
-			target: { kind: 'section', id: 'page-title' },
+			target: { kind: 'section', id: 'page-header' },
 			operation: 'reorderInnerSections',
 			innerOrder,
 		};
@@ -737,18 +743,18 @@ describe('reorderInnerSections', () => {
 		const result = apply(
 			control,
 			[
-				'page-title-breadcrumbs',
-				'page-title-description',
-				'page-title-title',
+				'page-header-breadcrumbs',
+				'page-header-description',
+				'page-header-title',
 			],
 			{ blocks }
 		);
 		expect(
 			result.blocks[0].attributes.metadata[INNER_ORDER_META_KEY]
 		).toEqual([
-			'page-title-breadcrumbs',
-			'page-title-description',
-			'page-title-title',
+			'page-header-breadcrumbs',
+			'page-header-description',
+			'page-header-title',
 		]);
 		expect(result.blocks[0].innerBlocks.map((b) => b.name)).toEqual([
 			'core/term-description',
@@ -771,18 +777,20 @@ describe('setSectionAttribute', () => {
 			columns: '',
 			rows: '',
 		};
-		const blocks = [stamped('core/group', 'section/page-title:simple', {})];
+		const blocks = [
+			stamped('core/group', 'section/page-header:simple', {}),
+		];
 		const control = {
 			id: 'page-header-gap',
 			type: 'input',
 			label: 'Items Spacing',
-			target: { kind: 'section', id: 'page-title' },
+			target: { kind: 'section', id: 'page-header' },
 			operation: 'setSectionAttribute',
 			attributePath: 'blockeraGap.value',
 		};
 		const result = apply(control, gapValue, { blocks });
 		expect(
-			findStamp(result.blocks, 'page-title').block.attributes.blockeraGap
+			findStamp(result.blocks, 'page-header').block.attributes.blockeraGap
 				.value
 		).toEqual(gapValue);
 	});
@@ -795,7 +803,7 @@ describe('setSectionAttribute', () => {
 			rows: '',
 		};
 		const blocks = [
-			stamped('core/group', 'section/page-title:simple', {}, [
+			stamped('core/group', 'section/page-header:simple', {}, [
 				stamped('core/group', 'container/elements', {}),
 			]),
 		];
@@ -803,14 +811,14 @@ describe('setSectionAttribute', () => {
 			id: 'page-header-gap',
 			type: 'input',
 			label: 'Items Spacing',
-			target: { kind: 'section', id: 'page-title' },
+			target: { kind: 'section', id: 'page-header' },
 			alsoSetOn: ['elements'],
 			operation: 'setSectionAttribute',
 			attributePath: 'blockeraGap.value',
 		};
 		const result = apply(control, gapValue, { blocks });
 		expect(
-			findStamp(result.blocks, 'page-title').block.attributes.blockeraGap
+			findStamp(result.blocks, 'page-header').block.attributes.blockeraGap
 				.value
 		).toEqual(gapValue);
 		expect(
@@ -826,19 +834,21 @@ describe('setSectionAttribute', () => {
 			columns: '',
 			rows: '',
 		};
-		const blocks = [stamped('core/group', 'section/page-title:simple', {})];
+		const blocks = [
+			stamped('core/group', 'section/page-header:simple', {}),
+		];
 		const control = {
 			id: 'page-header-gap',
 			type: 'input',
 			label: 'Items Spacing',
-			target: { kind: 'section', id: 'page-title' },
+			target: { kind: 'section', id: 'page-header' },
 			alsoSetOn: ['elements'],
 			operation: 'setSectionAttribute',
 			attributePath: 'blockeraGap.value',
 		};
 		const result = apply(control, gapValue, { blocks });
 		expect(
-			findStamp(result.blocks, 'page-title').block.attributes.blockeraGap
+			findStamp(result.blocks, 'page-header').block.attributes.blockeraGap
 				.value
 		).toEqual(gapValue);
 		expect(findStamp(result.blocks, 'elements')).toBeNull();
@@ -846,7 +856,7 @@ describe('setSectionAttribute', () => {
 
 	it('merges spacing sides into the current object without wiping siblings', () => {
 		const blocks = [
-			stamped('core/group', 'section/page-title:simple', {
+			stamped('core/group', 'section/page-header:simple', {
 				blockeraSpacing: {
 					value: {
 						padding: {
@@ -869,14 +879,14 @@ describe('setSectionAttribute', () => {
 			id: 'page-header-padding',
 			type: 'input',
 			label: 'Container Padding',
-			target: { kind: 'section', id: 'page-title' },
+			target: { kind: 'section', id: 'page-header' },
 			operation: 'setSectionAttribute',
 			attributePath: 'blockeraSpacing.value',
 			attributeMergeKeys: ['padding.top', 'padding.bottom'],
 		};
 		const result = apply(control, '80px', { blocks });
 		expect(
-			findStamp(result.blocks, 'page-title').block.attributes
+			findStamp(result.blocks, 'page-header').block.attributes
 				.blockeraSpacing.value
 		).toEqual({
 			padding: {
@@ -901,7 +911,7 @@ describe('setSectionAttribute', () => {
 			justifyContent: 'flex-end',
 		};
 		const blocks = [
-			stamped('core/group', 'section/page-title:simple', {}, [
+			stamped('core/group', 'section/page-header:simple', {}, [
 				stamped('core/group', 'container/elements', {}),
 			]),
 		];
@@ -909,14 +919,14 @@ describe('setSectionAttribute', () => {
 			id: 'page-header-align',
 			type: 'layout-matrix',
 			label: 'Items alignment',
-			target: { kind: 'section', id: 'page-title' },
+			target: { kind: 'section', id: 'page-header' },
 			alsoSetOn: ['elements'],
 			operation: 'setSectionAttribute',
 			attributePath: 'blockeraFlexLayout.value',
 		};
 		const result = apply(control, layout, { blocks });
 		expect(
-			findStamp(result.blocks, 'page-title').block.attributes
+			findStamp(result.blocks, 'page-header').block.attributes
 				.blockeraFlexLayout.value
 		).toEqual(layout);
 		expect(
@@ -939,7 +949,7 @@ describe('setSectionAttribute', () => {
 		const blocks = [
 			stamped(
 				'core/group',
-				'section/page-title:banner',
+				'section/page-header:banner',
 				{ blockeraFlexLayout: { value: sectionLayout } },
 				[stamped('core/group', 'container/elements', {})]
 			),
@@ -958,7 +968,7 @@ describe('setSectionAttribute', () => {
 				.blockeraFlexLayout.value
 		).toEqual(layout);
 		expect(
-			findStamp(result.blocks, 'page-title').block.attributes
+			findStamp(result.blocks, 'page-header').block.attributes
 				.blockeraFlexLayout.value
 		).toEqual(sectionLayout);
 	});
@@ -999,7 +1009,7 @@ describe('setSectionAttribute', () => {
 		const blocks = [
 			stamped(
 				'core/breadcrumbs',
-				'section/page-title-breadcrumbs:default',
+				'section/page-header-breadcrumbs:default',
 				{ className: 'is-style-underline' }
 			),
 		];
@@ -1007,12 +1017,12 @@ describe('setSectionAttribute', () => {
 			id: 'breadcrumbs-gap',
 			type: 'input',
 			label: 'Gap',
-			target: { kind: 'section', id: 'page-title-breadcrumbs' },
+			target: { kind: 'section', id: 'page-header-breadcrumbs' },
 			operation: 'setSectionAttribute',
 			attributePath: 'blockeraGap.value',
 		};
 		const result = apply(control, gapValue, { blocks });
-		const attrs = findStamp(result.blocks, 'page-title-breadcrumbs').block
+		const attrs = findStamp(result.blocks, 'page-header-breadcrumbs').block
 			.attributes;
 		expect(attrs.blockeraGap.value).toEqual(gapValue);
 		expect(attrs.blockeraPropsId).toBeTruthy();
@@ -1028,14 +1038,14 @@ describe('setSectionAttribute', () => {
 		const blocks = [
 			stamped(
 				'core/breadcrumbs',
-				'section/page-title-breadcrumbs:default'
+				'section/page-header-breadcrumbs:default'
 			),
 		];
 		const color = {
 			id: 'breadcrumbs-color',
 			type: 'color',
 			label: 'Text Color',
-			target: { kind: 'section', id: 'page-title-breadcrumbs' },
+			target: { kind: 'section', id: 'page-header-breadcrumbs' },
 			operation: 'setSectionAttribute',
 			attributePath: 'blockeraFontColor.value',
 		};
@@ -1043,27 +1053,29 @@ describe('setSectionAttribute', () => {
 			id: 'breadcrumbs-font-size',
 			type: 'input',
 			label: 'Font Size',
-			target: { kind: 'section', id: 'page-title-breadcrumbs' },
+			target: { kind: 'section', id: 'page-header-breadcrumbs' },
 			operation: 'setSectionAttribute',
 			attributePath: 'blockeraFontSize.value',
 		};
 
 		const withColor = apply(color, '#111111', { blocks });
-		const colorAttrs = findStamp(withColor.blocks, 'page-title-breadcrumbs')
-			.block.attributes;
+		const colorAttrs = findStamp(
+			withColor.blocks,
+			'page-header-breadcrumbs'
+		).block.attributes;
 		expect(colorAttrs.blockeraFontColor).toEqual({ value: '#111111' });
 		expect(colorAttrs.className).toContain('blockera-block');
 
 		const withSize = apply(fontSize, '18px', { blocks: withColor.blocks });
 		expect(
-			findStamp(withSize.blocks, 'page-title-breadcrumbs').block
+			findStamp(withSize.blocks, 'page-header-breadcrumbs').block
 				.attributes.blockeraFontSize
 		).toEqual({ value: '18px' });
 
 		const cleared = apply(color, '', { blocks: withSize.blocks });
 		expect(
-			findStamp(cleared.blocks, 'page-title-breadcrumbs').block.attributes
-				.blockeraFontColor
+			findStamp(cleared.blocks, 'page-header-breadcrumbs').block
+				.attributes.blockeraFontColor
 		).toEqual({ value: '' });
 	});
 
@@ -1071,14 +1083,14 @@ describe('setSectionAttribute', () => {
 		const blocks = [
 			stamped(
 				'core/breadcrumbs',
-				'section/page-title-breadcrumbs:default'
+				'section/page-header-breadcrumbs:default'
 			),
 		];
 		const bg = {
 			id: 'breadcrumbs-bg-color',
 			type: 'color',
 			label: 'BG Color',
-			target: { kind: 'section', id: 'page-title-breadcrumbs' },
+			target: { kind: 'section', id: 'page-header-breadcrumbs' },
 			operation: 'setSectionAttribute',
 			attributePath: 'blockeraBackgroundColor.value',
 		};
@@ -1091,7 +1103,7 @@ describe('setSectionAttribute', () => {
 		};
 		const result = apply(bg, variable, { blocks });
 		expect(
-			findStamp(result.blocks, 'page-title-breadcrumbs').block.attributes
+			findStamp(result.blocks, 'page-header-breadcrumbs').block.attributes
 				.blockeraBackgroundColor
 		).toEqual({ value: variable });
 	});
@@ -1105,14 +1117,14 @@ describe('setSectionAttribute', () => {
 		const blocks = [
 			stamped(
 				'core/breadcrumbs',
-				'section/page-title-breadcrumbs:default'
+				'section/page-header-breadcrumbs:default'
 			),
 		];
 		const separator = {
 			id: 'breadcrumbs-separator',
 			type: 'input',
 			label: 'Separator',
-			target: { kind: 'section', id: 'page-title-breadcrumbs' },
+			target: { kind: 'section', id: 'page-header-breadcrumbs' },
 			operation: 'setSectionAttribute',
 			attributePath: 'separator',
 			defaultValue: '/',
@@ -1121,7 +1133,7 @@ describe('setSectionAttribute', () => {
 			id: 'breadcrumbs-show-home',
 			type: 'toggle',
 			label: 'Show home breadcrumb',
-			target: { kind: 'section', id: 'page-title-breadcrumbs' },
+			target: { kind: 'section', id: 'page-header-breadcrumbs' },
 			operation: 'setSectionAttribute',
 			attributePath: 'showHomeItem',
 			defaultValue: true,
@@ -1129,19 +1141,19 @@ describe('setSectionAttribute', () => {
 
 		const withSep = apply(separator, '>', { blocks });
 		expect(
-			findStamp(withSep.blocks, 'page-title-breadcrumbs').block.attributes
-				.separator
+			findStamp(withSep.blocks, 'page-header-breadcrumbs').block
+				.attributes.separator
 		).toBe('>');
 
 		const cleared = apply(separator, '', { blocks: withSep.blocks });
 		expect(
-			findStamp(cleared.blocks, 'page-title-breadcrumbs').block.attributes
-				.separator
+			findStamp(cleared.blocks, 'page-header-breadcrumbs').block
+				.attributes.separator
 		).toBe('');
 
 		const hiddenHome = apply(showHome, false, { blocks: withSep.blocks });
 		expect(
-			findStamp(hiddenHome.blocks, 'page-title-breadcrumbs').block
+			findStamp(hiddenHome.blocks, 'page-header-breadcrumbs').block
 				.attributes.showHomeItem
 		).toBe(false);
 	});
@@ -1152,7 +1164,7 @@ describe('setBlockStyle', () => {
 		const blocks = [
 			stamped(
 				'core/breadcrumbs',
-				'section/page-title-breadcrumbs:default',
+				'section/page-header-breadcrumbs:default',
 				{ className: 'blockera-block blockera-block-z3' }
 			),
 		];
@@ -1160,13 +1172,13 @@ describe('setBlockStyle', () => {
 			id: 'breadcrumbs-style',
 			type: 'select',
 			label: 'Style variation',
-			target: { kind: 'section', id: 'page-title-breadcrumbs' },
+			target: { kind: 'section', id: 'page-header-breadcrumbs' },
 			operation: 'setBlockStyle',
 			defaultValue: 'default',
 		};
 		const result = apply(control, 'underline', { blocks });
 		expect(
-			findStamp(result.blocks, 'page-title-breadcrumbs').block.attributes
+			findStamp(result.blocks, 'page-header-breadcrumbs').block.attributes
 				.className
 		).toBe('blockera-block blockera-block-z3 is-style-underline');
 	});
@@ -1180,7 +1192,7 @@ describe('selectInCanvas', () => {
 					id: 'breadcrumbs-customize',
 					type: 'button',
 					label: 'Customize in editor',
-					target: { kind: 'section', id: 'page-title-breadcrumbs' },
+					target: { kind: 'section', id: 'page-header-breadcrumbs' },
 					operation: 'selectInCanvas',
 				},
 				true
@@ -1201,14 +1213,14 @@ describe('placeSection', () => {
 	it('moves the inner section using the variant placement', () => {
 		const breadcrumb = stamped(
 			'core/breadcrumbs',
-			'section/page-title-breadcrumbs:default'
+			'section/page-header-breadcrumbs:default'
 		);
 		const title = stamped(
 			'core/query-title',
-			'section/page-title-title:default'
+			'section/page-header-title:default'
 		);
 		const blocks = [
-			stamped('core/group', 'section/page-title:default', {}, [
+			stamped('core/group', 'section/page-header:default', {}, [
 				title,
 				breadcrumb,
 			]),
@@ -1217,20 +1229,20 @@ describe('placeSection', () => {
 			id: 'breadcrumbs-position',
 			type: 'select',
 			label: 'Position',
-			target: { kind: 'section', id: 'page-title-breadcrumbs' },
+			target: { kind: 'section', id: 'page-header-breadcrumbs' },
 			operation: 'placeSection',
 			defaultValue: 'bottom',
 			innerOrder: {
-				parentId: 'page-title',
-				ids: ['page-title-title', 'page-title-breadcrumbs'],
-				leadId: 'page-title-breadcrumbs',
+				parentId: 'page-header',
+				ids: ['page-header-title', 'page-header-breadcrumbs'],
+				leadId: 'page-header-breadcrumbs',
 			},
 			variants: [
 				{
 					id: 'top',
 					label: 'Top',
 					placement: {
-						relativeTo: 'page-title',
+						relativeTo: 'page-header',
 						position: 'inside-start',
 					},
 				},
@@ -1238,7 +1250,7 @@ describe('placeSection', () => {
 					id: 'bottom',
 					label: 'Bottom',
 					placement: {
-						relativeTo: 'page-title',
+						relativeTo: 'page-header',
 						position: 'inside-end',
 					},
 				},
@@ -1256,52 +1268,55 @@ describe('placeSection', () => {
 
 describe('swapSection reapply toggles', () => {
 	beforeAll(() => {
-		__setMarkup('page-title-banner', [
-			stamped('core/group', 'section/page-title:banner', {}, [
-				stamped('core/query-title', 'section/page-title-title:default'),
+		__setMarkup('page-header-banner', [
+			stamped('core/group', 'section/page-header:banner', {}, [
+				stamped(
+					'core/query-title',
+					'section/page-header-title:default'
+				),
 				stamped(
 					'core/term-description',
-					'section/page-title-description:default'
+					'section/page-header-description:default'
 				),
 			]),
 		]);
-		__setMarkup('page-title-title', [
-			stamped('core/query-title', 'section/page-title-title:default'),
+		__setMarkup('page-header-title', [
+			stamped('core/query-title', 'section/page-header-title:default'),
 		]);
 	});
 
 	it('re-applies an inner title toggle-off after a design swap', () => {
 		const blocks = [
-			stamped('core/group', 'section/page-title:default', {}, [
+			stamped('core/group', 'section/page-header:default', {}, [
 				stamped(
 					'core/term-description',
-					'section/page-title-description:default'
+					'section/page-header-description:default'
 				),
 			]),
 		];
 		const titleToggle = {
-			id: 'page-title-title',
+			id: 'page-header-title',
 			type: 'toggle',
 			label: 'Title',
-			target: { kind: 'section', id: 'page-title-title' },
+			target: { kind: 'section', id: 'page-header-title' },
 			operation: 'toggleSection',
-			catalogPool: 'page-title-title',
+			catalogPool: 'page-header-title',
 			variants: [
-				{ id: 'default', label: 'Title', html: 'page-title-title' },
+				{ id: 'default', label: 'Title', html: 'page-header-title' },
 			],
-			insert: { relativeTo: 'page-title', position: 'inside-start' },
+			insert: { relativeTo: 'page-header', position: 'inside-start' },
 		};
 		const design = {
-			id: 'page-title-design',
+			id: 'page-header-design',
 			type: 'layout-picker',
 			label: 'Header Design',
-			target: { kind: 'section', id: 'page-title' },
+			target: { kind: 'section', id: 'page-header' },
 			operation: 'swapSection',
 			variants: [
-				{ id: 'simple', label: 'Simple', html: 'page-title-default' },
-				{ id: 'banner', label: 'Banner', html: 'page-title-banner' },
+				{ id: 'simple', label: 'Simple', html: 'page-header-default' },
+				{ id: 'banner', label: 'Banner', html: 'page-header-banner' },
 			],
-			swapHints: { reapplyControls: ['page-title-title'] },
+			swapHints: { reapplyControls: ['page-header-title'] },
 		};
 		const config = {
 			type: 'archive',
@@ -1317,86 +1332,86 @@ describe('swapSection reapply toggles', () => {
 		};
 
 		const result = apply(design, 'banner', { blocks, config });
-		expect(findStamp(result.blocks, 'page-title-title')).toBeNull();
+		expect(findStamp(result.blocks, 'page-header-title')).toBeNull();
 		expect(
-			findStamp(result.blocks, 'page-title-description')
+			findStamp(result.blocks, 'page-header-description')
 		).not.toBeNull();
 	});
 
 	it('re-applies breadcrumbs on-state after a design swap using the new pattern order', () => {
-		__setMarkup('page-title-breadcrumbs', [
+		__setMarkup('page-header-breadcrumbs', [
 			stamped(
 				'core/breadcrumbs',
-				'section/page-title-breadcrumbs:default'
+				'section/page-header-breadcrumbs:default'
 			),
 		]);
 
 		const innerOrder = {
-			parentId: 'page-title',
+			parentId: 'page-header',
 			ids: [
-				'page-title-title',
-				'page-title-description',
-				'page-title-breadcrumbs',
+				'page-header-title',
+				'page-header-description',
+				'page-header-breadcrumbs',
 			],
 		};
 		const blocks = [
 			stamped(
 				'core/group',
-				'section/page-title:default',
+				'section/page-header:default',
 				{
 					metadata: {
-						blockeraOne: 'section/page-title:default',
+						blockeraOne: 'section/page-header:default',
 						[INNER_ORDER_META_KEY]: [
-							'page-title-breadcrumbs',
-							'page-title-title',
-							'page-title-description',
+							'page-header-breadcrumbs',
+							'page-header-title',
+							'page-header-description',
 						],
 					},
 				},
 				[
 					stamped(
 						'core/breadcrumbs',
-						'section/page-title-breadcrumbs:default'
+						'section/page-header-breadcrumbs:default'
 					),
 					stamped(
 						'core/query-title',
-						'section/page-title-title:default'
+						'section/page-header-title:default'
 					),
 					stamped(
 						'core/term-description',
-						'section/page-title-description:default'
+						'section/page-header-description:default'
 					),
 				]
 			),
 		];
 		const breadcrumbToggle = {
-			id: 'page-title-breadcrumbs',
+			id: 'page-header-breadcrumbs',
 			type: 'toggle',
 			label: 'Breadcrumbs',
-			target: { kind: 'section', id: 'page-title-breadcrumbs' },
+			target: { kind: 'section', id: 'page-header-breadcrumbs' },
 			operation: 'toggleSection',
 			variants: [
 				{
 					id: 'default',
 					label: 'Breadcrumbs',
-					html: 'page-title-breadcrumbs',
+					html: 'page-header-breadcrumbs',
 				},
 			],
-			insert: { relativeTo: 'page-title', position: 'inside-end' },
+			insert: { relativeTo: 'page-header', position: 'inside-end' },
 			innerOrder,
 		};
 		const design = {
-			id: 'page-title-design',
+			id: 'page-header-design',
 			type: 'layout-picker',
 			label: 'Header Design',
-			target: { kind: 'section', id: 'page-title' },
+			target: { kind: 'section', id: 'page-header' },
 			operation: 'swapSection',
 			variants: [
-				{ id: 'simple', label: 'Simple', html: 'page-title-default' },
-				{ id: 'banner', label: 'Banner', html: 'page-title-banner' },
+				{ id: 'simple', label: 'Simple', html: 'page-header-default' },
+				{ id: 'banner', label: 'Banner', html: 'page-header-banner' },
 			],
 			swapHints: {
-				reapplyControls: ['page-title-breadcrumbs'],
+				reapplyControls: ['page-header-breadcrumbs'],
 			},
 		};
 		const config = {
@@ -1424,18 +1439,18 @@ describe('swapSection reapply toggles', () => {
 	});
 
 	it('re-applies breadcrumbs attributes and style after a design swap', () => {
-		__setMarkup('page-title-breadcrumbs', [
+		__setMarkup('page-header-breadcrumbs', [
 			stamped(
 				'core/breadcrumbs',
-				'section/page-title-breadcrumbs:default'
+				'section/page-header-breadcrumbs:default'
 			),
 		]);
 
 		const blocks = [
-			stamped('core/group', 'section/page-title:default', {}, [
+			stamped('core/group', 'section/page-header:default', {}, [
 				stamped(
 					'core/breadcrumbs',
-					'section/page-title-breadcrumbs:default',
+					'section/page-header-breadcrumbs:default',
 					{
 						separator: '>',
 						showHomeItem: false,
@@ -1444,29 +1459,32 @@ describe('swapSection reapply toggles', () => {
 						blockeraFontSize: { value: '14px' },
 					}
 				),
-				stamped('core/query-title', 'section/page-title-title:default'),
+				stamped(
+					'core/query-title',
+					'section/page-header-title:default'
+				),
 			]),
 		];
 		const breadcrumbToggle = {
-			id: 'page-title-breadcrumbs',
+			id: 'page-header-breadcrumbs',
 			type: 'toggle',
 			label: 'Breadcrumbs',
-			target: { kind: 'section', id: 'page-title-breadcrumbs' },
+			target: { kind: 'section', id: 'page-header-breadcrumbs' },
 			operation: 'toggleSection',
 			variants: [
 				{
 					id: 'default',
 					label: 'Breadcrumbs',
-					html: 'page-title-breadcrumbs',
+					html: 'page-header-breadcrumbs',
 				},
 			],
-			insert: { relativeTo: 'page-title', position: 'inside-end' },
+			insert: { relativeTo: 'page-header', position: 'inside-end' },
 		};
 		const separator = {
 			id: 'breadcrumbs-separator',
 			type: 'input',
 			label: 'Separator',
-			target: { kind: 'section', id: 'page-title-breadcrumbs' },
+			target: { kind: 'section', id: 'page-header-breadcrumbs' },
 			operation: 'setSectionAttribute',
 			attributePath: 'separator',
 			defaultValue: '/',
@@ -1475,7 +1493,7 @@ describe('swapSection reapply toggles', () => {
 			id: 'breadcrumbs-show-home',
 			type: 'toggle',
 			label: 'Show home',
-			target: { kind: 'section', id: 'page-title-breadcrumbs' },
+			target: { kind: 'section', id: 'page-header-breadcrumbs' },
 			operation: 'setSectionAttribute',
 			attributePath: 'showHomeItem',
 			defaultValue: true,
@@ -1484,7 +1502,7 @@ describe('swapSection reapply toggles', () => {
 			id: 'breadcrumbs-style',
 			type: 'select',
 			label: 'Style variation',
-			target: { kind: 'section', id: 'page-title-breadcrumbs' },
+			target: { kind: 'section', id: 'page-header-breadcrumbs' },
 			operation: 'setBlockStyle',
 			defaultValue: 'default',
 		};
@@ -1492,7 +1510,7 @@ describe('swapSection reapply toggles', () => {
 			id: 'breadcrumbs-color',
 			type: 'color',
 			label: 'Text Color',
-			target: { kind: 'section', id: 'page-title-breadcrumbs' },
+			target: { kind: 'section', id: 'page-header-breadcrumbs' },
 			operation: 'setSectionAttribute',
 			attributePath: 'blockeraFontColor.value',
 		};
@@ -1500,23 +1518,23 @@ describe('swapSection reapply toggles', () => {
 			id: 'breadcrumbs-font-size',
 			type: 'input',
 			label: 'Font Size',
-			target: { kind: 'section', id: 'page-title-breadcrumbs' },
+			target: { kind: 'section', id: 'page-header-breadcrumbs' },
 			operation: 'setSectionAttribute',
 			attributePath: 'blockeraFontSize.value',
 		};
 		const design = {
-			id: 'page-title-design',
+			id: 'page-header-design',
 			type: 'layout-picker',
 			label: 'Header Design',
-			target: { kind: 'section', id: 'page-title' },
+			target: { kind: 'section', id: 'page-header' },
 			operation: 'swapSection',
 			variants: [
-				{ id: 'simple', label: 'Simple', html: 'page-title-default' },
-				{ id: 'banner', label: 'Banner', html: 'page-title-banner' },
+				{ id: 'simple', label: 'Simple', html: 'page-header-default' },
+				{ id: 'banner', label: 'Banner', html: 'page-header-banner' },
 			],
 			swapHints: {
 				reapplyControls: [
-					'page-title-breadcrumbs',
+					'page-header-breadcrumbs',
 					'breadcrumbs-separator',
 					'breadcrumbs-show-home',
 					'breadcrumbs-style',
@@ -1547,7 +1565,7 @@ describe('swapSection reapply toggles', () => {
 		};
 
 		const result = apply(design, 'banner', { blocks, config });
-		const crumb = findStamp(result.blocks, 'page-title-breadcrumbs').block;
+		const crumb = findStamp(result.blocks, 'page-header-breadcrumbs').block;
 		expect(crumb.attributes.separator).toBe('>');
 		expect(crumb.attributes.showHomeItem).toBe(false);
 		expect(crumb.attributes.className).toContain('is-style-underline');
@@ -1559,10 +1577,10 @@ describe('swapSection reapply toggles', () => {
 
 	it('re-applies title and description attributes and style after a design swap', () => {
 		const blocks = [
-			stamped('core/group', 'section/page-title:default', {}, [
+			stamped('core/group', 'section/page-header:default', {}, [
 				stamped(
 					'core/query-title',
-					'section/page-title-title:default',
+					'section/page-header-title:default',
 					{
 						className: 'blockera-block is-style-underline',
 						blockeraFontColor: { value: '#111111' },
@@ -1572,7 +1590,7 @@ describe('swapSection reapply toggles', () => {
 				),
 				stamped(
 					'core/term-description',
-					'section/page-title-description:default',
+					'section/page-header-description:default',
 					{
 						className: 'blockera-block is-style-plain',
 						blockeraFontColor: { value: '#333333' },
@@ -1586,7 +1604,7 @@ describe('swapSection reapply toggles', () => {
 			id: 'title-color',
 			type: 'color',
 			label: 'Text Color',
-			target: { kind: 'section', id: 'page-title-title' },
+			target: { kind: 'section', id: 'page-header-title' },
 			operation: 'setSectionAttribute',
 			attributePath: 'blockeraFontColor.value',
 		};
@@ -1594,7 +1612,7 @@ describe('swapSection reapply toggles', () => {
 			id: 'title-bg-color',
 			type: 'color',
 			label: 'BG Color',
-			target: { kind: 'section', id: 'page-title-title' },
+			target: { kind: 'section', id: 'page-header-title' },
 			operation: 'setSectionAttribute',
 			attributePath: 'blockeraBackgroundColor.value',
 		};
@@ -1602,7 +1620,7 @@ describe('swapSection reapply toggles', () => {
 			id: 'title-font-size',
 			type: 'input',
 			label: 'Font Size',
-			target: { kind: 'section', id: 'page-title-title' },
+			target: { kind: 'section', id: 'page-header-title' },
 			operation: 'setSectionAttribute',
 			attributePath: 'blockeraFontSize.value',
 		};
@@ -1610,7 +1628,7 @@ describe('swapSection reapply toggles', () => {
 			id: 'title-style',
 			type: 'select',
 			label: 'Style',
-			target: { kind: 'section', id: 'page-title-title' },
+			target: { kind: 'section', id: 'page-header-title' },
 			operation: 'setBlockStyle',
 			defaultValue: 'default',
 		};
@@ -1618,7 +1636,7 @@ describe('swapSection reapply toggles', () => {
 			id: 'description-color',
 			type: 'color',
 			label: 'Text Color',
-			target: { kind: 'section', id: 'page-title-description' },
+			target: { kind: 'section', id: 'page-header-description' },
 			operation: 'setSectionAttribute',
 			attributePath: 'blockeraFontColor.value',
 		};
@@ -1626,7 +1644,7 @@ describe('swapSection reapply toggles', () => {
 			id: 'description-bg-color',
 			type: 'color',
 			label: 'BG Color',
-			target: { kind: 'section', id: 'page-title-description' },
+			target: { kind: 'section', id: 'page-header-description' },
 			operation: 'setSectionAttribute',
 			attributePath: 'blockeraBackgroundColor.value',
 		};
@@ -1634,7 +1652,7 @@ describe('swapSection reapply toggles', () => {
 			id: 'description-font-size',
 			type: 'input',
 			label: 'Font Size',
-			target: { kind: 'section', id: 'page-title-description' },
+			target: { kind: 'section', id: 'page-header-description' },
 			operation: 'setSectionAttribute',
 			attributePath: 'blockeraFontSize.value',
 		};
@@ -1642,19 +1660,19 @@ describe('swapSection reapply toggles', () => {
 			id: 'description-style',
 			type: 'select',
 			label: 'Style',
-			target: { kind: 'section', id: 'page-title-description' },
+			target: { kind: 'section', id: 'page-header-description' },
 			operation: 'setBlockStyle',
 			defaultValue: 'default',
 		};
 		const design = {
-			id: 'page-title-design',
+			id: 'page-header-design',
 			type: 'layout-picker',
 			label: 'Header Design',
-			target: { kind: 'section', id: 'page-title' },
+			target: { kind: 'section', id: 'page-header' },
 			operation: 'swapSection',
 			variants: [
-				{ id: 'simple', label: 'Simple', html: 'page-title-default' },
-				{ id: 'banner', label: 'Banner', html: 'page-title-banner' },
+				{ id: 'simple', label: 'Simple', html: 'page-header-default' },
+				{ id: 'banner', label: 'Banner', html: 'page-header-banner' },
 			],
 			swapHints: {
 				reapplyControls: [
@@ -1693,7 +1711,7 @@ describe('swapSection reapply toggles', () => {
 		};
 
 		const result = apply(design, 'banner', { blocks, config });
-		const title = findStamp(result.blocks, 'page-title-title').block;
+		const title = findStamp(result.blocks, 'page-header-title').block;
 		expect(title.attributes.className).toContain('is-style-underline');
 		expect(title.attributes.blockeraFontColor).toEqual({
 			value: '#111111',
@@ -1705,7 +1723,7 @@ describe('swapSection reapply toggles', () => {
 
 		const description = findStamp(
 			result.blocks,
-			'page-title-description'
+			'page-header-description'
 		).block;
 		expect(description.attributes.className).toContain('is-style-plain');
 		expect(description.attributes.blockeraFontColor).toEqual({

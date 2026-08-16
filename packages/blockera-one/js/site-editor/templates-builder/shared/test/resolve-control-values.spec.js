@@ -200,14 +200,14 @@ describe('resolveControlViewStates', () => {
 				id: 'hide-title',
 				type: 'toggle',
 				label: 'Hide title',
-				target: { kind: 'section', id: 'page-title' },
+				target: { kind: 'section', id: 'page-header' },
 				operation: 'toggleSection',
 				invertPresence: true,
 			},
 		]);
 		const withTitle = [
 			...makeNoSidebarTree(),
-			stamped('core/group', 'section/page-title:simple'),
+			stamped('core/group', 'section/page-header:simple'),
 		];
 
 		expect(byId(resolve(withTitle, config), 'hide-title').value).toBe(
@@ -308,7 +308,7 @@ describe('resolveControlViewStates', () => {
 				id: 'page-header-gap',
 				type: 'input',
 				label: 'Items Spacing',
-				target: { kind: 'section', id: 'page-title' },
+				target: { kind: 'section', id: 'page-header' },
 				operation: 'setSectionAttribute',
 				attributePath: 'blockeraGap.value',
 			},
@@ -321,7 +321,7 @@ describe('resolveControlViewStates', () => {
 		};
 		const tree = [
 			...makeNoSidebarTree(),
-			stamped('core/group', 'section/page-title:simple', {
+			stamped('core/group', 'section/page-header:simple', {
 				blockeraGap: { value: gapValue },
 			}),
 		];
@@ -340,7 +340,7 @@ describe('resolveControlViewStates', () => {
 				id: 'breadcrumbs-separator',
 				type: 'input',
 				label: 'Separator',
-				target: { kind: 'section', id: 'page-title-breadcrumbs' },
+				target: { kind: 'section', id: 'page-header-breadcrumbs' },
 				operation: 'setSectionAttribute',
 				attributePath: 'separator',
 				defaultValue: '/',
@@ -349,7 +349,7 @@ describe('resolveControlViewStates', () => {
 				id: 'breadcrumbs-show-home',
 				type: 'toggle',
 				label: 'Show home breadcrumb',
-				target: { kind: 'section', id: 'page-title-breadcrumbs' },
+				target: { kind: 'section', id: 'page-header-breadcrumbs' },
 				operation: 'setSectionAttribute',
 				attributePath: 'showHomeItem',
 				defaultValue: true,
@@ -358,7 +358,7 @@ describe('resolveControlViewStates', () => {
 				id: 'breadcrumbs-style',
 				type: 'select',
 				label: 'Style variation',
-				target: { kind: 'section', id: 'page-title-breadcrumbs' },
+				target: { kind: 'section', id: 'page-header-breadcrumbs' },
 				operation: 'setBlockStyle',
 				defaultValue: 'default',
 			},
@@ -366,7 +366,7 @@ describe('resolveControlViewStates', () => {
 		const tree = [
 			stamped(
 				'core/breadcrumbs',
-				'section/page-title-breadcrumbs:default',
+				'section/page-header-breadcrumbs:default',
 				{ className: 'blockera-block is-style-underline' }
 			),
 		];
@@ -391,7 +391,7 @@ describe('resolveControlViewStates', () => {
 				id: 'breadcrumbs-separator',
 				type: 'input',
 				label: 'Separator',
-				target: { kind: 'section', id: 'page-title-breadcrumbs' },
+				target: { kind: 'section', id: 'page-header-breadcrumbs' },
 				operation: 'setSectionAttribute',
 				attributePath: 'separator',
 				defaultValue: '/',
@@ -400,7 +400,7 @@ describe('resolveControlViewStates', () => {
 		const tree = [
 			stamped(
 				'core/breadcrumbs',
-				'section/page-title-breadcrumbs:default',
+				'section/page-header-breadcrumbs:default',
 				{ separator: '' }
 			),
 		];
@@ -416,7 +416,7 @@ describe('resolveControlViewStates', () => {
 				id: 'breadcrumbs-color',
 				type: 'color',
 				label: 'Text Color',
-				target: { kind: 'section', id: 'page-title-breadcrumbs' },
+				target: { kind: 'section', id: 'page-header-breadcrumbs' },
 				operation: 'setSectionAttribute',
 				attributePath: 'blockeraFontColor.value',
 			},
@@ -424,7 +424,7 @@ describe('resolveControlViewStates', () => {
 				id: 'breadcrumbs-font-size',
 				type: 'input',
 				label: 'Font Size',
-				target: { kind: 'section', id: 'page-title-breadcrumbs' },
+				target: { kind: 'section', id: 'page-header-breadcrumbs' },
 				operation: 'setSectionAttribute',
 				attributePath: 'blockeraFontSize.value',
 			},
@@ -432,7 +432,7 @@ describe('resolveControlViewStates', () => {
 		const tree = [
 			stamped(
 				'core/breadcrumbs',
-				'section/page-title-breadcrumbs:default',
+				'section/page-header-breadcrumbs:default',
 				{
 					blockeraFontColor: { value: '' },
 					blockeraFontSize: { value: '18px' },
@@ -455,10 +455,10 @@ describe('resolveControlViewStates', () => {
 			id: 'breadcrumbs-position',
 			type: 'select',
 			label: 'Position',
-			target: { kind: 'section', id: 'page-title-breadcrumbs' },
+			target: { kind: 'section', id: 'page-header-breadcrumbs' },
 			operation: 'placeSection',
 			defaultValue: 'bottom',
-			innerOrder: { parentId: 'page-title' },
+			innerOrder: { parentId: 'page-header' },
 			variants: [
 				{ id: 'top', label: 'Top' },
 				{ id: 'bottom', label: 'Bottom' },
@@ -466,20 +466,26 @@ describe('resolveControlViewStates', () => {
 		};
 		const config = makeConfig([position]);
 		const topTree = [
-			stamped('core/group', 'section/page-title:default', {}, [
+			stamped('core/group', 'section/page-header:default', {}, [
 				stamped(
 					'core/breadcrumbs',
-					'section/page-title-breadcrumbs:default'
+					'section/page-header-breadcrumbs:default'
 				),
-				stamped('core/query-title', 'section/page-title-title:default'),
+				stamped(
+					'core/query-title',
+					'section/page-header-title:default'
+				),
 			]),
 		];
 		const bottomTree = [
-			stamped('core/group', 'section/page-title:default', {}, [
-				stamped('core/query-title', 'section/page-title-title:default'),
+			stamped('core/group', 'section/page-header:default', {}, [
+				stamped(
+					'core/query-title',
+					'section/page-header-title:default'
+				),
 				stamped(
 					'core/breadcrumbs',
-					'section/page-title-breadcrumbs:default'
+					'section/page-header-breadcrumbs:default'
 				),
 			]),
 		];
@@ -522,8 +528,8 @@ describe('resolveControlViewStates', () => {
 		expect(duplicates[0].value).toBeNull();
 	});
 
-	it('shows page-header design options by the active page-title variant', () => {
-		const pageTitleOn = { controlId: 'page-title', equals: true };
+	it('shows page-header design options by the active page-header variant', () => {
+		const pageHeaderOn = { controlId: 'page-header', equals: true };
 		const config = {
 			type: 'archive',
 			filters: ['archive'],
@@ -533,20 +539,20 @@ describe('resolveControlViewStates', () => {
 					id: 'page-header',
 					title: 'Page Header',
 					headerToggle: {
-						id: 'page-title',
+						id: 'page-header',
 						type: 'toggle',
-						label: 'Archive Title',
-						target: { kind: 'section', id: 'page-title' },
+						label: 'Page Header',
+						target: { kind: 'section', id: 'page-header' },
 						operation: 'toggleSection',
 						onValue: true,
 						offValue: false,
 					},
 					controls: [
 						{
-							id: 'page-title-design',
+							id: 'page-header-design',
 							type: 'layout-picker',
 							label: 'Header Design',
-							target: { kind: 'section', id: 'page-title' },
+							target: { kind: 'section', id: 'page-header' },
 							operation: 'swapSection',
 							variants: [
 								{ id: 'simple', label: 'Simple' },
@@ -557,22 +563,22 @@ describe('resolveControlViewStates', () => {
 							id: 'page-header-gap',
 							type: 'input',
 							label: 'Elements Gap',
-							target: { kind: 'section', id: 'page-title' },
+							target: { kind: 'section', id: 'page-header' },
 							operation: 'setSectionAttribute',
 							attributePath: 'blockeraGap.value',
-							conditions: [pageTitleOn],
+							conditions: [pageHeaderOn],
 						},
 						{
 							id: 'page-header-bottom-spacing',
 							type: 'input',
 							label: 'Container Bottom Spacing',
-							target: { kind: 'section', id: 'page-title' },
+							target: { kind: 'section', id: 'page-header' },
 							operation: 'setSectionAttribute',
 							attributePath: 'blockeraSpacing.value',
 							conditions: [
-								pageTitleOn,
+								pageHeaderOn,
 								{
-									controlId: 'page-title-design',
+									controlId: 'page-header-design',
 									equals: 'simple',
 								},
 							],
@@ -581,14 +587,14 @@ describe('resolveControlViewStates', () => {
 							id: 'page-header-align',
 							type: 'layout-matrix',
 							label: 'Items alignment',
-							target: { kind: 'section', id: 'page-title' },
+							target: { kind: 'section', id: 'page-header' },
 							alsoSetOn: ['elements'],
 							operation: 'setSectionAttribute',
 							attributePath: 'blockeraFlexLayout.value',
 							conditions: [
-								pageTitleOn,
+								pageHeaderOn,
 								{
-									controlId: 'page-title-design',
+									controlId: 'page-header-design',
 									equals: 'simple',
 								},
 							],
@@ -601,9 +607,9 @@ describe('resolveControlViewStates', () => {
 							operation: 'setSectionAttribute',
 							attributePath: 'blockeraFlexLayout.value',
 							conditions: [
-								pageTitleOn,
+								pageHeaderOn,
 								{
-									controlId: 'page-title-design',
+									controlId: 'page-header-design',
 									equals: 'banner',
 								},
 							],
@@ -612,13 +618,13 @@ describe('resolveControlViewStates', () => {
 							id: 'page-header-bg-color',
 							type: 'color',
 							label: 'BG Color',
-							target: { kind: 'section', id: 'page-title' },
+							target: { kind: 'section', id: 'page-header' },
 							operation: 'setSectionAttribute',
 							attributePath: 'blockeraBackgroundColor.value',
 							conditions: [
-								pageTitleOn,
+								pageHeaderOn,
 								{
-									controlId: 'page-title-design',
+									controlId: 'page-header-design',
 									equals: 'banner',
 								},
 							],
@@ -631,9 +637,9 @@ describe('resolveControlViewStates', () => {
 							operation: 'setSectionAttribute',
 							attributePath: 'blockeraMaxWidth.value',
 							conditions: [
-								pageTitleOn,
+								pageHeaderOn,
 								{
-									controlId: 'page-title-design',
+									controlId: 'page-header-design',
 									equals: 'banner',
 								},
 							],
@@ -659,7 +665,7 @@ describe('resolveControlViewStates', () => {
 		const simpleTree = [
 			stamped(
 				'core/group',
-				'section/page-title:simple',
+				'section/page-header:simple',
 				{
 					blockeraSpacing: { value: spacing },
 					blockeraFlexLayout: { value: flex },
@@ -675,7 +681,7 @@ describe('resolveControlViewStates', () => {
 		const bannerTree = [
 			stamped(
 				'core/group',
-				'section/page-title:banner',
+				'section/page-header:banner',
 				{
 					blockeraBackgroundColor: { value: '#111111' },
 					blockeraFlexLayout: {

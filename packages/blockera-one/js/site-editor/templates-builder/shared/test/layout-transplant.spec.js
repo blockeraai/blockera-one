@@ -239,7 +239,7 @@ describe('sibling sections', () => {
 		const layout = clone(noSidebar);
 		// Full-width section sits at the layout root, outside the content area.
 		layout.innerBlocks.unshift(
-			stamped('core/group', 'section/page-title:banner', {
+			stamped('core/group', 'section/page-header:banner', {
 				className: 'band',
 			})
 		);
@@ -248,13 +248,13 @@ describe('sibling sections', () => {
 
 	it('re-attaches carried sections at the layout body start by default', () => {
 		const next = transplant(makeStartWithPageTitle(), 'sidebar-left', {
-			siblingSectionIds: ['page-title'],
+			siblingSectionIds: ['page-header'],
 		});
 
 		const layout = findStamp(next, 'archive-body');
 		expect(getStamp(layout.block.innerBlocks[0])).toEqual({
 			role: 'section',
-			id: 'page-title',
+			id: 'page-header',
 			variant: 'banner',
 		});
 		expect(layout.block.innerBlocks[0].attributes.className).toBe('band');
@@ -262,9 +262,9 @@ describe('sibling sections', () => {
 
 	it('honors the active design placement for carried sections', () => {
 		const next = transplant(makeStartWithPageTitle(), 'sidebar-left', {
-			siblingSectionIds: ['page-title'],
+			siblingSectionIds: ['page-header'],
 			sectionPlacements: {
-				'page-title': {
+				'page-header': {
 					relativeTo: 'content',
 					position: 'inside-start',
 				},
@@ -272,7 +272,7 @@ describe('sibling sections', () => {
 		});
 
 		const content = findStamp(next, 'content');
-		expect(getStamp(content.block.innerBlocks[0]).id).toBe('page-title');
+		expect(getStamp(content.block.innerBlocks[0]).id).toBe('page-header');
 		// The user paragraph follows the re-attached section.
 		expect(content.block.innerBlocks[1].attributes.content).toBe(
 			'USER-CUSTOM-CONTENT'
@@ -280,23 +280,23 @@ describe('sibling sections', () => {
 	});
 
 	it('peels sibling sections out of legacy content to avoid duplication', () => {
-		// Legacy templates nested the page-title inside the content area.
+		// Legacy templates nested the page-header inside the content area.
 		const layout = clone(noSidebar);
 		const content = layout.innerBlocks[0];
 		content.innerBlocks.unshift(
-			stamped('core/group', 'section/page-title:banner')
+			stamped('core/group', 'section/page-header:banner')
 		);
 
 		const next = transplant([layout], 'sidebar-left', {
-			siblingSectionIds: ['page-title'],
+			siblingSectionIds: ['page-header'],
 		});
 
 		let matches = 0;
 		const seen = [];
-		// Count every page-title occurrence in the whole result.
+		// Count every page-header occurrence in the whole result.
 		const walk = (nodes) => {
 			for (const node of nodes) {
-				if (getStamp(node)?.id === 'page-title') {
+				if (getStamp(node)?.id === 'page-header') {
 					matches++;
 					seen.push(node);
 				}
