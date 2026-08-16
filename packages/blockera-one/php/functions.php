@@ -186,6 +186,56 @@ if ( ! function_exists( 'blockera_one_get_one_named_editor_assets' ) ) :
 	}
 endif;
 
+if ( ! function_exists( 'blockera_one_get_product_details' ) ) :
+	/**
+	 * Blockera One theme product details for the products registry.
+	 *
+	 * Shape follows blockera/products `product-details.schema.json`.
+	 * Details are read from the theme headers so version bumps need no code change.
+	 *
+	 * @return array<string, mixed>
+	 */
+	function blockera_one_get_product_details(): array {
+		$theme = wp_get_theme( get_template() );
+
+		return array(
+			'name'        => $theme->get( 'Name' ) ?: 'Blockera One',
+			'description' => $theme->get( 'Description' ) ?: '',
+			'slug'        => get_template(),
+			'version'     => $theme->get( 'Version' ) ?: '0.0.0',
+			'type'        => 'theme',
+			// This code only runs while the theme is the active template.
+			'status'      => 'active',
+			'isCompanion' => false,
+			'author'      => $theme->get( 'Author' ) ?: '',
+			'homepage'    => $theme->get( 'ThemeURI' ) ?: '',
+			'requires'    => array(
+				'wordpress' => $theme->get( 'RequiresWP' ) ?: '',
+				'php'       => $theme->get( 'RequiresPHP' ) ?: '',
+			),
+		);
+	}
+endif;
+
+if ( ! function_exists( 'blockera_one_register_product' ) ) :
+	/**
+	 * Register the Blockera One theme into the blockera products registry.
+	 *
+	 * Hooked on `blockera/products/registry/init` (fires once, on first read
+	 * access of the registry) — see packages/blockera-one/php/hooks.php.
+	 *
+	 * @return void
+	 */
+	function blockera_one_register_product(): void {
+		// The blockera/products package may be absent in stripped-down builds.
+		if ( ! function_exists( 'blockera_register_product' ) ) {
+			return;
+		}
+
+		blockera_register_product( blockera_one_get_product_details() );
+	}
+endif;
+
 // Only register when WordPress APIs exist. Composer may autoload this file after a
 // test prepend defines ABSPATH but before add_action() is available.
 if ( function_exists( 'add_action' ) ) {
