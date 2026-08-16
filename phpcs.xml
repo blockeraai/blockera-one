@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
-<ruleset name="WordPress Coding Standards for Blockera One Theme">
-    <description>Consumer ruleset: shared Blockera PHPCS + theme text_domain and scan roots.</description>
+<!-- Edit packages/global-packages/packages/dev-tools/root-configs/phpcs.xml -->
+<!-- project:bootstrap copies this to the host repo root and fills the project id. -->
+<ruleset name="WordPress Coding Standards for blockera-one">
+    <description>Consumer ruleset: shared Blockera PHPCS + blockera-one text_domain and scan roots.</description>
 
     <rule ref="./packages/global-packages/packages/dev-tools/php/phpcs.xml"/>
 
