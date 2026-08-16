@@ -46,7 +46,8 @@ export type ControlType =
 	| 'select'
 	| 'button'
 	| 'layout-matrix'
-	| 'border';
+	| 'border'
+	| 'gateway';
 
 /** Resolved UI value for a control (scalars plus Blockera value-addon objects). */
 export type ControlValue =
@@ -86,6 +87,16 @@ export type SectionHeuristic =
 			 * cannot keep the toggle "on".
 			 */
 			kind: 'innerBlock';
+			parentId: string;
+			name: string;
+	  }
+	| {
+			/**
+			 * Match the first descendant of a parent section (by stamp id)
+			 * with this block name. Used for loop-item blocks nested inside
+			 * post-template / columns, not as direct children of the query.
+			 */
+			kind: 'descendantBlock';
 			parentId: string;
 			name: string;
 	  };
@@ -194,11 +205,34 @@ export type InnerOrderRule = {
 	/** Known child stamp ids (config fallback when a child is missing). */
 	ids: string[];
 	/**
+	 * When elements can live in more than one parent (e.g. loop-item
+	 * media vs content), list those parent stamp ids in document order.
+	 * The Elements UI splits into sortable groups with separators.
+	 */
+	bucketParents?: string[];
+	/**
+	 * Show each parent stamp's live `metadata.name` above its sortable
+	 * group. Off by default; Posts Loop Elements turns it on.
+	 */
+	showParentNames?: boolean;
+	/**
 	 * @deprecated Binary top/bottom lead. Drag order replaced this; kept so
 	 * older fixtures type-check. The engine no longer reads it.
 	 */
 	leadId?: string;
 };
+
+/** Drag payload for same-parent reorder or cross-parent move. */
+export type ReorderElementsPayload =
+	| string[]
+	| {
+			buckets: Array<{ parentId: string; ids: string[] }>;
+			move?: {
+				sectionId: string;
+				toParentId: string;
+				index: number;
+			};
+	  };
 
 export type ControlDef = {
 	id: string;
@@ -359,6 +393,10 @@ export type PanelGroupDef = {
 	 * `metadata.blockeraOneInnerOrder` after the first drag).
 	 */
 	sortable?: boolean;
+	/**
+	 * Render the group even when it has no controls (empty Design shells).
+	 */
+	keepVisible?: boolean;
 	/**
 	 * When set with no body controls, the group is a compact gateway card
 	 * (title + toggle + chevron). When the group also has `controls`, the

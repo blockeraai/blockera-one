@@ -6,7 +6,7 @@
  * `metadata.blockeraOneInnerOrder` after the first drag.
  */
 
-import { getStamp } from './metadata';
+import { getMetaName, getStamp } from './metadata';
 import { resolveSectionState } from './resolve-state';
 import { getAtPath, replaceAtPath } from './tree';
 import type {
@@ -209,4 +209,142 @@ export function isSortableElementControl(control: ControlDef): boolean {
 		!!control.nestedPanel &&
 		!!control.innerOrder?.parentId
 	);
+}
+
+export type ElementBucket = {
+	parentId: string;
+	ids: string[];
+};
+
+/** Live Gutenberg `metadata.name` on a stamped parent, or empty. */
+export function resolveParentStampName(
+	blocks: BlockNode[],
+	parentId: string
+): string {
+	const found = getParentNode(blocks, parentId);
+	return found ? getMetaName(found.node) : '';
+}
+
+/**
+ * Stamp id of the immediate parent of a stamped section, if that parent
+ * itself is stamped (loop-item-content / loop-item-media / post-meta).
+ */
+export function findLiveParentStampId(
+	blocks: BlockNode[],
+	sectionId: string
+): string | null {
+	const child = resolveSectionState(blocks, sectionId);
+	if (!child.path || child.path.length === 0) {
+		return null;
+	}
+	const parentPath = child.path.slice(0, -1);
+	if (parentPath.length === 0) {
+		return null;
+	}
+	const parent = getAtPath(blocks, parentPath);
+	return getStamp(parent)?.id || null;
+}
+
+function storedHasId(
+	blocks: BlockNode[],
+	parentId: string,
+	sectionId: string
+): boolean {
+	const stored = getStoredElementOrder(blocks, parentId);
+	if (!stored) {
+		return false;
+	}
+	return stored.indexOf(sectionId) !== -1;
+}
+
+/**
+ * Parent to insert a toggled-on bucketed element into: last stored home,
+ * otherwise the last existing bucket parent (content is listed last).
+ */
+export function resolveBucketInsertParent(
+	blocks: BlockNode[],
+	sectionId: string,
+	bucketParents: string[],
+	fallbackId: string
+): string {
+	for (let i = 0; i < bucketParents.length; i++) {
+		const parentId = bucketParents[i];
+		if (storedHasId(blocks, parentId, sectionId)) {
+			return parentId;
+		}
+	}
+	for (let i = bucketParents.length - 1; i >= 0; i--) {
+		const parentId = bucketParents[i];
+		if (resolveSectionState(blocks, parentId).path) {
+			return parentId;
+		}
+	}
+	return fallbackId;
+}
+
+/**
+ * Split known element ids across existing bucket parents. Live placement
+ * wins; stored order keeps off items in their last parent; leftovers go
+ * to the last existing parent.
+ */
+export function resolveElementBuckets(
+	blocks: BlockNode[],
+	rule: InnerOrderRule
+): ElementBucket[] {
+	const knownIds = rule.ids || [];
+	const bucketParents = rule.bucketParents || [];
+	if (!bucketParents.length) {
+		return [
+			{
+				parentId: rule.parentId,
+				ids: resolveElementOrder(blocks, rule),
+			},
+		];
+	}
+
+	const existing: string[] = [];
+	for (let i = 0; i < bucketParents.length; i++) {
+		const parentId = bucketParents[i];
+		if (resolveSectionState(blocks, parentId).path) {
+			existing.push(parentId);
+		}
+	}
+	if (!existing.length) {
+		return [{ parentId: rule.parentId, ids: knownIds.slice() }];
+	}
+
+	const assigned: Record<string, string> = {};
+	for (let i = 0; i < knownIds.length; i++) {
+		const id = knownIds[i];
+		const live = findLiveParentStampId(blocks, id);
+		if (live && existing.indexOf(live) !== -1) {
+			assigned[id] = live;
+			continue;
+		}
+		let storedParent: string | null = null;
+		for (let p = 0; p < existing.length; p++) {
+			if (storedHasId(blocks, existing[p], id)) {
+				storedParent = existing[p];
+				break;
+			}
+		}
+		assigned[id] = storedParent || existing[existing.length - 1];
+	}
+
+	const buckets: ElementBucket[] = [];
+	for (let i = 0; i < existing.length; i++) {
+		const parentId = existing[i];
+		const inBucket: string[] = [];
+		for (let k = 0; k < knownIds.length; k++) {
+			if (assigned[knownIds[k]] === parentId) {
+				inBucket.push(knownIds[k]);
+			}
+		}
+		const ordered = resolveElementOrder(blocks, {
+			parentId,
+			ids: inBucket,
+		});
+		buckets.push({ parentId, ids: ordered });
+	}
+	return buckets;
 }

@@ -167,6 +167,12 @@ function heuristicFindSection(
 				heuristic.parentId,
 				heuristic.name
 			);
+		case 'descendantBlock':
+			return heuristicFindDescendantBlock(
+				blocks,
+				heuristic.parentId,
+				heuristic.name
+			);
 		default:
 			return null;
 	}
@@ -200,12 +206,47 @@ function heuristicFindInnerBlock(
 	return null;
 }
 
+/**
+ * First descendant of a parent section whose block name matches. Parent is
+ * resolved by stamp first, then by a non-inner/descendant heuristic.
+ */
+function heuristicFindDescendantBlock(
+	blocks: BlockNode[],
+	parentId: string,
+	name: string
+): { block: BlockNode; path: number[] } | null {
+	const parentByStamp = findByStamp(
+		blocks,
+		(stamp) => stamp?.id === parentId
+	);
+	const parent =
+		parentByStamp || heuristicFindParentSection(blocks, parentId);
+	if (!parent) {
+		return null;
+	}
+	let found: { block: BlockNode; path: number[] } | null = null;
+	walkBlocks(parent.block.innerBlocks || [], (block, relativePath) => {
+		if (block.name === name) {
+			found = {
+				block,
+				path: [...parent.path, ...relativePath],
+			};
+			return false;
+		}
+	});
+	return found;
+}
+
 function heuristicFindParentSection(
 	blocks: BlockNode[],
 	parentId: string
 ): { block: BlockNode; path: number[] } | null {
 	const heuristic = HEURISTIC_REGISTRY.get(parentId);
-	if (!heuristic || heuristic.kind === 'innerBlock') {
+	if (
+		!heuristic ||
+		heuristic.kind === 'innerBlock' ||
+		heuristic.kind === 'descendantBlock'
+	) {
 		return null;
 	}
 	switch (heuristic.kind) {

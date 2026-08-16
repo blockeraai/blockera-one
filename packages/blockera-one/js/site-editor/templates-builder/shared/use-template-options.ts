@@ -44,6 +44,7 @@ import type {
 	ControlDef,
 	ControlValue,
 	InnerOrderRule,
+	ReorderElementsPayload,
 	TemplateOptionsConfig,
 } from './types';
 
@@ -333,7 +334,7 @@ export default function useTemplateOptions(
 	);
 
 	const onReorderElements = useCallback(
-		(rule: InnerOrderRule, orderedIds: string[]) => {
+		(rule: InnerOrderRule, payload: ReorderElementsPayload) => {
 			const result = applyOperation({
 				blocks,
 				control: {
@@ -344,7 +345,7 @@ export default function useTemplateOptions(
 					operation: 'reorderInnerSections',
 					innerOrder: rule,
 				},
-				nextValue: orderedIds,
+				nextValue: payload as ControlValue,
 				config: resolvedConfig,
 				settings: settings as TemplateSettingsRecord,
 				settingBucket,
@@ -352,7 +353,11 @@ export default function useTemplateOptions(
 			});
 			if (result?.kind === 'blocks') {
 				applyBlocks(result.blocks);
-				scrollStampIntoCanvas(rule.parentId);
+				const revealId =
+					!Array.isArray(payload) && payload.move
+						? payload.move.toParentId
+						: rule.parentId;
+				scrollStampIntoCanvas(revealId);
 			}
 		},
 		[applyBlocks, blocks, resolvedConfig, settingBucket, settings]

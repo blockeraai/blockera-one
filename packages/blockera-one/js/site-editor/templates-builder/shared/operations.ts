@@ -22,6 +22,7 @@ export {
 export { transplantLayout } from './layout-transplant';
 export {
 	ensurePaginationNavLabels,
+	moveInnerSection,
 	orderInnerSections,
 	placeSection,
 	setSectionAttribute,

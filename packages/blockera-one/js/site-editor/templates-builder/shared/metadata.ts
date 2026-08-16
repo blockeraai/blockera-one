@@ -13,6 +13,16 @@ export function getStamp(block: BlockNode | null | undefined): Stamp | null {
 	return parseStamp((metadata as { blockeraOne?: unknown }).blockeraOne);
 }
 
+/** Gutenberg List View name (`metadata.name`) on a block, or empty. */
+export function getMetaName(block: BlockNode | null | undefined): string {
+	const metadata = block?.attributes?.metadata;
+	if (!metadata || typeof metadata !== 'object') {
+		return '';
+	}
+	const name = (metadata as { name?: unknown }).name;
+	return typeof name === 'string' ? name.trim() : '';
+}
+
 /** Return a copy of the block re-stamped as `role/id` / `role/id:variant`. */
 export function withStamp(
 	block: BlockNode,

@@ -11,6 +11,7 @@ import {
 } from './constants';
 import {
 	ensurePaginationNavLabels,
+	moveInnerSection,
 	prepareHideChromeSection,
 	orderInnerSections,
 	placeSection,
@@ -24,8 +25,11 @@ import {
 import { getActiveBlockStyleName } from './block-style';
 import {
 	clearStoredElementOrder,
+	findLiveParentStampId,
 	normalizeElementOrder,
 	persistElementOrder,
+	resolveBucketInsertParent,
+	resolveElementBuckets,
 	resolveElementOrder,
 } from './element-order';
 import { getPostsPerPageMap } from './resolve-control-values';
@@ -49,6 +53,7 @@ import type {
 	ControlDef,
 	ControlValue,
 	InsertRule,
+	ReorderElementsPayload,
 	TemplateOptionsConfig,
 	VariantDef,
 } from './types';
@@ -166,6 +171,29 @@ function applyToggleControl(
 	layoutId: string,
 	persistOrder = true
 ): BlockNode[] {
+	const rule = control.innerOrder;
+	const bucketParents = rule?.bucketParents;
+	let homeParent: string | null = null;
+	let capturedBuckets: ReturnType<typeof resolveElementBuckets> | null = null;
+	if (bucketParents?.length && rule) {
+		// Capture order while the section is still in the tree so a
+		// toggle-off does not append the id to the end of the list.
+		capturedBuckets = resolveElementBuckets(blocks, rule);
+		homeParent =
+			findLiveParentStampId(blocks, control.target.id) ||
+			resolveBucketInsertParent(
+				blocks,
+				control.target.id,
+				bucketParents,
+				rule.parentId
+			);
+	}
+
+	let insert = control.insert;
+	if (enabled && homeParent && insert) {
+		insert = { ...insert, relativeTo: homeParent };
+	}
+
 	let tree = blocks;
 	if (!enabled) {
 		tree = prepareHideChromeSection(tree, control.target.id, layoutId);
@@ -176,7 +204,7 @@ function applyToggleControl(
 			sectionId: control.target.id,
 			enabled,
 			defaultVariant: control.variants?.[0],
-			insert: control.insert,
+			insert,
 		},
 		defaultOpsContext
 	);
@@ -196,6 +224,18 @@ function applyToggleControl(
 			);
 		}
 	}
+
+	if (capturedBuckets && rule) {
+		return applyBucketedInnerOrder(
+			tree,
+			rule,
+			control.target.id,
+			homeParent || rule.parentId,
+			persistOrder,
+			capturedBuckets
+		);
+	}
+
 	tree = applyInnerOrder(tree, control, orderSource);
 	// User toggles persist the drag list. Design-swap reapply must not —
 	// the new pattern is the order source and stored order was just cleared.
@@ -206,6 +246,40 @@ function applyToggleControl(
 		}
 	}
 	return tree;
+}
+
+/**
+ * Keep a toggled loop-item in its last parent (media vs content) even
+ * after it is removed from the tree, then persist each bucket separately.
+ */
+function applyBucketedInnerOrder(
+	tree: BlockNode[],
+	rule: NonNullable<ControlDef['innerOrder']>,
+	sectionId: string,
+	homeParent: string,
+	persistOrder: boolean,
+	capturedBuckets?: ReturnType<typeof resolveElementBuckets>
+): BlockNode[] {
+	const resolved = capturedBuckets || resolveElementBuckets(tree, rule);
+	const buckets = resolved.map((bucket) => ({
+		parentId: bucket.parentId,
+		ids: bucket.ids.slice(),
+	}));
+	const dest =
+		buckets.find((bucket) => bucket.parentId === homeParent) ||
+		buckets[buckets.length - 1];
+	if (dest && dest.ids.indexOf(sectionId) === -1) {
+		dest.ids.push(sectionId);
+	}
+	let next = tree;
+	for (let i = 0; i < buckets.length; i++) {
+		const bucket = buckets[i];
+		next = orderInnerSections(next, bucket.parentId, bucket.ids);
+		if (persistOrder) {
+			next = persistElementOrder(next, bucket.parentId, bucket.ids);
+		}
+	}
+	return next;
 }
 
 function wouldLeaveZeroRequired(
@@ -571,6 +645,17 @@ function getAttributeAtPath(
 	return cursor;
 }
 
+function isBucketReorderPayload(
+	value: ControlValue
+): value is Extract<ReorderElementsPayload, { buckets: unknown }> {
+	return (
+		!!value &&
+		typeof value === 'object' &&
+		!Array.isArray(value) &&
+		Array.isArray((value as { buckets?: unknown }).buckets)
+	);
+}
+
 /** Reorder present children to the stored/derived list after a toggle. */
 function applyInnerOrder(
 	tree: BlockNode[],
@@ -711,6 +796,23 @@ export function applyOperation(args: {
 		const rule = control.innerOrder;
 		if (!rule?.parentId) {
 			return null;
+		}
+		if (isBucketReorderPayload(nextValue)) {
+			let tree = blocks;
+			if (nextValue.move) {
+				tree = moveInnerSection(
+					tree,
+					nextValue.move.sectionId,
+					nextValue.move.toParentId,
+					nextValue.move.index
+				);
+			}
+			for (let i = 0; i < nextValue.buckets.length; i++) {
+				const bucket = nextValue.buckets[i];
+				tree = persistElementOrder(tree, bucket.parentId, bucket.ids);
+				tree = orderInnerSections(tree, bucket.parentId, bucket.ids);
+			}
+			return { kind: 'blocks', blocks: tree };
 		}
 		const ordered = normalizeElementOrder(nextValue, rule.ids);
 		if (!ordered.length) {

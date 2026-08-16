@@ -415,6 +415,78 @@ export function orderInnerSections(
 }
 
 /**
+ * Move a stamped section into another stamped parent at `index`.
+ * Unstamped siblings in the destination stay in place; the moved node
+ * is inserted among all children (not only managed stamps).
+ */
+export function moveInnerSection(
+	blocks: BlockNode[],
+	sectionId: string,
+	toParentId: string,
+	index: number
+): BlockNode[] {
+	const child = resolveSectionState(blocks, sectionId);
+	if (!child.path) {
+		return blocks;
+	}
+	const node = getAtPath(blocks, child.path);
+	if (!node) {
+		return blocks;
+	}
+	const dest = resolveSectionState(blocks, toParentId);
+	if (!dest.path) {
+		return blocks;
+	}
+
+	const fromParentPath = child.path.slice(0, -1);
+	let sameParent = fromParentPath.length === dest.path.length;
+	if (sameParent) {
+		for (let i = 0; i < dest.path.length; i++) {
+			if (fromParentPath[i] !== dest.path[i]) {
+				sameParent = false;
+				break;
+			}
+		}
+	}
+
+	if (sameParent) {
+		const parent = getAtPath(blocks, dest.path);
+		if (!parent) {
+			return blocks;
+		}
+		const siblings = [...(parent.innerBlocks || [])];
+		const fromIndex = child.path[child.path.length - 1];
+		if (fromIndex < 0 || fromIndex >= siblings.length) {
+			return blocks;
+		}
+		const [moved] = siblings.splice(fromIndex, 1);
+		const clamped = Math.max(0, Math.min(index, siblings.length));
+		siblings.splice(clamped, 0, moved);
+		return replaceAtPath(blocks, dest.path, {
+			...parent,
+			innerBlocks: siblings,
+		});
+	}
+
+	const tree = removeAtPath(blocks, child.path);
+	const destAfter = resolveSectionState(tree, toParentId);
+	if (!destAfter.path) {
+		return blocks;
+	}
+	const destNode = getAtPath(tree, destAfter.path);
+	if (!destNode) {
+		return blocks;
+	}
+	const siblings = [...(destNode.innerBlocks || [])];
+	const clamped = Math.max(0, Math.min(index, siblings.length));
+	siblings.splice(clamped, 0, node);
+	return replaceAtPath(tree, destAfter.path, {
+		...destNode,
+		innerBlocks: siblings,
+	});
+}
+
+/**
  * Banner page-header children are centered; copy that onto inserted blocks
  * so a toggled-back title matches the active design.
  */
