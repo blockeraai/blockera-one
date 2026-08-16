@@ -1,9 +1,9 @@
 {
 	"files.eol": "\n",
 	"cSpell.customDictionaries": {
-		"custom-dictionary-folder-blockera": {
-			"name": "custom-dictionary-folder-blockera",
-			"path": "${workspaceFolder:blockera}/.cspell/custom-dictionary-folder-blockera.txt",
+		"blockera": {
+			"name": "blockera",
+			"path": "${workspaceFolder}/.cspell/words.txt",
 			"addWords": true,
 			"scope": "folder"
 		}
