@@ -5,7 +5,9 @@
  *
  * Visibility is the block **top** vs the canvas: skip when the top is
  * already in the viewport with more than SKIP_MIN_TOP_PX clearance. When
- * we do scroll, the top lands SCROLL_TOP_OFFSET_PX below the canvas top.
+ * we do scroll, the top lands SCROLL_TOP_OFFSET_PX below the canvas top
+ * unless the stamp’s document Y is under SCROLL_PAGE_TOP_MAX_PX — then
+ * the canvas goes to page top (scrollTop 0) so the header is fully shown.
  */
 
 import { store as blockEditorStore } from '@wordpress/block-editor';
@@ -23,6 +25,12 @@ const CANVAS_IFRAME_SELECTOR =
 
 /** Target gap from the canvas top to the block top after a scroll. */
 export const SCROLL_TOP_OFFSET_PX = 100;
+/**
+ * Document-Y threshold (not viewport). After scrolling down, a header
+ * stamp’s rect.top is largely negative; its page position is still
+ * ~0–300. Landing uses this so the canvas goes to scrollTop 0.
+ */
+export const SCROLL_PAGE_TOP_MAX_PX = 300;
 /**
  * If the block top is already in the viewport and more than this many px
  * below the canvas top, do not scroll.
@@ -95,14 +103,32 @@ export function shouldScrollStampTop(
 }
 
 /**
- * Delta to apply to the scrollport so `blockTop` lands SCROLL_TOP_OFFSET_PX
- * below `portTop`.
+ * Canvas scrollTop after a reveal. Uses document Y, not viewport top:
+ * a header at page Y 175 with the canvas scrolled to 6500 must go to 0,
+ * not land flush on the stamp (which would leave the true header clipped).
+ */
+export function resolveRevealNextTop(
+	blockTop: number,
+	portTop: number,
+	scrollTop: number,
+	docY: number
+): number {
+	if (docY < SCROLL_PAGE_TOP_MAX_PX) {
+		return 0;
+	}
+	return Math.max(0, scrollTop + scrollDeltaForTopOffset(blockTop, portTop));
+}
+
+/**
+ * Delta to apply to the scrollport so `blockTop` lands `offset` below
+ * `portTop`. Defaults to SCROLL_TOP_OFFSET_PX.
  */
 export function scrollDeltaForTopOffset(
 	blockTop: number,
-	portTop: number
+	portTop: number,
+	offset: number = SCROLL_TOP_OFFSET_PX
 ): number {
-	return blockTop - portTop - SCROLL_TOP_OFFSET_PX;
+	return blockTop - portTop - offset;
 }
 
 /**
@@ -179,7 +205,8 @@ function scrollportTop(scroller: Element, view: Window): number {
 	return scroller.getBoundingClientRect().top;
 }
 
-function revealStampTop(el: Element, view: Window): boolean {
+/** @param forceLand Presence-on: land even when the stamp top is already in view. */
+function revealStampTop(el: Element, view: Window, forceLand = false): boolean {
 	const scroller = findScrollableAncestor(el, view);
 	const rect = el.getBoundingClientRect();
 	const portTop = scrollportTop(scroller, view);
@@ -188,14 +215,22 @@ function revealStampTop(el: Element, view: Window): boolean {
 		: scroller.getBoundingClientRect().bottom;
 
 	const willScroll = shouldScrollStampTop(rect.top, portTop, portBottom);
-	const delta = scrollDeltaForTopOffset(rect.top, portTop);
-	if (!willScroll || Math.abs(delta) < SKIP_TOP_EPSILON_PX) {
+	const docY = stampDocumentY(el, view);
+	const nextTop = resolveRevealNextTop(
+		rect.top,
+		portTop,
+		scroller.scrollTop,
+		docY
+	);
+	const appliedDelta = nextTop - scroller.scrollTop;
+	const willMove =
+		(forceLand || willScroll) &&
+		Math.abs(appliedDelta) >= SKIP_TOP_EPSILON_PX;
+	if (!willMove) {
 		return false;
 	}
 
-	ensureBottomScrollRoom(scroller, view, delta);
-
-	const nextTop = Math.max(0, scroller.scrollTop + delta);
+	ensureBottomScrollRoom(scroller, view, appliedDelta);
 	const reduceMotion =
 		typeof view.matchMedia === 'function' &&
 		view.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -214,7 +249,10 @@ function revealStampTop(el: Element, view: Window): boolean {
 
 /**
  * Scroll the stamped block into the canvas if its top is off-screen
- * or tighter than SKIP_MIN_TOP_PX to the canvas top.
+ * or tighter than SKIP_MIN_TOP_PX to the canvas top. Presence-on
+ * (`forceLand`) still lands even when the top is already in view.
+ * Stamps in the first SCROLL_PAGE_TOP_MAX_PX of the document go to
+ * page top; others land SCROLL_TOP_OFFSET_PX below the canvas top.
  * Returns a cleanup that cancels the iframe/store retry.
  */
 let activeRevealStop: (() => void) | null = null;
@@ -227,7 +265,11 @@ export function cancelStampCanvasReveal(): void {
 	}
 }
 
-export function scrollStampIntoCanvas(stampId: string): () => void {
+export function scrollStampIntoCanvas(
+	stampId: string,
+	options?: { forceLand?: boolean }
+): () => void {
+	const forceLand = !!options?.forceLand;
 	if (!stampId) {
 		return () => {};
 	}
@@ -321,7 +363,11 @@ export function scrollStampIntoCanvas(stampId: string): () => void {
 					}
 					return;
 				}
-				const didScroll = revealStampTop(found.el, found.view);
+				const didScroll = revealStampTop(
+					found.el,
+					found.view,
+					forceLand
+				);
 				// Already in view: do not keep subscribe alive for 2s
 				// (color/number/design picks fire often).
 				if (!didScroll) {
