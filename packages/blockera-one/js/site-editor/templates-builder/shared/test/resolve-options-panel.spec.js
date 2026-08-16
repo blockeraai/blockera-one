@@ -6,6 +6,7 @@
 import {
 	buildNestedPanelTree,
 	flattenPanelControls,
+	isPresenceToggle,
 	resolveEnableScrollTarget,
 	resolveNestedPanelScrollTarget,
 	resolveOptionsPanelGroups,
@@ -420,6 +421,26 @@ describe('resolveNestedPanelScrollTarget', () => {
 		expect(resolveNestedPanelScrollTarget(chrome, ['site-footer'])).toBe(
 			'footer'
 		);
+	});
+});
+
+describe('isPresenceToggle', () => {
+	it('is true for toggleSection and layout toggles only', () => {
+		expect(isPresenceToggle(control('pagination'))).toBe(true);
+		expect(
+			isPresenceToggle({
+				...control('sidebar'),
+				operation: 'transplantLayout',
+				type: 'toggle',
+			})
+		).toBe(true);
+		expect(
+			isPresenceToggle({
+				...control('pagination-design'),
+				operation: 'swapSection',
+				type: 'layout-picker',
+			})
+		).toBe(false);
 	});
 });
 
