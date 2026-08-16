@@ -7,7 +7,7 @@ import { useMemo } from '@wordpress/element';
 
 import { ControlContextProvider, InputControl } from '@blockera/controls';
 
-import { CONTROL_COLUMNS } from './constants';
+import { CONTROL_COLUMNS } from '../constants';
 
 type InputControlRowProps = {
 	controlId: string;

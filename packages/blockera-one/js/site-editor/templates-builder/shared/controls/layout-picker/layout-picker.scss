@@ -1,0 +1,90 @@
+.blockera-templates-builder-layout-picker__grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+	gap: 8px;
+}
+
+.blockera-templates-builder-layout-picker__option {
+	border: 2px solid transparent;
+	border-radius: 6px;
+	padding: 0;
+	background: #f6f6f6;
+	cursor: pointer;
+	line-height: 0;
+
+	img {
+		display: block;
+		width: 100%;
+		height: auto;
+	}
+
+	&.is-selected {
+		border-color: var(--blockera-controls-primary-color, #00ba88);
+		box-shadow: 0 0 0 1px var(--blockera-controls-primary-color, #00ba88);
+	}
+
+	&.is-disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	&.is-coming-soon {
+		position: relative;
+		opacity: 1;
+	}
+}
+
+.blockera-templates-builder-layout-picker__badge {
+	position: absolute;
+	right: -10px;
+	top: -9px;
+	padding: 3px 6px;
+	border-radius: 3px;
+	background: rgba(30, 30, 30, 0.82);
+	color: #ffffff;
+	font-size: 10px;
+	font-weight: 600;
+	line-height: 1.2;
+	text-align: center;
+	pointer-events: none;
+}
+
+.blockera-templates-builder-layout-picker__fallback {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 56px;
+	padding: 6px;
+	font-size: 11px;
+	line-height: 1.2;
+	color: #1e1e1e;
+}
+
+.blockera-templates-builder-missing {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 10px;
+	background: #f8f8f8;
+	border-radius: 6px;
+	font-size: 12px;
+	color: #50575e;
+}
+
+.blockera-templates-builder-missing__action {
+	appearance: none;
+	align-self: flex-start;
+	border: 0;
+	background: transparent;
+	color: var(--blockera-controls-primary-color, #00ba88);
+	font-size: 12px;
+	font-weight: 600;
+	cursor: pointer;
+	padding: 0;
+}
+
+.blockera-templates-builder-custom-hint {
+	margin: 8px 0 0;
+	font-size: 12px;
+	color: #757575;
+}

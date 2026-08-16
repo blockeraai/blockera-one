@@ -1,6 +1,8 @@
 import { useId } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
+import './number-control.scss';
+
 type NumberControlProps = {
 	label: string;
 	value: number;

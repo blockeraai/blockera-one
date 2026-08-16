@@ -7,8 +7,8 @@ import {
 	ToggleSelectControl,
 } from '@blockera/controls';
 
-import { CONTROL_COLUMNS } from './constants';
-import type { VariantDef } from '../types';
+import { CONTROL_COLUMNS } from '../constants';
+import type { VariantDef } from '../../types';
 
 type ToggleSelectRowProps = {
 	controlId: string;

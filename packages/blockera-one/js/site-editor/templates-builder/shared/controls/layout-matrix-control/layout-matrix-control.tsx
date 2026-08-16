@@ -13,7 +13,7 @@ import {
 	LayoutMatrixControl,
 } from '@blockera/controls';
 
-import { CONTROL_COLUMNS } from './constants';
+import { CONTROL_COLUMNS } from '../constants';
 
 const DEFAULT_COLUMN_LAYOUT = {
 	direction: 'column',

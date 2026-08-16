@@ -8,7 +8,7 @@ import { useMemo } from '@wordpress/element';
 import { classNames } from '@blockera/classnames';
 import { ControlContextProvider, ColorControl } from '@blockera/controls';
 
-import { CONTROL_COLUMNS } from './constants';
+import { CONTROL_COLUMNS } from '../constants';
 
 type ColorControlRowProps = {
 	controlId: string;

@@ -13,7 +13,8 @@ import { Tooltip } from '@blockera/controls';
 /**
  * Internal dependencies
  */
-import type { VariantDef } from '../types';
+import type { VariantDef } from '../../types';
+import './layout-picker.scss';
 
 type LayoutPickerProps = {
 	label: string;

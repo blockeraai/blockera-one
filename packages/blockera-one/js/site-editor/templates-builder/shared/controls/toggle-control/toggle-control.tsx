@@ -1,5 +1,7 @@
 import { FormToggle } from '@wordpress/components';
 
+import './toggle-control.scss';
+
 type ToggleControlProps = {
 	label: string;
 	checked: boolean;

@@ -4,7 +4,7 @@
 
 import { ControlContextProvider, SelectControl } from '@blockera/controls';
 
-import { CONTROL_COLUMNS } from './constants';
+import { CONTROL_COLUMNS } from '../constants';
 
 export type SelectOption = {
 	label: string;

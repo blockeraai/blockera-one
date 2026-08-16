@@ -1,0 +1,11 @@
+.blockera-templates-builder-toggle {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	min-height: calc(var(--blockera-controls-input-height) - 6px);
+}
+
+.blockera-templates-builder-toggle__label {
+	margin-bottom: 0;
+}

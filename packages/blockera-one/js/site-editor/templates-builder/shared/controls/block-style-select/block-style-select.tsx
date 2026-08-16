@@ -14,9 +14,10 @@ import {
 	useBlockStyleVariations,
 } from '@blockera/editor';
 
-import { findByStamp } from '../tree';
-import type { BlockNode } from '../types';
-import { CONTROL_COLUMNS } from './constants';
+import { findByStamp } from '../../tree';
+import type { BlockNode } from '../../types';
+import { CONTROL_COLUMNS } from '../constants';
+import './block-style-select.scss';
 
 type BlockStyleSelectProps = {
 	controlId: string;

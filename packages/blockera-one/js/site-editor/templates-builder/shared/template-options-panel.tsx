@@ -58,6 +58,7 @@ import type {
 	TemplateOptionsConfig,
 } from './types';
 import useTemplateOptions from './use-template-options';
+import './controls/shared/_controls.scss';
 import './template-options-panel.scss';
 
 function wrapGapValue(next: unknown): Record<string, unknown> {

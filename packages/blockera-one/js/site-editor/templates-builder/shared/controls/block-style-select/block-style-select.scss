@@ -1,0 +1,16 @@
+.blockera-templates-builder-style-variations {
+	[data-style-variations-anchor] {
+		width: 100%;
+		min-width: 0;
+	}
+
+	.components-button.blockera-component-button.is-tertiary.blockera-control-style-variations-button {
+		width: 100%;
+		justify-content: flex-start !important;
+		--height: calc(var(--blockera-controls-input-height) - 2px);
+
+		.blockera-control-style-variations-button__label {
+			flex: 1;
+		}
+	}
+}
