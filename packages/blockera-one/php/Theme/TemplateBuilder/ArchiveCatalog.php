@@ -154,13 +154,13 @@ class ArchiveCatalog extends AbstractCatalog {
 			'pagination'             => array(
 				$this->patternVariant(
 					'standard',
-					__( 'Standard', 'blockera-one' ),
+					__( 'Standard Buttons', 'blockera-one' ),
 					'blockera-one/builder-archive-pagination-standard',
 					array( 'thumbnail' => $this->thumbnail( 'pagination-standard' ) )
 				),
 				$this->disabledVariant(
 					'load-more',
-					__( 'Load more', 'blockera-one' ),
+					__( 'Load More Ajax Button', 'blockera-one' ),
 					array(
 						'thumbnail' => $this->thumbnail( 'pagination-load-more' ),
 						'badge'     => __( 'Coming soon', 'blockera-one' ),
