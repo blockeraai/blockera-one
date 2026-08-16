@@ -11,7 +11,9 @@ jest.mock('@wordpress/data', () => ({
 }));
 
 import {
+	SCROLL_PAGE_TOP_MAX_PX,
 	SCROLL_TOP_OFFSET_PX,
+	resolveRevealNextTop,
 	scrollDeltaForTopOffset,
 	scrollRoomNeeded,
 	shouldScrollStampTop,
@@ -44,12 +46,27 @@ describe('shouldScrollStampTop', () => {
 	});
 });
 
+describe('resolveRevealNextTop', () => {
+	it('goes to page top when the stamp lives in the first 300px of the document', () => {
+		expect(SCROLL_PAGE_TOP_MAX_PX).toBe(300);
+		expect(resolveRevealNextTop(-6387, 0, 6562.5, 174.9)).toBe(0);
+		expect(resolveRevealNextTop(5, 0, 170, 175)).toBe(0);
+		expect(resolveRevealNextTop(820, 0, 0, 299)).toBe(0);
+	});
+
+	it('lands 100px below the canvas top when the stamp is 300px or further down the page', () => {
+		expect(resolveRevealNextTop(820, 0, 0, 300)).toBe(720);
+		expect(resolveRevealNextTop(820, 0, 0, 820)).toBe(720);
+	});
+});
+
 describe('scrollDeltaForTopOffset', () => {
-	it('moves the block top to SCROLL_TOP_OFFSET_PX below the canvas top', () => {
-		expect(SCROLL_TOP_OFFSET_PX).toBe(100);
+	it('moves the block top to the given offset below the canvas top', () => {
 		expect(scrollDeltaForTopOffset(820, 0)).toBe(720);
 		expect(scrollDeltaForTopOffset(50, 0)).toBe(-50);
 		expect(scrollDeltaForTopOffset(100, 0)).toBe(0);
+		expect(scrollDeltaForTopOffset(-40, 0, 0)).toBe(-40);
+		expect(scrollDeltaForTopOffset(820, 0, 100)).toBe(720);
 	});
 });
 
