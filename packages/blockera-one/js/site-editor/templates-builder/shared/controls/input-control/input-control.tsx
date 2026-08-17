@@ -60,8 +60,10 @@ export default function InputControlRow({
 			<InputControl
 				label={label ?? ''}
 				columns={fieldColumns(label, columns)}
-				className="blockera-templates-builder-input"
-				data-test="blockera-templates-builder-input"
+				fieldProps={{
+					className: 'blockera-templates-builder-input',
+					'data-test': 'blockera-templates-builder-input',
+				}}
 				unitType={unitType}
 				controlAddonTypes={controlAddonTypes}
 				variableTypes={variableTypes}

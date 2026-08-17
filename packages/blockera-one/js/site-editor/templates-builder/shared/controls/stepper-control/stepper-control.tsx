@@ -64,10 +64,15 @@ export default function StepperControlRow({
 			<StepperControl
 				label={label ?? ''}
 				columns={fieldColumns(label, columns)}
-				className={classNames('blockera-templates-builder-stepper', {
-					'is-disabled': disabled,
-				})}
-				data-test="blockera-templates-builder-stepper"
+				fieldProps={{
+					className: classNames(
+						'blockera-templates-builder-stepper',
+						{
+							'is-disabled': disabled,
+						}
+					),
+					'data-test': 'blockera-templates-builder-stepper',
+				}}
 				min={min}
 				max={max}
 				step={step}

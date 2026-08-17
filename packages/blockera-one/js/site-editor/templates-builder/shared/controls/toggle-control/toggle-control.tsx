@@ -27,11 +27,13 @@ export default function ToggleControlRow({
 		<BaseControl
 			label={label ?? ''}
 			columns={fieldColumns(label, columns)}
-			className={classNames(
-				'blockera-templates-builder-toggle',
-				className
-			)}
-			data-test="blockera-templates-builder-toggle"
+			fieldProps={{
+				className: classNames(
+					'blockera-templates-builder-toggle',
+					className
+				),
+				'data-test': 'blockera-templates-builder-toggle',
+			}}
 			controlName="toggle"
 		>
 			<FormToggle

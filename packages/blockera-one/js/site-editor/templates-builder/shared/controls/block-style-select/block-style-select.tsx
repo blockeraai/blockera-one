@@ -123,16 +123,18 @@ export default function BlockStyleSelect({
 		<BaseControl
 			label={label ?? ''}
 			columns={fieldColumns(label, columns)}
-			className={classNames(
-				'blockera-templates-builder-style-variations',
-				className,
-				{
-					'is-disabled': !blockName || disabled,
-				}
-			)}
-			data-test="blockera-templates-builder-style-variations"
-			data-control-id={controlId}
-			data-active-style={value || 'default'}
+			fieldProps={{
+				className: classNames(
+					'blockera-templates-builder-style-variations',
+					className,
+					{
+						'is-disabled': !blockName || disabled,
+					}
+				),
+				'data-test': 'blockera-templates-builder-style-variations',
+				'data-control-id': controlId,
+				'data-active-style': value || 'default',
+			}}
 			controlName="style-variations"
 		>
 			{picker}

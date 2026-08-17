@@ -81,13 +81,15 @@ export default function LayoutMatrixControlRow({
 			<LayoutMatrixControl
 				label={label ?? ''}
 				columns={fieldColumns(label, columns)}
-				className={classNames(
-					'blockera-templates-builder-layout-matrix',
-					{
-						'is-disabled': disabled,
-					}
-				)}
-				data-test="blockera-templates-builder-layout-matrix"
+				fieldProps={{
+					className: classNames(
+						'blockera-templates-builder-layout-matrix',
+						{
+							'is-disabled': disabled,
+						}
+					),
+					'data-test': 'blockera-templates-builder-layout-matrix',
+				}}
 				isDirectionActive={isDirectionActive}
 				isAxisControlsActive={isAxisControlsActive}
 				defaultDirection={defaultDirection}

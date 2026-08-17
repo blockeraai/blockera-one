@@ -49,8 +49,10 @@ export default function SelectControlRow({
 			<SelectControl
 				label={label ?? ''}
 				columns={fieldColumns(label, columns)}
-				className="blockera-templates-builder-select"
-				data-test="blockera-templates-builder-select"
+				fieldProps={{
+					className: 'blockera-templates-builder-select',
+					'data-test': 'blockera-templates-builder-select',
+				}}
 				type="native"
 				options={options}
 				defaultValue={defaultValue}

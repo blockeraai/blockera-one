@@ -57,8 +57,10 @@ export default function ToggleSelectRow({
 			<ToggleSelectControl
 				label={label ?? ''}
 				columns={fieldColumns(label, columns)}
-				className="blockera-templates-builder-toggle-select"
-				data-test="blockera-templates-builder-toggle-select"
+				fieldProps={{
+					className: 'blockera-templates-builder-toggle-select',
+					'data-test': 'blockera-templates-builder-toggle-select',
+				}}
 				defaultValue={defaultValue}
 				isDeselectable={false}
 				options={options}

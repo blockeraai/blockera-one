@@ -51,10 +51,12 @@ export default function BorderControlRow({
 			<BorderControl
 				label={label ?? ''}
 				columns={fieldColumns(label, columns)}
-				className={classNames('blockera-templates-builder-border', {
-					'is-disabled': disabled,
-				})}
-				data-test="blockera-templates-builder-border"
+				fieldProps={{
+					className: classNames('blockera-templates-builder-border', {
+						'is-disabled': disabled,
+					}),
+					'data-test': 'blockera-templates-builder-border',
+				}}
 				defaultValue={EMPTY_SIDE}
 				controlAddonTypes={['variable']}
 				variableTypes={['border']}

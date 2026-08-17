@@ -44,11 +44,13 @@ export default function LayoutPicker({
 		<BaseControl
 			label={label ?? ''}
 			columns={fieldColumns(label, columns)}
-			className={classNames(
-				'blockera-templates-builder-layout-picker',
-				className
-			)}
-			data-test="blockera-templates-builder-layout-picker"
+			fieldProps={{
+				className: classNames(
+					'blockera-templates-builder-layout-picker',
+					className
+				),
+				'data-test': 'blockera-templates-builder-layout-picker',
+			}}
 			controlName="layout-picker"
 		>
 			{missing ? (

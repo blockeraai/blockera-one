@@ -51,10 +51,12 @@ export default function ColorControlRow({
 			<ColorControl
 				label={label ?? ''}
 				columns={fieldColumns(label, columns)}
-				className={classNames('blockera-templates-builder-color', {
-					'is-disabled': disabled,
-				})}
-				data-test="blockera-templates-builder-color"
+				fieldProps={{
+					className: classNames('blockera-templates-builder-color', {
+						'is-disabled': disabled,
+					}),
+					'data-test': 'blockera-templates-builder-color',
+				}}
 				controlAddonTypes={controlAddonTypes}
 				variableTypes={variableTypes}
 				defaultValue=""
