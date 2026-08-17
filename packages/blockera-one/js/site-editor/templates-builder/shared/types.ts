@@ -205,14 +205,14 @@ export type InnerOrderRule = {
 	/** Known child stamp ids (config fallback when a child is missing). */
 	ids: string[];
 	/**
-	 * When elements can live in more than one parent (e.g. loop-item
+	 * When blocks can live in more than one parent (e.g. loop-item
 	 * media vs content), list those parent stamp ids in document order.
-	 * The Elements UI splits into sortable groups with separators.
+	 * The Blocks UI splits into sortable groups with separators.
 	 */
 	bucketParents?: string[];
 	/**
 	 * Show each parent stamp's live `metadata.name` above its sortable
-	 * group. Off by default; Posts Loop Elements turns it on.
+	 * group. Off by default; Posts Loop Blocks turns it on.
 	 */
 	showParentNames?: boolean;
 	/**
@@ -395,7 +395,7 @@ export type PanelGroupDef = {
 	 */
 	sortable?: boolean;
 	/**
-	 * Render the group even when it has no controls (empty Design shells).
+	 * Render the group even when it has no controls (empty Styles shells).
 	 */
 	keepVisible?: boolean;
 	/**

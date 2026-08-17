@@ -1,5 +1,5 @@
 /**
- * Design-group heading Edit button — jumps to the section in the canvas.
+ * Styles-group heading Edit button — jumps to the section in the canvas.
  */
 
 import { Button } from '@wordpress/components';

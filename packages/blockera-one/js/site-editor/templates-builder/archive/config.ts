@@ -172,7 +172,7 @@ function sectionStyleControl(target: SectionTarget, id: string): ControlDef {
 	return {
 		id,
 		type: 'select',
-		label: __('Style', 'blockera'),
+		label: __('Style Variation', 'blockera'),
 		target,
 		operation: 'setBlockStyle',
 		defaultValue: 'default',
@@ -233,8 +233,8 @@ function emptyDesignPanel(panelId: string, title: string): NestedPanelDef {
 		title,
 		groups: [
 			{
-				id: `${panelId}-design`,
-				title: __('Design', 'blockera'),
+				id: `${panelId}-styles`,
+				title: __('Styles', 'blockera'),
 				keepVisible: true,
 				controls: [
 					sectionCustomizeControl(target, `${panelId}-customize`),
@@ -292,8 +292,8 @@ function postMetaElement(instance: 1 | 2): ControlDef {
 			title: __('Post Meta', 'blockera'),
 			groups: [
 				{
-					id: `${rowId}-design`,
-					title: __('Design', 'blockera'),
+					id: `${rowId}-styles`,
+					title: __('Styles', 'blockera'),
 					keepVisible: true,
 					controls: [
 						sectionCustomizeControl(
@@ -303,8 +303,8 @@ function postMetaElement(instance: 1 | 2): ControlDef {
 					],
 				},
 				{
-					id: `${rowId}-elements`,
-					title: __('Elements', 'blockera'),
+					id: `${rowId}-blocks`,
+					title: __('Blocks', 'blockera'),
 					sortable: true,
 					controls: POST_META_CHILD_DEFS.map((item) => {
 						const childId = `${prefix}-${item.suffix}`;
@@ -345,7 +345,7 @@ function elementDesignPanel(
 		groups: [
 			{
 				id: groupId,
-				title: __('Design', 'blockera'),
+				title: __('Styles', 'blockera'),
 				controls: [
 					design.style,
 					design.color,
@@ -414,6 +414,21 @@ const PAGE_HEADER_SECTION = {
 	id: 'page-header',
 };
 
+const HEADER_SECTION: SectionTarget = {
+	kind: 'section',
+	id: 'header',
+};
+
+const FOOTER_SECTION: SectionTarget = {
+	kind: 'section',
+	id: 'footer',
+};
+
+const POSTS_LISTING_TARGET: SectionTarget = {
+	kind: 'section',
+	id: 'posts-listing',
+};
+
 const ELEMENTS_CONTAINER = {
 	kind: 'container' as const,
 	id: 'elements',
@@ -432,7 +447,7 @@ const PAGE_HEADER_ALIGN = {
 const POSTS_TEMPLATE: ControlDef = {
 	id: 'posts-template',
 	type: 'layout-picker',
-	target: { kind: 'section', id: 'posts-listing' },
+	target: POSTS_LISTING_TARGET,
 	operation: 'swapSection',
 	// Listing patterns ship with standard pagination inside;
 	// keep the user's query setup and pagination design
@@ -451,6 +466,21 @@ const POSTS_TEMPLATE: ControlDef = {
 		],
 	},
 	catalogPool: 'posts-listing',
+};
+
+const POSTS_PER_PAGE: ControlDef = {
+	id: 'posts-per-page',
+	type: 'number',
+	label: __('Number of posts', 'blockera'),
+	target: { kind: 'setting', id: 'posts_per_page' },
+	operation: 'setTemplateSetting',
+	scrollTarget: 'posts-listing',
+	settingPath: 'posts_per_page',
+	defaultValue: 10,
+	min: 1,
+	max: 50,
+	step: 1,
+	columns: '2fr 2fr',
 };
 
 export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
@@ -583,19 +613,30 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 				title: __('Site Header', 'blockera'),
 				groups: [
 					{
-						id: 'header-design-group',
-						title: __('Design', 'blockera'),
+						id: 'header-layout',
+						title: __('Layout', 'blockera'),
 						controls: [
 							{
 								id: 'header-design',
 								type: 'layout-picker',
-								target: { kind: 'section', id: 'header' },
+								target: HEADER_SECTION,
 								operation: 'swapTemplatePart',
 								conditions: [
 									{ controlId: 'header', equals: true },
 								],
 								catalogPool: 'header',
 							},
+						],
+					},
+					{
+						id: 'header-styles',
+						title: __('Styles', 'blockera'),
+						keepVisible: true,
+						controls: [
+							sectionCustomizeControl(
+								HEADER_SECTION,
+								'header-customize'
+							),
 						],
 					},
 				],
@@ -623,13 +664,17 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 			nestedPanel: {
 				id: 'page-header-settings',
 				title: __('Page Header', 'blockera'),
-				gatewayLabel: __('Design & Elements', 'blockera'),
+				gatewayLabel: __('Styles & Blocks', 'blockera'),
 				groups: [
 					{
-						id: 'page-header-design',
-						title: __('Design', 'blockera'),
+						id: 'page-header-layout',
+						title: __('Layout', 'blockera'),
+						controls: [PAGE_HEADER_DESIGN],
+					},
+					{
+						id: 'page-header-styles',
+						title: __('Styles', 'blockera'),
 						controls: [
-							PAGE_HEADER_DESIGN,
 							{
 								id: 'page-header-gap',
 								type: 'input',
@@ -738,8 +783,8 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 						],
 					},
 					{
-						id: 'page-header-elements',
-						title: __('Elements', 'blockera'),
+						id: 'page-header-blocks',
+						title: __('Blocks', 'blockera'),
 						sortable: true,
 						controls: [
 							{
@@ -767,7 +812,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 								nestedPanel: elementDesignPanel(
 									'page-header-title',
 									__('Title', 'blockera'),
-									'title-design',
+									'title-styles',
 									TITLE_TARGET,
 									'title'
 								),
@@ -797,7 +842,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 								nestedPanel: elementDesignPanel(
 									'page-header-description',
 									__('Description', 'blockera'),
-									'description-design',
+									'description-styles',
 									DESCRIPTION_TARGET,
 									'description'
 								),
@@ -829,8 +874,8 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 									title: __('Breadcrumbs', 'blockera'),
 									groups: [
 										{
-											id: 'breadcrumbs-design',
-											title: __('Design', 'blockera'),
+											id: 'breadcrumbs-styles',
+											title: __('Styles', 'blockera'),
 											controls: [
 												BREADCRUMBS_DESIGN.style,
 												BREADCRUMBS_DESIGN.color,
@@ -917,24 +962,11 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 			title: __('Posts Loop', 'blockera'),
 			controls: [
 				POSTS_TEMPLATE,
-				{
-					id: 'posts-per-page',
-					type: 'number',
-					label: __('Number of posts', 'blockera'),
-					target: { kind: 'setting', id: 'posts_per_page' },
-					operation: 'setTemplateSetting',
-					scrollTarget: 'posts-listing',
-					settingPath: 'posts_per_page',
-					defaultValue: 10,
-					min: 1,
-					max: 50,
-					step: 1,
-					columns: '2fr 2fr',
-				},
+				POSTS_PER_PAGE,
 				{
 					id: 'posts-loop',
 					type: 'gateway',
-					label: __('Design and Elements', 'blockera'),
+					label: __('Styles & Blocks', 'blockera'),
 					target: { kind: 'section', id: 'posts-listing' },
 					operation: 'selectInCanvas',
 					nestedPanel: {
@@ -943,13 +975,24 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 						scrollTarget: 'posts-listing',
 						groups: [
 							{
-								id: 'posts-loop-design',
-								title: __('Design', 'blockera'),
+								id: 'posts-loop-layout',
+								title: __('Layout', 'blockera'),
 								controls: [POSTS_TEMPLATE],
 							},
 							{
-								id: 'posts-loop-elements',
-								title: __('Elements', 'blockera'),
+								id: 'posts-loop-styles',
+								title: __('Styles', 'blockera'),
+								controls: [
+									POSTS_PER_PAGE,
+									sectionCustomizeControl(
+										POSTS_LISTING_TARGET,
+										'posts-loop-customize'
+									),
+								],
+							},
+							{
+								id: 'posts-loop-blocks',
+								title: __('Blocks', 'blockera'),
 								sortable: true,
 								controls: [
 									loopItemElement(
@@ -1005,8 +1048,8 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 				title: __('Pagination', 'blockera'),
 				groups: [
 					{
-						id: 'pagination-design',
-						title: __('Design', 'blockera'),
+						id: 'pagination-layout',
+						title: __('Layout', 'blockera'),
 						controls: [
 							{
 								id: 'pagination-design',
@@ -1026,6 +1069,12 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 									],
 								},
 							},
+						],
+					},
+					{
+						id: 'pagination-styles',
+						title: __('Styles', 'blockera'),
+						controls: [
 							{
 								...sectionStyleControl(
 									PAGINATION_TARGET,
@@ -1077,8 +1126,8 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 						],
 					},
 					{
-						id: 'pagination-elements',
-						title: __('Elements', 'blockera'),
+						id: 'pagination-blocks',
+						title: __('Blocks', 'blockera'),
 						controls: [
 							{
 								id: 'pagination-previous',
@@ -1104,7 +1153,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 										...elementDesignPanel(
 											'pagination-previous-design',
 											__('Previous Page', 'blockera'),
-											'pagination-prev-design',
+											'pagination-prev-styles',
 											PAGINATION_PREV_TARGET,
 											'pagination-prev'
 										).groups,
@@ -1159,7 +1208,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 										...elementDesignPanel(
 											'pagination-numbers-design',
 											__('Numbers', 'blockera'),
-											'pagination-num-design',
+											'pagination-num-styles',
 											PAGINATION_NUMBERS_TARGET,
 											'pagination-num'
 										).groups,
@@ -1216,7 +1265,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 										...elementDesignPanel(
 											'pagination-next-design',
 											__('Next Page', 'blockera'),
-											'pagination-next-design',
+											'pagination-next-styles',
 											PAGINATION_NEXT_TARGET,
 											'pagination-next'
 										).groups,
@@ -1316,19 +1365,30 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 				title: __('Site Footer', 'blockera'),
 				groups: [
 					{
-						id: 'footer-design-group',
-						title: __('Design', 'blockera'),
+						id: 'footer-layout',
+						title: __('Layout', 'blockera'),
 						controls: [
 							{
 								id: 'footer-design',
 								type: 'layout-picker',
-								target: { kind: 'section', id: 'footer' },
+								target: FOOTER_SECTION,
 								operation: 'swapTemplatePart',
 								conditions: [
 									{ controlId: 'footer', equals: true },
 								],
 								catalogPool: 'footer',
 							},
+						],
+					},
+					{
+						id: 'footer-styles',
+						title: __('Styles', 'blockera'),
+						keepVisible: true,
+						controls: [
+							sectionCustomizeControl(
+								FOOTER_SECTION,
+								'footer-customize'
+							),
 						],
 					},
 				],
