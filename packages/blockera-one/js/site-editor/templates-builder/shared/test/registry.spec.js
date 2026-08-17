@@ -232,6 +232,21 @@ describe('archive config structural invariants', () => {
 		}
 	});
 
+	it('omits inspector labels on layout-picker controls', () => {
+		const pickers = controls.filter((c) => c.type === 'layout-picker');
+		expect([...new Set(pickers.map((c) => c.id))].sort()).toEqual([
+			'footer-design',
+			'header-design',
+			'page-header-design',
+			'pagination-design',
+			'posts-template',
+			'sidebar-position',
+		]);
+		for (const control of pickers) {
+			expect(control.label).toBeUndefined();
+		}
+	});
+
 	it('gives page header Design a customize-in-editor action', () => {
 		const pageHeader = config.groups.find((g) => g.id === 'page-header');
 		const design = pageHeader.nestedPanel.groups.find(
