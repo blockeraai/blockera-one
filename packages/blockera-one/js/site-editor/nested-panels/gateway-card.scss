@@ -254,17 +254,20 @@
 	}
 }
 
-// Consecutive gateway rows sit in separate control wrappers; pull them together.
-.blockera-templates-builder-control:has(.blockera-site-editor-gateway-row)
-	+ .blockera-templates-builder-control:has(
-		.blockera-site-editor-gateway-row
-	) {
+// Consecutive gateway rows are flex siblings; pull them together.
+.blockera-site-editor-gateway-row + .blockera-site-editor-gateway-row {
 	margin-top: -14px;
 
 	&.has-separator-before {
 		margin-top: -10px;
 		padding-top: 6px;
 	}
+}
+
+// Layout picker + gateway row: tighten the flex gap around the divider.
+.blockera-templates-builder-layout-picker + .blockera-site-editor-gateway-row {
+	margin-top: -12px;
+	margin-bottom: -12px;
 }
 
 /*

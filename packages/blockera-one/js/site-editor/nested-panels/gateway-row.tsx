@@ -28,6 +28,7 @@ export type GatewayRowProps = {
 	};
 	onOpen?: () => void;
 	'data-test'?: string;
+	className?: string;
 	/** Left-side drag handle (hidden until hover). */
 	dragHandle?: ReactNode;
 	isDragging?: boolean;
@@ -42,6 +43,7 @@ export default function GatewayRow({
 	toggle,
 	onOpen,
 	'data-test': dataTest,
+	className,
 	dragHandle,
 	isDragging,
 }: GatewayRowProps) {
@@ -90,12 +92,16 @@ export default function GatewayRow({
 
 	return (
 		<div
-			className={classNames('blockera-site-editor-gateway-row', {
-				'is-enabled': enabled,
-				'is-navigable': canOpen,
-				'has-drag-handle': !!dragHandle,
-				'is-dragging': !!isDragging,
-			})}
+			className={classNames(
+				'blockera-site-editor-gateway-row',
+				className,
+				{
+					'is-enabled': enabled,
+					'is-navigable': canOpen,
+					'has-drag-handle': !!dragHandle,
+					'is-dragging': !!isDragging,
+				}
+			)}
 			data-test={dataTest}
 			data-enabled={enabled ? 'true' : 'false'}
 			onClick={onRowClick}
