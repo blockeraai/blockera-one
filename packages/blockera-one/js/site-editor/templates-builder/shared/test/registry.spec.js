@@ -247,16 +247,30 @@ describe('archive config structural invariants', () => {
 		}
 	});
 
-	it('gives page header Design a customize-in-editor action', () => {
+	it('splits page header into Layout, Styles, and Blocks', () => {
 		const pageHeader = config.groups.find((g) => g.id === 'page-header');
-		const design = pageHeader.nestedPanel.groups.find(
-			(g) => g.id === 'page-header-design'
-		);
+		expect(pageHeader.nestedPanel.gatewayLabel).toBe('Styles & Blocks');
+		expect(pageHeader.nestedPanel.groups.map((g) => g.id)).toEqual([
+			'page-header-layout',
+			'page-header-styles',
+			'page-header-blocks',
+		]);
+		expect(pageHeader.nestedPanel.groups.map((g) => g.title)).toEqual([
+			'Layout',
+			'Styles',
+			'Blocks',
+		]);
+
+		const layout = pageHeader.nestedPanel.groups[0];
+		const styles = pageHeader.nestedPanel.groups[1];
 
 		expect(pageHeader.controls[0].id).toBe('page-header-design');
 		expect(pageHeader.controls[0].label).toBeUndefined();
-		expect(design.controls.map((c) => c.id)).toEqual([
+		expect(layout.controls.map((c) => c.id)).toEqual([
 			'page-header-design',
+		]);
+		expect(layout.controls[0].label).toBeUndefined();
+		expect(styles.controls.map((c) => c.id)).toEqual([
 			'page-header-gap',
 			'page-header-bottom-spacing',
 			'page-header-align',
@@ -267,9 +281,8 @@ describe('archive config structural invariants', () => {
 			'page-header-elements-width',
 			'page-header-customize',
 		]);
-		expect(design.controls[0].label).toBeUndefined();
 
-		const customize = design.controls.find(
+		const customize = styles.controls.find(
 			(c) => c.id === 'page-header-customize'
 		);
 		expect(customize.type).toBe('button');
@@ -279,7 +292,7 @@ describe('archive config structural invariants', () => {
 			id: 'page-header',
 		});
 
-		const alignBanner = design.controls.find(
+		const alignBanner = styles.controls.find(
 			(c) => c.id === 'page-header-align-banner'
 		);
 		expect(alignBanner.target).toEqual({
@@ -289,7 +302,7 @@ describe('archive config structural invariants', () => {
 		expect(alignBanner.alsoSetOn).toBeUndefined();
 	});
 
-	it('gives title and description a Design nested panel without Settings', () => {
+	it('gives title and description a Styles nested panel without Settings', () => {
 		const title = controls.find((c) => c.id === 'page-header-title');
 		const description = controls.find(
 			(c) => c.id === 'page-header-description'
@@ -297,7 +310,7 @@ describe('archive config structural invariants', () => {
 
 		expect(title.nestedPanel.id).toBe('page-header-title');
 		expect(title.nestedPanel.groups.map((g) => g.id)).toEqual([
-			'title-design',
+			'title-styles',
 		]);
 		expect(title.nestedPanel.groups[0].controls.map((c) => c.id)).toEqual([
 			'title-style',
@@ -309,7 +322,7 @@ describe('archive config structural invariants', () => {
 
 		expect(description.nestedPanel.id).toBe('page-header-description');
 		expect(description.nestedPanel.groups.map((g) => g.id)).toEqual([
-			'description-design',
+			'description-styles',
 		]);
 		expect(
 			description.nestedPanel.groups[0].controls.map((c) => c.id)
@@ -322,16 +335,17 @@ describe('archive config structural invariants', () => {
 		]);
 	});
 
-	it('puts Style first in Design groups that change block style variation', () => {
+	it('puts Style Variation first in Styles groups that change block style variation', () => {
 		const breadcrumbs = controls.find(
 			(c) => c.id === 'page-header-breadcrumbs'
 		);
-		const design = breadcrumbs.nestedPanel.groups.find(
-			(g) => g.id === 'breadcrumbs-design'
+		const styles = breadcrumbs.nestedPanel.groups.find(
+			(g) => g.id === 'breadcrumbs-styles'
 		);
 
-		expect(design.controls[0].id).toBe('breadcrumbs-style');
-		expect(design.controls[0].operation).toBe('setBlockStyle');
+		expect(styles.controls[0].id).toBe('breadcrumbs-style');
+		expect(styles.controls[0].label).toBe('Style Variation');
+		expect(styles.controls[0].operation).toBe('setBlockStyle');
 	});
 
 	it('gates pagination as its own group between Posts Loop and Sidebar', () => {
@@ -350,19 +364,27 @@ describe('archive config structural invariants', () => {
 		expect(pagination.nestedPanel.id).toBe('pagination');
 		expect(pagination.nestedPanel.title).toBe('Pagination');
 		expect(pagination.nestedPanel.groups.map((g) => g.id)).toEqual([
-			'pagination-design',
-			'pagination-elements',
+			'pagination-layout',
+			'pagination-styles',
+			'pagination-blocks',
+		]);
+		expect(pagination.nestedPanel.groups.map((g) => g.title)).toEqual([
+			'Layout',
+			'Styles',
+			'Blocks',
 		]);
 		expect(
 			pagination.nestedPanel.groups[0].controls.map((c) => c.id)
+		).toEqual(['pagination-design']);
+		expect(
+			pagination.nestedPanel.groups[1].controls.map((c) => c.id)
 		).toEqual([
-			'pagination-design',
 			'pagination-style',
 			'pagination-top-divider',
 			'pagination-top-spacing',
 			'pagination-customize',
 		]);
-		const customize = pagination.nestedPanel.groups[0].controls.find(
+		const customize = pagination.nestedPanel.groups[1].controls.find(
 			(c) => c.id === 'pagination-customize'
 		);
 		expect(customize.type).toBe('button');
@@ -371,29 +393,29 @@ describe('archive config structural invariants', () => {
 			kind: 'section',
 			id: 'pagination',
 		});
-		const elements = pagination.nestedPanel.groups[1].controls;
-		expect(elements.map((c) => c.id)).toEqual([
+		const blocks = pagination.nestedPanel.groups[2].controls;
+		expect(blocks.map((c) => c.id)).toEqual([
 			'pagination-previous',
 			'pagination-numbers',
 			'pagination-next',
 		]);
-		expect(elements[0].requireAtLeastOneOf).toEqual([
+		expect(blocks[0].requireAtLeastOneOf).toEqual([
 			'pagination-previous',
 			'pagination-numbers',
 			'pagination-next',
 		]);
-		expect(elements[0].alsoToggle).toBeUndefined();
+		expect(blocks[0].alsoToggle).toBeUndefined();
 		expect(
-			elements.map((c) => c.nestedPanel.groups.map((g) => g.id))
+			blocks.map((c) => c.nestedPanel.groups.map((g) => g.id))
 		).toEqual([
-			['pagination-prev-design', 'pagination-prev-settings'],
-			['pagination-num-design', 'pagination-num-settings'],
-			['pagination-next-design', 'pagination-next-settings'],
+			['pagination-prev-styles', 'pagination-prev-settings'],
+			['pagination-num-styles', 'pagination-num-settings'],
+			['pagination-next-styles', 'pagination-next-settings'],
 		]);
-		for (const element of elements) {
-			const design = element.nestedPanel.groups[0];
+		for (const block of blocks) {
+			const styles = block.nestedPanel.groups[0];
 			expect(
-				design.controls.some((c) => c.operation === 'selectInCanvas')
+				styles.controls.some((c) => c.operation === 'selectInCanvas')
 			).toBe(true);
 		}
 	});
@@ -413,7 +435,7 @@ describe('archive config structural invariants', () => {
 		]);
 	});
 
-	it('adds a Design and Elements gateway on the Posts Loop card', () => {
+	it('adds a Styles & Blocks gateway on the Posts Loop card', () => {
 		const pageLayout = config.groups.find((g) => g.id === 'page-layout');
 		expect(pageLayout.controls.map((c) => c.id)).toEqual([
 			'posts-template',
@@ -422,15 +444,32 @@ describe('archive config structural invariants', () => {
 		]);
 		const gateway = pageLayout.controls.find((c) => c.id === 'posts-loop');
 		expect(gateway.type).toBe('gateway');
+		expect(gateway.label).toBe('Styles & Blocks');
 		expect(gateway.nestedPanel.id).toBe('posts-loop');
 		expect(gateway.nestedPanel.groups.map((g) => g.id)).toEqual([
-			'posts-loop-design',
-			'posts-loop-elements',
+			'posts-loop-layout',
+			'posts-loop-styles',
+			'posts-loop-blocks',
+		]);
+		expect(gateway.nestedPanel.groups.map((g) => g.title)).toEqual([
+			'Layout',
+			'Styles',
+			'Blocks',
 		]);
 		expect(gateway.nestedPanel.groups[0].controls.map((c) => c.id)).toEqual(
 			['posts-template']
 		);
-		const elements = gateway.nestedPanel.groups[1].controls;
+		expect(gateway.nestedPanel.groups[1].controls.map((c) => c.id)).toEqual(
+			['posts-per-page', 'posts-loop-customize']
+		);
+		const customize = gateway.nestedPanel.groups[1].controls[1];
+		expect(customize.type).toBe('button');
+		expect(customize.operation).toBe('selectInCanvas');
+		expect(customize.target).toEqual({
+			kind: 'section',
+			id: 'posts-listing',
+		});
+		const elements = gateway.nestedPanel.groups[2].controls;
 		expect(elements.map((c) => c.id)).toEqual([
 			'post-featured-image',
 			'post-title',
@@ -452,15 +491,19 @@ describe('archive config structural invariants', () => {
 		expect(elements[6].label).toBe('Post Meta');
 	});
 
-	it('gives every Posts Loop element Design a customize-in-editor action', () => {
+	it('gives every Posts Loop element Styles a customize-in-editor action', () => {
 		const postsLoop = config.groups
 			.find((g) => g.id === 'page-layout')
 			.controls.find((c) => c.id === 'posts-loop');
-		const elements = postsLoop.nestedPanel.groups[1].controls;
+		const elements = postsLoop.nestedPanel.groups.find(
+			(g) => g.id === 'posts-loop-blocks'
+		).controls;
 
 		for (const element of elements) {
-			const design = element.nestedPanel.groups[0];
-			const customize = design.controls.find(
+			const styles = element.nestedPanel.groups[0];
+			expect(styles.id).toBe(`${element.id}-styles`);
+			expect(styles.title).toBe('Styles');
+			const customize = styles.controls.find(
 				(c) => c.operation === 'selectInCanvas'
 			);
 			expect(customize).toBeDefined();
@@ -475,8 +518,10 @@ describe('archive config structural invariants', () => {
 		for (const meta of [elements[5], elements[6]]) {
 			const metaChildren = meta.nestedPanel.groups[1].controls;
 			for (const child of metaChildren) {
-				const design = child.nestedPanel.groups[0];
-				const customize = design.controls.find(
+				const styles = child.nestedPanel.groups[0];
+				expect(styles.id).toBe(`${child.id}-styles`);
+				expect(styles.title).toBe('Styles');
+				const customize = styles.controls.find(
 					(c) => c.operation === 'selectInCanvas'
 				);
 				expect(customize).toBeDefined();
@@ -495,13 +540,15 @@ describe('archive config structural invariants', () => {
 		expect(meta1.target.id).toBe('post-meta');
 		expect(meta2.target.id).toBe('post-meta-2');
 		expect(meta1.nestedPanel.groups.map((g) => g.id)).toEqual([
-			'post-meta-design',
-			'post-meta-elements',
+			'post-meta-styles',
+			'post-meta-blocks',
 		]);
 		expect(meta2.nestedPanel.groups.map((g) => g.id)).toEqual([
-			'post-meta-2-design',
-			'post-meta-2-elements',
+			'post-meta-2-styles',
+			'post-meta-2-blocks',
 		]);
+		expect(meta1.nestedPanel.groups[1].title).toBe('Blocks');
+		expect(meta2.nestedPanel.groups[1].title).toBe('Blocks');
 		expect(meta1.nestedPanel.groups[0].keepVisible).toBe(true);
 		expect(meta1.nestedPanel.groups[0].controls.map((c) => c.id)).toEqual([
 			'post-meta-customize',
@@ -548,5 +595,64 @@ describe('archive config structural invariants', () => {
 		expect(
 			meta2.nestedPanel.groups[1].controls[0].requireAtLeastOneOf
 		).toEqual(children2);
+	});
+
+	it('splits Site Header and Site Footer into Layout plus a visible Styles shell', () => {
+		const header = config.groups.find((g) => g.id === 'site-header');
+		expect(header.nestedPanel.groups.map((g) => g.id)).toEqual([
+			'header-layout',
+			'header-styles',
+		]);
+		expect(header.nestedPanel.groups.map((g) => g.title)).toEqual([
+			'Layout',
+			'Styles',
+		]);
+		expect(header.nestedPanel.groups[0].controls.map((c) => c.id)).toEqual([
+			'header-design',
+		]);
+		const headerStyles = header.nestedPanel.groups[1];
+		expect(headerStyles.keepVisible).toBe(true);
+		expect(headerStyles.controls.map((c) => c.id)).toEqual([
+			'header-customize',
+		]);
+		expect(headerStyles.controls[0].operation).toBe('selectInCanvas');
+		expect(headerStyles.controls[0].target).toEqual({
+			kind: 'section',
+			id: 'header',
+		});
+
+		const footer = config.groups.find((g) => g.id === 'site-footer');
+		expect(footer.nestedPanel.groups.map((g) => g.id)).toEqual([
+			'footer-layout',
+			'footer-styles',
+		]);
+		expect(footer.nestedPanel.groups.map((g) => g.title)).toEqual([
+			'Layout',
+			'Styles',
+		]);
+		expect(footer.nestedPanel.groups[0].controls.map((c) => c.id)).toEqual([
+			'footer-design',
+		]);
+		const footerStyles = footer.nestedPanel.groups[1];
+		expect(footerStyles.keepVisible).toBe(true);
+		expect(footerStyles.controls.map((c) => c.id)).toEqual([
+			'footer-customize',
+		]);
+		expect(footerStyles.controls[0].operation).toBe('selectInCanvas');
+		expect(footerStyles.controls[0].target).toEqual({
+			kind: 'section',
+			id: 'footer',
+		});
+	});
+
+	it('names the Sidebar nested group Layout', () => {
+		const sidebar = config.groups.find((g) => g.id === 'sidebar');
+		expect(sidebar.nestedPanel.groups.map((g) => g.id)).toEqual([
+			'sidebar-layout',
+		]);
+		expect(sidebar.nestedPanel.groups[0].title).toBe('Layout');
+		expect(sidebar.nestedPanel.groups[0].controls.map((c) => c.id)).toEqual(
+			['sidebar-position']
+		);
 	});
 });
