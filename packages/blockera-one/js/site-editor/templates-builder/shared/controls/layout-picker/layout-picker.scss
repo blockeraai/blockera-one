@@ -1,6 +1,5 @@
 .blockera-templates-builder-layout-picker {
 	$block: &;
-	$primary: var(--blockera-controls-primary-color, #00ba88);
 	transition: var(--blockera-controls-transition);
 
 	&__grid {
@@ -32,22 +31,44 @@
 
 		&.is-selected {
 			#{$block}__preview {
-				box-shadow: 0 0 0 2px $primary;
+				background-color: var(
+					--blockera-controls-primary-color,
+					var(
+						--wp-components-color-accent,
+						var(--wp-admin-theme-color, #3858e9)
+					)
+				);
 			}
 
 			#{$block}__caption {
-				color: $primary;
+				color: var(
+					--blockera-controls-primary-color,
+					var(
+						--wp-components-color-accent,
+						var(--wp-admin-theme-color, #3858e9)
+					)
+				);
 				opacity: 1;
 			}
 		}
 
 		&:hover:not(.is-disabled, .is-selected) {
 			#{$block}__preview {
-				box-shadow: 0 0 0 2px $primary;
+				background-color: color-mix(
+					in srgb,
+					var(
+							--blockera-controls-primary-color,
+							var(
+								--wp-components-color-accent,
+								var(--wp-admin-theme-color, #3858e9)
+							)
+						)
+						60%,
+					#ffffff
+				);
 			}
 
 			#{$block}__caption {
-				// color: $primary;
 				opacity: 1;
 			}
 		}
@@ -57,9 +78,19 @@
 		position: relative;
 		display: block;
 		width: 100%;
-		box-shadow: 0 0 0 1px #0000001a;
 		border-radius: 4px;
-		background: #f6f6f6;
+		background-color: color-mix(
+			in srgb,
+			var(
+					--blockera-controls-primary-color,
+					var(
+						--wp-components-color-accent,
+						var(--wp-admin-theme-color, #3858e9)
+					)
+				)
+				20%,
+			10% #000000
+		);
 		line-height: 0;
 		transition: var(--blockera-controls-transition);
 
