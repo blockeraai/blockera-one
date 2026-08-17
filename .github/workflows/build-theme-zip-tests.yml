@@ -21,7 +21,6 @@ jobs:
                 php: ['7.4', '8.0', '8.1', '8.2']
         env:
             BLOCKERA_GLOBAL_PACKAGES_TOKEN: ${{ secrets.BLOCKERABOT_PAT }}
-            BLOCKERA_BUILD_ZIP_TESTS_PRODUCT_STYLE: theme
             BLOCKERA_BUILD_ZIP_TESTS_SPECS_ROOTS: ./packages
             BLOCKERA_BUILD_ZIP_TESTS_SPECS_PATH: '*-one*'
         steps:
