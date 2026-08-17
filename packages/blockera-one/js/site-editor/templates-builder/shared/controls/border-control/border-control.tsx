@@ -7,11 +7,11 @@ import { useMemo } from '@wordpress/element';
 import { classNames } from '@blockera/classnames';
 import { BorderControl, ControlContextProvider } from '@blockera/controls';
 
-import { CONTROL_COLUMNS } from '../constants';
+import { CONTROL_COLUMNS, fieldColumns } from '../constants';
 
 type BorderControlRowProps = {
 	controlId: string;
-	label: string;
+	label?: string;
 	value: unknown;
 	disabled?: boolean;
 	attribute?: string;
@@ -55,8 +55,8 @@ export default function BorderControlRow({
 		>
 			<ControlContextProvider value={contextValue}>
 				<BorderControl
-					label={label}
-					columns={columns}
+					label={label ?? ''}
+					columns={fieldColumns(label, columns)}
 					defaultValue={EMPTY_SIDE}
 					controlAddonTypes={['variable']}
 					variableTypes={['border']}

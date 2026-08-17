@@ -16,12 +16,12 @@ import {
 
 import { findByStamp } from '../../tree';
 import type { BlockNode } from '../../types';
-import { CONTROL_COLUMNS } from '../constants';
+import { CONTROL_COLUMNS, fieldColumns } from '../constants';
 import './block-style-select.scss';
 
 type BlockStyleSelectProps = {
 	controlId: string;
-	label: string;
+	label?: string;
 	value: string | null;
 	blockName?: string;
 	sectionId?: string;
@@ -128,8 +128,8 @@ export default function BlockStyleSelect({
 			data-active-style={value || 'default'}
 		>
 			<BaseControl
-				label={label}
-				columns={columns}
+				label={label ?? ''}
+				columns={fieldColumns(label, columns)}
 				controlName="style-variations"
 			>
 				{picker}

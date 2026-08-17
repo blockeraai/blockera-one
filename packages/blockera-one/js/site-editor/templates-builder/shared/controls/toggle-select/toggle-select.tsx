@@ -7,12 +7,12 @@ import {
 	ToggleSelectControl,
 } from '@blockera/controls';
 
-import { CONTROL_COLUMNS } from '../constants';
+import { CONTROL_COLUMNS, fieldColumns } from '../constants';
 import type { VariantDef } from '../../types';
 
 type ToggleSelectRowProps = {
 	controlId: string;
-	label: string;
+	label?: string;
 	value: string | null;
 	variants: VariantDef[];
 	disabled?: boolean;
@@ -43,8 +43,8 @@ export default function ToggleSelectRow({
 				}}
 			>
 				<ToggleSelectControl
-					label={label}
-					columns={columns}
+					label={label ?? ''}
+					columns={fieldColumns(label, columns)}
 					defaultValue={defaultValue}
 					isDeselectable={false}
 					options={variants.map((variant) => ({

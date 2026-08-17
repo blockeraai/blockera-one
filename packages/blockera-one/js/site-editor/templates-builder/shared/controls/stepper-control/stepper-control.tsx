@@ -7,11 +7,11 @@ import { useCallback, useMemo } from '@wordpress/element';
 import { classNames } from '@blockera/classnames';
 import { ControlContextProvider, StepperControl } from '@blockera/controls';
 
-import { CONTROL_COLUMNS } from '../constants';
+import { CONTROL_COLUMNS, fieldColumns } from '../constants';
 
 type StepperControlRowProps = {
 	controlId: string;
-	label: string;
+	label?: string;
 	value: number;
 	min?: number;
 	max?: number;
@@ -68,8 +68,8 @@ export default function StepperControlRow({
 		>
 			<ControlContextProvider value={contextValue}>
 				<StepperControl
-					label={label}
-					columns={columns}
+					label={label ?? ''}
+					columns={fieldColumns(label, columns)}
 					min={min}
 					max={max}
 					step={step}

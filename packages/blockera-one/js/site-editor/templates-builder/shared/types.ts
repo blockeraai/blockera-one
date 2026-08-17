@@ -237,7 +237,8 @@ export type ReorderElementsPayload =
 export type ControlDef = {
 	id: string;
 	type: ControlType;
-	label: string;
+	/** Inspector label. Omit for a full-width unlabeled field. */
+	label?: string;
 	/** Section, layout, container, or setting id this control binds to. */
 	target: {
 		kind: 'layout' | 'section' | 'setting' | 'container';

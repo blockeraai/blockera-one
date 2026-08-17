@@ -8,11 +8,11 @@ import { useMemo } from '@wordpress/element';
 import { classNames } from '@blockera/classnames';
 import { ControlContextProvider, ColorControl } from '@blockera/controls';
 
-import { CONTROL_COLUMNS } from '../constants';
+import { CONTROL_COLUMNS, fieldColumns } from '../constants';
 
 type ColorControlRowProps = {
 	controlId: string;
-	label: string;
+	label?: string;
 	value: unknown;
 	disabled?: boolean;
 	controlAddonTypes?: string[];
@@ -55,8 +55,8 @@ export default function ColorControlRow({
 		>
 			<ControlContextProvider value={contextValue}>
 				<ColorControl
-					label={label}
-					columns={columns}
+					label={label ?? ''}
+					columns={fieldColumns(label, columns)}
 					controlAddonTypes={controlAddonTypes}
 					variableTypes={variableTypes}
 					defaultValue=""

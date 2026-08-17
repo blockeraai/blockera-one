@@ -366,7 +366,6 @@ const BREADCRUMBS_DESIGN = elementDesignControls(
 const PAGE_HEADER_DESIGN: ControlDef = {
 	id: 'page-header-design',
 	type: 'layout-picker',
-	label: __('Header Design', 'blockera'),
 	target: { kind: 'section', id: 'page-header' },
 	operation: 'swapSection',
 	conditions: [{ controlId: 'page-header', equals: true }],

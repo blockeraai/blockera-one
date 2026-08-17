@@ -340,7 +340,6 @@ export default function useTemplateOptions(
 				control: {
 					id: `reorder-${rule.parentId}`,
 					type: 'button',
-					label: '',
 					target: { kind: 'section', id: rule.parentId },
 					operation: 'reorderInnerSections',
 					innerOrder: rule,

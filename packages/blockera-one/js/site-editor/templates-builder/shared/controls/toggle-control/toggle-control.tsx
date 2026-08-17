@@ -2,11 +2,11 @@ import { FormToggle } from '@wordpress/components';
 
 import { BaseControl } from '@blockera/controls';
 
-import { CONTROL_COLUMNS } from '../constants';
+import { CONTROL_COLUMNS, fieldColumns } from '../constants';
 import './toggle-control.scss';
 
 type ToggleControlProps = {
-	label: string;
+	label?: string;
 	checked: boolean;
 	disabled?: boolean;
 	columns?: string;
@@ -25,7 +25,11 @@ export default function ToggleControlRow({
 			className="blockera-templates-builder-toggle"
 			data-test="blockera-templates-builder-toggle"
 		>
-			<BaseControl label={label} columns={columns} controlName="toggle">
+			<BaseControl
+				label={label ?? ''}
+				columns={fieldColumns(label, columns)}
+				controlName="toggle"
+			>
 				<FormToggle
 					checked={checked}
 					disabled={disabled}

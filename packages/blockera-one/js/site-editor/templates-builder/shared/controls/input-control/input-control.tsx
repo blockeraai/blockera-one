@@ -7,11 +7,11 @@ import { useMemo } from '@wordpress/element';
 
 import { ControlContextProvider, InputControl } from '@blockera/controls';
 
-import { CONTROL_COLUMNS } from '../constants';
+import { CONTROL_COLUMNS, fieldColumns } from '../constants';
 
 type InputControlRowProps = {
 	controlId: string;
-	label: string;
+	label?: string;
 	value: unknown;
 	disabled?: boolean;
 	unitType?: string;
@@ -62,8 +62,8 @@ export default function InputControlRow({
 		>
 			<ControlContextProvider value={contextValue}>
 				<InputControl
-					label={label}
-					columns={columns}
+					label={label ?? ''}
+					columns={fieldColumns(label, columns)}
 					unitType={unitType}
 					controlAddonTypes={controlAddonTypes}
 					variableTypes={variableTypes}

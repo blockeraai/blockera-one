@@ -13,7 +13,7 @@ import {
 	LayoutMatrixControl,
 } from '@blockera/controls';
 
-import { CONTROL_COLUMNS } from '../constants';
+import { CONTROL_COLUMNS, fieldColumns } from '../constants';
 
 const DEFAULT_COLUMN_LAYOUT = {
 	direction: 'column',
@@ -23,7 +23,7 @@ const DEFAULT_COLUMN_LAYOUT = {
 
 type LayoutMatrixControlRowProps = {
 	controlId: string;
-	label: string;
+	label?: string;
 	value: unknown;
 	disabled?: boolean;
 	attribute?: string;
@@ -85,8 +85,8 @@ export default function LayoutMatrixControlRow({
 		>
 			<ControlContextProvider value={contextValue}>
 				<LayoutMatrixControl
-					label={label}
-					columns={columns}
+					label={label ?? ''}
+					columns={fieldColumns(label, columns)}
 					isDirectionActive={isDirectionActive}
 					isAxisControlsActive={isAxisControlsActive}
 					defaultDirection={defaultDirection}

@@ -180,7 +180,7 @@ function SortableElementGroup({
 				disabled || waitingForContent || !!viewDisabled;
 			return (
 				<GatewayRow
-					title={control.label}
+					title={control.label ?? ''}
 					enabled={!!value}
 					dragHandle={dragHandle}
 					isDragging={isDragging}
@@ -188,7 +188,7 @@ function SortableElementGroup({
 					toggle={{
 						checked: !!value,
 						disabled: controlDisabled,
-						'aria-label': control.label,
+						'aria-label': control.label || control.id,
 						onChange: (next) => onChangeControl(control, next),
 					}}
 					onOpen={
@@ -522,7 +522,7 @@ export default function TemplateOptionsPanel({
 							) {
 								controlNode = (
 									<GatewayRow
-										title={control.label}
+										title={control.label ?? ''}
 										enabled={true}
 										data-test={`blockera-templates-builder-gateway-${control.nestedPanel.id}`}
 										onOpen={
@@ -567,13 +567,14 @@ export default function TemplateOptionsPanel({
 							) {
 								controlNode = (
 									<GatewayRow
-										title={control.label}
+										title={control.label ?? ''}
 										enabled={!!value}
 										data-test={`blockera-templates-builder-gateway-${control.nestedPanel.id}`}
 										toggle={{
 											checked: !!value,
 											disabled: controlDisabled,
-											'aria-label': control.label,
+											'aria-label':
+												control.label || control.id,
 											onChange: (next) =>
 												onChangeControl(control, next),
 										}}
@@ -827,7 +828,9 @@ export default function TemplateOptionsPanel({
 							? {
 									checked: !!headerToggleView.value,
 									disabled: headerToggleDisabled,
-									'aria-label': headerToggleDef.label,
+									'aria-label':
+										headerToggleDef.label ||
+										headerToggleDef.id,
 									onChange: (next) =>
 										onChangeControl(headerToggleDef, next),
 								}
@@ -887,7 +890,10 @@ export default function TemplateOptionsPanel({
 													!headerToggleView.value
 												)
 											}
-											aria-label={headerToggleDef.label}
+											aria-label={
+												headerToggleDef.label ||
+												headerToggleDef.id
+											}
 										/>
 									</span>
 								)}
