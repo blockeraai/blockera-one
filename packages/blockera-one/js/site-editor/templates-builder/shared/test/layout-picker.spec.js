@@ -8,20 +8,13 @@ jest.mock('../controls/layout-picker/layout-picker.scss', () => ({}));
 jest.mock('@blockera/controls', () => {
 	const { createElement } = require('@wordpress/element');
 	return {
-		BaseControl: ({
-			children,
-			label,
-			columns,
-			className,
-			'data-test': dataTest,
-		}) =>
+		BaseControl: ({ children, label, columns, fieldProps = {} }) =>
 			createElement(
 				'div',
 				{
-					className,
-					'data-test': dataTest,
 					'data-label': label,
 					'data-columns': columns,
+					...fieldProps,
 				},
 				children
 			),
