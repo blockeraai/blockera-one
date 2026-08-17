@@ -435,41 +435,41 @@ describe('archive config structural invariants', () => {
 		]);
 	});
 
-	it('adds a Styles & Blocks gateway on the Posts Loop card', () => {
+	it('makes the Posts Loop card a navigable group without a header toggle', () => {
 		const pageLayout = config.groups.find((g) => g.id === 'page-layout');
+		expect(pageLayout.headerToggle).toBeUndefined();
 		expect(pageLayout.controls.map((c) => c.id)).toEqual([
 			'posts-template',
 			'posts-per-page',
-			'posts-loop',
 		]);
-		const gateway = pageLayout.controls.find((c) => c.id === 'posts-loop');
-		expect(gateway.type).toBe('gateway');
-		expect(gateway.label).toBe('Styles & Blocks');
-		expect(gateway.nestedPanel.id).toBe('posts-loop');
-		expect(gateway.nestedPanel.groups.map((g) => g.id)).toEqual([
+		expect(pageLayout.nestedPanel.id).toBe('posts-loop');
+		expect(pageLayout.nestedPanel.title).toBe('Posts Loop');
+		expect(pageLayout.nestedPanel.gatewayLabel).toBe('Styles & Blocks');
+		expect(pageLayout.nestedPanel.scrollTarget).toBe('posts-listing');
+		expect(pageLayout.nestedPanel.groups.map((g) => g.id)).toEqual([
 			'posts-loop-layout',
 			'posts-loop-styles',
 			'posts-loop-blocks',
 		]);
-		expect(gateway.nestedPanel.groups.map((g) => g.title)).toEqual([
+		expect(pageLayout.nestedPanel.groups.map((g) => g.title)).toEqual([
 			'Layout',
 			'Styles',
 			'Blocks',
 		]);
-		expect(gateway.nestedPanel.groups[0].controls.map((c) => c.id)).toEqual(
-			['posts-template']
-		);
-		expect(gateway.nestedPanel.groups[1].controls.map((c) => c.id)).toEqual(
-			['posts-per-page', 'posts-loop-customize']
-		);
-		const customize = gateway.nestedPanel.groups[1].controls[1];
+		expect(
+			pageLayout.nestedPanel.groups[0].controls.map((c) => c.id)
+		).toEqual(['posts-template']);
+		expect(
+			pageLayout.nestedPanel.groups[1].controls.map((c) => c.id)
+		).toEqual(['posts-per-page', 'posts-loop-customize']);
+		const customize = pageLayout.nestedPanel.groups[1].controls[1];
 		expect(customize.type).toBe('button');
 		expect(customize.operation).toBe('selectInCanvas');
 		expect(customize.target).toEqual({
 			kind: 'section',
 			id: 'posts-listing',
 		});
-		const elements = gateway.nestedPanel.groups[2].controls;
+		const elements = pageLayout.nestedPanel.groups[2].controls;
 		expect(elements.map((c) => c.id)).toEqual([
 			'post-featured-image',
 			'post-title',
@@ -492,10 +492,8 @@ describe('archive config structural invariants', () => {
 	});
 
 	it('gives every Posts Loop element Styles a customize-in-editor action', () => {
-		const postsLoop = config.groups
-			.find((g) => g.id === 'page-layout')
-			.controls.find((c) => c.id === 'posts-loop');
-		const elements = postsLoop.nestedPanel.groups.find(
+		const pageLayout = config.groups.find((g) => g.id === 'page-layout');
+		const elements = pageLayout.nestedPanel.groups.find(
 			(g) => g.id === 'posts-loop-blocks'
 		).controls;
 
