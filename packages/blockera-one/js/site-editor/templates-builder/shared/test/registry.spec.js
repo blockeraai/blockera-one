@@ -238,6 +238,8 @@ describe('archive config structural invariants', () => {
 			(g) => g.id === 'page-header-design'
 		);
 
+		expect(pageHeader.controls[0].id).toBe('page-header-design');
+		expect(pageHeader.controls[0].label).toBeUndefined();
 		expect(design.controls.map((c) => c.id)).toEqual([
 			'page-header-design',
 			'page-header-gap',
@@ -250,6 +252,7 @@ describe('archive config structural invariants', () => {
 			'page-header-elements-width',
 			'page-header-customize',
 		]);
+		expect(design.controls[0].label).toBeUndefined();
 
 		const customize = design.controls.find(
 			(c) => c.id === 'page-header-customize'
