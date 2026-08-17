@@ -6,14 +6,15 @@
 	&__grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
-		gap: 10px;
+		column-gap: 16px;
+		row-gap: 12px;
 	}
 
 	&__option {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 7px;
+		gap: 5px;
 		padding: 0;
 		background: transparent;
 		border: 0;
@@ -31,8 +32,7 @@
 
 		&.is-selected {
 			#{$block}__preview {
-				border-color: $primary;
-				box-shadow: 0 0 0 1px $primary;
+				box-shadow: 0 0 0 2px $primary;
 			}
 
 			#{$block}__caption {
@@ -41,13 +41,13 @@
 			}
 		}
 
-		&:hover {
+		&:hover:not(.is-disabled, .is-selected) {
 			#{$block}__preview {
-				border-color: $primary;
+				box-shadow: 0 0 0 2px $primary;
 			}
 
 			#{$block}__caption {
-				color: $primary;
+				// color: $primary;
 				opacity: 1;
 			}
 		}
@@ -57,17 +57,17 @@
 		position: relative;
 		display: block;
 		width: 100%;
-		border: 1px solid #0000001a;
-		border-radius: 5px;
+		box-shadow: 0 0 0 1px #0000001a;
+		border-radius: 4px;
 		background: #f6f6f6;
 		line-height: 0;
-		overflow: hidden;
 		transition: var(--blockera-controls-transition);
 
 		img {
 			display: block;
 			width: 100%;
 			height: auto;
+			border-radius: 4px;
 		}
 	}
 
