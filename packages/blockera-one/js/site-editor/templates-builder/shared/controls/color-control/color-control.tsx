@@ -47,22 +47,19 @@ export default function ColorControlRow({
 	);
 
 	return (
-		<div
-			className={classNames('blockera-templates-builder-color', {
-				'is-disabled': disabled,
-			})}
-			data-test="blockera-templates-builder-color"
-		>
-			<ControlContextProvider value={contextValue}>
-				<ColorControl
-					label={label ?? ''}
-					columns={fieldColumns(label, columns)}
-					controlAddonTypes={controlAddonTypes}
-					variableTypes={variableTypes}
-					defaultValue=""
-					onChange={onChange}
-				/>
-			</ControlContextProvider>
-		</div>
+		<ControlContextProvider value={contextValue}>
+			<ColorControl
+				label={label ?? ''}
+				columns={fieldColumns(label, columns)}
+				className={classNames('blockera-templates-builder-color', {
+					'is-disabled': disabled,
+				})}
+				data-test="blockera-templates-builder-color"
+				controlAddonTypes={controlAddonTypes}
+				variableTypes={variableTypes}
+				defaultValue=""
+				onChange={onChange}
+			/>
+		</ControlContextProvider>
 	);
 }

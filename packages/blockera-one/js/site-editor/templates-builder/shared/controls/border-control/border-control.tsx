@@ -47,22 +47,19 @@ export default function BorderControlRow({
 	);
 
 	return (
-		<div
-			className={classNames('blockera-templates-builder-border', {
-				'is-disabled': disabled,
-			})}
-			data-test="blockera-templates-builder-border"
-		>
-			<ControlContextProvider value={contextValue}>
-				<BorderControl
-					label={label ?? ''}
-					columns={fieldColumns(label, columns)}
-					defaultValue={EMPTY_SIDE}
-					controlAddonTypes={['variable']}
-					variableTypes={['border']}
-					onChange={onChange}
-				/>
-			</ControlContextProvider>
-		</div>
+		<ControlContextProvider value={contextValue}>
+			<BorderControl
+				label={label ?? ''}
+				columns={fieldColumns(label, columns)}
+				className={classNames('blockera-templates-builder-border', {
+					'is-disabled': disabled,
+				})}
+				data-test="blockera-templates-builder-border"
+				defaultValue={EMPTY_SIDE}
+				controlAddonTypes={['variable']}
+				variableTypes={['border']}
+				onChange={onChange}
+			/>
+		</ControlContextProvider>
 	);
 }

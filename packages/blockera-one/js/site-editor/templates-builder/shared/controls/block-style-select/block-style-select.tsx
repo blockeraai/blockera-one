@@ -6,6 +6,7 @@
 import { store as blockEditorStore } from '@wordpress/block-editor';
 import { useSelect } from '@wordpress/data';
 
+import { classNames } from '@blockera/classnames';
 import { BaseControl } from '@blockera/controls';
 import {
 	BlockEditContextProvider,
@@ -29,6 +30,7 @@ type BlockStyleSelectProps = {
 	defaultValue?: string;
 	columns?: string;
 	onChange: (next: string) => void;
+	className?: string;
 };
 
 const PICKER_CONTEXT = {
@@ -57,6 +59,7 @@ export default function BlockStyleSelect({
 	disabled,
 	columns = CONTROL_COLUMNS,
 	onChange,
+	className,
 }: BlockStyleSelectProps) {
 	const clientId = useSelect(
 		(select) => {
@@ -117,23 +120,22 @@ export default function BlockStyleSelect({
 		);
 
 	return (
-		<div
-			className={
-				!blockName || disabled
-					? 'blockera-templates-builder-style-variations is-disabled'
-					: 'blockera-templates-builder-style-variations'
-			}
+		<BaseControl
+			label={label ?? ''}
+			columns={fieldColumns(label, columns)}
+			className={classNames(
+				'blockera-templates-builder-style-variations',
+				className,
+				{
+					'is-disabled': !blockName || disabled,
+				}
+			)}
 			data-test="blockera-templates-builder-style-variations"
 			data-control-id={controlId}
 			data-active-style={value || 'default'}
+			controlName="style-variations"
 		>
-			<BaseControl
-				label={label ?? ''}
-				columns={fieldColumns(label, columns)}
-				controlName="style-variations"
-			>
-				{picker}
-			</BaseControl>
-		</div>
+			{picker}
+		</BaseControl>
 	);
 }

@@ -1,5 +1,6 @@
 import { FormToggle } from '@wordpress/components';
 
+import { classNames } from '@blockera/classnames';
 import { BaseControl } from '@blockera/controls';
 
 import { CONTROL_COLUMNS, fieldColumns } from '../constants';
@@ -11,6 +12,7 @@ type ToggleControlProps = {
 	disabled?: boolean;
 	columns?: string;
 	onChange: (next: boolean) => void;
+	className?: string;
 };
 
 export default function ToggleControlRow({
@@ -19,23 +21,24 @@ export default function ToggleControlRow({
 	disabled,
 	columns = CONTROL_COLUMNS,
 	onChange,
+	className,
 }: ToggleControlProps) {
 	return (
-		<div
-			className="blockera-templates-builder-toggle"
+		<BaseControl
+			label={label ?? ''}
+			columns={fieldColumns(label, columns)}
+			className={classNames(
+				'blockera-templates-builder-toggle',
+				className
+			)}
 			data-test="blockera-templates-builder-toggle"
+			controlName="toggle"
 		>
-			<BaseControl
-				label={label ?? ''}
-				columns={fieldColumns(label, columns)}
-				controlName="toggle"
-			>
-				<FormToggle
-					checked={checked}
-					disabled={disabled}
-					onChange={() => onChange(!checked)}
-				/>
-			</BaseControl>
-		</div>
+			<FormToggle
+				checked={checked}
+				disabled={disabled}
+				onChange={() => onChange(!checked)}
+			/>
+		</BaseControl>
 	);
 }

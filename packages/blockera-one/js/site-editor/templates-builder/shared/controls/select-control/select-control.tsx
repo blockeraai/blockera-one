@@ -2,6 +2,8 @@
  * Native Blockera SelectControl row (style variation and similar).
  */
 
+import { useMemo } from '@wordpress/element';
+
 import { ControlContextProvider, SelectControl } from '@blockera/controls';
 
 import { CONTROL_COLUMNS, fieldColumns } from '../constants';
@@ -32,27 +34,29 @@ export default function SelectControlRow({
 	columns = CONTROL_COLUMNS,
 	onChange,
 }: SelectControlRowProps) {
+	const resolvedValue = value ?? defaultValue;
+	// ControlContextProvider's useSelect deps on this object identity.
+	const contextValue = useMemo(
+		() => ({
+			name: `templates-builder-${controlId}`,
+			value: resolvedValue,
+		}),
+		[controlId, resolvedValue]
+	);
+
 	return (
-		<div
-			className="blockera-templates-builder-select"
-			data-test="blockera-templates-builder-select"
-		>
-			<ControlContextProvider
-				value={{
-					name: `templates-builder-${controlId}`,
-					value: value ?? defaultValue,
-				}}
-			>
-				<SelectControl
-					label={label ?? ''}
-					columns={fieldColumns(label, columns)}
-					type="native"
-					options={options}
-					defaultValue={defaultValue}
-					disabled={disabled}
-					onChange={(next: string) => onChange(next)}
-				/>
-			</ControlContextProvider>
-		</div>
+		<ControlContextProvider value={contextValue}>
+			<SelectControl
+				label={label ?? ''}
+				columns={fieldColumns(label, columns)}
+				className="blockera-templates-builder-select"
+				data-test="blockera-templates-builder-select"
+				type="native"
+				options={options}
+				defaultValue={defaultValue}
+				disabled={disabled}
+				onChange={onChange}
+			/>
+		</ControlContextProvider>
 	);
 }

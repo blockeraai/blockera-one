@@ -56,25 +56,22 @@ export default function InputControlRow({
 	);
 
 	return (
-		<div
-			className="blockera-templates-builder-input"
-			data-test="blockera-templates-builder-input"
-		>
-			<ControlContextProvider value={contextValue}>
-				<InputControl
-					label={label ?? ''}
-					columns={fieldColumns(label, columns)}
-					unitType={unitType}
-					controlAddonTypes={controlAddonTypes}
-					variableTypes={variableTypes}
-					min={min}
-					defaultValue={inputDefaultValue}
-					disabled={disabled}
-					type={hasUnits ? undefined : 'text'}
-					arrows={hasUnits}
-					onChange={onChange}
-				/>
-			</ControlContextProvider>
-		</div>
+		<ControlContextProvider value={contextValue}>
+			<InputControl
+				label={label ?? ''}
+				columns={fieldColumns(label, columns)}
+				className="blockera-templates-builder-input"
+				data-test="blockera-templates-builder-input"
+				unitType={unitType}
+				controlAddonTypes={controlAddonTypes}
+				variableTypes={variableTypes}
+				min={min}
+				defaultValue={inputDefaultValue}
+				disabled={disabled}
+				type={hasUnits ? undefined : 'text'}
+				arrows={hasUnits}
+				onChange={onChange}
+			/>
+		</ControlContextProvider>
 	);
 }

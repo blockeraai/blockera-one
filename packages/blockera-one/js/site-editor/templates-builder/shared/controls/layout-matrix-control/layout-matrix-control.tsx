@@ -77,23 +77,23 @@ export default function LayoutMatrixControlRow({
 	);
 
 	return (
-		<div
-			className={classNames('blockera-templates-builder-layout-matrix', {
-				'is-disabled': disabled,
-			})}
-			data-test="blockera-templates-builder-layout-matrix"
-		>
-			<ControlContextProvider value={contextValue}>
-				<LayoutMatrixControl
-					label={label ?? ''}
-					columns={fieldColumns(label, columns)}
-					isDirectionActive={isDirectionActive}
-					isAxisControlsActive={isAxisControlsActive}
-					defaultDirection={defaultDirection}
-					defaultValue={DEFAULT_COLUMN_LAYOUT}
-					onChange={handleChange}
-				/>
-			</ControlContextProvider>
-		</div>
+		<ControlContextProvider value={contextValue}>
+			<LayoutMatrixControl
+				label={label ?? ''}
+				columns={fieldColumns(label, columns)}
+				className={classNames(
+					'blockera-templates-builder-layout-matrix',
+					{
+						'is-disabled': disabled,
+					}
+				)}
+				data-test="blockera-templates-builder-layout-matrix"
+				isDirectionActive={isDirectionActive}
+				isAxisControlsActive={isAxisControlsActive}
+				defaultDirection={defaultDirection}
+				defaultValue={DEFAULT_COLUMN_LAYOUT}
+				onChange={handleChange}
+			/>
+		</ControlContextProvider>
 	);
 }

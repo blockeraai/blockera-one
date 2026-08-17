@@ -2,6 +2,8 @@
  * Top/Bottom (and similar) — Blockera ToggleSelectControl.
  */
 
+import { useMemo } from '@wordpress/element';
+
 import {
 	ControlContextProvider,
 	ToggleSelectControl,
@@ -31,30 +33,37 @@ export default function ToggleSelectRow({
 	columns = CONTROL_COLUMNS,
 	onChange,
 }: ToggleSelectRowProps) {
+	const resolvedValue = value ?? defaultValue;
+	// ControlContextProvider's useSelect deps on this object identity.
+	const contextValue = useMemo(
+		() => ({
+			name: `templates-builder-${controlId}`,
+			value: resolvedValue,
+		}),
+		[controlId, resolvedValue]
+	);
+	const options = useMemo(
+		() =>
+			variants.map((variant) => ({
+				label: variant.label,
+				value: variant.id,
+				disabled,
+			})),
+		[variants, disabled]
+	);
+
 	return (
-		<div
-			className="blockera-templates-builder-toggle-select"
-			data-test="blockera-templates-builder-toggle-select"
-		>
-			<ControlContextProvider
-				value={{
-					name: `templates-builder-${controlId}`,
-					value: value ?? defaultValue,
-				}}
-			>
-				<ToggleSelectControl
-					label={label ?? ''}
-					columns={fieldColumns(label, columns)}
-					defaultValue={defaultValue}
-					isDeselectable={false}
-					options={variants.map((variant) => ({
-						label: variant.label,
-						value: variant.id,
-						disabled,
-					}))}
-					onChange={(next: string) => onChange(next)}
-				/>
-			</ControlContextProvider>
-		</div>
+		<ControlContextProvider value={contextValue}>
+			<ToggleSelectControl
+				label={label ?? ''}
+				columns={fieldColumns(label, columns)}
+				className="blockera-templates-builder-toggle-select"
+				data-test="blockera-templates-builder-toggle-select"
+				defaultValue={defaultValue}
+				isDeselectable={false}
+				options={options}
+				onChange={onChange}
+			/>
+		</ControlContextProvider>
 	);
 }

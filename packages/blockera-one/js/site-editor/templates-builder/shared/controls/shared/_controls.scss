@@ -1,9 +1,9 @@
-/* Shared disabled overlay for Blockera-control wrappers. */
-.blockera-templates-builder-style-variations.is-disabled,
-.blockera-templates-builder-color.is-disabled,
-.blockera-templates-builder-layout-matrix.is-disabled,
-.blockera-templates-builder-border.is-disabled,
-.blockera-templates-builder-stepper.is-disabled {
+/* Disabled overlay on the BaseControl root (not inner copies of className). */
+.blockera-field.blockera-templates-builder-style-variations.is-disabled,
+.blockera-field.blockera-templates-builder-color.is-disabled,
+.blockera-field.blockera-templates-builder-layout-matrix.is-disabled,
+.blockera-field.blockera-templates-builder-border.is-disabled,
+.blockera-field.blockera-templates-builder-stepper.is-disabled {
 	opacity: 0.5;
 	pointer-events: none;
 }

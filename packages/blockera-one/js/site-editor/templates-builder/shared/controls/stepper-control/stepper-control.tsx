@@ -60,25 +60,22 @@ export default function StepperControlRow({
 	);
 
 	return (
-		<div
-			className={classNames('blockera-templates-builder-stepper', {
-				'is-disabled': disabled,
-			})}
-			data-test="blockera-templates-builder-stepper"
-		>
-			<ControlContextProvider value={contextValue}>
-				<StepperControl
-					label={label ?? ''}
-					columns={fieldColumns(label, columns)}
-					min={min}
-					max={max}
-					step={step}
-					defaultValue={defaultValue}
-					disabled={disabled}
-					labelDescription={labelDescription}
-					onChange={handleChange}
-				/>
-			</ControlContextProvider>
-		</div>
+		<ControlContextProvider value={contextValue}>
+			<StepperControl
+				label={label ?? ''}
+				columns={fieldColumns(label, columns)}
+				className={classNames('blockera-templates-builder-stepper', {
+					'is-disabled': disabled,
+				})}
+				data-test="blockera-templates-builder-stepper"
+				min={min}
+				max={max}
+				step={step}
+				defaultValue={defaultValue}
+				disabled={disabled}
+				labelDescription={labelDescription}
+				onChange={handleChange}
+			/>
+		</ControlContextProvider>
 	);
 }
