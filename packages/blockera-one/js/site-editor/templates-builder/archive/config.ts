@@ -960,69 +960,61 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 		{
 			id: 'page-layout',
 			title: __('Posts Loop', 'blockera'),
-			controls: [
-				POSTS_TEMPLATE,
-				POSTS_PER_PAGE,
-				{
-					id: 'posts-loop',
-					type: 'gateway',
-					label: __('Styles & Blocks', 'blockera'),
-					target: { kind: 'section', id: 'posts-listing' },
-					operation: 'selectInCanvas',
-					nestedPanel: {
-						id: 'posts-loop',
-						title: __('Posts Loop', 'blockera'),
-						scrollTarget: 'posts-listing',
-						groups: [
-							{
-								id: 'posts-loop-layout',
-								title: __('Layout', 'blockera'),
-								controls: [POSTS_TEMPLATE],
-							},
-							{
-								id: 'posts-loop-styles',
-								title: __('Styles', 'blockera'),
-								controls: [
-									POSTS_PER_PAGE,
-									sectionCustomizeControl(
-										POSTS_LISTING_TARGET,
-										'posts-loop-customize'
-									),
-								],
-							},
-							{
-								id: 'posts-loop-blocks',
-								title: __('Blocks', 'blockera'),
-								sortable: true,
-								controls: [
-									loopItemElement(
-										'post-featured-image',
-										__('Featured Image', 'blockera')
-									),
-									loopItemElement(
-										'post-title',
-										__('Title', 'blockera')
-									),
-									loopItemElement(
-										'post-excerpt',
-										__('Excerpt', 'blockera')
-									),
-									loopItemElement(
-										'post-content',
-										__('Content', 'blockera')
-									),
-									loopItemElement(
-										'post-read-more',
-										__('Read More', 'blockera')
-									),
-									postMetaElement(1),
-									postMetaElement(2),
-								],
-							},
+			controls: [POSTS_TEMPLATE, POSTS_PER_PAGE],
+			nestedPanel: {
+				id: 'posts-loop',
+				title: __('Posts Loop', 'blockera'),
+				gatewayLabel: __('Styles & Blocks', 'blockera'),
+				// No headerToggle stamp to infer from; panel id is not a stamp.
+				scrollTarget: 'posts-listing',
+				groups: [
+					{
+						id: 'posts-loop-layout',
+						title: __('Layout', 'blockera'),
+						controls: [POSTS_TEMPLATE],
+					},
+					{
+						id: 'posts-loop-styles',
+						title: __('Styles', 'blockera'),
+						controls: [
+							POSTS_PER_PAGE,
+							sectionCustomizeControl(
+								POSTS_LISTING_TARGET,
+								'posts-loop-customize'
+							),
 						],
 					},
-				},
-			],
+					{
+						id: 'posts-loop-blocks',
+						title: __('Blocks', 'blockera'),
+						sortable: true,
+						controls: [
+							loopItemElement(
+								'post-featured-image',
+								__('Featured Image', 'blockera')
+							),
+							loopItemElement(
+								'post-title',
+								__('Title', 'blockera')
+							),
+							loopItemElement(
+								'post-excerpt',
+								__('Excerpt', 'blockera')
+							),
+							loopItemElement(
+								'post-content',
+								__('Content', 'blockera')
+							),
+							loopItemElement(
+								'post-read-more',
+								__('Read More', 'blockera')
+							),
+							postMetaElement(1),
+							postMetaElement(2),
+						],
+					},
+				],
+			},
 		},
 		{
 			id: 'pagination',

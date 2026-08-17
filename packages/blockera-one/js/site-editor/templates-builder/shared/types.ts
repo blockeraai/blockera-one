@@ -400,10 +400,10 @@ export type PanelGroupDef = {
 	keepVisible?: boolean;
 	/**
 	 * When set with no body controls, the group is a compact gateway card
-	 * (title + toggle + chevron). When the group also has `controls`, the
-	 * heading still shows the chevron and opens the nested screen; body
-	 * controls stay on this card and a gateway row (`gatewayLabel`) also
-	 * opens the nested screen.
+	 * (title + optional toggle + chevron). When the group also has
+	 * `controls`, the heading still shows the chevron and opens the nested
+	 * screen; body controls stay on this card and a gateway row
+	 * (`gatewayLabel`) also opens the nested screen.
 	 */
 	nestedPanel?: NestedPanelDef;
 };
