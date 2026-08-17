@@ -8,17 +8,17 @@ import { __ } from '@wordpress/i18n';
  * Blockera dependencies
  */
 import { classNames } from '@blockera/classnames';
-import { BaseControl, Tooltip } from '@blockera/controls';
+import { BaseControl } from '@blockera/controls';
 
 /**
  * Internal dependencies
  */
-import { CONTROL_COLUMNS_1 } from '../constants';
+import { CONTROL_COLUMNS_1, fieldColumns } from '../constants';
 import type { VariantDef } from '../../types';
 import './layout-picker.scss';
 
 type LayoutPickerProps = {
-	label: string;
+	label?: string;
 	value: string | null;
 	variants: VariantDef[];
 	disabled?: boolean;
@@ -44,8 +44,8 @@ export default function LayoutPicker({
 			data-test="blockera-templates-builder-layout-picker"
 		>
 			<BaseControl
-				label={label}
-				columns={columns}
+				label={label ?? ''}
+				columns={fieldColumns(label, columns)}
 				controlName="layout-picker"
 			>
 				{missing ? (
@@ -72,50 +72,47 @@ export default function LayoutPicker({
 							const isActive = value === variant.id;
 							const tileDisabled = disabled || !!variant.disabled;
 							return (
-								<Tooltip
+								<div
 									key={variant.id}
-									text={variant.label}
-									delay={200}
-								>
-									<div
-										role="button"
-										tabIndex={tileDisabled ? -1 : 0}
-										aria-disabled={tileDisabled}
-										className={classNames(
-											'blockera-templates-builder-layout-picker__option',
-											{
-												'is-selected': isActive,
-												'is-coming-soon':
-													!!variant.disabled,
-												'is-disabled': tileDisabled,
-											}
-										)}
-										aria-pressed={isActive}
-										aria-label={
-											variant.badge
-												? `${variant.label} (${variant.badge})`
-												: variant.label
+									role="button"
+									tabIndex={tileDisabled ? -1 : 0}
+									aria-disabled={tileDisabled}
+									className={classNames(
+										'blockera-templates-builder-layout-picker__option',
+										{
+											'is-selected': isActive,
+											'is-coming-soon':
+												!!variant.disabled,
+											'is-disabled': tileDisabled,
 										}
-										data-test={`blockera-templates-builder-layout-${variant.id}`}
-										onClick={() => {
-											if (!tileDisabled) {
-												onChange(variant.id);
-											}
-										}}
-										onKeyDown={(event) => {
-											if (tileDisabled) {
-												return;
-											}
+									)}
+									aria-pressed={isActive}
+									aria-label={
+										variant.badge
+											? `${variant.label} (${variant.badge})`
+											: variant.label
+									}
+									data-test={`blockera-templates-builder-layout-${variant.id}`}
+									onClick={() => {
+										if (!tileDisabled) {
+											onChange(variant.id);
+										}
+									}}
+									onKeyDown={(event) => {
+										if (tileDisabled) {
+											return;
+										}
 
-											if (
-												event.key === 'Enter' ||
-												event.key === ' '
-											) {
-												event.preventDefault();
-												onChange(variant.id);
-											}
-										}}
-									>
+										if (
+											event.key === 'Enter' ||
+											event.key === ' '
+										) {
+											event.preventDefault();
+											onChange(variant.id);
+										}
+									}}
+								>
+									<span className="blockera-templates-builder-layout-picker__preview">
 										{variant.thumbnail ? (
 											<img
 												src={variant.thumbnail}
@@ -124,17 +121,22 @@ export default function LayoutPicker({
 												height={56}
 											/>
 										) : (
-											<span className="blockera-templates-builder-layout-picker__fallback">
-												{variant.label}
-											</span>
+											<span className="blockera-templates-builder-layout-picker__fallback" />
 										)}
 										{variant.badge ? (
 											<span className="blockera-templates-builder-layout-picker__badge">
 												{variant.badge}
 											</span>
 										) : null}
-									</div>
-								</Tooltip>
+									</span>
+									{/* Visible name; option aria-label already exposes it. */}
+									<span
+										className="blockera-templates-builder-layout-picker__caption"
+										aria-hidden="true"
+									>
+										{variant.label}
+									</span>
+								</div>
 							);
 						})}
 					</div>
