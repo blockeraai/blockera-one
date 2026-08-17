@@ -64,12 +64,27 @@ export default function NavItem({
 }: NavItemProps) {
 	const external = !!href;
 
-	let trailingIcon = null;
+	let trailingGlyph = null;
 	if (external) {
-		trailingIcon = <Icon library="ui" icon="arrow-new-tab" iconSize={22} />;
+		trailingGlyph = (
+			<Icon library="ui" icon="arrow-new-tab" iconSize={22} />
+		);
 	} else if (showChevron) {
-		trailingIcon = <Icon library="wp" icon="chevron-right" iconSize={16} />;
+		trailingGlyph = (
+			<Icon library="wp" icon="chevron-right" iconSize={20} />
+		);
 	}
+
+	// Shared wrapper so nav-item.scss hover/focus motion hits both the
+	// chevron and the external new-tab glyph.
+	const trailingIcon = trailingGlyph ? (
+		<span
+			className="blockera-site-editor-nav__item-chevron"
+			aria-hidden="true"
+		>
+			{trailingGlyph}
+		</span>
+	) : null;
 
 	const showCount = typeof count === 'number';
 
@@ -79,6 +94,7 @@ export default function NavItem({
 		'is-active': isActive,
 		'is-child': indent > 0,
 		'is-grandchild': indent === 2,
+		'is-external': external,
 	});
 
 	const shellClassName = classNames(
