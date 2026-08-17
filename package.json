@@ -246,7 +246,7 @@
 		"test:generate-output": "jest --json --outputFile=.jest-test-results.json",
 		"test:generate-output:dev": "jest --json --outputFile=.jest-test-results.json -- --watch",
 		"test:unit:php:setup": "npm run env:start",
-		"test:unit:php:base": "bash packages/global-packages/packages/dev-tools/github/scripts/run-phpunit-one-units.sh",
+		"test:unit:php:base": "env BLOCKERA_PHPUNIT_PACKAGE_SUFFIX=-one BLOCKERA_PHPUNIT_PACKAGE_PREFIX=blockera-one- BLOCKERA_PHP_UNIT_PACKAGE_ENV_CWD=wp-content/themes/blockera-one BLOCKERA_PHP_UNIT_PACKAGE_PREPEND=packages/blockera-one/php/tests/prepend-abspath.php bash packages/global-packages/packages/dev-tools/github/scripts/run-phpunit-package-units.sh",
 		"test:unit:php:coverage": "wp-env run --env-cwd='wp-content/themes/blockera-one' tests-wordpress -- vendor/bin/phpunit --prepend packages/blockera-one/php/tests/prepend-abspath.php -c phpunit.xml.dist --verbose --testsuite units --coverage-text",
 		"test:snapshots:php:base": "wp-env run --env-cwd='wp-content/themes/blockera-one' tests-wordpress -- vendor/bin/phpunit --prepend packages/blockera-one/php/tests/prepend-abspath.php -c phpunit.xml.dist --verbose --testsuite snapshots",
 		"test:unit:php": "npm-run-all test:unit:php:setup test:unit:php:base",

@@ -31,7 +31,8 @@
     <testsuites>
         <!--
             Unit tests: theme packages ending with -one / blockera-one-* only.
-            Directories may also be discovered at runtime by list-phpunit-one-test-dirs.js.
+            CI skip-if-empty uses list-phpunit-package-test-dirs.js with
+            BLOCKERA_PHPUNIT_PACKAGE_SUFFIX=-one and _PREFIX=blockera-one-.
         -->
         <testsuite name="units">
             <directory suffix=".php">./packages/global-packages/packages/dev-phpunit/php/</directory>
