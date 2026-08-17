@@ -432,7 +432,6 @@ const PAGE_HEADER_ALIGN = {
 const POSTS_TEMPLATE: ControlDef = {
 	id: 'posts-template',
 	type: 'layout-picker',
-	label: __('Posts Template', 'blockera'),
 	target: { kind: 'section', id: 'posts-listing' },
 	operation: 'swapSection',
 	// Listing patterns ship with standard pagination inside;
@@ -590,7 +589,6 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 							{
 								id: 'header-design',
 								type: 'layout-picker',
-								label: __('Header Design', 'blockera'),
 								target: { kind: 'section', id: 'header' },
 								operation: 'swapTemplatePart',
 								conditions: [
@@ -1013,7 +1011,6 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 							{
 								id: 'pagination-design',
 								type: 'layout-picker',
-								label: __('Pagination Design', 'blockera'),
 								target: PAGINATION_TARGET,
 								operation: 'swapSection',
 								catalogPool: 'pagination',
@@ -1279,7 +1276,6 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 							{
 								id: 'sidebar-position',
 								type: 'layout-picker',
-								label: __('Sidebar Position', 'blockera'),
 								scrollTarget: 'sidebar',
 								target: {
 									kind: 'layout',
@@ -1326,7 +1322,6 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 							{
 								id: 'footer-design',
 								type: 'layout-picker',
-								label: __('Footer Design', 'blockera'),
 								target: { kind: 'section', id: 'footer' },
 								operation: 'swapTemplatePart',
 								conditions: [
