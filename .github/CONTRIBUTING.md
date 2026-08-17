@@ -46,9 +46,10 @@ You usually **do not** bump the submodule pin by hand.
    - **matching feature branch** (created by Husky mirror) → pushes the pin bump onto that branch
 4. Manual catch-up: Actions → **Sync global-packages submodule**, or `npm run submodule:bump`.
 
-Shared CI composites/scripts live in `packages/global-packages/packages/dev-tools/github/`
-(Blockera plugin defaults). Theme workflows override via `env:` / action `with:`
-(e.g. `BLOCKERA_E2E_PRODUCT_STYLE=theme`, zip `blockera-one.zip`).
+Shared CI composites/scripts live in `packages/global-packages/packages/dev-tools/github/`.
+Theme workflows pass scan/package knobs via `env:` / action `with:` (e.g.
+`BLOCKERA_E2E_PACKAGE_SUFFIX=-one`, zip `blockera-one.zip`). There is no
+product-style switch.
 
 Consumer bootstrap (must exist before the submodule is available):
 
