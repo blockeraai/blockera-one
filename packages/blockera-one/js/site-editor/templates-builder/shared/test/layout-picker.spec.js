@@ -8,11 +8,18 @@ jest.mock('../controls/layout-picker/layout-picker.scss', () => ({}));
 jest.mock('@blockera/controls', () => {
 	const { createElement } = require('@wordpress/element');
 	return {
-		BaseControl: ({ children, label, columns }) =>
+		BaseControl: ({
+			children,
+			label,
+			columns,
+			className,
+			'data-test': dataTest,
+		}) =>
 			createElement(
 				'div',
 				{
-					'data-test': 'base-control',
+					className,
+					'data-test': dataTest,
 					'data-label': label,
 					'data-columns': columns,
 				},
@@ -64,15 +71,42 @@ describe('LayoutPicker', () => {
 
 	it('drops the control label and 2-col grid when label is omitted', () => {
 		const { container } = renderPicker();
-		const base = byTest(container, 'base-control');
+		const base = byTest(
+			container,
+			'blockera-templates-builder-layout-picker'
+		);
 
 		expect(base.getAttribute('data-label')).toBe('');
 		expect(base.getAttribute('data-columns')).toBe('');
+		expect(base.className).toContain(
+			'blockera-templates-builder-layout-picker'
+		);
+	});
+
+	it('merges an extra className onto the BaseControl root', () => {
+		const { container } = renderPicker({
+			className: 'has-separator-before',
+		});
+		const base = byTest(
+			container,
+			'blockera-templates-builder-layout-picker'
+		);
+
+		expect(base.className).toContain(
+			'blockera-templates-builder-layout-picker'
+		);
+		expect(base.className).toContain('has-separator-before');
+		expect(
+			container.querySelector('.blockera-templates-builder-control')
+		).toBeNull();
 	});
 
 	it('keeps the stacked grid when a control label is set', () => {
 		const { container } = renderPicker({ label: 'Header Design' });
-		const base = byTest(container, 'base-control');
+		const base = byTest(
+			container,
+			'blockera-templates-builder-layout-picker'
+		);
 
 		expect(base.getAttribute('data-label')).toBe('Header Design');
 		expect(base.getAttribute('data-columns')).toBe('columns-1');
