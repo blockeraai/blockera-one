@@ -231,7 +231,7 @@ class TemplateBuilderTest extends TestCase {
 					$this->makeVariant(
 						array(
 							'placement' => array(
-								'relativeTo' => 'archive-body',
+								'relativeTo' => 'main',
 								'position'   => 'middle',
 							),
 						)

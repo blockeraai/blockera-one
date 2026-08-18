@@ -240,7 +240,7 @@ describe('walkBlocks', () => {
 
 describe('findByStamp', () => {
 	const tree = [
-		stamped('core/group', 'layout/archive-body:no-sidebar', [
+		stamped('core/group', 'layout/main:no-sidebar', [
 			stamped('core/group', 'area/content', [
 				stamped('core/query', 'section/posts-listing:list'),
 			]),

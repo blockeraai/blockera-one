@@ -98,7 +98,7 @@ describe('resolveConfigVariantsHtml', () => {
 		return {
 			type: 'archive',
 			filters: ['archive'],
-			layoutId: 'archive-body',
+			layoutId: 'main',
 			groups: [
 				{
 					id: 'page-layout',
@@ -172,7 +172,7 @@ describe('resolveConfigVariantsHtml', () => {
 		const config = {
 			type: 'archive',
 			filters: ['archive'],
-			layoutId: 'archive-body',
+			layoutId: 'main',
 			groups: [
 				{
 					id: 'breadcrumbs',

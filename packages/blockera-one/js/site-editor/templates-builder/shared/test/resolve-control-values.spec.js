@@ -9,7 +9,7 @@ import {
 } from '../resolve-control-values';
 import { registerSectionHeuristics } from '../resolve-state';
 
-const LAYOUT_ID = 'archive-body';
+const LAYOUT_ID = 'main';
 
 beforeAll(() => {
 	registerSectionHeuristics({

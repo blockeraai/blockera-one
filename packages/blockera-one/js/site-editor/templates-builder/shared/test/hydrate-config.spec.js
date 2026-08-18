@@ -28,7 +28,7 @@ function makeConfig(overrides = {}) {
 	return {
 		type: 'archive',
 		filters: ['archive'],
-		layoutId: 'archive-body',
+		layoutId: 'main',
 		groups: [
 			{
 				id: 'page-layout',
@@ -37,7 +37,7 @@ function makeConfig(overrides = {}) {
 					id: 'sidebar',
 					type: 'toggle',
 					label: 'Sidebar',
-					target: { kind: 'layout', id: 'archive-body' },
+					target: { kind: 'layout', id: 'main' },
 					operation: 'transplantLayout',
 					catalogPool: 'layout',
 				},
@@ -72,7 +72,7 @@ function makeConfig(overrides = {}) {
 									label: 'Sidebar Position',
 									target: {
 										kind: 'layout',
-										id: 'archive-body',
+										id: 'main',
 									},
 									operation: 'transplantLayout',
 									catalogPool: 'layout',

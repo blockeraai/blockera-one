@@ -17,9 +17,9 @@ describe('parseStamp', () => {
 			id: 'posts-listing',
 			variant: 'grid-2',
 		});
-		expect(parseStamp('layout/archive-body:no-sidebar')).toEqual({
+		expect(parseStamp('layout/main:no-sidebar')).toEqual({
 			role: 'layout',
-			id: 'archive-body',
+			id: 'main',
 			variant: 'no-sidebar',
 		});
 		expect(parseStamp('container/chrome-rail:vertical-rail')).toEqual({
@@ -71,12 +71,12 @@ describe('stampDictionaryToMap', () => {
 			stampDictionaryToMap([
 				'area/content',
 				'section/header',
-				'layout/archive-body',
+				'layout/main',
 			])
 		).toEqual({
 			content: 'area',
 			header: 'section',
-			'archive-body': 'layout',
+			main: 'layout',
 		});
 	});
 
@@ -99,13 +99,13 @@ describe('getStamp', () => {
 				name: 'core/group',
 				attributes: {
 					metadata: {
-						blockeraOne: 'layout/archive-body:no-sidebar',
+						blockeraOne: 'layout/main:no-sidebar',
 					},
 				},
 			})
 		).toEqual({
 			role: 'layout',
-			id: 'archive-body',
+			id: 'main',
 			variant: 'no-sidebar',
 		});
 	});

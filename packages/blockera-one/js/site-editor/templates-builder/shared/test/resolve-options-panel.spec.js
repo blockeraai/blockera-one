@@ -48,7 +48,7 @@ const SIDEBAR_ADVANCED_GROUP = {
 const CONFIG = {
 	type: 'archive',
 	filters: ['archive'],
-	layoutId: 'archive-body',
+	layoutId: 'main',
 	groups: [
 		{
 			id: 'layout',
@@ -183,7 +183,7 @@ describe('control-level nestedPanel', () => {
 	const PAGE_CONFIG = {
 		type: 'archive',
 		filters: ['archive'],
-		layoutId: 'archive-body',
+		layoutId: 'main',
 		groups: [PAGE_HEADER],
 	};
 
@@ -262,7 +262,7 @@ describe('resolveNestedPanelScrollTarget', () => {
 		const paginationConfig = {
 			type: 'archive',
 			filters: ['archive'],
-			layoutId: 'archive-body',
+			layoutId: 'main',
 			groups: [
 				{
 					id: 'listing',
@@ -347,14 +347,14 @@ describe('resolveNestedPanelScrollTarget', () => {
 		const layoutBound = {
 			type: 'archive',
 			filters: ['archive'],
-			layoutId: 'archive-body',
+			layoutId: 'main',
 			groups: [
 				{
 					id: 'sidebar',
 					title: 'Sidebar',
 					headerToggle: {
 						...control('sidebar'),
-						target: { kind: 'layout', id: 'archive-body' },
+						target: { kind: 'layout', id: 'main' },
 					},
 					controls: [],
 					nestedPanel: {
@@ -374,7 +374,7 @@ describe('resolveNestedPanelScrollTarget', () => {
 		const chrome = {
 			type: 'archive',
 			filters: ['archive'],
-			layoutId: 'archive-body',
+			layoutId: 'main',
 			groups: [
 				{
 					id: 'site-header',
@@ -476,7 +476,7 @@ describe('resolveEnableScrollTarget', () => {
 	it('uses control id for a layout presence toggle (sidebar)', () => {
 		const sidebar = {
 			...control('sidebar'),
-			target: { kind: 'layout', id: 'archive-body' },
+			target: { kind: 'layout', id: 'main' },
 			operation: 'transplantLayout',
 			type: 'toggle',
 		};
@@ -489,7 +489,7 @@ describe('resolveEnableScrollTarget', () => {
 			resolveEnableScrollTarget(
 				{
 					...control('sidebar-position'),
-					target: { kind: 'layout', id: 'archive-body' },
+					target: { kind: 'layout', id: 'main' },
 					operation: 'transplantLayout',
 					type: 'layout-picker',
 					scrollTarget: 'sidebar',
@@ -585,7 +585,7 @@ describe('resolveEnableScrollTarget', () => {
 			resolveEnableScrollTarget(
 				{
 					...control('sidebar'),
-					target: { kind: 'layout', id: 'archive-body' },
+					target: { kind: 'layout', id: 'main' },
 					operation: 'transplantLayout',
 					type: 'toggle',
 					scrollTarget: 'sidebar-area',

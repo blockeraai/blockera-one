@@ -13,7 +13,7 @@ import { findChromeRail } from '../resolve-state';
 import { getStamp } from '../metadata';
 import { findByStamp } from '../tree';
 
-const LAYOUT_ID = 'archive-body';
+const LAYOUT_ID = 'main';
 
 function block(name, attributes = {}, innerBlocks = []) {
 	return { name, attributes, innerBlocks };

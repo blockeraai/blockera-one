@@ -10,7 +10,7 @@
 				"tagName": "header",
 				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/header-default.svg",
 				"placement": {
-					"relativeTo": "archive-body",
+					"relativeTo": "main",
 					"position": "before"
 				},
 				"chromeLayout": "stacked"
@@ -24,7 +24,7 @@
 				"tagName": "header",
 				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/header-large-title.svg",
 				"placement": {
-					"relativeTo": "archive-body",
+					"relativeTo": "main",
 					"position": "before"
 				},
 				"chromeLayout": "stacked"
@@ -57,7 +57,7 @@
 				"patternSlug": "blockera-one/builder-archive-page-header-banner",
 				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/page-header-banner.svg",
 				"placement": {
-					"relativeTo": "archive-body",
+					"relativeTo": "main",
 					"position": "inside-start"
 				}
 			}
@@ -407,7 +407,7 @@
 				"tagName": "footer",
 				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/footer-default.svg",
 				"placement": {
-					"relativeTo": "archive-body",
+					"relativeTo": "main",
 					"position": "after"
 				},
 				"chromeLayout": "stacked"
@@ -421,7 +421,7 @@
 				"tagName": "footer",
 				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/footer-columns.svg",
 				"placement": {
-					"relativeTo": "archive-body",
+					"relativeTo": "main",
 					"position": "after"
 				},
 				"chromeLayout": "stacked"
@@ -435,7 +435,7 @@
 				"tagName": "footer",
 				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/footer-newsletter.svg",
 				"placement": {
-					"relativeTo": "archive-body",
+					"relativeTo": "main",
 					"position": "after"
 				},
 				"chromeLayout": "stacked"

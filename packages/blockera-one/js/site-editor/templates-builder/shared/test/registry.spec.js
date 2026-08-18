@@ -246,9 +246,9 @@ describe('getOptionsConfigForPartsArea', () => {
 
 describe('part config structural invariants', () => {
 	it.each([
-		['header', GLOBAL_HEADER_OPTIONS_CONFIG, 'header-body', 'Header'],
-		['footer', GLOBAL_FOOTER_OPTIONS_CONFIG, 'footer-body', 'Footer'],
-		['sidebar', GLOBAL_SIDEBAR_OPTIONS_CONFIG, 'sidebar-body', 'Sidebar'],
+		['header', GLOBAL_HEADER_OPTIONS_CONFIG, 'site-header', 'Header'],
+		['footer', GLOBAL_FOOTER_OPTIONS_CONFIG, 'site-footer', 'Footer'],
+		['sidebar', GLOBAL_SIDEBAR_OPTIONS_CONFIG, 'site-sidebar', 'Sidebar'],
 	])(
 		'binds empty Design and Settings groups to the %s part',
 		(area, config, layoutId, title) => {

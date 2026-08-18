@@ -28,7 +28,7 @@ function stamped(name, stampValue, attributes = {}, innerBlocks = []) {
 
 const noSidebar = stamped(
 	'core/group',
-	'layout/archive-body:no-sidebar',
+	'layout/main:no-sidebar',
 	{ tagName: 'main', className: 'user-styled-main' },
 	[stamped('core/group', 'area/content', {}, [userParagraph])]
 );
@@ -54,7 +54,7 @@ function makeSidebarLayout(variant, columnOrder) {
 	);
 	return stamped(
 		'core/group',
-		`layout/archive-body:${variant}`,
+		`layout/main:${variant}`,
 		{ tagName: 'main' },
 		[
 			stamped(
@@ -117,7 +117,7 @@ function transplant(blocks, variantId, extraParams = {}) {
 	return transplantLayout(
 		blocks,
 		{
-			layoutId: 'archive-body',
+			layoutId: 'main',
 			targetVariant: VARIANTS[variantId],
 			knownVariants: Object.values(VARIANTS),
 			...extraParams,
@@ -160,10 +160,10 @@ describe('transplantLayout round-trip', () => {
 
 	it('re-stamps the layout root with the target variant id', () => {
 		const afterLeft = transplant(makeStart(), 'sidebar-left');
-		const layout = findStamp(afterLeft, 'archive-body');
+		const layout = findStamp(afterLeft, 'main');
 		expect(getStamp(layout.block)).toEqual({
 			role: 'layout',
-			id: 'archive-body',
+			id: 'main',
 			variant: 'sidebar-left',
 		});
 		// Header/footer siblings stay in place around the layout.
@@ -229,7 +229,7 @@ describe('container attribute carry-over', () => {
 
 	it('carries the layout-root ("main") styling across transplants', () => {
 		const afterLeft = transplant(makeStart(), 'sidebar-left');
-		const layout = findStamp(afterLeft, 'archive-body');
+		const layout = findStamp(afterLeft, 'main');
 		expect(layout.block.attributes.className).toBe('user-styled-main');
 	});
 });
@@ -251,7 +251,7 @@ describe('sibling sections', () => {
 			siblingSectionIds: ['page-header'],
 		});
 
-		const layout = findStamp(next, 'archive-body');
+		const layout = findStamp(next, 'main');
 		expect(getStamp(layout.block.innerBlocks[0])).toEqual({
 			role: 'section',
 			id: 'page-header',
@@ -326,7 +326,7 @@ describe('unrecognized / fallback flows', () => {
 			'LEGACY-BODY'
 		);
 		// User styling on the legacy main carries onto the new layout root.
-		const layout = findStamp(next, 'archive-body');
+		const layout = findStamp(next, 'main');
 		expect(layout.block.attributes.className).toBe('legacy');
 		expect(getStamp(layout.block).variant).toBe('sidebar-left');
 	});
@@ -342,14 +342,14 @@ describe('unrecognized / fallback flows', () => {
 
 		expect(next.map((b) => b.attributes.slug || getStamp(b)?.id)).toEqual([
 			'header',
-			'archive-body',
+			'main',
 			'footer',
 		]);
 	});
 
 	it('prepends the layout when there is no header anchor either', () => {
 		const next = transplant([block('core/paragraph')], 'no-sidebar');
-		expect(getStamp(next[0])?.id).toBe('archive-body');
+		expect(getStamp(next[0])?.id).toBe('main');
 		expect(next[1].name).toBe('core/paragraph');
 	});
 
@@ -359,7 +359,7 @@ describe('unrecognized / fallback flows', () => {
 			transplantLayout(
 				tree,
 				{
-					layoutId: 'archive-body',
+					layoutId: 'main',
 					targetVariant: { id: 'x', label: 'X' },
 				},
 				ctx
@@ -369,7 +369,7 @@ describe('unrecognized / fallback flows', () => {
 			transplantLayout(
 				tree,
 				{
-					layoutId: 'archive-body',
+					layoutId: 'main',
 					targetVariant: { id: 'x', label: 'X', html: 'unknown-key' },
 				},
 				ctx
