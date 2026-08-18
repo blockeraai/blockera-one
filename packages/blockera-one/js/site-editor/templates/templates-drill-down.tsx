@@ -1,6 +1,7 @@
 /**
- * Templates sidebar: purpose-nav (General stays visible while Area Hub is open),
- * or Archive Templates Builder options panel when an archive purpose is active.
+ * Templates sidebar: purpose-nav (General stays visible while Header/Footer
+ * Area Hub is open), or Templates Builder when an archive purpose or the
+ * Sidebar part area is active.
  *
  * Restores drill-down scroll after core remounts the sidebar
  * (`key={routeKey}` on templates → template-item). Pair with
@@ -23,6 +24,7 @@ import { ROUTES } from '../constants';
 import { resolveNestedPanel, useUrlPanelStack } from '../nested-panels';
 import {
 	getOptionsConfigForFilter,
+	getOptionsConfigForPartsArea,
 	resolveNestedPanelScrollTarget,
 	resolveOptionsPanelGroups,
 	resolveTemplateIdForFilter,
@@ -64,6 +66,7 @@ export default function TemplatesDrillDown() {
 
 	const openPartsArea = (area: PartAreaId) => {
 		const canonical = findCanonicalPart(area, parts);
+		const direction = area === 'sidebar' ? 'forward' : undefined;
 
 		if (canonical?.id !== undefined) {
 			navigateTemplates(buildTemplatePartItemPath(canonical.id), {
@@ -71,6 +74,7 @@ export default function TemplatesDrillDown() {
 				clearFilter: true,
 				activeView: null,
 				canvas: null,
+				direction,
 			});
 			return;
 		}
@@ -79,21 +83,43 @@ export default function TemplatesDrillDown() {
 			partsArea: area,
 			clearFilter: true,
 			activeView: null,
+			direction,
 		});
 	};
 
-	const builderConfig = getOptionsConfigForFilter(urlState.filter);
+	const partsBuilderConfig = getOptionsConfigForPartsArea(urlState.partsArea);
+	const builderConfig =
+		partsBuilderConfig || getOptionsConfigForFilter(urlState.filter);
 	const showBuilder = !!builderConfig;
 
 	const resolved = useMemo(() => {
-		if (!showBuilder || !urlState.filter) {
+		if (!showBuilder) {
+			return { id: null, slug: null, isFallback: false };
+		}
+		if (partsBuilderConfig && urlState.partsArea) {
+			const canonical = findCanonicalPart(urlState.partsArea, parts);
+			return {
+				id: canonical?.id ?? null,
+				slug: canonical?.slug || null,
+				isFallback: false,
+			};
+		}
+		if (!urlState.filter) {
 			return { id: null, slug: null, isFallback: false };
 		}
 		return resolveTemplateIdForFilter(urlState.filter, findBySlug);
-	}, [findBySlug, showBuilder, urlState.filter]);
+	}, [
+		findBySlug,
+		parts,
+		partsBuilderConfig,
+		showBuilder,
+		urlState.filter,
+		urlState.partsArea,
+	]);
 
 	const purposeLabel = showBuilder
-		? findNavItemLabel(sections, urlState.filter) ||
+		? builderConfig?.title ||
+			findNavItemLabel(sections, urlState.filter) ||
 			__('Template Options', 'blockera')
 		: __('Templates', 'blockera');
 
@@ -135,7 +161,7 @@ export default function TemplatesDrillDown() {
 		});
 	}, [optionsResolution, purposeLabel, stack]);
 
-	const onBackFromBuilder = () => {
+	const onBackToTemplatesNav = () => {
 		// Dirty entity edits stay in core-data; Site Editor Save Hub persists them.
 		navigateTemplates(ROUTES.templates, {
 			clearFilter: true,
@@ -154,7 +180,7 @@ export default function TemplatesDrillDown() {
 		const breadcrumb = [
 			{
 				label: templatesLabel,
-				onClick: onBackFromBuilder,
+				onClick: onBackToTemplatesNav,
 			},
 			...nestedNav.breadcrumbs.map((label, index) => ({
 				label,
@@ -167,9 +193,12 @@ export default function TemplatesDrillDown() {
 				key={screenKey}
 				title={isNested ? nestedNav.title : purposeLabel}
 				breadcrumb={breadcrumb}
-				onBack={isNested ? pop : onBackFromBuilder}
+				onBack={isNested ? pop : onBackToTemplatesNav}
 				actions={
-					<TemplateOptionsTitleActions templateId={resolved.id} />
+					<TemplateOptionsTitleActions
+						templateId={resolved.id}
+						postType={builderConfig.entityPostType}
+					/>
 				}
 			>
 				<div
@@ -180,7 +209,11 @@ export default function TemplatesDrillDown() {
 					<TemplateOptionsPanel
 						config={builderConfig}
 						groups={optionsResolution.groups}
-						filterId={String(urlState.filter)}
+						filterId={
+							partsBuilderConfig
+								? builderConfig.type
+								: String(urlState.filter)
+						}
 						templateId={resolved.id}
 						onOpenNested={push}
 					/>

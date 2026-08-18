@@ -6,6 +6,8 @@
 
 import { ARCHIVE_OPTIONS_CONFIG } from './archive/config';
 import { ARCHIVE_STAMPS } from './archive/stamps';
+import { SIDEBAR_OPTIONS_CONFIG } from './sidebar/config';
+import { SIDEBAR_STAMPS } from './sidebar/stamps';
 import { hydrateConfig } from './shared/hydrate-config';
 import { registerSectionHeuristics } from './shared/resolve-state';
 import {
@@ -18,7 +20,10 @@ import type { TemplateOptionsConfig } from './shared/types';
 
 // Exported for the template-builder lint spec, which cross-checks every
 // registered config against the stamp dictionaries and theme markup.
-export const CONFIGS: TemplateOptionsConfig[] = [ARCHIVE_OPTIONS_CONFIG];
+export const CONFIGS: TemplateOptionsConfig[] = [
+	ARCHIVE_OPTIONS_CONFIG,
+	SIDEBAR_OPTIONS_CONFIG,
+];
 
 /**
  * Stamp dictionaries as authored (`role/id` lists), one entry per source
@@ -27,7 +32,7 @@ export const CONFIGS: TemplateOptionsConfig[] = [ARCHIVE_OPTIONS_CONFIG];
  * roles come from the parsed `role/id:variant` stamp string.
  */
 export const STAMP_DICTIONARIES: readonly (readonly StampDictionaryEntry[])[] =
-	[SHARED_STAMPS, ARCHIVE_STAMPS];
+	[SHARED_STAMPS, ARCHIVE_STAMPS, SIDEBAR_STAMPS];
 
 /** Merged id → role map across every dictionary (for lookups/validation). */
 export const ALL_STAMPS: Record<string, StampRole> = Object.assign(
@@ -76,4 +81,22 @@ export function getOptionsConfigForFilter(
 	return null;
 }
 
-export { ARCHIVE_OPTIONS_CONFIG };
+/**
+ * Resolve options config for a Templates purpose-nav part area
+ * (`partsArea=sidebar`). Returns the catalog-hydrated copy, or null.
+ */
+export function getOptionsConfigForPartsArea(
+	area: string | null | undefined
+): TemplateOptionsConfig | null {
+	if (!area) {
+		return null;
+	}
+	for (const config of CONFIGS) {
+		if (config.partsAreas?.includes(area)) {
+			return getHydratedConfig(config);
+		}
+	}
+	return null;
+}
+
+export { ARCHIVE_OPTIONS_CONFIG, SIDEBAR_OPTIONS_CONFIG };

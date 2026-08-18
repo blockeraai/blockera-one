@@ -416,11 +416,23 @@ export type PanelGroupDef = {
 export type CatalogPools = Record<string, VariantDef[]>;
 export type CatalogPayload = Record<string, CatalogPools>;
 
+/** Entity the options panel edits (templates vs template parts). */
+export type BuilderEntityPostType = 'wp_template' | 'wp_template_part';
+
 export type TemplateOptionsConfig = {
 	/** Template type id — key into the PHP catalog payload (e.g. `archive`). */
 	type: string;
+	/** Drill-down screen title when this config is active. */
+	title?: string;
 	/** Template purpose filter ids this config applies to. */
 	filters: string[];
+	/**
+	 * Templates purpose-nav part areas this config applies to
+	 * (e.g. `sidebar`). Matched via `partsArea`, not `boFilter`.
+	 */
+	partsAreas?: string[];
+	/** Entity post type to edit. Defaults to `wp_template`. */
+	entityPostType?: BuilderEntityPostType;
 	/** Fallback filter when a child falls back to archive.html. */
 	fallbackFilter?: string;
 	layoutId: string;

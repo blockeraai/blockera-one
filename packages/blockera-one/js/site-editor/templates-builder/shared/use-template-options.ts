@@ -1,7 +1,8 @@
 /**
- * Bind a template options config to the edited wp_template entity + site
- * settings. Thin React hook — pure logic lives in `resolve-control-values.ts`
- * (state resolution) and `apply-operation.ts` (operation dispatch).
+ * Bind a template options config to the edited entity (`wp_template` or
+ * `wp_template_part`) + site settings. Thin React hook — pure logic lives
+ * in `resolve-control-values.ts` (state resolution) and `apply-operation.ts`
+ * (operation dispatch).
  */
 
 import { store as coreStore } from '@wordpress/core-data';
@@ -87,6 +88,7 @@ export default function useTemplateOptions(
 	config: TemplateOptionsConfig,
 	filterId: string
 ) {
+	const entityPostType = config.entityPostType || 'wp_template';
 	const [confirmMessage, setConfirmMessage] = useState<string | null>(null);
 	const [pendingAction, setPendingAction] = useState<null | (() => void)>(
 		null
@@ -118,7 +120,7 @@ export default function useTemplateOptions(
 			const template = templateId
 				? (core.getEditedEntityRecord(
 						'postType',
-						'wp_template',
+						entityPostType,
 						templateId
 					) as TemplateRecord | undefined)
 				: undefined;
@@ -129,7 +131,7 @@ export default function useTemplateOptions(
 			const templateDirty = templateId
 				? core.hasEditsForEntityRecord(
 						'postType',
-						'wp_template',
+						entityPostType,
 						templateId
 					)
 				: false;
@@ -148,7 +150,7 @@ export default function useTemplateOptions(
 				isDirty: templateDirty || hasPersistableSiteEdits,
 			};
 		},
-		[templateId]
+		[entityPostType, templateId]
 	);
 
 	// Variant markup source: registered block patterns from the core store
@@ -189,17 +191,22 @@ export default function useTemplateOptions(
 			}
 			// Serialize → re-parse so canvas gets blocks with matching originalContent.
 			const { blocks: freshBlocks, content } = toEntityEdits(next);
-			editEntityRecord('postType', 'wp_template', templateId, {
+			editEntityRecord('postType', entityPostType, templateId, {
 				blocks: freshBlocks,
 				content,
 			});
 		},
-		[editEntityRecord, templateId]
+		[editEntityRecord, entityPostType, templateId]
 	);
 
 	const didEnsureNavLabels = useRef(false);
 	useEffect(() => {
-		if (!templateId || didEnsureNavLabels.current || !blocks.length) {
+		if (
+			entityPostType !== 'wp_template' ||
+			!templateId ||
+			didEnsureNavLabels.current ||
+			!blocks.length
+		) {
 			return;
 		}
 		// One pass after the template tree is available. Do not re-walk on
@@ -209,13 +216,16 @@ export default function useTemplateOptions(
 		if (next !== blocks) {
 			applyBlocks(next);
 		}
-	}, [applyBlocks, blocks, templateId]);
+	}, [applyBlocks, blocks, entityPostType, templateId]);
 
 	const settingBucket = filterId || 'archive';
 
 	// Inherited Query canvas reads Reading Settings posts_per_page. Keep it
 	// aligned with the active template-options bucket while this panel is open.
 	useEffect(() => {
+		if (entityPostType !== 'wp_template') {
+			return;
+		}
 		const map = getPostsPerPageMap(settings as TemplateSettingsRecord);
 		const desired = Number(map[settingBucket]);
 		if (!desired || desired === sitePostsPerPage) {
@@ -224,7 +234,13 @@ export default function useTemplateOptions(
 		editEntityRecord('root', 'site', undefined, {
 			posts_per_page: desired,
 		});
-	}, [editEntityRecord, settingBucket, settings, sitePostsPerPage]);
+	}, [
+		editEntityRecord,
+		entityPostType,
+		settingBucket,
+		settings,
+		sitePostsPerPage,
+	]);
 
 	// Config copy whose variants carry resolved HTML (pattern content /
 	// generated template-part comments). Operations must never run against

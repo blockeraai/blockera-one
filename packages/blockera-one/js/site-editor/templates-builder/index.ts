@@ -6,7 +6,12 @@ export {
 	default as TemplateOptionsPanel,
 	TemplateOptionsTitleActions,
 } from './shared/template-options-panel';
-export { getOptionsConfigForFilter, ARCHIVE_OPTIONS_CONFIG } from './registry';
+export {
+	getOptionsConfigForFilter,
+	getOptionsConfigForPartsArea,
+	ARCHIVE_OPTIONS_CONFIG,
+	SIDEBAR_OPTIONS_CONFIG,
+} from './registry';
 export { TEMPLATE_SETTINGS_KEY } from './shared/constants';
 export {
 	resolveEnableScrollTarget,

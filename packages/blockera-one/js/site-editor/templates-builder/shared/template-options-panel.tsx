@@ -64,6 +64,7 @@ import SortableElementList, {
 import type { ControlViewState } from './resolve-control-values';
 import type {
 	BlockNode,
+	BuilderEntityPostType,
 	ControlDef,
 	ControlValue,
 	InnerOrderRule,
@@ -269,6 +270,7 @@ function SortableElementGroup({
 
 type TemplateOptionsTitleActionsProps = {
 	templateId: string | number | null;
+	postType?: BuilderEntityPostType;
 };
 
 /**
@@ -276,6 +278,7 @@ type TemplateOptionsTitleActionsProps = {
  */
 export function TemplateOptionsTitleActions({
 	templateId,
+	postType = 'wp_template',
 }: TemplateOptionsTitleActionsProps) {
 	const [isResetting, setIsResetting] = useState(false);
 	const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
@@ -302,20 +305,24 @@ export function TemplateOptionsTitleActions({
 		setIsResetConfirmOpen(false);
 		setIsResetting(true);
 		try {
+			const restBase =
+				postType === 'wp_template_part'
+					? 'template-parts'
+					: 'templates';
 			const themeFile = (await apiFetch({
-				path: `/wp/v2/templates/${templateId}?context=edit&source=theme`,
+				path: `/wp/v2/${restBase}/${templateId}?context=edit&source=theme`,
 			})) as { content?: { raw?: string } | string };
 			const raw =
 				typeof themeFile.content === 'string'
 					? themeFile.content
 					: themeFile.content?.raw || '';
 			const blocks = parseBlocks(raw);
-			editEntityRecord('postType', 'wp_template', templateId, {
+			editEntityRecord('postType', postType, templateId, {
 				blocks,
 				content: raw,
 				source: 'theme',
 			});
-			await saveEditedEntityRecord('postType', 'wp_template', templateId);
+			await saveEditedEntityRecord('postType', postType, templateId);
 		} finally {
 			setIsResetting(false);
 		}
