@@ -41,6 +41,13 @@ role/id:variant
 On `wp_template` types the layout root is also the `main` container used
 for attribute carry-over.
 
+The stamp id is for the ops engine. Gutenberg List View shows
+`metadata.name`, which is independent of the id and should read as
+content to the user. Inner-region containers especially: name
+`container/start` **Post Banner** when it holds a banner, or
+`container/media` **Media Blocks** / **Media Column** — not `Start` or
+`Media`. Do not invent a stamp id to match the label.
+
 ## Uniqueness
 
 Ids are **globally unique across every dictionary**, including shared.
@@ -50,6 +57,17 @@ Illegal: `layout/header` when `section/header` already exists.
 
 That is why part roots are `site-header` / `site-footer` / `site-sidebar`
 instead of `header` / `footer` / `sidebar`.
+
+Dictionary uniqueness does **not** mean the block tree may only contain
+one instance. Nested stamps (`container/start`, `container/media`,
+`container/body`, `container/end`, `container/comments`,
+`section/post-title`, …) may repeat **under different parents**
+(listing card vs page-header vs single article). Lookup is parent-scoped —
+do not invent owner-prefixed twins (`loop-item-media`). Repeats under
+the **same** parent still resolve as first-match within that parent.
+
+Layout, area, and chrome slots (`layout/main`, `area/*`,
+`section/header` / `footer` / `sidebar`) stay tree-global first-match.
 
 ## Shared vs type
 
@@ -74,11 +92,92 @@ anti-pattern).
    - `page-*` — in-template content chrome (title band), **not** the site header part.
    - `site-*` — root of a global template part.
    - Children: `{parent}-{child}` (`page-header-title`).
+   - Inner-region slots (shared, parent-scoped): `start`, `media`,
+     `body`, `end`, `comments`. Do not reuse `header` / `footer` for
+     these — those ids are chrome slots. Do not reuse
+     `content-column` for a card/article/page-header body.
 4. Add `role/id` (no variant) to the right dictionary.
 5. Stamp markup as `role/id` or `role/id:variant`.
 6. Point `layoutId`, `relativeTo`, and control `target.id` at the **id** only.
 7. Add or move the row in the matching catalog table below.
 8. Run `npm run test:js -- --testPathPattern template-builder`.
+
+## Using stamps
+
+Search the dictionaries first. Stamp the same ids on every template
+type that needs that region. Type-prefixed twins (`layout/single-body`,
+`loop-item-media`) are illegal. This section is the decision guide —
+catalog tables below list every id.
+
+- **`wp_template` layout** — always `layout/main`. The variant may be
+  type-specific (`no-sidebar`, `sidebar-left`, …). Never
+  `layout/<type>-body`.
+- **Template parts vs chrome** — the part root is `layout/site-header`,
+  `layout/site-footer`, or `layout/site-sidebar` (type dictionaries).
+  The template slot wrapping the part is `section/header`,
+  `section/footer`, or `section/sidebar` (shared). Do not stamp a part
+  root on a template, or a chrome slot on the part.
+- **Page-header band** — `section/page-header` plus title / description
+  / breadcrumbs when the type has a title band. The inner stack is
+  `container/body`. `container/start` is a leading sibling region, not
+  that stack.
+- **Listings** — `section/posts-listing` for any posts query loop
+  (archive, search, homepage, related, …). Use the pagination family
+  when the listing paginates.
+- **Post/page pieces** — `section/post-*` on loop items **and** on
+  single post / single page. Do not invent `loop-item-*` twins.
+- **Inner regions** — opt-in `container/start`, `container/media`,
+  `container/body`, `container/end`, `container/comments`. Parent-scoped;
+  pin `innerOrder.within` to the owning section. Not chrome `header` /
+  `footer`, not `content-column`, not `post-meta-comments-*`. Set
+  `metadata.name` to a user-facing label for that instance; it may
+  differ from the id (`container/start` as **Post Banner**,
+  `container/media` as **Media Blocks**). Keep the shared id.
+- **Areas** — `area/content` for transplant fill; `area/sidebar-area`
+  around the sidebar slot (area and section on separate blocks);
+  `area/rail-body-area` only in the chrome-rail frame.
+
+New type / new markup:
+
+1. Reuse the families above. Add a type-only id only if nothing shared
+   fits.
+2. Empty `<type>/stamps.ts` is valid when everything is shared (archive
+   today).
+3. Stamp `templates/<slug>.html` and `patterns/<type>/` in the same
+   change as the builder.
+4. Promote to `shared/stamps.ts` when a second type needs the id; update
+   the matching catalog table; run
+   `npm run test:js -- --testPathPattern template-builder`.
+
+## Inner-region lookup
+
+Sections may contain the shared inner slots (`container/start`,
+`container/media`, `container/body`, `container/end`,
+`container/comments`). Nested stamp lookup:
+
+1. Walk ancestors of the selected canvas block; search under the nearest
+   **parent** whose stamp is a **section or container** (skip the selected
+   node when a parent scope exists). `findByStampWithin` still tests that
+   ancestor itself. Skip chrome `header`/`footer`/`sidebar`, `layout/main`,
+   and `area/*`.
+2. If that misses (or nothing is selected), search under the control’s
+   `innerOrder.parentId` or heuristic `parentId`.
+3. Else tree-global first-match.
+
+Layout, area, and chrome ids skip steps 1–2.
+
+`page-header*` controls also pin `within` to `page-header` (before
+selection). Inner-order rules that target a nested slot (`start` /
+`media` / `body` / `end` / `comments`) set `innerOrder.within` to the
+owning section (`page-header`, `posts-listing`, `article`, …). An
+explicit `within` searches only under that ancestor — it does not
+fall through to tree-global first-match — so reorder cannot move an
+item into a sibling section’s matching slot.
+
+Runtime: `shared/stamp-lookup.ts` (`findStampById`,
+`resolveWithinFromSelection`, `lookupFromControl`,
+`lookupFromInnerOrder`). Do not add a `within` field on every
+control — put it on the shared `InnerOrderRule`.
 
 ## Disambiguation
 
@@ -91,6 +190,13 @@ anti-pattern).
 | `layout/site-sidebar` | Root of the **sidebar part** |
 | `area/sidebar-area` | Area wrapper around the sidebar slot |
 | `layout/main` | Shared layout root for every `wp_template` type (`tagName:main`) |
+| `section/posts-listing` | Query loop that lists posts. Used on archive, search, homepage, and other listings. |
+| `container/start` | Leading inner region (e.g. page-header kicker, article lead). Not chrome `section/header`. |
+| `container/media` | Media region of a listing card or article. |
+| `container/body` | Text/content region of a listing card, article, or page-header band. Not `container/content-column`. |
+| `container/end` | Trailing inner region (e.g. author band, page-header extra). |
+| `container/comments` | Comments region on a single post. Not `section/post-meta-comments-count` / `comments-link`. |
+| `container/content-column` | Main column beside the sidebar in a page+sidebar frame |
 
 ## Shared catalog
 
@@ -111,6 +217,12 @@ the same change as the dictionary entry.
 | `section/page-header-title` | Title inside the page-header band (query-title / post-title). |
 | `section/page-header-description` | Description inside the page-header band (term description, post excerpt, …). |
 | `section/page-header-breadcrumbs` | Breadcrumbs inside the page-header band. |
+
+### Section: listing
+
+| Stamp | Desc |
+| --- | --- |
+| `section/posts-listing` | Query loop that lists posts. Used on archive, search, homepage, and other listings. |
 
 ### Section: pagination
 
@@ -177,6 +289,11 @@ the same change as the dictionary entry.
 | `container/layout-columns` | Columns wrapper for content + sidebar layouts. |
 | `container/content-column` | Main column beside the sidebar. |
 | `container/sidebar-column` | Sidebar column beside the main content. |
+| `container/start` | Leading inner region (e.g. page-header kicker, article lead). Not chrome `section/header`. |
+| `container/media` | Media region of a listing card or article. |
+| `container/body` | Text/content region of a listing card, article, or page-header band. Not the page+sidebar `content-column`. |
+| `container/end` | Trailing inner region (e.g. author band, page-header extra). |
+| `container/comments` | Comments region on a single post. Not `section/post-meta-comments-count` / `comments-link`. |
 
 ## Type catalogs
 
@@ -185,19 +302,7 @@ second type needs the same id — never copy.
 
 ### Archive (`archive/stamps.ts`)
 
-#### Section
-
-| Stamp | Desc |
-| --- | --- |
-| `section/posts-listing` | Query loop that lists posts. |
-
-#### Container
-
-| Stamp | Desc |
-| --- | --- |
-| `container/elements` | Inner stack of swappable children (page-header elements, loop-item blocks). |
-| `container/loop-item-content` | Text column of a listing card. |
-| `container/loop-item-media` | Media column of a listing card. |
+None.
 
 ### Global header (`global-header/stamps.ts`)
 
@@ -223,21 +328,6 @@ second type needs the same id — never copy.
 | --- | --- |
 | `layout/site-sidebar` | Root of the sidebar template part (not `section/sidebar`). |
 
-## Upcoming template types
-
-Single post, single page, search, 404, and homepage will reuse:
-
-- `layout/main` (always; never `layout/single-body` or similar)
-- the `section/page-header` family when they have a title band
-- the `section/post-*` family on single post, single page, and listing cards
-- the `section/pagination` family on archive, search, homepage, and other listings
-- `section/header` / `section/footer` / `section/sidebar` for site chrome slots
-
-Type folders, PHP catalogs, and theme-template stamps for those types
-land when those builders ship. Until then, do not add empty dictionaries
-or stamp `templates/single.html`, `page.html`, `search.html`, `404.html`,
-or `home.html`.
-
 ## Hard cut on renamed ids
 
 These ids are retired. Theme source and runtime lookup use only the new
@@ -251,6 +341,13 @@ until they are reset or re-saved.
 | `layout/header-body` | `layout/site-header` |
 | `layout/footer-body` | `layout/site-footer` |
 | `layout/sidebar-body` | `layout/site-sidebar` |
+| `container/elements` | `container/body` (page-header inner stack) |
+| `container/loop-item-media` | `container/media` |
+| `container/loop-item-content` | `container/body` |
+
+`container/start` briefly named the page-header inner stack. Simple and
+banner now use `container/body` (the shared content slot). `start` is a
+distinct leading inner-region slot — do not reuse it as that stack.
 
 ## Placement and variants
 
