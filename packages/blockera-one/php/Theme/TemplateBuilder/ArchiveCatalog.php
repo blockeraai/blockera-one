@@ -297,7 +297,7 @@ class ArchiveCatalog extends AbstractCatalog {
 				'blockera-one/builder-archive-listing-post-meta-2-word-count'
 			),
 			// Order matters: no-sidebar first (toggle-off), then the nested
-			// position picker (catalogExclude: no-sidebar) shows Right, Left.
+			// position picker (catalogExclude: no-sidebar) shows Left, Right.
 			'layout'        => array(
 				$this->patternVariant(
 					'no-sidebar',
@@ -306,21 +306,21 @@ class ArchiveCatalog extends AbstractCatalog {
 					array( 'areas' => array( 'content' ) )
 				),
 				$this->patternVariant(
-					'sidebar-right',
-					__( 'Right Sidebar', 'blockera-one' ),
-					'blockera-one/builder-archive-layout-sidebar-right',
-					array(
-						'areas'     => array( 'content', 'sidebar-area' ),
-						'thumbnail' => $this->thumbnail( 'sidebar-right' ),
-					)
-				),
-				$this->patternVariant(
 					'sidebar-left',
 					__( 'Left Sidebar', 'blockera-one' ),
 					'blockera-one/builder-archive-layout-sidebar-left',
 					array(
 						'areas'     => array( 'content', 'sidebar-area' ),
 						'thumbnail' => $this->thumbnail( 'sidebar-left' ),
+					)
+				),
+				$this->patternVariant(
+					'sidebar-right',
+					__( 'Right Sidebar', 'blockera-one' ),
+					'blockera-one/builder-archive-layout-sidebar-right',
+					array(
+						'areas'     => array( 'content', 'sidebar-area' ),
+						'thumbnail' => $this->thumbnail( 'sidebar-right' ),
 					)
 				),
 			),

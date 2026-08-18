@@ -1327,7 +1327,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 									{ controlId: 'sidebar', equals: true },
 								],
 								// Position picker hides the toggle-off
-								// layout; pool order shows Right, Left.
+								// layout; pool order shows Left, Right.
 								catalogPool: 'layout',
 								catalogExclude: ['no-sidebar'],
 							},
