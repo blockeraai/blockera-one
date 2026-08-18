@@ -37,6 +37,7 @@ import { ControlContextProvider, Flex } from '@blockera/controls';
  * Internal dependencies
  */
 import { GatewayCard, GatewayRow } from '../../nested-panels';
+import GroupCard from '../../components/group-card';
 import BlockStyleSelect from './controls/block-style-select';
 import BorderControlRow from './controls/border-control';
 import ColorControlRow from './controls/color-control';
@@ -526,335 +527,314 @@ export default function TemplateOptionsPanel({
 			: controls;
 
 		const body = showBody ? (
-			<div className="admin-ui-page__content has-padding">
-				<Flex direction="column" gap="16px">
-					{orderRule && sortableViews.length > 0 && (
-						<SortableElementGroup
-							items={sortableViews}
-							groupId={group.id}
-							orderRule={orderRule}
-							blocks={blocks}
-							disabled={commonDisabled}
-							onReorderElements={onReorderElements}
-							onChangeControl={onChangeControl}
-							onOpenNested={onOpenNested}
-						/>
-					)}
-					{staticControls.map(
-						({
-							control,
-							state,
-							value,
-							blockName,
-							disabled: viewDisabled,
-						}) => {
-							const missing = state.kind === 'missing';
-							// Pattern content not resolved yet (or slug
-							// unregistered) — keep the control visible
-							// but inert so ops never run on empty HTML.
-							const waitingForContent =
-								hasUnresolvedVariants(control);
-							const controlDisabled =
-								commonDisabled ||
-								waitingForContent ||
-								!!viewDisabled;
-							const blockeraAttributeId = control.attributePath
-								? getBlockeraAttributeId(
-										control.attributePath
-									) || undefined
-								: undefined;
-							let controlNode = null;
+			<>
+				{orderRule && sortableViews.length > 0 && (
+					<SortableElementGroup
+						items={sortableViews}
+						groupId={group.id}
+						orderRule={orderRule}
+						blocks={blocks}
+						disabled={commonDisabled}
+						onReorderElements={onReorderElements}
+						onChangeControl={onChangeControl}
+						onOpenNested={onOpenNested}
+					/>
+				)}
+				{staticControls.map(
+					({
+						control,
+						state,
+						value,
+						blockName,
+						disabled: viewDisabled,
+					}) => {
+						const missing = state.kind === 'missing';
+						// Pattern content not resolved yet (or slug
+						// unregistered) — keep the control visible
+						// but inert so ops never run on empty HTML.
+						const waitingForContent =
+							hasUnresolvedVariants(control);
+						const controlDisabled =
+							commonDisabled ||
+							waitingForContent ||
+							!!viewDisabled;
+						const blockeraAttributeId = control.attributePath
+							? getBlockeraAttributeId(control.attributePath) ||
+								undefined
+							: undefined;
+						let controlNode = null;
 
-							if (
-								control.type === 'gateway' &&
-								control.nestedPanel
-							) {
-								controlNode = (
-									<GatewayRow
-										title={control.label ?? ''}
-										enabled={true}
-										data-test={`blockera-templates-builder-gateway-${control.nestedPanel.id}`}
-										onOpen={
-											onOpenNested
-												? () =>
-														onOpenNested(
-															control.nestedPanel!
-																.id
-														)
-												: undefined
-										}
-									/>
-								);
-							} else if (control.type === 'layout-picker') {
-								controlNode = (
-									<LayoutPicker
-										label={control.label}
-										value={
-											typeof value === 'string'
-												? value
-												: null
-										}
-										variants={control.variants || []}
-										disabled={controlDisabled}
-										columns={control.columns}
-										missing={missing}
-										onAddBack={() =>
-											onChangeControl(
-												control,
-												control.variants?.[0]?.id ||
-													'default'
-											)
-										}
-										onChange={(id) =>
-											onChangeControl(control, id)
-										}
-									/>
-								);
-							} else if (
-								control.type === 'toggle' &&
-								control.nestedPanel
-							) {
-								controlNode = (
-									<GatewayRow
-										title={control.label ?? ''}
-										enabled={!!value}
-										data-test={`blockera-templates-builder-gateway-${control.nestedPanel.id}`}
-										toggle={{
-											checked: !!value,
-											disabled: controlDisabled,
-											'aria-label':
-												control.label || control.id,
-											onChange: (next) =>
-												onChangeControl(control, next),
-										}}
-										onOpen={
-											onOpenNested
-												? () =>
-														onOpenNested(
-															control.nestedPanel!
-																.id
-														)
-												: undefined
-										}
-									/>
-								);
-							} else if (control.type === 'toggle') {
-								controlNode = (
-									<ToggleControlRow
-										label={control.label}
-										checked={!!value}
-										disabled={controlDisabled}
-										columns={control.columns}
-										onChange={(next) =>
-											onChangeControl(control, next)
-										}
-									/>
-								);
-							} else if (control.operation === 'placeSection') {
-								controlNode = (
-									<ToggleSelectRow
-										controlId={control.id}
-										label={control.label}
-										value={
-											typeof value === 'string'
-												? value
-												: null
-										}
-										variants={control.variants || []}
-										disabled={controlDisabled || missing}
-										columns={control.columns}
-										defaultValue={
-											typeof control.defaultValue ===
-											'string'
-												? control.defaultValue
-												: 'bottom'
-										}
-										onChange={(id) =>
-											onChangeControl(control, id)
-										}
-									/>
-								);
-							} else if (control.type === 'border') {
-								controlNode = (
-									<BorderControlRow
-										controlId={control.id}
-										label={control.label}
-										value={value}
-										disabled={commonDisabled}
-										attribute={blockeraAttributeId}
-										blockName={blockName}
-										columns={control.columns}
-										onChange={(next) =>
-											onChangeControl(
-												control,
-												next as ControlValue
-											)
-										}
-									/>
-								);
-							} else if (control.type === 'number') {
-								const numberFallback =
-									typeof control.defaultValue === 'number'
-										? control.defaultValue
-										: 10;
-								const numberValue =
-									typeof value === 'number' &&
-									!Number.isNaN(value)
-										? value
-										: numberFallback;
-								controlNode = (
-									<StepperControlRow
-										controlId={control.id}
-										label={control.label}
-										value={numberValue}
-										min={control.min}
-										max={control.max}
-										step={control.step}
-										disabled={commonDisabled}
-										labelDescription={
-											control.labelDescription
-										}
-										attribute={blockeraAttributeId}
-										blockName={blockName}
-										defaultValue={numberFallback}
-										columns={control.columns}
-										onChange={(next) =>
-											onChangeControl(control, next)
-										}
-									/>
-								);
-							} else if (control.type === 'input') {
-								const isGapPath =
-									blockeraAttributeId === 'blockeraGap';
-								// Value is already the merge-key side from
-								// resolveControlViewStates — do not pick again.
-								const inputValue = inputControlValue(
-									value,
-									isGapPath
-								);
-								controlNode = (
-									<InputControlRow
-										controlId={control.id}
-										label={control.label}
-										value={inputValue}
-										disabled={commonDisabled}
-										unitType={control.unitType}
-										controlAddonTypes={
-											control.controlAddonTypes
-										}
-										variableTypes={control.variableTypes}
-										min={control.min}
-										attribute={blockeraAttributeId}
-										blockName={blockName}
-										columns={control.columns}
-										defaultValue={
-											typeof control.defaultValue ===
-												'string' ||
-											typeof control.defaultValue ===
-												'number'
-												? control.defaultValue
-												: ''
-										}
-										onChange={(next) =>
-											onChangeControl(
-												control,
-												isGapPath
-													? wrapGapValue(next)
-													: (next as ControlValue)
-											)
-										}
-									/>
-								);
-							} else if (control.type === 'layout-matrix') {
-								controlNode = (
-									<LayoutMatrixControlRow
-										controlId={control.id}
-										label={control.label}
-										value={value}
-										disabled={commonDisabled}
-										attribute={blockeraAttributeId}
-										blockName={blockName}
-										isDirectionActive={
-											control.isDirectionActive
-										}
-										isAxisControlsActive={
-											control.isAxisControlsActive
-										}
-										defaultDirection={
-											control.defaultDirection
-										}
-										columns={control.columns}
-										onChange={(next) =>
-											onChangeControl(control, next)
-										}
-									/>
-								);
-							} else if (control.type === 'color') {
-								controlNode = (
-									<ColorControlRow
-										controlId={control.id}
-										label={control.label}
-										value={value}
-										disabled={commonDisabled}
-										controlAddonTypes={
-											control.controlAddonTypes
-										}
-										variableTypes={control.variableTypes}
-										attribute={blockeraAttributeId}
-										blockName={blockName}
-										columns={control.columns}
-										onChange={(next) =>
-											onChangeControl(
-												control,
-												next as ControlValue
-											)
-										}
-									/>
-								);
-							} else if (
-								control.type === 'select' &&
-								control.operation === 'setBlockStyle'
-							) {
-								controlNode = (
-									<BlockStyleSelect
-										controlId={control.id}
-										label={control.label}
-										value={
-											typeof value === 'string'
-												? value
-												: null
-										}
-										blockName={blockName}
-										sectionId={control.target.id}
-										disabled={controlDisabled || missing}
-										columns={control.columns}
-										defaultValue={
-											typeof control.defaultValue ===
-											'string'
-												? control.defaultValue
-												: 'default'
-										}
-										onChange={(id) =>
-											onChangeControl(control, id)
-										}
-									/>
-								);
-							}
-
-							if (!controlNode) {
-								return null;
-							}
-
-							return asControlListItem(
-								controlNode,
-								control.id,
-								control.separatorBefore
+						if (control.type === 'gateway' && control.nestedPanel) {
+							controlNode = (
+								<GatewayRow
+									title={control.label ?? ''}
+									enabled={true}
+									data-test={`blockera-templates-builder-gateway-${control.nestedPanel.id}`}
+									onOpen={
+										onOpenNested
+											? () =>
+													onOpenNested(
+														control.nestedPanel!.id
+													)
+											: undefined
+									}
+								/>
+							);
+						} else if (control.type === 'layout-picker') {
+							controlNode = (
+								<LayoutPicker
+									label={control.label}
+									value={
+										typeof value === 'string' ? value : null
+									}
+									variants={control.variants || []}
+									disabled={controlDisabled}
+									columns={control.columns}
+									missing={missing}
+									onAddBack={() =>
+										onChangeControl(
+											control,
+											control.variants?.[0]?.id ||
+												'default'
+										)
+									}
+									onChange={(id) =>
+										onChangeControl(control, id)
+									}
+								/>
+							);
+						} else if (
+							control.type === 'toggle' &&
+							control.nestedPanel
+						) {
+							controlNode = (
+								<GatewayRow
+									title={control.label ?? ''}
+									enabled={!!value}
+									data-test={`blockera-templates-builder-gateway-${control.nestedPanel.id}`}
+									toggle={{
+										checked: !!value,
+										disabled: controlDisabled,
+										'aria-label':
+											control.label || control.id,
+										onChange: (next) =>
+											onChangeControl(control, next),
+									}}
+									onOpen={
+										onOpenNested
+											? () =>
+													onOpenNested(
+														control.nestedPanel!.id
+													)
+											: undefined
+									}
+								/>
+							);
+						} else if (control.type === 'toggle') {
+							controlNode = (
+								<ToggleControlRow
+									label={control.label}
+									checked={!!value}
+									disabled={controlDisabled}
+									columns={control.columns}
+									onChange={(next) =>
+										onChangeControl(control, next)
+									}
+								/>
+							);
+						} else if (control.operation === 'placeSection') {
+							controlNode = (
+								<ToggleSelectRow
+									controlId={control.id}
+									label={control.label}
+									value={
+										typeof value === 'string' ? value : null
+									}
+									variants={control.variants || []}
+									disabled={controlDisabled || missing}
+									columns={control.columns}
+									defaultValue={
+										typeof control.defaultValue === 'string'
+											? control.defaultValue
+											: 'bottom'
+									}
+									onChange={(id) =>
+										onChangeControl(control, id)
+									}
+								/>
+							);
+						} else if (control.type === 'border') {
+							controlNode = (
+								<BorderControlRow
+									controlId={control.id}
+									label={control.label}
+									value={value}
+									disabled={commonDisabled}
+									attribute={blockeraAttributeId}
+									blockName={blockName}
+									columns={control.columns}
+									onChange={(next) =>
+										onChangeControl(
+											control,
+											next as ControlValue
+										)
+									}
+								/>
+							);
+						} else if (control.type === 'number') {
+							const numberFallback =
+								typeof control.defaultValue === 'number'
+									? control.defaultValue
+									: 10;
+							const numberValue =
+								typeof value === 'number' &&
+								!Number.isNaN(value)
+									? value
+									: numberFallback;
+							controlNode = (
+								<StepperControlRow
+									controlId={control.id}
+									label={control.label}
+									value={numberValue}
+									min={control.min}
+									max={control.max}
+									step={control.step}
+									disabled={commonDisabled}
+									labelDescription={control.labelDescription}
+									attribute={blockeraAttributeId}
+									blockName={blockName}
+									defaultValue={numberFallback}
+									columns={control.columns}
+									onChange={(next) =>
+										onChangeControl(control, next)
+									}
+								/>
+							);
+						} else if (control.type === 'input') {
+							const isGapPath =
+								blockeraAttributeId === 'blockeraGap';
+							// Value is already the merge-key side from
+							// resolveControlViewStates — do not pick again.
+							const inputValue = inputControlValue(
+								value,
+								isGapPath
+							);
+							controlNode = (
+								<InputControlRow
+									controlId={control.id}
+									label={control.label}
+									value={inputValue}
+									disabled={commonDisabled}
+									unitType={control.unitType}
+									controlAddonTypes={
+										control.controlAddonTypes
+									}
+									variableTypes={control.variableTypes}
+									min={control.min}
+									attribute={blockeraAttributeId}
+									blockName={blockName}
+									columns={control.columns}
+									defaultValue={
+										typeof control.defaultValue ===
+											'string' ||
+										typeof control.defaultValue === 'number'
+											? control.defaultValue
+											: ''
+									}
+									onChange={(next) =>
+										onChangeControl(
+											control,
+											isGapPath
+												? wrapGapValue(next)
+												: (next as ControlValue)
+										)
+									}
+								/>
+							);
+						} else if (control.type === 'layout-matrix') {
+							controlNode = (
+								<LayoutMatrixControlRow
+									controlId={control.id}
+									label={control.label}
+									value={value}
+									disabled={commonDisabled}
+									attribute={blockeraAttributeId}
+									blockName={blockName}
+									isDirectionActive={
+										control.isDirectionActive
+									}
+									isAxisControlsActive={
+										control.isAxisControlsActive
+									}
+									defaultDirection={control.defaultDirection}
+									columns={control.columns}
+									onChange={(next) =>
+										onChangeControl(control, next)
+									}
+								/>
+							);
+						} else if (control.type === 'color') {
+							controlNode = (
+								<ColorControlRow
+									controlId={control.id}
+									label={control.label}
+									value={value}
+									disabled={commonDisabled}
+									controlAddonTypes={
+										control.controlAddonTypes
+									}
+									variableTypes={control.variableTypes}
+									attribute={blockeraAttributeId}
+									blockName={blockName}
+									columns={control.columns}
+									onChange={(next) =>
+										onChangeControl(
+											control,
+											next as ControlValue
+										)
+									}
+								/>
+							);
+						} else if (
+							control.type === 'select' &&
+							control.operation === 'setBlockStyle'
+						) {
+							controlNode = (
+								<BlockStyleSelect
+									controlId={control.id}
+									label={control.label}
+									value={
+										typeof value === 'string' ? value : null
+									}
+									blockName={blockName}
+									sectionId={control.target.id}
+									disabled={controlDisabled || missing}
+									columns={control.columns}
+									defaultValue={
+										typeof control.defaultValue === 'string'
+											? control.defaultValue
+											: 'default'
+									}
+									onChange={(id) =>
+										onChangeControl(control, id)
+									}
+								/>
 							);
 						}
-					)}
-					{gatewayRow}
-				</Flex>
-			</div>
+
+						if (!controlNode) {
+							return null;
+						}
+
+						return asControlListItem(
+							controlNode,
+							control.id,
+							control.separatorBefore
+						);
+					}
+				)}
+				{gatewayRow}
+			</>
 		) : null;
 
 		if (group.nestedPanel) {
@@ -890,61 +870,50 @@ export default function TemplateOptionsPanel({
 		}
 
 		return (
-			<section
+			<GroupCard
 				key={group.id}
+				title={group.title}
 				className={classNames(
-					'blockera-se-admin-ui-card',
-					'admin-ui-page',
 					'blockera-templates-builder-group',
-					{ 'is-header-collapsed': !showBody }
+					'is-stacked'
 				)}
 				data-test={`blockera-templates-builder-group-${group.id}`}
+				isHeaderCollapsed={!showBody}
+				headerActions={
+					headerEdit || (headerToggleDef && headerToggleView) ? (
+						<Flex
+							gap="8px"
+							alignItems="center"
+							className="blockera-templates-builder-group__header-actions"
+						>
+							{headerEdit}
+							{headerToggleDef && headerToggleView && (
+								<span
+									className="blockera-templates-builder-group__header-toggle"
+									data-test={`blockera-templates-builder-header-toggle-${group.id}`}
+								>
+									<FormToggle
+										checked={!!headerToggleView.value}
+										disabled={headerToggleDisabled}
+										onChange={() =>
+											onChangeControl(
+												headerToggleDef,
+												!headerToggleView.value
+											)
+										}
+										aria-label={
+											headerToggleDef.label ||
+											headerToggleDef.id
+										}
+									/>
+								</span>
+							)}
+						</Flex>
+					) : undefined
+				}
 			>
-				<div className="admin-ui-page__header">
-					<Flex
-						gap="8px"
-						alignItems="center"
-						justifyContent="space-between"
-						className="admin-ui-page__header-content"
-					>
-						<h2 className="admin-ui-page__header-title">
-							{group.title}
-						</h2>
-						{(headerEdit ||
-							(headerToggleDef && headerToggleView)) && (
-							<Flex
-								gap="8px"
-								alignItems="center"
-								className="blockera-templates-builder-group__header-actions"
-							>
-								{headerEdit}
-								{headerToggleDef && headerToggleView && (
-									<span
-										className="blockera-templates-builder-group__header-toggle"
-										data-test={`blockera-templates-builder-header-toggle-${group.id}`}
-									>
-										<FormToggle
-											checked={!!headerToggleView.value}
-											disabled={headerToggleDisabled}
-											onChange={() =>
-												onChangeControl(
-													headerToggleDef,
-													!headerToggleView.value
-												)
-											}
-											aria-label={
-												headerToggleDef.label ||
-												headerToggleDef.id
-											}
-										/>
-									</span>
-								)}
-							</Flex>
-						)}
-					</Flex>
-				</div>
 				{body}
-			</section>
+			</GroupCard>
 		);
 	});
 

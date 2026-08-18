@@ -38,27 +38,7 @@
 	}
 }
 
-/* Match `.blockera-se-admin-ui-card.admin-ui-page` parent-card chrome. */
-.blockera-templates-builder-group.blockera-se-admin-ui-card {
-	flex: 0 0 auto;
-	max-height: none;
-	overflow: hidden;
-
-	&.admin-ui-page {
-		flex: 0 0 auto;
-		max-height: none;
-		overflow: hidden;
-	}
-
-	.admin-ui-page__content {
-		flex: 0 0 auto;
-	}
-
-	&.is-header-collapsed .admin-ui-page__header {
-		border-block-end: 0;
-	}
-}
-
+/* Compact group header actions (template builder). */
 .blockera-templates-builder-group__header-actions,
 .blockera-templates-builder-group__header-toggle {
 	flex-shrink: 0;
