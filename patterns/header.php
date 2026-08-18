@@ -12,7 +12,7 @@
  */
 
 ?>
-<!-- wp:group {"align":"full","layout":{"type":"default"}} -->
+<!-- wp:group {"align":"full","metadata":{"blockeraOne":"layout/header-body:default"},"layout":{"type":"default"}} -->
 <div class="wp-block-group alignfull">
 	<!-- wp:group {"layout":{"type":"constrained"}} -->
 	<div class="wp-block-group">

@@ -10,7 +10,9 @@ export {
 	getOptionsConfigForFilter,
 	getOptionsConfigForPartsArea,
 	ARCHIVE_OPTIONS_CONFIG,
-	SIDEBAR_OPTIONS_CONFIG,
+	GLOBAL_FOOTER_OPTIONS_CONFIG,
+	GLOBAL_HEADER_OPTIONS_CONFIG,
+	GLOBAL_SIDEBAR_OPTIONS_CONFIG,
 } from './registry';
 export { TEMPLATE_SETTINGS_KEY } from './shared/constants';
 export {

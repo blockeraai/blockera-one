@@ -6,8 +6,12 @@
 
 import { ARCHIVE_OPTIONS_CONFIG } from './archive/config';
 import { ARCHIVE_STAMPS } from './archive/stamps';
-import { SIDEBAR_OPTIONS_CONFIG } from './sidebar/config';
-import { SIDEBAR_STAMPS } from './sidebar/stamps';
+import { GLOBAL_FOOTER_OPTIONS_CONFIG } from './global-footer/config';
+import { GLOBAL_FOOTER_STAMPS } from './global-footer/stamps';
+import { GLOBAL_HEADER_OPTIONS_CONFIG } from './global-header/config';
+import { GLOBAL_HEADER_STAMPS } from './global-header/stamps';
+import { GLOBAL_SIDEBAR_OPTIONS_CONFIG } from './global-sidebar/config';
+import { GLOBAL_SIDEBAR_STAMPS } from './global-sidebar/stamps';
 import { hydrateConfig } from './shared/hydrate-config';
 import { registerSectionHeuristics } from './shared/resolve-state';
 import {
@@ -22,7 +26,9 @@ import type { TemplateOptionsConfig } from './shared/types';
 // registered config against the stamp dictionaries and theme markup.
 export const CONFIGS: TemplateOptionsConfig[] = [
 	ARCHIVE_OPTIONS_CONFIG,
-	SIDEBAR_OPTIONS_CONFIG,
+	GLOBAL_HEADER_OPTIONS_CONFIG,
+	GLOBAL_FOOTER_OPTIONS_CONFIG,
+	GLOBAL_SIDEBAR_OPTIONS_CONFIG,
 ];
 
 /**
@@ -32,7 +38,13 @@ export const CONFIGS: TemplateOptionsConfig[] = [
  * roles come from the parsed `role/id:variant` stamp string.
  */
 export const STAMP_DICTIONARIES: readonly (readonly StampDictionaryEntry[])[] =
-	[SHARED_STAMPS, ARCHIVE_STAMPS, SIDEBAR_STAMPS];
+	[
+		SHARED_STAMPS,
+		ARCHIVE_STAMPS,
+		GLOBAL_HEADER_STAMPS,
+		GLOBAL_FOOTER_STAMPS,
+		GLOBAL_SIDEBAR_STAMPS,
+	];
 
 /** Merged id → role map across every dictionary (for lookups/validation). */
 export const ALL_STAMPS: Record<string, StampRole> = Object.assign(
@@ -83,7 +95,7 @@ export function getOptionsConfigForFilter(
 
 /**
  * Resolve options config for a Templates purpose-nav part area
- * (`partsArea=sidebar`). Returns the catalog-hydrated copy, or null.
+ * (`partsArea=header|footer|sidebar`). Returns the catalog-hydrated copy, or null.
  */
 export function getOptionsConfigForPartsArea(
 	area: string | null | undefined
@@ -99,4 +111,9 @@ export function getOptionsConfigForPartsArea(
 	return null;
 }
 
-export { ARCHIVE_OPTIONS_CONFIG, SIDEBAR_OPTIONS_CONFIG };
+export {
+	ARCHIVE_OPTIONS_CONFIG,
+	GLOBAL_FOOTER_OPTIONS_CONFIG,
+	GLOBAL_HEADER_OPTIONS_CONFIG,
+	GLOBAL_SIDEBAR_OPTIONS_CONFIG,
+};

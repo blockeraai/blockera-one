@@ -1,7 +1,6 @@
 /**
- * Templates sidebar: purpose-nav (General stays visible while Header/Footer
- * Area Hub is open), or Templates Builder when an archive purpose or the
- * Sidebar part area is active.
+ * Templates sidebar: purpose-nav, or Templates Builder when an archive
+ * purpose or a Header / Footer / Sidebar part area is active.
  *
  * Restores drill-down scroll after core remounts the sidebar
  * (`key={routeKey}` on templates → template-item). Pair with
@@ -66,7 +65,9 @@ export default function TemplatesDrillDown() {
 
 	const openPartsArea = (area: PartAreaId) => {
 		const canonical = findCanonicalPart(area, parts);
-		const direction = area === 'sidebar' ? 'forward' : undefined;
+		const direction = getOptionsConfigForPartsArea(area)
+			? 'forward'
+			: undefined;
 
 		if (canonical?.id !== undefined) {
 			navigateTemplates(buildTemplatePartItemPath(canonical.id), {
