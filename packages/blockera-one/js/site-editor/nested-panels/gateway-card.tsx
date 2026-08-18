@@ -14,8 +14,11 @@ import { Icon, chevronRight } from '@wordpress/icons';
  * Blockera dependencies
  */
 import { classNames } from '@blockera/classnames';
-import { Flex } from '@blockera/controls';
 
+/**
+ * Internal dependencies
+ */
+import GroupCard from '../components/group-card';
 import useToggleNudge from './use-toggle-nudge';
 import './gateway-card.scss';
 
@@ -88,14 +91,13 @@ export default function GatewayCard({
 	};
 
 	return (
-		<section
+		<GroupCard
+			title={title}
 			className={classNames(
-				'blockera-se-admin-ui-card',
-				'admin-ui-page',
 				'blockera-site-editor-gateway-card',
+				'is-stacked',
 				className,
 				{
-					'is-header-collapsed': !hasBody,
 					'has-body': hasBody,
 					'is-enabled': enabled,
 					'is-navigable': canOpen,
@@ -103,60 +105,53 @@ export default function GatewayCard({
 			)}
 			data-test={dataTest}
 			data-enabled={enabled ? 'true' : 'false'}
-		>
-			<div
-				className="admin-ui-page__header"
-				onClick={onHeaderClick}
-				onKeyDown={onHeaderKeyDown}
-				role={canOpen ? 'button' : undefined}
-				tabIndex={canOpen ? 0 : undefined}
-			>
-				<Flex
-					gap="8px"
-					alignItems="center"
-					justifyContent="space-between"
-					className="admin-ui-page__header-content"
-				>
-					<h2 className="admin-ui-page__header-title">{title}</h2>
-					<span className="blockera-site-editor-gateway-card__trailing">
-						{toggle && (
-							<span
-								className={classNames(
-									'blockera-site-editor-gateway-card__toggle',
-									{ 'is-nudging': isNudging }
-								)}
-								data-test={
-									dataTest ? `${dataTest}-toggle` : undefined
-								}
-								data-nudging={isNudging ? 'true' : 'false'}
-								onAnimationEnd={onNudgeAnimationEnd}
-								onClick={(event) => {
-									event.stopPropagation();
-								}}
-								onKeyDown={(event) => {
-									event.stopPropagation();
-								}}
-							>
-								<FormToggle
-									checked={toggle.checked}
-									disabled={toggle.disabled}
-									onChange={() =>
-										toggle.onChange(!toggle.checked)
-									}
-									aria-label={toggle['aria-label'] || title}
-								/>
-							</span>
-						)}
+			isHeaderCollapsed={!hasBody}
+			headerProps={{
+				onClick: onHeaderClick,
+				onKeyDown: onHeaderKeyDown,
+				role: canOpen ? 'button' : undefined,
+				tabIndex: canOpen ? 0 : undefined,
+			}}
+			headerActions={
+				<span className="blockera-site-editor-gateway-card__trailing">
+					{toggle && (
 						<span
-							className="blockera-site-editor-gateway-card__chevron"
-							aria-hidden="true"
+							className={classNames(
+								'blockera-site-editor-gateway-card__toggle',
+								{ 'is-nudging': isNudging }
+							)}
+							data-test={
+								dataTest ? `${dataTest}-toggle` : undefined
+							}
+							data-nudging={isNudging ? 'true' : 'false'}
+							onAnimationEnd={onNudgeAnimationEnd}
+							onClick={(event) => {
+								event.stopPropagation();
+							}}
+							onKeyDown={(event) => {
+								event.stopPropagation();
+							}}
 						>
-							<Icon icon={chevronRight} size={22} />
+							<FormToggle
+								checked={toggle.checked}
+								disabled={toggle.disabled}
+								onChange={() =>
+									toggle.onChange(!toggle.checked)
+								}
+								aria-label={toggle['aria-label'] || title}
+							/>
 						</span>
+					)}
+					<span
+						className="blockera-site-editor-gateway-card__chevron"
+						aria-hidden="true"
+					>
+						<Icon icon={chevronRight} size={22} />
 					</span>
-				</Flex>
-			</div>
-			{children}
-		</section>
+				</span>
+			}
+		>
+			{hasBody ? children : null}
+		</GroupCard>
 	);
 }
