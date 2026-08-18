@@ -149,7 +149,9 @@ window.blockeraOneTemplateBuilder = { catalog: INLINE_CATALOG };
 // Import after the payload is in place (registry registers roles on load).
 const {
 	ARCHIVE_OPTIONS_CONFIG,
-	SIDEBAR_OPTIONS_CONFIG,
+	GLOBAL_FOOTER_OPTIONS_CONFIG,
+	GLOBAL_HEADER_OPTIONS_CONFIG,
+	GLOBAL_SIDEBAR_OPTIONS_CONFIG,
 	getOptionsConfigForFilter,
 	getOptionsConfigForPartsArea,
 } = require('../../registry');
@@ -206,10 +208,14 @@ describe('getOptionsConfigForFilter', () => {
 });
 
 describe('getOptionsConfigForPartsArea', () => {
-	it('returns the hydrated sidebar config', () => {
-		const config = getOptionsConfigForPartsArea('sidebar');
+	it.each([
+		['header', 'global-header'],
+		['footer', 'global-footer'],
+		['sidebar', 'global-sidebar'],
+	])('returns the hydrated %s config (type %s)', (area, type) => {
+		const config = getOptionsConfigForPartsArea(area);
 		expect(config).not.toBeNull();
-		expect(config.type).toBe('sidebar');
+		expect(config.type).toBe(type);
 		expect(config.entityPostType).toBe('wp_template_part');
 		expect(config.groups.map((g) => g.id)).toEqual(['design', 'settings']);
 		expect(
@@ -221,23 +227,37 @@ describe('getOptionsConfigForPartsArea', () => {
 		const first = getOptionsConfigForPartsArea('sidebar');
 		const second = getOptionsConfigForPartsArea('sidebar');
 		expect(second).toBe(first);
-		expect(first).not.toBe(SIDEBAR_OPTIONS_CONFIG);
+		expect(first).not.toBe(GLOBAL_SIDEBAR_OPTIONS_CONFIG);
+		expect(getOptionsConfigForPartsArea('header')).not.toBe(
+			GLOBAL_HEADER_OPTIONS_CONFIG
+		);
+		expect(getOptionsConfigForPartsArea('footer')).not.toBe(
+			GLOBAL_FOOTER_OPTIONS_CONFIG
+		);
 	});
 
 	it('returns null for unknown or empty areas', () => {
-		expect(getOptionsConfigForPartsArea('header')).toBeNull();
+		expect(getOptionsConfigForPartsArea('unknown')).toBeNull();
 		expect(getOptionsConfigForPartsArea('')).toBeNull();
 		expect(getOptionsConfigForPartsArea(null)).toBeNull();
 		expect(getOptionsConfigForPartsArea(undefined)).toBeNull();
 	});
 });
 
-describe('sidebar config structural invariants', () => {
-	it('binds empty Design and Settings groups to the sidebar part', () => {
-		expect(SIDEBAR_OPTIONS_CONFIG.layoutId).toBe('sidebar-body');
-		expect(SIDEBAR_OPTIONS_CONFIG.partsAreas).toEqual(['sidebar']);
-		expect(SIDEBAR_OPTIONS_CONFIG.filters).toEqual([]);
-	});
+describe('part config structural invariants', () => {
+	it.each([
+		['header', GLOBAL_HEADER_OPTIONS_CONFIG, 'header-body', 'Header'],
+		['footer', GLOBAL_FOOTER_OPTIONS_CONFIG, 'footer-body', 'Footer'],
+		['sidebar', GLOBAL_SIDEBAR_OPTIONS_CONFIG, 'sidebar-body', 'Sidebar'],
+	])(
+		'binds empty Design and Settings groups to the %s part',
+		(area, config, layoutId, title) => {
+			expect(config.layoutId).toBe(layoutId);
+			expect(config.partsAreas).toEqual([area]);
+			expect(config.filters).toEqual([]);
+			expect(config.title).toBe(title);
+		}
+	);
 });
 
 describe('archive config structural invariants', () => {

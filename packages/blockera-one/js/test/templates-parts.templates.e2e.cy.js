@@ -1,6 +1,6 @@
 /**
- * Templates purpose-nav → Header / Footer Area Hub, Sidebar Design/Settings
- * subpanel.
+ * Templates purpose-nav → Header / Footer / Sidebar Design/Settings
+ * builder + Area Hub on canvas.
  *
  * Category: templates (CI matrix via `*.templates.e2e.cy.js`)
  */
@@ -65,6 +65,20 @@ describe('Blockera One → Templates parts Area Hub', () => {
 		restoreAllHiddenParts();
 	});
 
+	function assertPartsBuilder({ area, hubMode = 'preview' }) {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should('not.exist');
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesBuilderShell).should(
+			'be.visible'
+		);
+		cy.getByDataTest('blockera-templates-builder-group-design')
+			.should('be.visible')
+			.and('contain', 'Design');
+		cy.getByDataTest('blockera-templates-builder-group-settings')
+			.should('be.visible')
+			.and('contain', 'Settings');
+		assertTemplatesAreaHub({ area, mode: hubMode });
+	}
+
 	describe('Nav presence', () => {
 		it('shows Header, Footer, and Sidebar when theme parts exist', () => {
 			openFreshSiteEditor();
@@ -93,33 +107,23 @@ describe('Blockera One → Templates parts Area Hub', () => {
 		});
 	});
 
-	describe('Sidebar subpanel', () => {
-		it('opens Design and Settings cards from Templates purpose-nav', () => {
-			openFreshSiteEditor();
-			openTemplatesPurposeNav();
-			openTemplatesPartArea('sidebar');
+	describe('Builder subpanel', () => {
+		['header', 'footer', 'sidebar'].forEach((area) => {
+			it(`opens ${area} Design and Settings from Templates purpose-nav`, () => {
+				openFreshSiteEditor();
+				openTemplatesPurposeNav();
+				openTemplatesPartArea(area);
 
-			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should(
-				'not.exist'
-			);
-			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesBuilderShell).should(
-				'be.visible'
-			);
-			cy.getByDataTest('blockera-templates-builder-group-design')
-				.should('be.visible')
-				.and('contain', 'Design');
-			cy.getByDataTest('blockera-templates-builder-group-settings')
-				.should('be.visible')
-				.and('contain', 'Settings');
-			assertTemplatesAreaHub({ area: 'sidebar', mode: 'preview' });
+				assertPartsBuilder({ area });
 
-			cy.getByDataTest(SITE_EDITOR_TEST_IDS.drillDownBack).click();
-			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should(
-				'be.visible'
-			);
-			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesBuilderShell).should(
-				'not.exist'
-			);
+				cy.getByDataTest(SITE_EDITOR_TEST_IDS.drillDownBack).click();
+				cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should(
+					'be.visible'
+				);
+				cy.getByDataTest(
+					SITE_EDITOR_TEST_IDS.templatesBuilderShell
+				).should('not.exist');
+			});
 		});
 	});
 
@@ -180,7 +184,7 @@ describe('Blockera One → Templates parts Area Hub', () => {
 			openFreshSiteEditor();
 			openTemplatesPurposeNav();
 			openTemplatesPartArea('header');
-			assertTemplatesAreaHub({ area: 'header', mode: 'empty' });
+			assertPartsBuilder({ area: 'header', hubMode: 'empty' });
 
 			cy.getByDataTest(
 				SITE_EDITOR_TEST_IDS.templatesAreaHubManage
@@ -190,25 +194,31 @@ describe('Blockera One → Templates parts Area Hub', () => {
 	});
 
 	describe('Navigation glue', () => {
-		it('switches Header → Footer while keeping General purpose-nav', () => {
+		it('switches Header → Footer via Back to purpose-nav', () => {
 			openFreshSiteEditor();
 			openTemplatesPurposeNav();
 			openTemplatesPartArea('header');
-			assertTemplatesAreaHub({ area: 'header', mode: 'preview' });
+			assertPartsBuilder({ area: 'header' });
+
+			cy.getByDataTest(SITE_EDITOR_TEST_IDS.drillDownBack).click();
+			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should(
+				'be.visible'
+			);
 
 			openTemplatesPartArea('footer');
-			assertTemplatesAreaHub({ area: 'footer', mode: 'preview' });
-			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavHeader).should(
-				'not.have.class',
-				'is-active'
-			);
+			assertPartsBuilder({ area: 'footer' });
 		});
 
 		it('All templates clears Area Hub / partsArea', () => {
 			openFreshSiteEditor();
 			openTemplatesPurposeNav();
 			openTemplatesPartArea('header');
-			assertTemplatesAreaHub({ area: 'header', mode: 'preview' });
+			assertPartsBuilder({ area: 'header' });
+
+			cy.getByDataTest(SITE_EDITOR_TEST_IDS.drillDownBack).click();
+			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should(
+				'be.visible'
+			);
 
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavAll).click();
 			cy.location('search')
