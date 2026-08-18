@@ -4,6 +4,10 @@
  */
 
 .blockera-site-editor-identity-panel {
+	.admin-ui-page__content {
+		gap: 24px;
+	}
+
 	&__field {
 		display: flex;
 		flex-direction: column;

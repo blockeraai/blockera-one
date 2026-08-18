@@ -9,11 +9,6 @@ import { decodeEntities } from '@wordpress/html-entities';
 import { __ } from '@wordpress/i18n';
 
 /**
- * Blockera dependencies
- */
-import { Flex } from '@blockera/controls';
-
-/**
  * Internal dependencies
  */
 import SettingsPanelShell from '../components/settings-panel-shell';
@@ -77,79 +72,75 @@ export default function HomepageSettingsPanel() {
 			className="blockera-site-editor-homepage-panel"
 			data-test="blockera-site-editor-homepage-panel"
 		>
-			<Flex direction="column" gap="16px">
-				<fieldset className="blockera-site-editor-homepage-panel__fieldset">
-					<legend className="blockera-site-editor-homepage-panel__legend">
-						{__('Your homepage displays', 'blockera')}
-					</legend>
+			<fieldset className="blockera-site-editor-homepage-panel__fieldset">
+				<legend className="blockera-site-editor-homepage-panel__legend">
+					{__('Your homepage displays', 'blockera')}
+				</legend>
 
-					<label
-						className="blockera-site-editor-homepage-panel__radio"
-						htmlFor="blockera-show-on-front-posts"
-					>
-						<input
-							id="blockera-show-on-front-posts"
-							type="radio"
-							name="blockera-show-on-front"
-							data-test="blockera-site-editor-homepage-posts"
-							checked={showOnFront === 'posts'}
-							onChange={() =>
-								onChange({ show_on_front: 'posts' })
-							}
-						/>
-						<span>{__('Your latest posts', 'blockera')}</span>
-					</label>
-
-					<label
-						className="blockera-site-editor-homepage-panel__radio"
-						htmlFor="blockera-show-on-front-page"
-					>
-						<input
-							id="blockera-show-on-front-page"
-							type="radio"
-							name="blockera-show-on-front"
-							data-test="blockera-site-editor-homepage-static"
-							checked={showOnFront === 'page'}
-							onChange={() => onChange({ show_on_front: 'page' })}
-						/>
-						<span>
-							{__('A static page (select below)', 'blockera')}
-						</span>
-					</label>
-				</fieldset>
-
-				<div data-test="blockera-site-editor-homepage-page">
-					<SelectControl
-						__next40pxDefaultSize
-						__nextHasNoMarginBottom
-						label={__('Homepage', 'blockera')}
-						value={String(data?.page_on_front || 0)}
-						options={pageOptions}
-						disabled={showOnFront !== 'page'}
-						onChange={(value) =>
-							onChange({
-								page_on_front: parseInt(value, 10) || 0,
-							})
-						}
+				<label
+					className="blockera-site-editor-homepage-panel__radio"
+					htmlFor="blockera-show-on-front-posts"
+				>
+					<input
+						id="blockera-show-on-front-posts"
+						type="radio"
+						name="blockera-show-on-front"
+						data-test="blockera-site-editor-homepage-posts"
+						checked={showOnFront === 'posts'}
+						onChange={() => onChange({ show_on_front: 'posts' })}
 					/>
-				</div>
+					<span>{__('Your latest posts', 'blockera')}</span>
+				</label>
 
-				<div data-test="blockera-site-editor-homepage-posts-page">
-					<SelectControl
-						__next40pxDefaultSize
-						__nextHasNoMarginBottom
-						label={__('Posts page', 'blockera')}
-						value={String(data?.page_for_posts || 0)}
-						options={pageOptions}
-						disabled={showOnFront !== 'page'}
-						onChange={(value) =>
-							onChange({
-								page_for_posts: parseInt(value, 10) || 0,
-							})
-						}
+				<label
+					className="blockera-site-editor-homepage-panel__radio"
+					htmlFor="blockera-show-on-front-page"
+				>
+					<input
+						id="blockera-show-on-front-page"
+						type="radio"
+						name="blockera-show-on-front"
+						data-test="blockera-site-editor-homepage-static"
+						checked={showOnFront === 'page'}
+						onChange={() => onChange({ show_on_front: 'page' })}
 					/>
-				</div>
-			</Flex>
+					<span>
+						{__('A static page (select below)', 'blockera')}
+					</span>
+				</label>
+			</fieldset>
+
+			<div data-test="blockera-site-editor-homepage-page">
+				<SelectControl
+					__next40pxDefaultSize
+					__nextHasNoMarginBottom
+					label={__('Homepage', 'blockera')}
+					value={String(data?.page_on_front || 0)}
+					options={pageOptions}
+					disabled={showOnFront !== 'page'}
+					onChange={(value) =>
+						onChange({
+							page_on_front: parseInt(value, 10) || 0,
+						})
+					}
+				/>
+			</div>
+
+			<div data-test="blockera-site-editor-homepage-posts-page">
+				<SelectControl
+					__next40pxDefaultSize
+					__nextHasNoMarginBottom
+					label={__('Posts page', 'blockera')}
+					value={String(data?.page_for_posts || 0)}
+					options={pageOptions}
+					disabled={showOnFront !== 'page'}
+					onChange={(value) =>
+						onChange({
+							page_for_posts: parseInt(value, 10) || 0,
+						})
+					}
+				/>
+			</div>
 		</SettingsPanelShell>
 	);
 }
