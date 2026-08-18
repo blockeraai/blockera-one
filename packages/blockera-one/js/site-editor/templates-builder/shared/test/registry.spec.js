@@ -588,6 +588,55 @@ describe('archive config structural invariants', () => {
 		}
 	});
 
+	it('completes Featured Image Styles and Settings', () => {
+		const pageLayout = config.groups.find((g) => g.id === 'page-layout');
+		const featured = pageLayout.nestedPanel.groups
+			.find((g) => g.id === 'posts-loop-blocks')
+			.controls.find((c) => c.id === 'post-featured-image');
+		expect(featured.nestedPanel.groups.map((g) => g.id)).toEqual([
+			'post-featured-image-styles',
+			'post-featured-image-settings',
+		]);
+		expect(featured.nestedPanel.groups.map((g) => g.title)).toEqual([
+			'Styles',
+			'Settings',
+		]);
+		const styles = featured.nestedPanel.groups[0];
+		expect(styles.controls.map((c) => c.id)).toEqual([
+			'post-featured-image-style',
+			'post-featured-image-aspect-ratio',
+			'post-featured-image-border-radius',
+			'post-featured-image-bottom-spacing',
+			'post-featured-image-customize',
+		]);
+		expect(styles.controls[0].label).toBe('Style Variation');
+		expect(styles.controls[0].operation).toBe('setBlockStyle');
+		expect(styles.controls[0].defaultValue).toBe('default');
+		expect(styles.controls[1].attributePath).toBe('blockeraRatio.value');
+		expect(styles.controls[2].attributePath).toBe(
+			'blockeraBorderRadius.value'
+		);
+		expect(styles.controls[3].attributePath).toBe('blockeraSpacing.value');
+		expect(styles.controls[3].attributeMergeKeys).toEqual([
+			'margin.bottom',
+		]);
+		expect(styles.controls[4].operation).toBe('selectInCanvas');
+		const settings = featured.nestedPanel.groups[1];
+		expect(settings.controls.map((c) => c.id)).toEqual([
+			'post-featured-image-resolution',
+			'post-featured-image-is-link',
+			'post-featured-image-open-in-new-tab',
+		]);
+		expect(settings.controls[0].attributePath).toBe('sizeSlug');
+		expect(settings.controls[1].attributePath).toBe('isLink');
+		expect(settings.controls[2].attributePath).toBe('linkTarget');
+		expect(settings.controls[2].onValue).toBe('_blank');
+		expect(settings.controls[2].offValue).toBe('_self');
+		expect(settings.controls[2].conditions).toEqual([
+			{ controlId: 'post-featured-image-is-link', equals: true },
+		]);
+	});
+
 	it('keeps two Post Meta rows on independent stamps and child lists', () => {
 		const meta1 = controls.find((c) => c.id === 'post-meta');
 		const meta2 = controls.find((c) => c.id === 'post-meta-2');
