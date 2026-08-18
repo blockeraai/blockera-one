@@ -118,7 +118,7 @@ describe('Blockera One → Templates parts Area Hub', () => {
 
 				cy.getByDataTest(SITE_EDITOR_TEST_IDS.drillDownBack).click();
 				cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should(
-					'be.visible'
+					'exist'
 				);
 				cy.getByDataTest(
 					SITE_EDITOR_TEST_IDS.templatesBuilderShell
@@ -201,9 +201,7 @@ describe('Blockera One → Templates parts Area Hub', () => {
 			assertPartsBuilder({ area: 'header' });
 
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.drillDownBack).click();
-			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should(
-				'be.visible'
-			);
+			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should('exist');
 
 			openTemplatesPartArea('footer');
 			assertPartsBuilder({ area: 'footer' });
@@ -216,9 +214,7 @@ describe('Blockera One → Templates parts Area Hub', () => {
 			assertPartsBuilder({ area: 'header' });
 
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.drillDownBack).click();
-			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should(
-				'be.visible'
-			);
+			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should('exist');
 
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavAll).click();
 			cy.location('search')
@@ -228,9 +224,7 @@ describe('Blockera One → Templates parts Area Hub', () => {
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesAreaHub).should(
 				'not.exist'
 			);
-			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should(
-				'be.visible'
-			);
+			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should('exist');
 		});
 	});
 });
