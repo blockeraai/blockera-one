@@ -41,7 +41,7 @@ Drill-down screens use a Blockera-owned `DrillDownScreen` (back → `/` + title 
 | `admin-ui-card.scss` | `.blockera-se-admin-ui-card` wrapper — tighter override for core `.admin-ui-page*` |
 | `styles-panel.scss` | Styles-only tweaks (hide Page header, GS navigator padding) |
 | `templates/` | Templates purpose-nav feature module (see below) |
-| `templates-builder/` | Template options engine (configs + shared block operations) |
+| `templates-builder/` | Template options engine (configs + shared block operations). Stamp grammar and dictionaries: [`templates-builder/STAMPS.md`](./templates-builder/STAMPS.md). |
 | `nested-panels/` | URL-stacked nested drill-down panels + gateway card |
 | `constants.ts` | Paths, core `uid`s, Resource URLs, selectors, setting keys |
 | `utils.ts` | Path helpers, core-uid click, SPA navigate |

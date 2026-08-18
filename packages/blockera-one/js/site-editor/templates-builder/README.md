@@ -26,6 +26,7 @@ variant by overriding its pattern file, or add/remove variants via the
 templates-builder/
   index.ts              # thin public API
   registry.ts           # central type-config registry (returns hydrated configs)
+  STAMPS.md             # stamp grammar, roles, shared vs type catalogs (agents + humans)
   CATALOG.md            # PHP catalog / child-theme API docs
   shared/               # engine + panel + controls (type-agnostic)
     hydrate-config.ts       # PHP catalog → control variants
@@ -33,6 +34,9 @@ templates-builder/
     template-part-html.ts   # stamped wp:template-part comment builder
     stamps.ts               # shared stamp dictionary (cross-type ids)
   archive/              # archive type: config + stamps.ts (no markup, no thumbnails)
+  global-header/        # header part shell (layout/site-header)
+  global-footer/        # footer part shell (layout/site-footer)
+  global-sidebar/       # sidebar part shell (layout/site-sidebar)
 ```
 
 Add a new template type by:
@@ -55,49 +59,33 @@ See “Adding a template type” in [CATALOG.md](./CATALOG.md).
 
 ## Stamps
 
-`metadata.blockeraOne` is a single string: `role/id` or `role/id:variant`.
-`role` is the closed enum `layout | section | area | container`; id and
-variant are kebab-case. `/` binds the role to the id, `:` binds the variant.
+See [STAMPS.md](./STAMPS.md) for grammar, roles, shared vs type catalogs,
+naming rules, and how to add or promote a stamp. Keep that file updated
+when dictionaries or markup change.
 
 ```
-"metadata":{"blockeraOne":"section/posts-listing:list"}      ← section + variant
-"metadata":{"blockeraOne":"layout/archive-body:no-sidebar"}  ← layout + variant
-"metadata":{"blockeraOne":"area/content"}                    ← area
-"metadata":{"blockeraOne":"container/layout-columns"}        ← container
-"metadata":{"blockeraOne":"container/elements"}              ← inner elements stack
+"metadata":{"blockeraOne":"section/posts-listing:list"}
+"metadata":{"blockeraOne":"layout/main:no-sidebar"}
+"metadata":{"blockeraOne":"area/content"}
 ```
 
-Rules:
+Short runtime notes (full rules in STAMPS.md):
 
-- Each block carries **exactly one** stamp (one role per block).
-- The role lives in the stamp itself — markup is self-describing and the
-  runtime (`shared/stamp.ts` `parseStamp`) needs no role registry. The
-  stamp dictionaries (`shared/stamps.ts` + `<type>/stamps.ts` as `role/id`
-  lists, aggregated by `registry.ts`) are reference data for the lint spec
-  only.
-- Ids must be globally unique across template types; uniqueness and
-  markup ↔ dictionary role consistency are enforced by
-  `shared/test/template-builder.spec.js`.
+- Each block carries **exactly one** stamp. Dictionaries are lint
+  reference data; `parseStamp` reads the string on the block.
 - The layout root doubles as the `main` container for attribute carry-over.
 - The sidebar template-part sits inside a `sidebar-area` group so the area
   and the section stay on separate blocks.
 - Toggling a section off removes it permanently; toggling back on inserts
   the control's default variant — the first variant of its catalog pool.
 - A variant may declare a `placement` (`relativeTo` stamp id + position).
-  Swapping to that design relocates the section there, toggling the section
-  on inserts it there, and layout transplants re-attach it there (e.g. the
-  Simple title lives inside the `content` area while Banner sits at the
-  `archive-body` root). Variants without a placement swap in place, and the
-  control-level `insert` rule is the toggle-on fallback.
+  Banner page-header sits at the `main` root; Simple title lives
+  inside `content`.
 - Stamps must sit on the **expanded** block tree: swaps insert pattern
-  content, never a `core/pattern` block. Nested stamps (pagination inside a
-  listing) live in the pattern files.
+  content, never a `core/pattern` block.
 - The vertical-rail chrome frame is pattern-owned:
-  `container/chrome-rail:vertical-rail` columns with a pre-stamped header
-  part and an **empty** `area/rail-body-area`
-  column the swap op fills with the live layout. Unwrap resolves the
-  header/layout by stamp anywhere inside the rail, with a positional
-  column fallback for trees saved before the pattern-based rail.
+  `container/chrome-rail:vertical-rail` with an empty `area/rail-body-area`
+  the swap op fills with the live layout.
 
 ## Runtime data flow
 
@@ -116,7 +104,7 @@ Rules:
 
 ## Architecture
 
-1. **Anchors** — the `metadata.blockeraOne` stamp string on theme templates/patterns (see Stamps above).
+1. **Anchors** — the `metadata.blockeraOne` stamp string on theme templates/patterns (see [STAMPS.md](./STAMPS.md)).
 2. **Detection** — `shared/resolve-state.ts` (stamps first, heuristics fallback).
 3. **Operations** — `shared/operations.ts` (`transplantLayout`, `swapSection`, `toggleSection`, `setSectionAttribute`).
 4. **Config** — per-type folder (e.g. `archive/config.ts`); hydrated + resolved via `registry.ts` and the hooks above.
