@@ -3,7 +3,7 @@ import { FormToggle } from '@wordpress/components';
 import { classNames } from '@blockera/classnames';
 import { BaseControl } from '@blockera/controls';
 
-import { CONTROL_COLUMNS, fieldColumns } from '../constants';
+import { fieldColumns } from '../constants';
 import './toggle-control.scss';
 
 type ToggleControlProps = {
@@ -19,7 +19,7 @@ export default function ToggleControlRow({
 	label,
 	checked,
 	disabled,
-	columns = CONTROL_COLUMNS,
+	columns = '30px auto',
 	onChange,
 	className,
 }: ToggleControlProps) {

@@ -140,7 +140,8 @@
 
 		&.has-padding {
 			padding: 18px;
-			gap: 16px;
+			gap: 20px;
+			--blockera-field-gap: 0;
 		}
 	}
 
