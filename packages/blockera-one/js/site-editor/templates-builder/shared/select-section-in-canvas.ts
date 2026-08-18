@@ -1,8 +1,12 @@
 /**
  * Canvas jump for Templates Builder “Customize in editor”: switch the Site
- * Editor canvas to edit, enter pattern edit when the target is an unsynced
- * pattern, open a parent content-only pattern if an inner block is disabled,
- * select the stamped section, and open the block inspector.
+ * Editor canvas to edit, enter Gutenberg “Edit pattern” so Blockera customize
+ * mode mounts (not content-only pattern lock), select the stamped section,
+ * and open the block inspector.
+ *
+ * Inner Posts Loop items (title, excerpt, …) are content blocks: their
+ * editing mode is `contentOnly`, not `disabled`. Unlock the parent listing
+ * pattern, not only the target itself.
  */
 
 import { store as blockEditorStore } from '@wordpress/block-editor';
@@ -63,8 +67,9 @@ type BlockEditorDispatch = {
 /**
  * Gutenberg content-only sections: unsynced patterns (`metadata.patternName`),
  * synced patterns (`core/block`), template parts, and `contentOnly` locks.
- * Inner blocks use editingMode `disabled` until the section is temporarily
- * edited (`editContentOnlySection` / `__unstableSetTemporarilyEditingAsBlocks`).
+ * Inner blocks use editingMode `disabled` (structure) or `contentOnly`
+ * (content role) until the section is temporarily edited
+ * (`editContentOnlySection` / `__unstableSetTemporarilyEditingAsBlocks`).
  *
  * @see source-codes/block-editor/packages/block-editor/src/store/private-selectors.js
  *      isSectionBlockCandidate
@@ -110,6 +115,33 @@ export function shouldEnterPatternEditOnTarget(params: {
 	return templateLock === 'contentOnly';
 }
 
+/**
+ * Which content-only section to temporarily edit so Customize-in-editor
+ * opens Blockera customize mode instead of Gutenberg pattern lock.
+ *
+ * Prefer the parent listing/pattern: a restore-inserted inner block may
+ * also carry `patternName`, and Gutenberg only treats the top-level
+ * section as the content-only container.
+ *
+ * @see source-codes/block-editor/packages/block-editor/src/store/selectors.js
+ *      getBlockEditingMode — content role children are `contentOnly`
+ * @see packages/global-packages/packages/editor/js/extensions/libs/block-card/helpers/pattern-edit-section.js
+ *      shouldDeferBlockInspectorCardPortal
+ */
+export function resolveContentOnlySectionToEdit(params: {
+	targetClientId: string;
+	targetIsUnsyncedPattern: boolean;
+	parentSectionClientId: string | null;
+}): string | null {
+	if (params.parentSectionClientId) {
+		return params.parentSectionClientId;
+	}
+	if (params.targetIsUnsyncedPattern) {
+		return params.targetClientId;
+	}
+	return null;
+}
+
 function isUnsyncedPatternSection(
 	sel: BlockEditorSelect,
 	clientId: string
@@ -153,6 +185,17 @@ function findNearestContentOnlySection(
 		}
 	}
 	return null;
+}
+
+function getContentOnlySectionToEdit(
+	sel: BlockEditorSelect,
+	clientId: string
+): string | null {
+	return resolveContentOnlySectionToEdit({
+		targetClientId: clientId,
+		targetIsUnsyncedPattern: isUnsyncedPatternSection(sel, clientId),
+		parentSectionClientId: findNearestContentOnlySection(sel, clientId),
+	});
 }
 
 /**
@@ -219,12 +262,12 @@ function peekSelection(sectionId: string): {
 	const editingMode = clientId
 		? sel.getBlockEditingMode?.(clientId)
 		: undefined;
-	const enterOnTarget = clientId
-		? isUnsyncedPatternSection(sel, clientId)
-		: false;
+	const sectionToEdit = clientId
+		? getContentOnlySectionToEdit(sel, clientId)
+		: null;
 	const edited = getEditedContentOnlySectionId(sel);
 	const patternEditReady =
-		!enterOnTarget || !edited.available || edited.id === clientId;
+		!sectionToEdit || !edited.available || edited.id === sectionToEdit;
 	return {
 		clientId,
 		alreadyOk:
@@ -291,15 +334,11 @@ function selectSectionBlock(sectionId: string): boolean {
 	};
 	const sel = select(blockEditorStore) as unknown as BlockEditorSelect;
 
-	if (isUnsyncedPatternSection(sel, clientId)) {
-		// Same as Gutenberg “Edit pattern”: enter content-only edit on the
-		// pattern, then select it so the inspector shows the section.
-		enterContentOnlySection(blockEditor, clientId);
-	} else if (sel.getBlockEditingMode?.(clientId) === 'disabled') {
-		const parentSectionId = findNearestContentOnlySection(sel, clientId);
-		if (parentSectionId) {
-			enterContentOnlySection(blockEditor, parentSectionId);
-		}
+	const sectionToEdit = getContentOnlySectionToEdit(sel, clientId);
+	if (sectionToEdit) {
+		// Same as Gutenberg “Edit pattern”: leave content-only lock so
+		// Blockera customize mode can mount, then select the stamp.
+		enterContentOnlySection(blockEditor, sectionToEdit);
 	}
 
 	blockEditor.selectBlock(clientId);
