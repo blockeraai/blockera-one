@@ -381,19 +381,19 @@
 				"areas": ["content"]
 			},
 			{
-				"id": "sidebar-right",
-				"label": "Right Sidebar",
-				"kind": "pattern",
-				"patternSlug": "blockera-one/builder-archive-layout-sidebar-right",
-				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/sidebar-right.svg",
-				"areas": ["content", "sidebar-area"]
-			},
-			{
 				"id": "sidebar-left",
 				"label": "Left Sidebar",
 				"kind": "pattern",
 				"patternSlug": "blockera-one/builder-archive-layout-sidebar-left",
 				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/sidebar-left.svg",
+				"areas": ["content", "sidebar-area"]
+			},
+			{
+				"id": "sidebar-right",
+				"label": "Right Sidebar",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-layout-sidebar-right",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/sidebar-right.svg",
 				"areas": ["content", "sidebar-area"]
 			}
 		],

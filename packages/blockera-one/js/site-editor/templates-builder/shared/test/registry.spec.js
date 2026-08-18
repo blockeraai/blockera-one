@@ -127,17 +127,17 @@ const INLINE_CATALOG = {
 				areas: ['content'],
 			},
 			{
-				id: 'sidebar-right',
-				label: 'Right',
-				kind: 'pattern',
-				patternSlug: 'test/layout-right',
-				areas: ['content', 'sidebar-area'],
-			},
-			{
 				id: 'sidebar-left',
 				label: 'Left',
 				kind: 'pattern',
 				patternSlug: 'test/layout-left',
+				areas: ['content', 'sidebar-area'],
+			},
+			{
+				id: 'sidebar-right',
+				label: 'Right',
+				kind: 'pattern',
+				patternSlug: 'test/layout-right',
 				areas: ['content', 'sidebar-area'],
 			},
 		],
@@ -178,8 +178,8 @@ describe('getOptionsConfigForFilter', () => {
 			(c) => c.id === 'sidebar-position'
 		);
 		expect(sidebarPosition.variants.map((v) => v.id)).toEqual([
-			'sidebar-right',
 			'sidebar-left',
+			'sidebar-right',
 		]);
 	});
 

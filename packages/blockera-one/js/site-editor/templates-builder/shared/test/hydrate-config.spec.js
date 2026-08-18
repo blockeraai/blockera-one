@@ -100,8 +100,8 @@ describe('hydrateConfig', () => {
 		const group = hydrated.groups[0];
 		expect(group.headerToggle.variants.map((v) => v.id)).toEqual([
 			'no-sidebar',
-			'sidebar-right',
 			'sidebar-left',
+			'sidebar-right',
 		]);
 		expect(group.controls[0].variants.map((v) => v.id)).toEqual([
 			'list',
@@ -112,7 +112,7 @@ describe('hydrateConfig', () => {
 		// catalogExclude hides the toggle-off layout on the nested picker.
 		expect(
 			group.nestedPanel.groups[0].controls[0].variants.map((v) => v.id)
-		).toEqual(['sidebar-right', 'sidebar-left']);
+		).toEqual(['sidebar-left', 'sidebar-right']);
 	});
 
 	it('leaves controls without a catalogPool untouched and never mutates the input', () => {
