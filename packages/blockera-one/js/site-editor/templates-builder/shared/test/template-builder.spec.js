@@ -271,8 +271,12 @@ describe('templates-builder patterns lint', () => {
 					}
 				}
 			}
+			// Inner-region slots are opt-in per template. They belong in
+			// the shared dictionary so markup can stamp them; they do
+			// not have to appear in every (or any current) pattern.
+			const optInInnerSlots = new Set(['start', 'end', 'comments']);
 			const dead = Object.keys(ALL_STAMPS).filter(
-				(id) => !usedIds.has(id)
+				(id) => !usedIds.has(id) && !optInInnerSlots.has(id)
 			);
 			expect(dead).toEqual([]);
 		});
@@ -478,22 +482,22 @@ describe('templates-builder patterns lint', () => {
 
 	describe('loop-item parent metadata.name', () => {
 		const LOOP_PARENT_STAMPS = new Set([
-			'container/loop-item-media',
-			'container/loop-item-content',
+			'container/media',
+			'container/body',
 		]);
 		const LOOP_PARENT_NAMES = {
 			'builder-listing-full-width.php': {
-				'container/loop-item-media': 'Media Column',
-				'container/loop-item-content': 'Content Column',
+				'container/media': 'Media Column',
+				'container/body': 'Content Column',
 			},
 			'builder-listing-grid-2.php': {
-				'container/loop-item-content': 'Content Blocks',
+				'container/body': 'Content Blocks',
 			},
 			'builder-listing-grid-3.php': {
-				'container/loop-item-content': 'Content Blocks',
+				'container/body': 'Content Blocks',
 			},
 			'builder-listing-list.php': {
-				'container/loop-item-content': 'Content Blocks',
+				'container/body': 'Content Blocks',
 			},
 		};
 

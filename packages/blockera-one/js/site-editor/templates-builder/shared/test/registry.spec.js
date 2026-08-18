@@ -335,7 +335,7 @@ describe('archive config structural invariants', () => {
 			'page-header-bg-color',
 			'page-header-min-height',
 			'page-header-padding',
-			'page-header-elements-width',
+			'page-header-body-width',
 			'page-header-customize',
 		]);
 
@@ -354,7 +354,7 @@ describe('archive config structural invariants', () => {
 		);
 		expect(alignBanner.target).toEqual({
 			kind: 'container',
-			id: 'elements',
+			id: 'body',
 		});
 		expect(alignBanner.alsoSetOn).toBeUndefined();
 	});
@@ -365,7 +365,8 @@ describe('archive config structural invariants', () => {
 			(c) => c.id === 'page-header-description'
 		);
 
-		expect(title.nestedPanel.id).toBe('page-header-title');
+		expect(title.innerOrder.within).toBe('page-header');
+		expect(title.innerOrder.parentId).toBe('body');
 		expect(title.nestedPanel.groups.map((g) => g.id)).toEqual([
 			'title-styles',
 		]);
@@ -539,10 +540,8 @@ describe('archive config structural invariants', () => {
 		expect(elements[0].requireAtLeastOneOf).toEqual(
 			elements.map((c) => c.id)
 		);
-		expect(elements[0].innerOrder.bucketParents).toEqual([
-			'loop-item-media',
-			'loop-item-content',
-		]);
+		expect(elements[0].innerOrder.within).toBe('posts-listing');
+		expect(elements[0].innerOrder.bucketParents).toEqual(['media', 'body']);
 		expect(elements[0].innerOrder.showParentNames).toBe(true);
 		expect(elements[5].label).toBe('Post Meta');
 		expect(elements[6].label).toBe('Post Meta');
