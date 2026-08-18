@@ -29,7 +29,8 @@ const FOOTER_STACKED_PLACEMENT = {
 };
 
 const PAGE_HEADER_INNER_ORDER: InnerOrderRule = {
-	parentId: 'elements',
+	parentId: 'body',
+	within: 'page-header',
 	ids: [
 		'page-header-title',
 		'page-header-description',
@@ -87,8 +88,9 @@ const LOOP_ITEM_IDS = [
 ];
 
 const LOOP_ITEM_INNER_ORDER: InnerOrderRule = {
-	parentId: 'loop-item-content',
-	bucketParents: ['loop-item-media', 'loop-item-content'],
+	parentId: 'body',
+	within: 'posts-listing',
+	bucketParents: ['media', 'body'],
 	ids: LOOP_ITEM_IDS,
 	showParentNames: true,
 };
@@ -253,7 +255,7 @@ function loopItemElement(id: string, label: string): ControlDef {
 		operation: 'toggleSection',
 		catalogPool: id,
 		insert: {
-			relativeTo: 'loop-item-content',
+			relativeTo: 'body',
 			position: 'inside-end',
 		},
 		innerOrder: LOOP_ITEM_INNER_ORDER,
@@ -282,7 +284,7 @@ function postMetaElement(instance: 1 | 2): ControlDef {
 		operation: 'toggleSection',
 		catalogPool: rowId,
 		insert: {
-			relativeTo: 'loop-item-content',
+			relativeTo: 'body',
 			position: 'inside-end',
 		},
 		innerOrder: LOOP_ITEM_INNER_ORDER,
@@ -429,9 +431,9 @@ const POSTS_LISTING_TARGET: SectionTarget = {
 	id: 'posts-listing',
 };
 
-const ELEMENTS_CONTAINER = {
+const BODY_CONTAINER = {
 	kind: 'container' as const,
-	id: 'elements',
+	id: 'body',
 };
 
 const PAGE_HEADER_ALIGN = {
@@ -512,17 +514,17 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 		'page-header': { kind: 'groupWrapping', childName: 'core/query-title' },
 		'page-header-title': {
 			kind: 'innerBlock',
-			parentId: 'elements',
+			parentId: 'body',
 			name: 'core/query-title',
 		},
 		'page-header-description': {
 			kind: 'innerBlock',
-			parentId: 'elements',
+			parentId: 'body',
 			name: 'core/term-description',
 		},
 		'page-header-breadcrumbs': {
 			kind: 'innerBlock',
-			parentId: 'elements',
+			parentId: 'body',
 			name: 'core/breadcrumbs',
 		},
 		'posts-listing': { kind: 'blockName', name: 'core/query' },
@@ -680,7 +682,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 								type: 'input',
 								label: __('Gap', 'blockera'),
 								target: PAGE_HEADER_SECTION,
-								alsoSetOn: ['elements'],
+								alsoSetOn: ['body'],
 								operation: 'setSectionAttribute',
 								attributePath: 'blockeraGap.value',
 								unitType: 'essential',
@@ -705,13 +707,13 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 								...PAGE_HEADER_ALIGN,
 								id: 'page-header-align',
 								target: PAGE_HEADER_SECTION,
-								alsoSetOn: ['elements'],
+								alsoSetOn: ['body'],
 								conditions: PAGE_HEADER_SIMPLE,
 							},
 							{
 								...PAGE_HEADER_ALIGN,
 								id: 'page-header-align-banner',
-								target: ELEMENTS_CONTAINER,
+								target: BODY_CONTAINER,
 								conditions: PAGE_HEADER_BANNER,
 							},
 							{
@@ -755,10 +757,10 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 								conditions: PAGE_HEADER_BANNER,
 							},
 							{
-								id: 'page-header-elements-width',
+								id: 'page-header-body-width',
 								type: 'input',
 								label: __('Inner Width', 'blockera'),
-								target: ELEMENTS_CONTAINER,
+								target: BODY_CONTAINER,
 								operation: 'setSectionAttribute',
 								attributePath: 'blockeraMaxWidth.value',
 								alsoWrite: [
@@ -798,7 +800,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 								defaultValue: true,
 								catalogPool: 'page-header-title',
 								insert: {
-									relativeTo: 'elements',
+									relativeTo: 'body',
 									position: 'inside-start',
 								},
 								innerOrder: PAGE_HEADER_INNER_ORDER,
@@ -828,7 +830,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 								defaultValue: true,
 								catalogPool: 'page-header-description',
 								insert: {
-									relativeTo: 'elements',
+									relativeTo: 'body',
 									position: 'inside-end',
 								},
 								innerOrder: PAGE_HEADER_INNER_ORDER,
@@ -858,7 +860,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 								defaultValue: false,
 								catalogPool: 'page-header-breadcrumbs',
 								insert: {
-									relativeTo: 'elements',
+									relativeTo: 'body',
 									position: 'inside-end',
 								},
 								innerOrder: PAGE_HEADER_INNER_ORDER,
