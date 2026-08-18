@@ -14,7 +14,7 @@
 <!-- wp:query {"query":{"perPage":10,"pages":0,"offset":0,"postType":"post","order":"desc","orderBy":"date","author":"","search":"","exclude":[],"sticky":"","inherit":true,"taxQuery":null,"parents":[]},"align":"full","metadata":{"blockeraOne":"section/posts-listing:list"},"layout":{"type":"default"}} -->
 <div class="wp-block-query alignfull">
 	<!-- wp:post-template {"align":"full","layout":{"type":"default"}} -->
-		<!-- wp:group {"align":"full","metadata":{"name":"Content Blocks","blockeraOne":"container/loop-item-content"},"layout":{"type":"constrained"}} -->
+		<!-- wp:group {"align":"full","metadata":{"name":"Content Blocks","blockeraOne":"container/body"},"layout":{"type":"constrained"}} -->
 		<div class="wp-block-group alignfull">
 			<!-- wp:post-featured-image {"isLink":true,"aspectRatio":"3/2","metadata":{"blockeraOne":"section/post-featured-image:default"}} /-->
 			<!-- wp:post-title {"isLink":true,"fontSize":"x-large","metadata":{"blockeraOne":"section/post-title:default"}} /-->
