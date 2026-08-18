@@ -588,7 +588,7 @@ describe('resolveControlViewStates', () => {
 							type: 'layout-matrix',
 							label: 'Items alignment',
 							target: { kind: 'section', id: 'page-header' },
-							alsoSetOn: ['elements'],
+							alsoSetOn: ['body'],
 							operation: 'setSectionAttribute',
 							attributePath: 'blockeraFlexLayout.value',
 							conditions: [
@@ -603,7 +603,7 @@ describe('resolveControlViewStates', () => {
 							id: 'page-header-align-banner',
 							type: 'layout-matrix',
 							label: 'Items alignment',
-							target: { kind: 'container', id: 'elements' },
+							target: { kind: 'container', id: 'body' },
 							operation: 'setSectionAttribute',
 							attributePath: 'blockeraFlexLayout.value',
 							conditions: [
@@ -630,10 +630,10 @@ describe('resolveControlViewStates', () => {
 							],
 						},
 						{
-							id: 'page-header-elements-width',
+							id: 'page-header-body-width',
 							type: 'input',
 							label: 'Elements Container Width',
-							target: { kind: 'container', id: 'elements' },
+							target: { kind: 'container', id: 'body' },
 							operation: 'setSectionAttribute',
 							attributePath: 'blockeraMaxWidth.value',
 							conditions: [
@@ -670,7 +670,7 @@ describe('resolveControlViewStates', () => {
 					blockeraSpacing: { value: spacing },
 					blockeraFlexLayout: { value: flex },
 				},
-				[stamped('core/group', 'container/elements', {})]
+				[stamped('core/group', 'container/body', {})]
 			),
 		];
 		const bannerFlex = {
@@ -693,7 +693,7 @@ describe('resolveControlViewStates', () => {
 					},
 				},
 				[
-					stamped('core/group', 'container/elements', {
+					stamped('core/group', 'container/body', {
 						blockeraMaxWidth: { value: '645px' },
 						blockeraFlexLayout: { value: bannerFlex },
 					}),
@@ -707,7 +707,7 @@ describe('resolveControlViewStates', () => {
 		expect(byId(simple, 'page-header-align').visible).toBe(true);
 		expect(byId(simple, 'page-header-align-banner').visible).toBe(false);
 		expect(byId(simple, 'page-header-bg-color').visible).toBe(false);
-		expect(byId(simple, 'page-header-elements-width').visible).toBe(false);
+		expect(byId(simple, 'page-header-body-width').visible).toBe(false);
 		expect(byId(simple, 'page-header-bottom-spacing').value).toEqual(
 			spacing
 		);
@@ -719,9 +719,9 @@ describe('resolveControlViewStates', () => {
 		expect(byId(banner, 'page-header-align').visible).toBe(false);
 		expect(byId(banner, 'page-header-align-banner').visible).toBe(true);
 		expect(byId(banner, 'page-header-bg-color').visible).toBe(true);
-		expect(byId(banner, 'page-header-elements-width').visible).toBe(true);
+		expect(byId(banner, 'page-header-body-width').visible).toBe(true);
 		expect(byId(banner, 'page-header-bg-color').value).toBe('#111111');
-		expect(byId(banner, 'page-header-elements-width').value).toBe('645px');
+		expect(byId(banner, 'page-header-body-width').value).toBe('645px');
 		expect(byId(banner, 'page-header-align-banner').value).toEqual(
 			bannerFlex
 		);

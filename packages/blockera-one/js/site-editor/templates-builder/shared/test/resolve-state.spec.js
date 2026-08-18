@@ -260,11 +260,11 @@ describe('resolveSectionState', () => {
 		expect(resolveSectionState(bare, 'page-header').kind).toBe('missing');
 	});
 
-	it('groupWrapping skips a container/elements stack and binds the outer group', () => {
+	it('groupWrapping skips a container/body stack and binds the outer group', () => {
 		const tree = [
 			block('core/group', { tagName: 'main' }, [
 				block('core/group', { className: 'title-band' }, [
-					stamped('core/group', 'container/elements', {}, [
+					stamped('core/group', 'container/body', {}, [
 						block('core/query-title'),
 					]),
 				]),

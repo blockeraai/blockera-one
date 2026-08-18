@@ -761,6 +761,62 @@ describe('reorderInnerSections', () => {
 			'core/query-title',
 		]);
 	});
+
+	it('reorders page-header body via synthetic reorder-body, not the listing', () => {
+		const blocks = [
+			stamped('core/group', 'section/page-header:simple', {}, [
+				stamped('core/group', 'container/body', {}, [
+					stamped(
+						'core/query-title',
+						'section/page-header-title:default'
+					),
+					stamped(
+						'core/term-description',
+						'section/page-header-description:default'
+					),
+				]),
+			]),
+			...fullWidthListing(),
+		];
+		const result = apply(
+			{
+				id: 'reorder-body',
+				type: 'button',
+				label: '',
+				target: { kind: 'section', id: 'body' },
+				operation: 'reorderInnerSections',
+				innerOrder: {
+					parentId: 'body',
+					within: 'page-header',
+					ids: [
+						'page-header-title',
+						'page-header-description',
+						'page-header-breadcrumbs',
+					],
+				},
+			},
+			[
+				'page-header-description',
+				'page-header-title',
+				'page-header-breadcrumbs',
+			],
+			{ blocks }
+		);
+		const headerBody = findStamp(
+			findStamp(result.blocks, 'page-header').block.innerBlocks,
+			'body'
+		);
+		expect(
+			headerBody.block.innerBlocks.map((b) => getStamp(b)?.id)
+		).toEqual(['page-header-description', 'page-header-title']);
+		const listingBody = findStamp(
+			findStamp(result.blocks, 'posts-listing').block.innerBlocks,
+			'body'
+		);
+		expect(
+			listingBody.block.innerBlocks.map((b) => getStamp(b)?.id)
+		).not.toContain('page-header-description');
+	});
 });
 
 describe('setSectionAttribute', () => {
@@ -804,7 +860,7 @@ describe('setSectionAttribute', () => {
 		};
 		const blocks = [
 			stamped('core/group', 'section/page-header:simple', {}, [
-				stamped('core/group', 'container/elements', {}),
+				stamped('core/group', 'container/body', {}),
 			]),
 		];
 		const control = {
@@ -812,7 +868,7 @@ describe('setSectionAttribute', () => {
 			type: 'input',
 			label: 'Items Spacing',
 			target: { kind: 'section', id: 'page-header' },
-			alsoSetOn: ['elements'],
+			alsoSetOn: ['body'],
 			operation: 'setSectionAttribute',
 			attributePath: 'blockeraGap.value',
 		};
@@ -822,8 +878,7 @@ describe('setSectionAttribute', () => {
 				.value
 		).toEqual(gapValue);
 		expect(
-			findStamp(result.blocks, 'elements').block.attributes.blockeraGap
-				.value
+			findStamp(result.blocks, 'body').block.attributes.blockeraGap.value
 		).toEqual(gapValue);
 	});
 
@@ -842,7 +897,7 @@ describe('setSectionAttribute', () => {
 			type: 'input',
 			label: 'Items Spacing',
 			target: { kind: 'section', id: 'page-header' },
-			alsoSetOn: ['elements'],
+			alsoSetOn: ['body'],
 			operation: 'setSectionAttribute',
 			attributePath: 'blockeraGap.value',
 		};
@@ -851,7 +906,7 @@ describe('setSectionAttribute', () => {
 			findStamp(result.blocks, 'page-header').block.attributes.blockeraGap
 				.value
 		).toEqual(gapValue);
-		expect(findStamp(result.blocks, 'elements')).toBeNull();
+		expect(findStamp(result.blocks, 'body')).toBeNull();
 	});
 
 	it('merges spacing sides into the current object without wiping siblings', () => {
@@ -912,7 +967,7 @@ describe('setSectionAttribute', () => {
 		};
 		const blocks = [
 			stamped('core/group', 'section/page-header:simple', {}, [
-				stamped('core/group', 'container/elements', {}),
+				stamped('core/group', 'container/body', {}),
 			]),
 		];
 		const control = {
@@ -920,7 +975,7 @@ describe('setSectionAttribute', () => {
 			type: 'layout-matrix',
 			label: 'Items alignment',
 			target: { kind: 'section', id: 'page-header' },
-			alsoSetOn: ['elements'],
+			alsoSetOn: ['body'],
 			operation: 'setSectionAttribute',
 			attributePath: 'blockeraFlexLayout.value',
 		};
@@ -930,12 +985,12 @@ describe('setSectionAttribute', () => {
 				.blockeraFlexLayout.value
 		).toEqual(layout);
 		expect(
-			findStamp(result.blocks, 'elements').block.attributes
-				.blockeraFlexLayout.value
+			findStamp(result.blocks, 'body').block.attributes.blockeraFlexLayout
+				.value
 		).toEqual(layout);
 	});
 
-	it('writes banner items alignment only onto the elements container', () => {
+	it('writes banner items alignment only onto the body container', () => {
 		const layout = {
 			direction: 'column',
 			alignItems: 'flex-end',
@@ -951,21 +1006,21 @@ describe('setSectionAttribute', () => {
 				'core/group',
 				'section/page-header:banner',
 				{ blockeraFlexLayout: { value: sectionLayout } },
-				[stamped('core/group', 'container/elements', {})]
+				[stamped('core/group', 'container/body', {})]
 			),
 		];
 		const control = {
 			id: 'page-header-align-banner',
 			type: 'layout-matrix',
 			label: 'Items alignment',
-			target: { kind: 'container', id: 'elements' },
+			target: { kind: 'container', id: 'body' },
 			operation: 'setSectionAttribute',
 			attributePath: 'blockeraFlexLayout.value',
 		};
 		const result = apply(control, layout, { blocks });
 		expect(
-			findStamp(result.blocks, 'elements').block.attributes
-				.blockeraFlexLayout.value
+			findStamp(result.blocks, 'body').block.attributes.blockeraFlexLayout
+				.value
 		).toEqual(layout);
 		expect(
 			findStamp(result.blocks, 'page-header').block.attributes
@@ -975,15 +1030,17 @@ describe('setSectionAttribute', () => {
 
 	it('also writes a fixed attribute on the same target', () => {
 		const blocks = [
-			stamped('core/group', 'container/elements', {
-				blockeraWidth: { value: '100%' },
-			}),
+			stamped('core/group', 'section/page-header:simple', {}, [
+				stamped('core/group', 'container/body', {
+					blockeraWidth: { value: '100%' },
+				}),
+			]),
 		];
 		const control = {
-			id: 'page-header-elements-width',
+			id: 'page-header-body-width',
 			type: 'input',
 			label: 'Elements Container Width',
-			target: { kind: 'container', id: 'elements' },
+			target: { kind: 'container', id: 'body' },
 			operation: 'setSectionAttribute',
 			attributePath: 'blockeraMaxWidth.value',
 			alsoWrite: [
@@ -994,7 +1051,7 @@ describe('setSectionAttribute', () => {
 			],
 		};
 		const result = apply(control, '720px', { blocks });
-		const attrs = findStamp(result.blocks, 'elements').block.attributes;
+		const attrs = findStamp(result.blocks, 'body').block.attributes;
 		expect(attrs.blockeraMaxWidth.value).toBe('720px');
 		expect(attrs.blockeraWidth.value).toBe('stretch');
 	});
@@ -1756,7 +1813,7 @@ function elementsConfig() {
 		layoutId: LAYOUT_ID,
 		groups: [
 			{
-				id: 'elements',
+				id: 'start',
 				title: 'Elements',
 				controls: [
 					CONTROLS.paginationPrevious,
@@ -2064,8 +2121,9 @@ describe('pagination labels and midSize', () => {
 });
 
 const LOOP_ITEM_ORDER = {
-	parentId: 'loop-item-content',
-	bucketParents: ['loop-item-media', 'loop-item-content'],
+	parentId: 'body',
+	within: 'posts-listing',
+	bucketParents: ['media', 'body'],
 	ids: [
 		'post-featured-image',
 		'post-title',
@@ -2082,13 +2140,13 @@ function fullWidthListing() {
 		stamped('core/query', 'section/posts-listing:full-width', {}, [
 			block('core/post-template', {}, [
 				block('core/columns', {}, [
-					stamped('core/column', 'container/loop-item-media', {}, [
+					stamped('core/column', 'container/media', {}, [
 						stamped(
 							'core/post-featured-image',
 							'section/post-featured-image:default'
 						),
 					]),
-					stamped('core/column', 'container/loop-item-content', {}, [
+					stamped('core/column', 'container/body', {}, [
 						stamped(
 							'core/post-title',
 							'section/post-title:default'
@@ -2110,31 +2168,31 @@ describe('reorderInnerSections buckets', () => {
 	it('moves a loop-item across parents and persists both orders', () => {
 		const result = apply(
 			{
-				id: 'reorder-loop-item-content',
+				id: 'reorder-body',
 				type: 'button',
 				label: '',
-				target: { kind: 'section', id: 'loop-item-content' },
+				target: { kind: 'section', id: 'body' },
 				operation: 'reorderInnerSections',
 				innerOrder: LOOP_ITEM_ORDER,
 			},
 			{
 				move: {
 					sectionId: 'post-featured-image',
-					toParentId: 'loop-item-content',
+					toParentId: 'body',
 					index: 0,
 				},
 				buckets: [
-					{ parentId: 'loop-item-media', ids: [] },
+					{ parentId: 'media', ids: [] },
 					{
-						parentId: 'loop-item-content',
+						parentId: 'body',
 						ids: ['post-featured-image', 'post-title', 'post-meta'],
 					},
 				],
 			},
 			{ blocks: fullWidthListing() }
 		);
-		const media = findStamp(result.blocks, 'loop-item-media').block;
-		const content = findStamp(result.blocks, 'loop-item-content').block;
+		const media = findStamp(result.blocks, 'media').block;
+		const content = findStamp(result.blocks, 'body').block;
 		expect(media.innerBlocks).toEqual([]);
 		expect(content.innerBlocks.map((b) => getStamp(b)?.id)).toEqual([
 			'post-featured-image',
@@ -2147,6 +2205,56 @@ describe('reorderInnerSections buckets', () => {
 			'post-title',
 			'post-meta',
 		]);
+	});
+
+	it('does not move a listing featured image into the page-header body', () => {
+		const blocks = [
+			stamped('core/group', 'section/page-header:simple', {}, [
+				stamped('core/group', 'container/body', {}, [
+					stamped(
+						'core/query-title',
+						'section/page-header-title:default'
+					),
+				]),
+			]),
+			...fullWidthListing(),
+		];
+		const result = apply(
+			{
+				id: 'reorder-body',
+				type: 'button',
+				label: '',
+				target: { kind: 'section', id: 'body' },
+				operation: 'reorderInnerSections',
+				innerOrder: LOOP_ITEM_ORDER,
+			},
+			{
+				move: {
+					sectionId: 'post-featured-image',
+					toParentId: 'body',
+					index: 0,
+				},
+				buckets: [
+					{ parentId: 'media', ids: [] },
+					{
+						parentId: 'body',
+						ids: ['post-featured-image', 'post-title', 'post-meta'],
+					},
+				],
+			},
+			{ blocks }
+		);
+		const header = findStamp(result.blocks, 'page-header').block;
+		expect(
+			header.innerBlocks[0].innerBlocks.map((b) => getStamp(b)?.id)
+		).toEqual(['page-header-title']);
+		const listingBody = findStamp(
+			findStamp(result.blocks, 'posts-listing').block.innerBlocks,
+			'body'
+		);
+		expect(
+			listingBody.block.innerBlocks.map((b) => getStamp(b)?.id)
+		).toEqual(['post-featured-image', 'post-title', 'post-meta']);
 	});
 });
 
@@ -2172,7 +2280,7 @@ describe('toggleSection bucket home', () => {
 				},
 			],
 			insert: {
-				relativeTo: 'loop-item-content',
+				relativeTo: 'body',
 				position: 'inside-end',
 			},
 			innerOrder: LOOP_ITEM_ORDER,
@@ -2188,10 +2296,56 @@ describe('toggleSection bucket home', () => {
 			variant: 'default',
 		});
 		expect(
-			getStamp(
-				findStamp(on.blocks, 'loop-item-media').block.innerBlocks[0]
-			)?.id
+			getStamp(findStamp(on.blocks, 'media').block.innerBlocks[0])?.id
 		).toBe('post-featured-image');
+	});
+
+	it('toggles excerpt only inside the selected listing card body', () => {
+		const card = (clientId, titleId, excerptId) => ({
+			...stamped('core/group', 'container/body', {}, [
+				{
+					...stamped('core/post-title', 'section/post-title:default'),
+					clientId: titleId,
+				},
+				{
+					...stamped(
+						'core/post-excerpt',
+						'section/post-excerpt:default'
+					),
+					clientId: excerptId,
+				},
+			]),
+			clientId,
+		});
+		const blocks = [
+			{
+				...stamped('core/query', 'section/posts-listing:list', {}, [
+					card('card-a', 'title-a', 'excerpt-a'),
+					card('card-b', 'title-b', 'excerpt-b'),
+				]),
+				clientId: 'listing',
+			},
+		];
+		const control = {
+			id: 'post-excerpt',
+			type: 'toggle',
+			label: 'Excerpt',
+			target: { kind: 'section', id: 'post-excerpt' },
+			operation: 'toggleSection',
+			insert: { relativeTo: 'body', position: 'inside-end' },
+			innerOrder: LOOP_ITEM_ORDER,
+		};
+		const result = apply(control, false, {
+			blocks,
+			selectedClientId: 'title-b',
+		});
+		const listing = findStamp(result.blocks, 'posts-listing').block;
+		expect(
+			listing.innerBlocks[0].innerBlocks.map((b) => getStamp(b)?.id)
+		).toEqual(['post-title', 'post-excerpt']);
+		expect(
+			listing.innerBlocks[1].innerBlocks.map((b) => getStamp(b)?.id)
+		).toEqual(['post-title']);
 	});
 });
 

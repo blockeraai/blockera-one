@@ -526,13 +526,13 @@ describe('moveInnerSection', () => {
 		const tree = [
 			stamped('core/query', 'section/posts-listing:full-width', {}, [
 				block('core/columns', {}, [
-					stamped('core/column', 'container/loop-item-media', {}, [
+					stamped('core/column', 'container/media', {}, [
 						stamped(
 							'core/post-featured-image',
 							'section/post-featured-image:default'
 						),
 					]),
-					stamped('core/column', 'container/loop-item-content', {}, [
+					stamped('core/column', 'container/body', {}, [
 						stamped(
 							'core/post-title',
 							'section/post-title:default'
@@ -541,12 +541,7 @@ describe('moveInnerSection', () => {
 				]),
 			]),
 		];
-		const next = moveInnerSection(
-			tree,
-			'post-featured-image',
-			'loop-item-content',
-			0
-		);
+		const next = moveInnerSection(tree, 'post-featured-image', 'body', 0);
 		const media = getAtPath(next, [0, 0, 0]);
 		const content = getAtPath(next, [0, 0, 1]);
 		expect(media.innerBlocks).toEqual([]);

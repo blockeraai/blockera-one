@@ -214,8 +214,9 @@ describe('group helpers', () => {
 });
 
 const LOOP_RULE = {
-	parentId: 'loop-item-content',
-	bucketParents: ['loop-item-media', 'loop-item-content'],
+	parentId: 'body',
+	within: 'posts-listing',
+	bucketParents: ['media', 'body'],
 	ids: [
 		'post-featured-image',
 		'post-title',
@@ -234,8 +235,8 @@ function fullWidthLoop() {
 				block('core/columns', {}, [
 					stamped(
 						'core/column',
-						'container/loop-item-media',
-						{ metadata: { name: 'Media Column' } },
+						'container/media',
+						{ metadata: { name: 'Media' } },
 						[
 							stamped(
 								'core/post-featured-image',
@@ -245,8 +246,8 @@ function fullWidthLoop() {
 					),
 					stamped(
 						'core/column',
-						'container/loop-item-content',
-						{ metadata: { name: 'Content Column' } },
+						'container/body',
+						{ metadata: { name: 'Body' } },
 						[
 							stamped(
 								'core/post-title',
@@ -268,9 +269,9 @@ function fullWidthLoop() {
 describe('resolveElementBuckets', () => {
 	it('splits live stamps by immediate parent in document order', () => {
 		expect(resolveElementBuckets(fullWidthLoop(), LOOP_RULE)).toEqual([
-			{ parentId: 'loop-item-media', ids: ['post-featured-image'] },
+			{ parentId: 'media', ids: ['post-featured-image'] },
 			{
-				parentId: 'loop-item-content',
+				parentId: 'body',
 				ids: [
 					'post-title',
 					'post-excerpt',
@@ -283,8 +284,47 @@ describe('resolveElementBuckets', () => {
 		]);
 	});
 
+	it('reads listing buckets under posts-listing, not the page-header body', () => {
+		const blocks = [
+			stamped('core/group', 'section/page-header:simple', {}, [
+				stamped(
+					'core/group',
+					'container/body',
+					{ metadata: { name: 'Header Body' } },
+					[
+						stamped(
+							'core/query-title',
+							'section/page-header-title:default'
+						),
+					]
+				),
+			]),
+			...fullWidthLoop(),
+		];
+		expect(resolveElementBuckets(blocks, LOOP_RULE)).toEqual([
+			{ parentId: 'media', ids: ['post-featured-image'] },
+			{
+				parentId: 'body',
+				ids: [
+					'post-title',
+					'post-excerpt',
+					'post-meta',
+					'post-content',
+					'post-read-more',
+					'post-meta-2',
+				],
+			},
+		]);
+		expect(
+			resolveParentStampName(blocks, 'body', {
+				within: 'posts-listing',
+				parentId: 'body',
+			})
+		).toBe('Body');
+	});
+
 	it('keeps off items on the last stored parent', () => {
-		const blocks = persistElementOrder(fullWidthLoop(), 'loop-item-media', [
+		const blocks = persistElementOrder(fullWidthLoop(), 'media', [
 			'post-featured-image',
 			'post-excerpt',
 		]);
@@ -315,12 +355,8 @@ describe('resolveElementBuckets', () => {
 
 describe('resolveParentStampName', () => {
 	it('reads the live metadata.name on a stamped parent', () => {
-		expect(resolveParentStampName(fullWidthLoop(), 'loop-item-media')).toBe(
-			'Media Column'
-		);
-		expect(
-			resolveParentStampName(fullWidthLoop(), 'loop-item-content')
-		).toBe('Content Column');
+		expect(resolveParentStampName(fullWidthLoop(), 'media')).toBe('Media');
+		expect(resolveParentStampName(fullWidthLoop(), 'body')).toBe('Body');
 	});
 
 	it('returns empty when the parent is missing or unnamed', () => {
@@ -330,22 +366,20 @@ describe('resolveParentStampName', () => {
 		expect(resolveParentStampName(header([]), 'page-header')).toBe('');
 	});
 
-	it('reads Content Blocks from a single-parent listing', () => {
+	it('reads Body from a single-parent listing', () => {
 		const grid = [
 			stamped('core/query', 'section/posts-listing:grid-2', {}, [
 				block('core/post-template', {}, [
 					stamped(
 						'core/group',
-						'container/loop-item-content',
-						{ metadata: { name: 'Content Blocks' } },
+						'container/body',
+						{ metadata: { name: 'Body' } },
 						[]
 					),
 				]),
 			]),
 		];
-		expect(resolveParentStampName(grid, 'loop-item-content')).toBe(
-			'Content Blocks'
-		);
+		expect(resolveParentStampName(grid, 'body')).toBe('Body');
 	});
 });
 
@@ -353,14 +387,14 @@ describe('findLiveParentStampId / resolveBucketInsertParent', () => {
 	it('reads the stamped immediate parent', () => {
 		expect(
 			findLiveParentStampId(fullWidthLoop(), 'post-featured-image')
-		).toBe('loop-item-media');
+		).toBe('media');
 		expect(findLiveParentStampId(fullWidthLoop(), 'post-title')).toBe(
-			'loop-item-content'
+			'body'
 		);
 	});
 
 	it('inserts into the stored home, else the last existing parent', () => {
-		const stored = persistElementOrder(fullWidthLoop(), 'loop-item-media', [
+		const stored = persistElementOrder(fullWidthLoop(), 'media', [
 			'post-excerpt',
 		]);
 		expect(
@@ -368,16 +402,16 @@ describe('findLiveParentStampId / resolveBucketInsertParent', () => {
 				stored,
 				'post-excerpt',
 				LOOP_RULE.bucketParents,
-				'loop-item-content'
+				'body'
 			)
-		).toBe('loop-item-media');
+		).toBe('media');
 		expect(
 			resolveBucketInsertParent(
 				fullWidthLoop(),
 				'post-content',
 				LOOP_RULE.bucketParents,
-				'loop-item-content'
+				'body'
 			)
-		).toBe('loop-item-content');
+		).toBe('body');
 	});
 });

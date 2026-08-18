@@ -172,7 +172,7 @@ describe('control-level nestedPanel', () => {
 			gatewayLabel: 'Design & Elements',
 			groups: [
 				{
-					id: 'page-header-elements',
+					id: 'page-header-start',
 					title: 'Elements',
 					controls: [BREADCRUMB_TOGGLE],
 				},
@@ -208,9 +208,7 @@ describe('control-level nestedPanel', () => {
 			'page-header-settings',
 		]);
 		expect(settings.valid).toBe(true);
-		expect(settings.groups.map((g) => g.id)).toEqual([
-			'page-header-elements',
-		]);
+		expect(settings.groups.map((g) => g.id)).toEqual(['page-header-start']);
 
 		const crumb = resolveOptionsPanelGroups(PAGE_CONFIG, [
 			'page-header-settings',
