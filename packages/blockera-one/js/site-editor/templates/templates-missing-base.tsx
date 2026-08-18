@@ -12,12 +12,12 @@ import { __, sprintf } from '@wordpress/i18n';
 /**
  * Blockera dependencies
  */
-import { DynamicHtmlFormatter, Flex } from '@blockera/controls';
+import { DynamicHtmlFormatter } from '@blockera/controls';
 
 /**
  * Internal dependencies
  */
-import '../admin-ui-card.scss';
+import GroupCard from '../components/group-card';
 import { ROUTES } from '../constants';
 import {
 	buildTemplateItemPath,
@@ -173,34 +173,25 @@ export default function TemplatesMissingBase({
 	);
 
 	return (
-		<div
-			className="blockera-site-editor-templates-missing blockera-se-admin-ui-card admin-ui-page"
+		<GroupCard
+			as="div"
+			title={missingLabel}
+			className="blockera-site-editor-templates-missing"
 			data-test="blockera-site-editor-templates-missing"
 		>
-			<div className="admin-ui-page__header">
-				<div className="admin-ui-page__header-content">
-					<h2 className="admin-ui-page__header-title">
-						{missingLabel}
-					</h2>
-				</div>
-			</div>
-			<div className="admin-ui-page__content has-padding">
-				<Flex direction="column" gap="16px" alignItems="flex-start">
-					<p className="blockera-site-editor-templates-missing__message">
-						{message}
-					</p>
-					<Button
-						variant="primary"
-						onClick={createSpecificTemplate}
-						disabled={isSubmitting}
-						data-test="blockera-site-editor-templates-add-specific"
-					>
-						{isSubmitting
-							? __('Creating…', 'blockera')
-							: __('Add a specific template', 'blockera')}
-					</Button>
-				</Flex>
-			</div>
-		</div>
+			<p className="blockera-site-editor-templates-missing__message">
+				{message}
+			</p>
+			<Button
+				variant="primary"
+				onClick={createSpecificTemplate}
+				disabled={isSubmitting}
+				data-test="blockera-site-editor-templates-add-specific"
+			>
+				{isSubmitting
+					? __('Creating…', 'blockera')
+					: __('Add a specific template', 'blockera')}
+			</Button>
+		</GroupCard>
 	);
 }
