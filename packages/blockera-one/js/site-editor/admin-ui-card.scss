@@ -140,6 +140,23 @@
 
 		&.has-padding {
 			padding: 18px;
+			gap: 16px;
+		}
+	}
+
+	/* Stacked group cards in dark sidebar drill-downs (e.g. Templates builder). */
+	&.is-stacked,
+	&.is-stacked.admin-ui-page {
+		flex: 0 0 auto;
+		max-height: none;
+		overflow: hidden;
+
+		.admin-ui-page__content {
+			flex: 0 0 auto;
+		}
+
+		&.is-header-collapsed .admin-ui-page__header {
+			border-block-end: 0;
 		}
 	}
 }
