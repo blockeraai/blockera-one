@@ -1,3 +1,5 @@
+// Edit packages/global-packages/packages/dev-tools/root-configs/cypress.config.blockera-one.js
+// project:bootstrap copies this to the host repo root for --project=blockera-one.
 module.exports =
 	require('./packages/global-packages/packages/dev-tools/js/cypress/config')({
 		rootDir: __dirname,
