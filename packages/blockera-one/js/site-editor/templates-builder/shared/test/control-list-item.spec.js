@@ -34,6 +34,18 @@ jest.mock('../controls/border-control', () => ({
 	__esModule: true,
 	default: () => null,
 }));
+jest.mock('../controls/border-radius-control', () => ({
+	__esModule: true,
+	default: () => null,
+}));
+jest.mock('../controls/aspect-ratio-control', () => ({
+	__esModule: true,
+	default: () => null,
+}));
+jest.mock('../controls/resolution-control', () => ({
+	__esModule: true,
+	default: () => null,
+}));
 jest.mock('../controls/color-control', () => ({
 	__esModule: true,
 	default: () => null,

@@ -959,6 +959,182 @@ describe('setSectionAttribute', () => {
 		});
 	});
 
+	it('writes featured image Blockera ratio, radius, resolution, and link attrs', () => {
+		const blocks = [
+			stamped(
+				'core/post-featured-image',
+				'section/post-featured-image:default',
+				{ isLink: true, aspectRatio: '3/2' }
+			),
+		];
+		const target = { kind: 'section', id: 'post-featured-image' };
+		const ratio = apply(
+			{
+				id: 'post-featured-image-aspect-ratio',
+				type: 'aspect-ratio',
+				label: 'Aspect Ratio',
+				target,
+				operation: 'setSectionAttribute',
+				attributePath: 'blockeraRatio.value',
+			},
+			{ val: '16/9', width: '', height: '' },
+			{ blocks }
+		);
+		expect(
+			findStamp(ratio.blocks, 'post-featured-image').block.attributes
+				.blockeraRatio.value
+		).toEqual({ val: '16/9', width: '', height: '' });
+
+		const radius = apply(
+			{
+				id: 'post-featured-image-border-radius',
+				type: 'border-radius',
+				label: 'Border Radius',
+				target,
+				operation: 'setSectionAttribute',
+				attributePath: 'blockeraBorderRadius.value',
+			},
+			{ type: 'all', all: '12px' },
+			{ blocks: ratio.blocks }
+		);
+		expect(
+			findStamp(radius.blocks, 'post-featured-image').block.attributes
+				.blockeraBorderRadius.value
+		).toEqual({ type: 'all', all: '12px' });
+
+		const resolution = apply(
+			{
+				id: 'post-featured-image-resolution',
+				type: 'resolution',
+				label: 'Resolution',
+				target,
+				operation: 'setSectionAttribute',
+				attributePath: 'sizeSlug',
+				defaultValue: 'full',
+			},
+			'large',
+			{ blocks: radius.blocks }
+		);
+		expect(
+			findStamp(resolution.blocks, 'post-featured-image').block.attributes
+				.sizeSlug
+		).toBe('large');
+
+		const unlinked = apply(
+			{
+				id: 'post-featured-image-is-link',
+				type: 'toggle',
+				label: 'Make image a link',
+				target,
+				operation: 'setSectionAttribute',
+				attributePath: 'isLink',
+				defaultValue: true,
+			},
+			false,
+			{ blocks: resolution.blocks }
+		);
+		expect(
+			findStamp(unlinked.blocks, 'post-featured-image').block.attributes
+				.isLink
+		).toBe(false);
+
+		const newTab = apply(
+			{
+				id: 'post-featured-image-open-in-new-tab',
+				type: 'toggle',
+				label: 'Open in new tab',
+				target,
+				operation: 'setSectionAttribute',
+				attributePath: 'linkTarget',
+				onValue: '_blank',
+				offValue: '_self',
+				defaultValue: false,
+			},
+			true,
+			{ blocks }
+		);
+		expect(
+			findStamp(newTab.blocks, 'post-featured-image').block.attributes
+				.linkTarget
+		).toBe('_blank');
+		const sameTab = apply(
+			{
+				id: 'post-featured-image-open-in-new-tab',
+				type: 'toggle',
+				label: 'Open in new tab',
+				target,
+				operation: 'setSectionAttribute',
+				attributePath: 'linkTarget',
+				onValue: '_blank',
+				offValue: '_self',
+				defaultValue: false,
+			},
+			false,
+			{ blocks: newTab.blocks }
+		);
+		expect(
+			findStamp(sameTab.blocks, 'post-featured-image').block.attributes
+				.linkTarget
+		).toBe('_self');
+	});
+
+	it('writes featured image bottom spacing without wiping other margin sides', () => {
+		const blocks = [
+			stamped(
+				'core/post-featured-image',
+				'section/post-featured-image:default',
+				{
+					blockeraSpacing: {
+						value: {
+							margin: {
+								top: '8px',
+								right: '',
+								bottom: '',
+								left: '4px',
+							},
+							padding: {
+								top: '2px',
+								right: '',
+								bottom: '',
+								left: '',
+							},
+						},
+					},
+				}
+			),
+		];
+		const result = apply(
+			{
+				id: 'post-featured-image-bottom-spacing',
+				type: 'input',
+				label: 'Bottom Spacing',
+				target: { kind: 'section', id: 'post-featured-image' },
+				operation: 'setSectionAttribute',
+				attributePath: 'blockeraSpacing.value',
+				attributeMergeKeys: ['margin.bottom'],
+			},
+			'24px',
+			{ blocks }
+		);
+		expect(
+			findStamp(result.blocks, 'post-featured-image').block.attributes
+				.blockeraSpacing.value
+		).toEqual({
+			margin: {
+				top: '8px',
+				right: '',
+				bottom: '24px',
+				left: '4px',
+			},
+			padding: {
+				top: '2px',
+				right: '',
+				bottom: '',
+				left: '',
+			},
+		});
+	});
+
 	it('writes flex layout onto alsoSetOn stamps', () => {
 		const layout = {
 			direction: 'column',

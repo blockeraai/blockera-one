@@ -961,6 +961,137 @@ describe('requireAtLeastOneOf and alsoToggle', () => {
 		);
 		expect(byId(states, 'pagination-top-spacing').value).toBe('24px');
 	});
+
+	it('hydrates featured image aspect ratio from the WP attribute', () => {
+		const config = makeConfig([
+			{
+				id: 'post-featured-image-aspect-ratio',
+				type: 'aspect-ratio',
+				label: 'Aspect Ratio',
+				target: { kind: 'section', id: 'post-featured-image' },
+				operation: 'setSectionAttribute',
+				attributePath: 'blockeraRatio.value',
+				defaultValue: { val: '', width: '', height: '' },
+			},
+		]);
+		const fromWp = byId(
+			resolve(
+				[
+					stamped(
+						'core/post-featured-image',
+						'section/post-featured-image:default',
+						{ aspectRatio: '3/2' }
+					),
+				],
+				config
+			),
+			'post-featured-image-aspect-ratio'
+		);
+		expect(fromWp.value).toEqual({ val: '3/2', width: '', height: '' });
+
+		const fromCustom = byId(
+			resolve(
+				[
+					stamped(
+						'core/post-featured-image',
+						'section/post-featured-image:default',
+						{ aspectRatio: '21/9' }
+					),
+				],
+				config
+			),
+			'post-featured-image-aspect-ratio'
+		);
+		expect(fromCustom.value).toEqual({
+			val: 'custom',
+			width: '21',
+			height: '9',
+		});
+
+		const fromBlockera = byId(
+			resolve(
+				[
+					stamped(
+						'core/post-featured-image',
+						'section/post-featured-image:default',
+						{
+							aspectRatio: '3/2',
+							blockeraRatio: {
+								value: { val: '1', width: '', height: '' },
+							},
+						}
+					),
+				],
+				config
+			),
+			'post-featured-image-aspect-ratio'
+		);
+		expect(fromBlockera.value).toEqual({
+			val: '1',
+			width: '',
+			height: '',
+		});
+	});
+
+	it('maps featured image linkTarget onto the open-in-new-tab toggle', () => {
+		const config = makeConfig([
+			{
+				id: 'post-featured-image-is-link',
+				type: 'toggle',
+				label: 'Make image a link',
+				target: { kind: 'section', id: 'post-featured-image' },
+				operation: 'setSectionAttribute',
+				attributePath: 'isLink',
+				defaultValue: true,
+			},
+			{
+				id: 'post-featured-image-open-in-new-tab',
+				type: 'toggle',
+				label: 'Open in new tab',
+				target: { kind: 'section', id: 'post-featured-image' },
+				operation: 'setSectionAttribute',
+				attributePath: 'linkTarget',
+				onValue: '_blank',
+				offValue: '_self',
+				defaultValue: false,
+				conditions: [
+					{ controlId: 'post-featured-image-is-link', equals: true },
+				],
+			},
+		]);
+		const linked = resolve(
+			[
+				stamped(
+					'core/post-featured-image',
+					'section/post-featured-image:default',
+					{ isLink: true, linkTarget: '_blank' }
+				),
+			],
+			config
+		);
+		expect(byId(linked, 'post-featured-image-is-link').value).toBe(true);
+		expect(byId(linked, 'post-featured-image-open-in-new-tab').value).toBe(
+			true
+		);
+		expect(
+			byId(linked, 'post-featured-image-open-in-new-tab').visible
+		).toBe(true);
+
+		const unlinked = resolve(
+			[
+				stamped(
+					'core/post-featured-image',
+					'section/post-featured-image:default',
+					{ isLink: false, linkTarget: '_self' }
+				),
+			],
+			config
+		);
+		expect(byId(unlinked, 'post-featured-image-is-link').value).toBe(false);
+		expect(
+			byId(unlinked, 'post-featured-image-open-in-new-tab').visible
+		).toBe(false);
+	});
 });
 
 describe('getPostsPerPageMap', () => {
