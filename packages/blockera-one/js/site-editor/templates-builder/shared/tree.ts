@@ -201,6 +201,47 @@ export function findByStamp(
 	return found;
 }
 
+/**
+ * First stamp match at `ancestorPath` or among its descendants. Paths on
+ * the result are absolute (ancestor prefix + relative walk).
+ */
+export function findByStampWithin(
+	blocks: BlockNode[],
+	ancestorPath: number[],
+	predicate: (stamp: Stamp | null, block: BlockNode) => boolean
+): WalkMatch | null {
+	const ancestor = getAtPath(blocks, ancestorPath);
+	if (!ancestor) {
+		return null;
+	}
+	if (predicate(getStamp(ancestor), ancestor)) {
+		return { block: ancestor, path: ancestorPath };
+	}
+	let found: WalkMatch | null = null;
+	walkBlocks(ancestor.innerBlocks || [], (block, relativePath) => {
+		if (predicate(getStamp(block), block)) {
+			found = { block, path: [...ancestorPath, ...relativePath] };
+			return false;
+		}
+	});
+	return found;
+}
+
+/** First block whose `clientId` matches. */
+export function findBlockByClientId(
+	blocks: BlockNode[],
+	clientId: string
+): WalkMatch | null {
+	let found: WalkMatch | null = null;
+	walkBlocks(blocks, (block, path) => {
+		if (block.clientId === clientId) {
+			found = { block, path };
+			return false;
+		}
+	});
+	return found;
+}
+
 /** Attributes considered user styling (migrated across layout transplants). */
 export const USER_ATTR_KEYS = [
 	'style',
