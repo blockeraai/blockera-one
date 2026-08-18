@@ -12,7 +12,7 @@ import {
 	getTemplatesUrlState,
 	navigateTemplates,
 } from '../../templates/constants';
-import { findByStamp } from './tree';
+import { findStampById } from './stamp-lookup';
 import type { BlockNode } from './types';
 
 /** Gutenberg complementary area id for the block inspector (unified editor). */
@@ -23,15 +23,20 @@ const CANVAS_IFRAME_SELECTOR =
 	'iframe[name="editor-canvas"], iframe.block-editor-iframe__iframe';
 
 function findSectionClientId(sectionId: string): string | null {
-	const getBlocks = (
-		select(blockEditorStore) as unknown as {
-			getBlocks?: () => BlockNode[];
-		}
-	).getBlocks;
-	if (typeof getBlocks !== 'function') {
+	const editor = select(blockEditorStore) as unknown as {
+		getBlocks?: () => BlockNode[];
+		getSelectedBlockClientId?: () => string | null;
+	};
+	if (typeof editor.getBlocks !== 'function') {
 		return null;
 	}
-	const match = findByStamp(getBlocks(), (stamp) => stamp?.id === sectionId);
+	const selectedClientId =
+		typeof editor.getSelectedBlockClientId === 'function'
+			? editor.getSelectedBlockClientId() || null
+			: null;
+	const match = findStampById(editor.getBlocks(), sectionId, {
+		selectedClientId,
+	});
 	return match?.block?.clientId || null;
 }
 

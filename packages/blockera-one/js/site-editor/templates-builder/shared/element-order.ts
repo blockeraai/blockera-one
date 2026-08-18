@@ -8,6 +8,7 @@
 
 import { getMetaName, getStamp } from './metadata';
 import { resolveSectionState } from './resolve-state';
+import { lookupFromInnerOrder, type StampLookupOptions } from './stamp-lookup';
 import { getAtPath, replaceAtPath } from './tree';
 import type {
 	BlockNode,
@@ -20,9 +21,10 @@ export const INNER_ORDER_META_KEY = 'blockeraOneInnerOrder';
 
 function getParentNode(
 	blocks: BlockNode[],
-	parentId: string
+	parentId: string,
+	lookup?: StampLookupOptions
 ): { path: number[]; node: BlockNode } | null {
-	const parent = resolveSectionState(blocks, parentId);
+	const parent = resolveSectionState(blocks, parentId, [], lookup);
 	if (!parent.path) {
 		return null;
 	}
@@ -115,9 +117,10 @@ function liveChildIds(node: BlockNode, knownIds: string[]): string[] {
 /** Read a previously dragged order from the parent section, if any. */
 export function getStoredElementOrder(
 	blocks: BlockNode[],
-	parentId: string
+	parentId: string,
+	lookup?: StampLookupOptions
 ): string[] | null {
-	const found = getParentNode(blocks, parentId);
+	const found = getParentNode(blocks, parentId, lookup);
 	if (!found) {
 		return null;
 	}
@@ -134,7 +137,8 @@ export function resolveElementOrder(
 	rule: InnerOrderRule
 ): string[] {
 	const knownIds = rule.ids || [];
-	const found = getParentNode(blocks, rule.parentId);
+	const lookup = lookupFromInnerOrder(rule);
+	const found = getParentNode(blocks, rule.parentId, lookup);
 	if (!found) {
 		return knownIds.slice();
 	}
@@ -149,9 +153,10 @@ export function resolveElementOrder(
 export function persistElementOrder(
 	blocks: BlockNode[],
 	parentId: string,
-	orderedIds: string[]
+	orderedIds: string[],
+	lookup?: StampLookupOptions
 ): BlockNode[] {
-	const found = getParentNode(blocks, parentId);
+	const found = getParentNode(blocks, parentId, lookup);
 	if (!found) {
 		return blocks;
 	}
@@ -170,9 +175,10 @@ export function persistElementOrder(
 /** Drop a stored drag order so the next resolve reads the live pattern. */
 export function clearStoredElementOrder(
 	blocks: BlockNode[],
-	parentId: string
+	parentId: string,
+	lookup?: StampLookupOptions
 ): BlockNode[] {
-	const found = getParentNode(blocks, parentId);
+	const found = getParentNode(blocks, parentId, lookup);
 	if (!found) {
 		return blocks;
 	}
@@ -219,21 +225,23 @@ export type ElementBucket = {
 /** Live Gutenberg `metadata.name` on a stamped parent, or empty. */
 export function resolveParentStampName(
 	blocks: BlockNode[],
-	parentId: string
+	parentId: string,
+	lookup?: StampLookupOptions
 ): string {
-	const found = getParentNode(blocks, parentId);
+	const found = getParentNode(blocks, parentId, lookup);
 	return found ? getMetaName(found.node) : '';
 }
 
 /**
  * Stamp id of the immediate parent of a stamped section, if that parent
- * itself is stamped (loop-item-content / loop-item-media / post-meta).
+ * itself is stamped (body / media / post-meta).
  */
 export function findLiveParentStampId(
 	blocks: BlockNode[],
-	sectionId: string
+	sectionId: string,
+	lookup?: StampLookupOptions
 ): string | null {
-	const child = resolveSectionState(blocks, sectionId);
+	const child = resolveSectionState(blocks, sectionId, [], lookup);
 	if (!child.path || child.path.length === 0) {
 		return null;
 	}
@@ -248,9 +256,10 @@ export function findLiveParentStampId(
 function storedHasId(
 	blocks: BlockNode[],
 	parentId: string,
-	sectionId: string
+	sectionId: string,
+	lookup?: StampLookupOptions
 ): boolean {
-	const stored = getStoredElementOrder(blocks, parentId);
+	const stored = getStoredElementOrder(blocks, parentId, lookup);
 	if (!stored) {
 		return false;
 	}
@@ -259,23 +268,24 @@ function storedHasId(
 
 /**
  * Parent to insert a toggled-on bucketed element into: last stored home,
- * otherwise the last existing bucket parent (content is listed last).
+ * otherwise the last existing bucket parent (body is listed last).
  */
 export function resolveBucketInsertParent(
 	blocks: BlockNode[],
 	sectionId: string,
 	bucketParents: string[],
-	fallbackId: string
+	fallbackId: string,
+	lookup?: StampLookupOptions
 ): string {
 	for (let i = 0; i < bucketParents.length; i++) {
 		const parentId = bucketParents[i];
-		if (storedHasId(blocks, parentId, sectionId)) {
+		if (storedHasId(blocks, parentId, sectionId, lookup)) {
 			return parentId;
 		}
 	}
 	for (let i = bucketParents.length - 1; i >= 0; i--) {
 		const parentId = bucketParents[i];
-		if (resolveSectionState(blocks, parentId).path) {
+		if (resolveSectionState(blocks, parentId, [], lookup).path) {
 			return parentId;
 		}
 	}
@@ -301,11 +311,12 @@ export function resolveElementBuckets(
 			},
 		];
 	}
+	const lookup = lookupFromInnerOrder(rule);
 
 	const existing: string[] = [];
 	for (let i = 0; i < bucketParents.length; i++) {
 		const parentId = bucketParents[i];
-		if (resolveSectionState(blocks, parentId).path) {
+		if (resolveSectionState(blocks, parentId, [], lookup).path) {
 			existing.push(parentId);
 		}
 	}
@@ -316,14 +327,14 @@ export function resolveElementBuckets(
 	const assigned: Record<string, string> = {};
 	for (let i = 0; i < knownIds.length; i++) {
 		const id = knownIds[i];
-		const live = findLiveParentStampId(blocks, id);
+		const live = findLiveParentStampId(blocks, id, lookup);
 		if (live && existing.indexOf(live) !== -1) {
 			assigned[id] = live;
 			continue;
 		}
 		let storedParent: string | null = null;
 		for (let p = 0; p < existing.length; p++) {
-			if (storedHasId(blocks, existing[p], id)) {
+			if (storedHasId(blocks, existing[p], id, lookup)) {
 				storedParent = existing[p];
 				break;
 			}
@@ -343,6 +354,7 @@ export function resolveElementBuckets(
 		const ordered = resolveElementOrder(blocks, {
 			parentId,
 			ids: inBucket,
+			within: rule.within,
 		});
 		buckets.push({ parentId, ids: ordered });
 	}

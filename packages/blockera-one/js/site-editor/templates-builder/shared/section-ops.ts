@@ -10,6 +10,7 @@ import {
 	type OpsContext,
 } from './op-context';
 import { resolveSectionState } from './resolve-state';
+import type { StampLookupOptions } from './stamp-lookup';
 import {
 	cloneTree,
 	findByStamp,
@@ -59,7 +60,8 @@ export function swapSection(
 	const state = resolveSectionState(
 		blocks,
 		params.sectionId,
-		params.knownVariants || []
+		params.knownVariants || [],
+		ctx.lookup
 	);
 
 	let nextBlock = withStamp(
@@ -123,7 +125,8 @@ export function swapSection(
 			blocks,
 			state.path,
 			params.targetVariant.placement,
-			[nextBlock]
+			[nextBlock],
+			ctx.lookup
 		);
 	}
 
@@ -132,7 +135,8 @@ export function swapSection(
 		const placed = insertAtPlacement(
 			blocks,
 			params.targetVariant.placement,
-			[nextBlock]
+			[nextBlock],
+			ctx.lookup
 		);
 		if (placed) {
 			return placed;
@@ -162,7 +166,7 @@ export function toggleSection(
 	},
 	ctx: OpsContext
 ): BlockNode[] {
-	const state = resolveSectionState(blocks, params.sectionId);
+	const state = resolveSectionState(blocks, params.sectionId, [], ctx.lookup);
 
 	if (!params.enabled) {
 		if (!state.path) {
@@ -201,9 +205,15 @@ export function toggleSection(
 		restoreBlocks = alignInsertedWithParent(
 			blocks,
 			insertRule.relativeTo,
-			restoreBlocks
+			restoreBlocks,
+			ctx.lookup
 		);
-		const placed = insertAtPlacement(blocks, insertRule, restoreBlocks);
+		const placed = insertAtPlacement(
+			blocks,
+			insertRule,
+			restoreBlocks,
+			ctx.lookup
+		);
 		if (placed) {
 			return placed;
 		}
@@ -259,9 +269,15 @@ export function setSectionAttribute(
 		sectionId: string;
 		attributePath: string;
 		value: unknown;
+		lookup?: StampLookupOptions;
 	}
 ): BlockNode[] {
-	const state = resolveSectionState(blocks, params.sectionId);
+	const state = resolveSectionState(
+		blocks,
+		params.sectionId,
+		[],
+		params.lookup
+	);
 	if (!state.path) {
 		return blocks;
 	}
@@ -310,9 +326,15 @@ export function setSectionBlockStyle(
 	params: {
 		sectionId: string;
 		styleName: string;
+		lookup?: StampLookupOptions;
 	}
 ): BlockNode[] {
-	const state = resolveSectionState(blocks, params.sectionId);
+	const state = resolveSectionState(
+		blocks,
+		params.sectionId,
+		[],
+		params.lookup
+	);
 	if (!state.path) {
 		return blocks;
 	}
@@ -346,9 +368,15 @@ export function placeSection(
 	params: {
 		sectionId: string;
 		placement: InsertRule;
+		lookup?: StampLookupOptions;
 	}
 ): BlockNode[] {
-	const state = resolveSectionState(blocks, params.sectionId);
+	const state = resolveSectionState(
+		blocks,
+		params.sectionId,
+		[],
+		params.lookup
+	);
 	if (!state.path) {
 		return blocks;
 	}
@@ -357,7 +385,12 @@ export function placeSection(
 		return blocks;
 	}
 	const without = removeAtPath(blocks, state.path);
-	const placed = insertAtPlacement(without, params.placement, [node]);
+	const placed = insertAtPlacement(
+		without,
+		params.placement,
+		[node],
+		params.lookup
+	);
 	return placed || blocks;
 }
 
@@ -368,12 +401,13 @@ export function placeSection(
 export function orderInnerSections(
 	blocks: BlockNode[],
 	parentId: string,
-	orderedIds: string[]
+	orderedIds: string[],
+	lookup?: StampLookupOptions
 ): BlockNode[] {
 	if (!orderedIds.length) {
 		return blocks;
 	}
-	const parent = resolveSectionState(blocks, parentId);
+	const parent = resolveSectionState(blocks, parentId, [], lookup);
 	if (!parent.path) {
 		return blocks;
 	}
@@ -423,9 +457,10 @@ export function moveInnerSection(
 	blocks: BlockNode[],
 	sectionId: string,
 	toParentId: string,
-	index: number
+	index: number,
+	lookup?: StampLookupOptions
 ): BlockNode[] {
-	const child = resolveSectionState(blocks, sectionId);
+	const child = resolveSectionState(blocks, sectionId, [], lookup);
 	if (!child.path) {
 		return blocks;
 	}
@@ -433,7 +468,7 @@ export function moveInnerSection(
 	if (!node) {
 		return blocks;
 	}
-	const dest = resolveSectionState(blocks, toParentId);
+	const dest = resolveSectionState(blocks, toParentId, [], lookup);
 	if (!dest.path) {
 		return blocks;
 	}
@@ -469,7 +504,7 @@ export function moveInnerSection(
 	}
 
 	const tree = removeAtPath(blocks, child.path);
-	const destAfter = resolveSectionState(tree, toParentId);
+	const destAfter = resolveSectionState(tree, toParentId, [], lookup);
 	if (!destAfter.path) {
 		return blocks;
 	}
@@ -493,9 +528,10 @@ export function moveInnerSection(
 function alignInsertedWithParent(
 	blocks: BlockNode[],
 	parentId: string,
-	insertBlocks: BlockNode[]
+	insertBlocks: BlockNode[],
+	lookup?: StampLookupOptions
 ): BlockNode[] {
-	const parent = resolveSectionState(blocks, parentId);
+	const parent = resolveSectionState(blocks, parentId, [], lookup);
 	if (!parent.path) {
 		return insertBlocks;
 	}

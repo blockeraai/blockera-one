@@ -5,6 +5,7 @@
  * (operation dispatch).
  */
 
+import { store as blockEditorStore } from '@wordpress/block-editor';
 import { store as coreStore } from '@wordpress/core-data';
 import { useDispatch, useSelect } from '@wordpress/data';
 import {
@@ -173,6 +174,16 @@ export default function useTemplateOptions(
 		};
 	}, []);
 
+	const selectedClientId = useSelect((select) => {
+		const editor = select(blockEditorStore) as unknown as {
+			getSelectedBlockClientId?: () => string | null;
+		};
+		if (typeof editor.getSelectedBlockClientId !== 'function') {
+			return null;
+		}
+		return editor.getSelectedBlockClientId() || null;
+	}, []);
+
 	const { editEntityRecord } = useDispatch(coreStore) as unknown as {
 		editEntityRecord: (
 			kind: string,
@@ -256,9 +267,10 @@ export default function useTemplateOptions(
 				blocks,
 				resolvedConfig,
 				settings as TemplateSettingsRecord,
-				settingBucket
+				settingBucket,
+				selectedClientId
 			),
-		[blocks, resolvedConfig, settings, settingBucket]
+		[blocks, resolvedConfig, settings, settingBucket, selectedClientId]
 	);
 
 	const runWithConfirm = useCallback(
@@ -308,6 +320,7 @@ export default function useTemplateOptions(
 					settings: settings as TemplateSettingsRecord,
 					settingBucket,
 					needsConfirm,
+					selectedClientId,
 				});
 				if (!result) {
 					return;
@@ -346,6 +359,7 @@ export default function useTemplateOptions(
 			runWithConfirm,
 			settingBucket,
 			settings,
+			selectedClientId,
 		]
 	);
 
@@ -365,6 +379,7 @@ export default function useTemplateOptions(
 				settings: settings as TemplateSettingsRecord,
 				settingBucket,
 				needsConfirm: false,
+				selectedClientId,
 			});
 			if (result?.kind === 'blocks') {
 				applyBlocks(result.blocks);
@@ -375,7 +390,14 @@ export default function useTemplateOptions(
 				scrollStampIntoCanvas(revealId);
 			}
 		},
-		[applyBlocks, blocks, resolvedConfig, settingBucket, settings]
+		[
+			applyBlocks,
+			blocks,
+			resolvedConfig,
+			settingBucket,
+			settings,
+			selectedClientId,
+		]
 	);
 
 	return {

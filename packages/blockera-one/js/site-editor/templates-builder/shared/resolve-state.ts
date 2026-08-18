@@ -3,6 +3,7 @@
  */
 
 import { getStamp } from './metadata';
+import { findStampById, type StampLookupOptions } from './stamp-lookup';
 import { findByStamp, getAtPath, walkBlocks } from './tree';
 import type {
 	BlockNode,
@@ -10,6 +11,8 @@ import type {
 	SectionHeuristic,
 	VariantDef,
 } from './types';
+
+export type { StampLookupOptions } from './stamp-lookup';
 
 /**
  * The layout root block doubles as the "main" container for attribute
@@ -103,7 +106,7 @@ function heuristicFindWrappingGroup(
 		if (!ancestor || ancestor.name !== 'core/group') {
 			continue;
 		}
-		// Skip structural wrappers (e.g. container/elements) so the
+		// Skip structural wrappers (e.g. container/body) so the
 		// section root stays the outer group, not the inner stack.
 		if (getStamp(ancestor)?.role === 'container') {
 			skippedContainer = true;
@@ -146,7 +149,8 @@ function matchesTemplatePartHeuristic(
 
 function heuristicFindSection(
 	blocks: BlockNode[],
-	sectionId: string
+	sectionId: string,
+	options?: StampLookupOptions
 ): { block: BlockNode; path: number[] } | null {
 	const heuristic = HEURISTIC_REGISTRY.get(sectionId);
 	if (!heuristic) {
@@ -165,13 +169,15 @@ function heuristicFindSection(
 			return heuristicFindInnerBlock(
 				blocks,
 				heuristic.parentId,
-				heuristic.name
+				heuristic.name,
+				options
 			);
 		case 'descendantBlock':
 			return heuristicFindDescendantBlock(
 				blocks,
 				heuristic.parentId,
-				heuristic.name
+				heuristic.name,
+				options
 			);
 		default:
 			return null;
@@ -186,12 +192,10 @@ function heuristicFindSection(
 function heuristicFindInnerBlock(
 	blocks: BlockNode[],
 	parentId: string,
-	name: string
+	name: string,
+	options?: StampLookupOptions
 ): { block: BlockNode; path: number[] } | null {
-	const parentByStamp = findByStamp(
-		blocks,
-		(stamp) => stamp?.id === parentId
-	);
+	const parentByStamp = findStampById(blocks, parentId, options);
 	const parent =
 		parentByStamp || heuristicFindParentSection(blocks, parentId);
 	if (!parent) {
@@ -213,12 +217,10 @@ function heuristicFindInnerBlock(
 function heuristicFindDescendantBlock(
 	blocks: BlockNode[],
 	parentId: string,
-	name: string
+	name: string,
+	options?: StampLookupOptions
 ): { block: BlockNode; path: number[] } | null {
-	const parentByStamp = findByStamp(
-		blocks,
-		(stamp) => stamp?.id === parentId
-	);
+	const parentByStamp = findStampById(blocks, parentId, options);
 	const parent =
 		parentByStamp || heuristicFindParentSection(blocks, parentId);
 	if (!parent) {
@@ -370,15 +372,43 @@ function canonicalizeVariant(variant: string, knownIds: Set<string>): string {
 	return variant;
 }
 
+function heuristicParentId(sectionId: string): string | undefined {
+	const heuristic = HEURISTIC_REGISTRY.get(sectionId);
+	if (
+		heuristic &&
+		(heuristic.kind === 'innerBlock' ||
+			heuristic.kind === 'descendantBlock')
+	) {
+		return heuristic.parentId;
+	}
+	return undefined;
+}
+
+function mergeLookupOptions(
+	sectionId: string,
+	options?: StampLookupOptions
+): StampLookupOptions | undefined {
+	const parentId = options?.parentId ?? heuristicParentId(sectionId);
+	if (!options && !parentId) {
+		return undefined;
+	}
+	return {
+		...options,
+		parentId,
+	};
+}
+
 /**
  * Resolve a leaf section state.
  */
 export function resolveSectionState(
 	blocks: BlockNode[],
 	sectionId: string,
-	knownVariants: VariantDef[] = []
+	knownVariants: VariantDef[] = [],
+	options?: StampLookupOptions
 ): ResolvedOptionState {
-	const byStamp = findByStamp(blocks, (stamp) => stamp?.id === sectionId);
+	const lookup = mergeLookupOptions(sectionId, options);
+	const byStamp = findStampById(blocks, sectionId, lookup);
 	if (byStamp) {
 		const stamp = getStamp(byStamp.block);
 		const knownIds = new Set(knownVariants.map((v) => v.id));
@@ -401,7 +431,7 @@ export function resolveSectionState(
 		};
 	}
 
-	const heuristic = heuristicFindSection(blocks, sectionId);
+	const heuristic = heuristicFindSection(blocks, sectionId, lookup);
 	if (heuristic) {
 		return {
 			kind: 'customized',
@@ -418,9 +448,10 @@ export function resolveSectionState(
  */
 export function resolveToggleState(
 	blocks: BlockNode[],
-	sectionId: string
+	sectionId: string,
+	options?: StampLookupOptions
 ): ResolvedOptionState {
-	const state = resolveSectionState(blocks, sectionId);
+	const state = resolveSectionState(blocks, sectionId, [], options);
 	if (state.kind === 'missing') {
 		return { kind: 'value', value: false };
 	}
@@ -432,9 +463,10 @@ export function resolveToggleState(
  */
 export function resolveCompoundToggleEnabled(
 	blocks: BlockNode[],
-	control: { target: { id: string }; alsoToggle?: Array<{ id: string }> }
+	control: { target: { id: string }; alsoToggle?: Array<{ id: string }> },
+	options?: StampLookupOptions
 ): boolean {
-	if (resolveToggleState(blocks, control.target.id).value) {
+	if (resolveToggleState(blocks, control.target.id, options).value) {
 		return true;
 	}
 	const extras = control.alsoToggle;
@@ -442,7 +474,7 @@ export function resolveCompoundToggleEnabled(
 		return false;
 	}
 	for (let i = 0; i < extras.length; i++) {
-		if (resolveToggleState(blocks, extras[i].id).value) {
+		if (resolveToggleState(blocks, extras[i].id, options).value) {
 			return true;
 		}
 	}

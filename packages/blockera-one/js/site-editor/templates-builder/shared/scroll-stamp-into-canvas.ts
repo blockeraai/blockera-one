@@ -13,7 +13,7 @@
 import { store as blockEditorStore } from '@wordpress/block-editor';
 import { select, subscribe } from '@wordpress/data';
 
-import { findByStamp } from './tree';
+import { findStampById } from './stamp-lookup';
 import type { BlockNode } from './types';
 
 const SCROLL_TIMEOUT_MS = 8000;
@@ -39,6 +39,16 @@ export const SKIP_MIN_TOP_PX = 10;
 /** Subpixel leftover after a scroll counts as landed. */
 export const SKIP_TOP_EPSILON_PX = 1;
 
+function getSelectedClientId(): string | null {
+	const editor = select(blockEditorStore) as unknown as {
+		getSelectedBlockClientId?: () => string | null;
+	};
+	if (typeof editor.getSelectedBlockClientId !== 'function') {
+		return null;
+	}
+	return editor.getSelectedBlockClientId() || null;
+}
+
 function findStampClientId(stampId: string): string | null {
 	const getBlocks = (
 		select(blockEditorStore) as unknown as {
@@ -48,7 +58,9 @@ function findStampClientId(stampId: string): string | null {
 	if (typeof getBlocks !== 'function') {
 		return null;
 	}
-	const match = findByStamp(getBlocks(), (stamp) => stamp?.id === stampId);
+	const match = findStampById(getBlocks(), stampId, {
+		selectedClientId: getSelectedClientId(),
+	});
 	return match?.block?.clientId || null;
 }
 

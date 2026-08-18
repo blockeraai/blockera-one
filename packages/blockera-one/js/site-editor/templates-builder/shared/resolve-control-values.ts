@@ -12,6 +12,7 @@ import {
 	resolveSidebarLayoutValue,
 	resolveToggleState,
 } from './resolve-state';
+import { lookupFromControl } from './stamp-lookup';
 import { pickMergedAttributeValue } from './attribute-merge';
 import { getAtPath } from './tree';
 import { getStamp } from './metadata';
@@ -151,11 +152,12 @@ function resolvePlaceControlValue(
 	if (!parentId) {
 		return fallback;
 	}
-	const child = resolveSectionState(blocks, control.target.id);
+	const lookup = lookupFromControl(control);
+	const child = resolveSectionState(blocks, control.target.id, [], lookup);
 	if (!child.path) {
 		return fallback;
 	}
-	const parent = resolveSectionState(blocks, parentId);
+	const parent = resolveSectionState(blocks, parentId, [], lookup);
 	if (!parent.path) {
 		return fallback;
 	}
@@ -171,7 +173,8 @@ export function resolveControlViewStates(
 	blocks: BlockNode[],
 	config: TemplateOptionsConfig,
 	settings: TemplateSettingsRecord,
-	settingBucket: string
+	settingBucket: string,
+	selectedClientId?: string | null
 ): ControlViewState[] {
 	const values: Record<string, ControlValue> = {};
 	const states: ControlViewState[] = [];
@@ -198,6 +201,9 @@ export function resolveControlViewStates(
 
 	const variantsKey = (control: ControlDef): string =>
 		(control.variants || []).map((v) => v.id).join(',');
+
+	const lookupOf = (control: ControlDef) =>
+		lookupFromControl(control, selectedClientId);
 
 	for (const control of flattenPanelControls(config.groups)) {
 		// Header toggle and a body control may share an id; resolve once.
@@ -232,8 +238,15 @@ export function resolveControlViewStates(
 				state = { ...layout, value };
 			}
 		} else if (control.operation === 'setSectionAttribute') {
-			state = resolveCached(`section:${control.target.id}:`, () =>
-				resolveSectionState(blocks, control.target.id)
+			state = resolveCached(
+				`section:${control.target.id}:${selectedClientId || ''}:${control.innerOrder?.parentId || ''}:`,
+				() =>
+					resolveSectionState(
+						blocks,
+						control.target.id,
+						[],
+						lookupOf(control)
+					)
 			);
 			if (state.path && control.attributePath) {
 				const node = getAtPath(blocks, state.path);
@@ -261,8 +274,15 @@ export function resolveControlViewStates(
 				value = control.defaultValue;
 			}
 		} else if (control.operation === 'setBlockStyle') {
-			state = resolveCached(`section:${control.target.id}:`, () =>
-				resolveSectionState(blocks, control.target.id)
+			state = resolveCached(
+				`section:${control.target.id}:${selectedClientId || ''}:${control.innerOrder?.parentId || ''}:style`,
+				() =>
+					resolveSectionState(
+						blocks,
+						control.target.id,
+						[],
+						lookupOf(control)
+					)
 			);
 			if (state.path) {
 				const node = getAtPath(blocks, state.path);
@@ -277,25 +297,45 @@ export function resolveControlViewStates(
 				value = 'default';
 			}
 		} else if (control.operation === 'selectInCanvas') {
-			state = resolveCached(`section:${control.target.id}:`, () =>
-				resolveSectionState(blocks, control.target.id)
-			);
-			value = null;
-		} else if (control.operation === 'placeSection') {
-			state = resolveToggleState(blocks, control.target.id);
-			value = resolvePlaceControlValue(blocks, control);
-		} else if (control.type === 'toggle') {
-			const enabled = resolveCompoundToggleEnabled(blocks, control);
-			state = resolveToggleState(blocks, control.target.id);
-			value = control.invertPresence ? !enabled : enabled;
-		} else {
 			state = resolveCached(
-				`section:${control.target.id}:${variantsKey(control)}`,
+				`section:${control.target.id}:${selectedClientId || ''}:canvas`,
 				() =>
 					resolveSectionState(
 						blocks,
 						control.target.id,
-						control.variants
+						[],
+						lookupOf(control)
+					)
+			);
+			value = null;
+		} else if (control.operation === 'placeSection') {
+			state = resolveToggleState(
+				blocks,
+				control.target.id,
+				lookupOf(control)
+			);
+			value = resolvePlaceControlValue(blocks, control);
+		} else if (control.type === 'toggle') {
+			const enabled = resolveCompoundToggleEnabled(
+				blocks,
+				control,
+				lookupOf(control)
+			);
+			state = resolveToggleState(
+				blocks,
+				control.target.id,
+				lookupOf(control)
+			);
+			value = control.invertPresence ? !enabled : enabled;
+		} else {
+			state = resolveCached(
+				`section:${control.target.id}:${variantsKey(control)}:${selectedClientId || ''}`,
+				() =>
+					resolveSectionState(
+						blocks,
+						control.target.id,
+						control.variants,
+						lookupOf(control)
 					)
 			);
 			value =

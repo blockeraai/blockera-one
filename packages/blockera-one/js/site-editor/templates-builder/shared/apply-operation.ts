@@ -37,6 +37,7 @@ import {
 	resolveCompoundToggleEnabled,
 	resolveSectionState,
 } from './resolve-state';
+import { lookupFromControl, type StampLookupOptions } from './stamp-lookup';
 import { flattenPanelControls } from './resolve-options-panel';
 import {
 	isBorderSideAssigned,
@@ -63,6 +64,13 @@ export type OperationResult =
 	| { kind: 'site-edits'; edits: Record<string, unknown> }
 	| null;
 
+function opsContextFor(control: ControlDef, selectedClientId?: string | null) {
+	return {
+		...defaultOpsContext,
+		lookup: lookupFromControl(control, selectedClientId),
+	};
+}
+
 /**
  * Resolve the object written for setSectionAttribute. Merge keys patch the
  * current nested object so sibling sides (e.g. padding left/right) survive.
@@ -70,13 +78,19 @@ export type OperationResult =
 function resolveAttributeWriteValue(
 	blocks: BlockNode[],
 	control: ControlDef,
-	value: unknown
+	value: unknown,
+	lookup?: StampLookupOptions
 ): unknown {
 	const attributePath = control.attributePath;
 	if (!attributePath) {
 		return value;
 	}
-	const state = resolveSectionState(blocks, control.target.id);
+	const state = resolveSectionState(
+		blocks,
+		control.target.id,
+		[],
+		lookup || lookupFromControl(control)
+	);
 	const node = state.path ? getAtPath(blocks, state.path) : undefined;
 	const current = getAttributeAtPath(node?.attributes, attributePath);
 	if (control.borderSide) {
@@ -102,18 +116,26 @@ function resolveAttributeWriteValue(
 function applySectionAttribute(
 	blocks: BlockNode[],
 	control: ControlDef,
-	value: unknown
+	value: unknown,
+	selectedClientId?: string | null
 ): BlockNode[] {
 	const attributePath = control.attributePath;
 	if (!attributePath) {
 		return blocks;
 	}
 
-	const writeValue = resolveAttributeWriteValue(blocks, control, value);
+	const lookup = lookupFromControl(control, selectedClientId);
+	const writeValue = resolveAttributeWriteValue(
+		blocks,
+		control,
+		value,
+		lookup
+	);
 	let next = setSectionAttribute(blocks, {
 		sectionId: control.target.id,
 		attributePath,
 		value: writeValue,
+		lookup,
 	});
 	const extras = control.alsoSetOn;
 	if (extras?.length) {
@@ -122,6 +144,7 @@ function applySectionAttribute(
 				sectionId: extras[i],
 				attributePath,
 				value: writeValue,
+				lookup,
 			});
 		}
 	}
@@ -136,6 +159,7 @@ function applySectionAttribute(
 				sectionId: control.target.id,
 				attributePath: extra.attributePath,
 				value: extra.value,
+				lookup,
 			});
 		}
 	}
@@ -145,11 +169,14 @@ function applySectionAttribute(
 function applyBlockStyle(
 	blocks: BlockNode[],
 	control: ControlDef,
-	styleName: string
+	styleName: string,
+	selectedClientId?: string | null
 ): BlockNode[] {
+	const lookup = lookupFromControl(control, selectedClientId);
 	let next = setSectionBlockStyle(blocks, {
 		sectionId: control.target.id,
 		styleName,
+		lookup,
 	});
 	const extras = control.alsoSetOn;
 	if (extras?.length) {
@@ -157,6 +184,7 @@ function applyBlockStyle(
 			next = setSectionBlockStyle(next, {
 				sectionId: extras[i],
 				styleName,
+				lookup,
 			});
 		}
 	}
@@ -169,8 +197,11 @@ function applyToggleControl(
 	enabled: boolean,
 	orderSource: BlockNode[],
 	layoutId: string,
-	persistOrder = true
+	persistOrder = true,
+	selectedClientId?: string | null
 ): BlockNode[] {
+	const lookup = lookupFromControl(control, selectedClientId);
+	const ctx = { ...defaultOpsContext, lookup };
 	const rule = control.innerOrder;
 	const bucketParents = rule?.bucketParents;
 	let homeParent: string | null = null;
@@ -180,12 +211,13 @@ function applyToggleControl(
 		// toggle-off does not append the id to the end of the list.
 		capturedBuckets = resolveElementBuckets(blocks, rule);
 		homeParent =
-			findLiveParentStampId(blocks, control.target.id) ||
+			findLiveParentStampId(blocks, control.target.id, lookup) ||
 			resolveBucketInsertParent(
 				blocks,
 				control.target.id,
 				bucketParents,
-				rule.parentId
+				rule.parentId,
+				lookup
 			);
 	}
 
@@ -206,7 +238,7 @@ function applyToggleControl(
 			defaultVariant: control.variants?.[0],
 			insert,
 		},
-		defaultOpsContext
+		ctx
 	);
 	const extras = control.alsoToggle;
 	if (extras?.length) {
@@ -220,7 +252,7 @@ function applyToggleControl(
 					defaultVariant: companion.variants?.[0],
 					insert: companion.insert,
 				},
-				defaultOpsContext
+				ctx
 			);
 		}
 	}
@@ -232,24 +264,30 @@ function applyToggleControl(
 			control.target.id,
 			homeParent || rule.parentId,
 			persistOrder,
-			capturedBuckets
+			capturedBuckets,
+			lookup
 		);
 	}
 
-	tree = applyInnerOrder(tree, control, orderSource);
+	tree = applyInnerOrder(tree, control, orderSource, selectedClientId);
 	// User toggles persist the drag list. Design-swap reapply must not —
 	// the new pattern is the order source and stored order was just cleared.
 	if (persistOrder && control.innerOrder) {
 		const ids = resolveInnerOrderIds(control, orderSource);
 		if (ids) {
-			tree = persistElementOrder(tree, control.innerOrder.parentId, ids);
+			tree = persistElementOrder(
+				tree,
+				control.innerOrder.parentId,
+				ids,
+				lookup
+			);
 		}
 	}
 	return tree;
 }
 
 /**
- * Keep a toggled loop-item in its last parent (media vs content) even
+ * Keep a toggled loop-item in its last parent (media vs body) even
  * after it is removed from the tree, then persist each bucket separately.
  */
 function applyBucketedInnerOrder(
@@ -258,7 +296,8 @@ function applyBucketedInnerOrder(
 	sectionId: string,
 	homeParent: string,
 	persistOrder: boolean,
-	capturedBuckets?: ReturnType<typeof resolveElementBuckets>
+	capturedBuckets?: ReturnType<typeof resolveElementBuckets>,
+	lookup?: StampLookupOptions
 ): BlockNode[] {
 	const resolved = capturedBuckets || resolveElementBuckets(tree, rule);
 	const buckets = resolved.map((bucket) => ({
@@ -274,9 +313,19 @@ function applyBucketedInnerOrder(
 	let next = tree;
 	for (let i = 0; i < buckets.length; i++) {
 		const bucket = buckets[i];
-		next = orderInnerSections(next, bucket.parentId, bucket.ids);
+		next = orderInnerSections(
+			next,
+			bucket.parentId,
+			bucket.ids,
+			lookup || { parentId: bucket.parentId }
+		);
 		if (persistOrder) {
-			next = persistElementOrder(next, bucket.parentId, bucket.ids);
+			next = persistElementOrder(
+				next,
+				bucket.parentId,
+				bucket.ids,
+				lookup
+			);
 		}
 	}
 	return next;
@@ -298,7 +347,13 @@ function wouldLeaveZeroRequired(
 		if (!sibling) {
 			continue;
 		}
-		if (resolveCompoundToggleEnabled(blocks, sibling)) {
+		if (
+			resolveCompoundToggleEnabled(
+				blocks,
+				sibling,
+				lookupFromControl(sibling)
+			)
+		) {
 			onCount++;
 		}
 	}
@@ -307,12 +362,18 @@ function wouldLeaveZeroRequired(
 
 function readControlAttribute(
 	blocks: BlockNode[],
-	control: ControlDef
+	control: ControlDef,
+	lookup?: StampLookupOptions
 ): unknown {
 	if (!control.attributePath) {
 		return undefined;
 	}
-	const state = resolveSectionState(blocks, control.target.id);
+	const state = resolveSectionState(
+		blocks,
+		control.target.id,
+		[],
+		lookup || lookupFromControl(control)
+	);
 	const node = state.path ? getAtPath(blocks, state.path) : undefined;
 	const raw = getAttributeAtPath(node?.attributes, control.attributePath);
 	if (control.borderSide && raw && typeof raw === 'object') {
@@ -327,7 +388,8 @@ function readControlAttribute(
 function applyMirrorMergeWhen(
 	blocks: BlockNode[],
 	control: ControlDef,
-	config: TemplateOptionsConfig
+	config: TemplateOptionsConfig,
+	selectedClientId?: string | null
 ): BlockNode[] {
 	const spec = control.mirrorMergeWhen;
 	if (!spec?.whenControlId || !spec.mergeKeys?.length) {
@@ -341,8 +403,9 @@ function applyMirrorMergeWhen(
 
 	const divider = spec.role === 'divider' ? control : sibling;
 	const spacing = spec.role === 'spacing' ? control : sibling;
-	const dividerValue = readControlAttribute(blocks, divider);
-	const spacingValue = readControlAttribute(blocks, spacing);
+	const lookup = lookupFromControl(control, selectedClientId);
+	const dividerValue = readControlAttribute(blocks, divider, lookup);
+	const spacingValue = readControlAttribute(blocks, spacing, lookup);
 	const paddingValue =
 		isBorderSideAssigned(dividerValue) && !isEmptyMergeValue(spacingValue)
 			? spacingValue
@@ -351,7 +414,12 @@ function applyMirrorMergeWhen(
 	const spacingPath =
 		spec.attributePath || spacing.attributePath || 'blockeraSpacing.value';
 	const current = (() => {
-		const state = resolveSectionState(blocks, spacing.target.id);
+		const state = resolveSectionState(
+			blocks,
+			spacing.target.id,
+			[],
+			lookup
+		);
 		const node = state.path ? getAtPath(blocks, state.path) : undefined;
 		return getAttributeAtPath(node?.attributes, spacingPath);
 	})();
@@ -360,6 +428,7 @@ function applyMirrorMergeWhen(
 		sectionId: spacing.target.id,
 		attributePath: spacingPath,
 		value: mergeAttributeKeys(current, spec.mergeKeys, paddingValue),
+		lookup,
 	});
 }
 
@@ -405,7 +474,8 @@ function applySwapSection(
 	blocks: BlockNode[],
 	control: ControlDef,
 	nextValue: ControlValue,
-	config: TemplateOptionsConfig
+	config: TemplateOptionsConfig,
+	selectedClientId?: string | null
 ): OperationResult {
 	const variant = control.variants?.find((v) => v.id === String(nextValue));
 	if (!variant || variant.disabled) {
@@ -437,12 +507,16 @@ function applySwapSection(
 			reapplyPlans.push({
 				kind: 'toggle',
 				control: dep,
-				enabled: resolveCompoundToggleEnabled(blocks, dep),
+				enabled: resolveCompoundToggleEnabled(
+					blocks,
+					dep,
+					lookupFromControl(dep, selectedClientId)
+				),
 			});
 			continue;
 		}
 		if (dep.operation === 'placeSection') {
-			const placeValue = resolvePlaceValue(blocks, dep);
+			const placeValue = resolvePlaceValue(blocks, dep, selectedClientId);
 			if (placeValue) {
 				reapplyPlans.push({
 					kind: 'place',
@@ -453,7 +527,12 @@ function applySwapSection(
 			continue;
 		}
 		if (dep.operation === 'setSectionAttribute' && dep.attributePath) {
-			const prev = resolveSectionState(blocks, dep.target.id);
+			const prev = resolveSectionState(
+				blocks,
+				dep.target.id,
+				[],
+				lookupFromControl(dep, selectedClientId)
+			);
 			if (!prev.path) {
 				continue;
 			}
@@ -484,7 +563,12 @@ function applySwapSection(
 			continue;
 		}
 		if (dep.operation === 'setBlockStyle') {
-			const prev = resolveSectionState(blocks, dep.target.id);
+			const prev = resolveSectionState(
+				blocks,
+				dep.target.id,
+				[],
+				lookupFromControl(dep, selectedClientId)
+			);
 			if (!prev.path) {
 				continue;
 			}
@@ -503,7 +587,12 @@ function applySwapSection(
 		if (dep.operation !== 'swapSection' || !dep.variants?.length) {
 			continue;
 		}
-		const prev = resolveSectionState(blocks, dep.target.id);
+		const prev = resolveSectionState(
+			blocks,
+			dep.target.id,
+			[],
+			lookupFromControl(dep, selectedClientId)
+		);
 		if (
 			typeof prev.value !== 'string' ||
 			!prev.value ||
@@ -532,7 +621,7 @@ function applySwapSection(
 			preserveBlockeraExtensions:
 				!!control.swapHints?.preserveBlockeraExtensions,
 		},
-		defaultOpsContext
+		opsContextFor(control, selectedClientId)
 	);
 	// New design pattern is the order source — drop any previous drag list.
 	next = clearStoredElementOrder(next, control.target.id);
@@ -545,7 +634,7 @@ function applySwapSection(
 					targetVariant: plan.variant,
 					knownVariants: plan.knownVariants,
 				},
-				defaultOpsContext
+				opsContextFor(control, selectedClientId)
 			);
 			continue;
 		}
@@ -556,16 +645,27 @@ function applySwapSection(
 				plan.enabled,
 				next,
 				config.layoutId,
-				false
+				false,
+				selectedClientId
 			);
 			continue;
 		}
 		if (plan.kind === 'attribute' && plan.control.attributePath) {
-			next = applySectionAttribute(next, plan.control, plan.value);
+			next = applySectionAttribute(
+				next,
+				plan.control,
+				plan.value,
+				selectedClientId
+			);
 			continue;
 		}
 		if (plan.kind === 'style') {
-			next = applyBlockStyle(next, plan.control, plan.value);
+			next = applyBlockStyle(
+				next,
+				plan.control,
+				plan.value,
+				selectedClientId
+			);
 			continue;
 		}
 		const placeVariant = plan.control.variants?.find(
@@ -575,8 +675,9 @@ function applySwapSection(
 			next = placeSection(next, {
 				sectionId: plan.control.target.id,
 				placement: placeVariant.placement,
+				lookup: lookupFromControl(plan.control, selectedClientId),
 			});
-			next = applyInnerOrder(next, plan.control, next);
+			next = applyInnerOrder(next, plan.control, next, selectedClientId);
 		}
 	}
 	return {
@@ -591,7 +692,8 @@ function applySwapSection(
  */
 function resolvePlaceValue(
 	blocks: BlockNode[],
-	control: ControlDef
+	control: ControlDef,
+	selectedClientId?: string | null
 ): string | null {
 	const parentId =
 		control.innerOrder?.parentId ||
@@ -601,13 +703,14 @@ function resolvePlaceValue(
 			? control.defaultValue
 			: 'bottom';
 	}
-	const child = resolveSectionState(blocks, control.target.id);
+	const lookup = lookupFromControl(control, selectedClientId);
+	const child = resolveSectionState(blocks, control.target.id, [], lookup);
 	if (!child.path) {
 		return typeof control.defaultValue === 'string'
 			? control.defaultValue
 			: 'bottom';
 	}
-	const parent = resolveSectionState(blocks, parentId);
+	const parent = resolveSectionState(blocks, parentId, [], lookup);
 	if (!parent.path) {
 		return 'bottom';
 	}
@@ -660,13 +763,19 @@ function isBucketReorderPayload(
 function applyInnerOrder(
 	tree: BlockNode[],
 	control: ControlDef,
-	sourceBlocks: BlockNode[]
+	sourceBlocks: BlockNode[],
+	selectedClientId?: string | null
 ): BlockNode[] {
 	const ids = resolveInnerOrderIds(control, sourceBlocks);
 	if (!ids || !control.innerOrder) {
 		return tree;
 	}
-	return orderInnerSections(tree, control.innerOrder.parentId, ids);
+	return orderInnerSections(
+		tree,
+		control.innerOrder.parentId,
+		ids,
+		lookupFromControl(control, selectedClientId)
+	);
 }
 
 /**
@@ -684,6 +793,7 @@ export function applyOperation(args: {
 	settings: TemplateSettingsRecord;
 	settingBucket: string;
 	needsConfirm: boolean;
+	selectedClientId?: string | null;
 }): OperationResult {
 	const {
 		blocks,
@@ -693,6 +803,7 @@ export function applyOperation(args: {
 		settings,
 		settingBucket,
 		needsConfirm,
+		selectedClientId,
 	} = args;
 
 	if (control.operation === 'setTemplateSetting') {
@@ -744,13 +855,19 @@ export function applyOperation(args: {
 					),
 					siblingSectionIds: config.layoutSiblingSections,
 				},
-				defaultOpsContext
+				opsContextFor(control, selectedClientId)
 			),
 		};
 	}
 
 	if (control.operation === 'swapSection') {
-		return applySwapSection(blocks, control, nextValue, config);
+		return applySwapSection(
+			blocks,
+			control,
+			nextValue,
+			config,
+			selectedClientId
+		);
 	}
 
 	if (control.operation === 'swapTemplatePart') {
@@ -770,7 +887,7 @@ export function applyOperation(args: {
 					layoutId: config.layoutId,
 					knownVariants: control.variants,
 				},
-				defaultOpsContext
+				opsContextFor(control, selectedClientId)
 			),
 		};
 	}
@@ -787,7 +904,9 @@ export function applyOperation(args: {
 				control,
 				enabled,
 				blocks,
-				config.layoutId
+				config.layoutId,
+				true,
+				selectedClientId
 			),
 		};
 	}
@@ -799,18 +918,30 @@ export function applyOperation(args: {
 		}
 		if (isBucketReorderPayload(nextValue)) {
 			let tree = blocks;
+			const lookup = lookupFromControl(control, selectedClientId);
 			if (nextValue.move) {
 				tree = moveInnerSection(
 					tree,
 					nextValue.move.sectionId,
 					nextValue.move.toParentId,
-					nextValue.move.index
+					nextValue.move.index,
+					lookup
 				);
 			}
 			for (let i = 0; i < nextValue.buckets.length; i++) {
 				const bucket = nextValue.buckets[i];
-				tree = persistElementOrder(tree, bucket.parentId, bucket.ids);
-				tree = orderInnerSections(tree, bucket.parentId, bucket.ids);
+				tree = persistElementOrder(
+					tree,
+					bucket.parentId,
+					bucket.ids,
+					lookup
+				);
+				tree = orderInnerSections(
+					tree,
+					bucket.parentId,
+					bucket.ids,
+					lookup
+				);
 			}
 			return { kind: 'blocks', blocks: tree };
 		}
@@ -818,10 +949,11 @@ export function applyOperation(args: {
 		if (!ordered.length) {
 			return null;
 		}
+		const lookup = lookupFromControl(control, selectedClientId);
 		// Persist the full list (including off items) first, then reorder
 		// only the children that are currently in the tree.
-		let tree = persistElementOrder(blocks, rule.parentId, ordered);
-		tree = orderInnerSections(tree, rule.parentId, ordered);
+		let tree = persistElementOrder(blocks, rule.parentId, ordered, lookup);
+		tree = orderInnerSections(tree, rule.parentId, ordered, lookup);
 		return { kind: 'blocks', blocks: tree };
 	}
 
@@ -835,13 +967,19 @@ export function applyOperation(args: {
 		const tree = placeSection(blocks, {
 			sectionId: control.target.id,
 			placement: variant.placement,
+			lookup: lookupFromControl(control, selectedClientId),
 		});
 		return { kind: 'blocks', blocks: tree };
 	}
 
 	if (control.operation === 'setSectionAttribute' && control.attributePath) {
-		let tree = applySectionAttribute(blocks, control, nextValue);
-		tree = applyMirrorMergeWhen(tree, control, config);
+		let tree = applySectionAttribute(
+			blocks,
+			control,
+			nextValue,
+			selectedClientId
+		);
+		tree = applyMirrorMergeWhen(tree, control, config, selectedClientId);
 		return { kind: 'blocks', blocks: tree };
 	}
 
@@ -851,7 +989,8 @@ export function applyOperation(args: {
 			blocks: applyBlockStyle(
 				blocks,
 				control,
-				String(nextValue || 'default')
+				String(nextValue || 'default'),
+				selectedClientId
 			),
 		};
 	}

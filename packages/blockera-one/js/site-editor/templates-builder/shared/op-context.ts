@@ -3,12 +3,8 @@
  * without WP) and the placement helper used by every block operation.
  */
 
-import {
-	findByStamp,
-	insertRelative,
-	removeAtPath,
-	replaceNodeWithBlocks,
-} from './tree';
+import { findStampById, type StampLookupOptions } from './stamp-lookup';
+import { insertRelative, removeAtPath, replaceNodeWithBlocks } from './tree';
 import type { BlockNode, InsertRule } from './types';
 
 export type ParseFn = (html: string) => BlockNode[];
@@ -17,6 +13,7 @@ export type SerializeFn = (blocks: BlockNode[]) => string;
 export type OpsContext = {
 	parse: ParseFn;
 	serialize: SerializeFn;
+	lookup?: StampLookupOptions;
 };
 
 /**
@@ -26,12 +23,10 @@ export type OpsContext = {
 export function insertAtPlacement(
 	blocks: BlockNode[],
 	placement: InsertRule,
-	nodes: BlockNode[]
+	nodes: BlockNode[],
+	lookup?: StampLookupOptions
 ): BlockNode[] | null {
-	const anchor = findByStamp(
-		blocks,
-		(stamp) => stamp?.id === placement.relativeTo
-	);
+	const anchor = findStampById(blocks, placement.relativeTo, lookup);
 	if (!anchor) {
 		return null;
 	}
@@ -49,11 +44,12 @@ export function replaceSectionAtPath(
 	blocks: BlockNode[],
 	path: number[],
 	placement: InsertRule | undefined,
-	nodes: BlockNode[]
+	nodes: BlockNode[],
+	lookup?: StampLookupOptions
 ): BlockNode[] {
 	if (placement) {
 		const withoutOld = removeAtPath(blocks, path);
-		const placed = insertAtPlacement(withoutOld, placement, nodes);
+		const placed = insertAtPlacement(withoutOld, placement, nodes, lookup);
 		if (placed) {
 			return placed;
 		}

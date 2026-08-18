@@ -57,6 +57,7 @@ import {
 	resolveElementOrder,
 	resolveParentStampName,
 } from './element-order';
+import { lookupFromInnerOrder } from './stamp-lookup';
 import SortableElementList, {
 	type BucketReorderPayload,
 	type SortableElementRenderProps,
@@ -207,17 +208,22 @@ function SortableElementGroup({
 		for (let i = 0; i < items.length; i++) {
 			byId[items[i].control.target.id] = items[i];
 		}
+		const lookup = lookupFromInnerOrder(orderRule);
 		return resolveElementBuckets(blocks, orderRule).map((bucket) => ({
 			parentId: bucket.parentId,
 			items: bucket.ids.map((id) => byId[id]).filter(Boolean),
 			label: showParentNames
-				? resolveParentStampName(blocks, bucket.parentId)
+				? resolveParentStampName(blocks, bucket.parentId, lookup)
 				: undefined,
 		}));
 	}, [blocks, items, orderRule, showParentNames, useBuckets]);
 	const listLabel =
 		!useBuckets && showParentNames
-			? resolveParentStampName(blocks, orderRule.parentId)
+			? resolveParentStampName(
+					blocks,
+					orderRule.parentId,
+					lookupFromInnerOrder(orderRule)
+				)
 			: undefined;
 
 	const renderItem = useCallback(
@@ -937,11 +943,10 @@ export default function TemplateOptionsPanel({
 						'blockera'
 					)}
 				</p>
-			) : (
-				<Flex direction="column" gap="16px">
-					{groups}
-				</Flex>
-			)}
+			) : null}
+			<Flex direction="column" gap="16px">
+				{groups}
+			</Flex>
 			{confirmMessage && (
 				<Modal
 					title={__('Confirm layout change', 'blockera')}
