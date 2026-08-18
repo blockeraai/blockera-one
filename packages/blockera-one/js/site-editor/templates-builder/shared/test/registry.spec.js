@@ -149,7 +149,9 @@ window.blockeraOneTemplateBuilder = { catalog: INLINE_CATALOG };
 // Import after the payload is in place (registry registers roles on load).
 const {
 	ARCHIVE_OPTIONS_CONFIG,
+	SIDEBAR_OPTIONS_CONFIG,
 	getOptionsConfigForFilter,
+	getOptionsConfigForPartsArea,
 } = require('../../registry');
 const { flattenPanelControls } = require('../resolve-options-panel');
 
@@ -200,6 +202,41 @@ describe('getOptionsConfigForFilter', () => {
 		expect(getOptionsConfigForFilter('')).toBeNull();
 		expect(getOptionsConfigForFilter(null)).toBeNull();
 		expect(getOptionsConfigForFilter(undefined)).toBeNull();
+	});
+});
+
+describe('getOptionsConfigForPartsArea', () => {
+	it('returns the hydrated sidebar config', () => {
+		const config = getOptionsConfigForPartsArea('sidebar');
+		expect(config).not.toBeNull();
+		expect(config.type).toBe('sidebar');
+		expect(config.entityPostType).toBe('wp_template_part');
+		expect(config.groups.map((g) => g.id)).toEqual(['design', 'settings']);
+		expect(
+			config.groups.every((g) => g.keepVisible && g.controls.length === 0)
+		).toBe(true);
+	});
+
+	it('memoizes the hydrated config per area (same reference)', () => {
+		const first = getOptionsConfigForPartsArea('sidebar');
+		const second = getOptionsConfigForPartsArea('sidebar');
+		expect(second).toBe(first);
+		expect(first).not.toBe(SIDEBAR_OPTIONS_CONFIG);
+	});
+
+	it('returns null for unknown or empty areas', () => {
+		expect(getOptionsConfigForPartsArea('header')).toBeNull();
+		expect(getOptionsConfigForPartsArea('')).toBeNull();
+		expect(getOptionsConfigForPartsArea(null)).toBeNull();
+		expect(getOptionsConfigForPartsArea(undefined)).toBeNull();
+	});
+});
+
+describe('sidebar config structural invariants', () => {
+	it('binds empty Design and Settings groups to the sidebar part', () => {
+		expect(SIDEBAR_OPTIONS_CONFIG.layoutId).toBe('sidebar-body');
+		expect(SIDEBAR_OPTIONS_CONFIG.partsAreas).toEqual(['sidebar']);
+		expect(SIDEBAR_OPTIONS_CONFIG.filters).toEqual([]);
 	});
 });
 

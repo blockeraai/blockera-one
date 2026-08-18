@@ -1,5 +1,6 @@
 /**
- * Templates purpose-nav → Header / Footer / Sidebar Area Hub.
+ * Templates purpose-nav → Header / Footer Area Hub, Sidebar Design/Settings
+ * subpanel.
  *
  * Category: templates (CI matrix via `*.templates.e2e.cy.js`)
  */
@@ -89,6 +90,36 @@ describe('Blockera One → Templates parts Area Hub', () => {
 				openTemplatesPartArea(area);
 				assertTemplatesAreaHub({ area, mode: 'preview' });
 			});
+		});
+	});
+
+	describe('Sidebar subpanel', () => {
+		it('opens Design and Settings cards from Templates purpose-nav', () => {
+			openFreshSiteEditor();
+			openTemplatesPurposeNav();
+			openTemplatesPartArea('sidebar');
+
+			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should(
+				'not.exist'
+			);
+			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesBuilderShell).should(
+				'be.visible'
+			);
+			cy.getByDataTest('blockera-templates-builder-group-design')
+				.should('be.visible')
+				.and('contain', 'Design');
+			cy.getByDataTest('blockera-templates-builder-group-settings')
+				.should('be.visible')
+				.and('contain', 'Settings');
+			assertTemplatesAreaHub({ area: 'sidebar', mode: 'preview' });
+
+			cy.getByDataTest(SITE_EDITOR_TEST_IDS.drillDownBack).click();
+			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should(
+				'be.visible'
+			);
+			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesBuilderShell).should(
+				'not.exist'
+			);
 		});
 	});
 
