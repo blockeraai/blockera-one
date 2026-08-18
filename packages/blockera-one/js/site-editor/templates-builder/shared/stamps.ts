@@ -1,6 +1,7 @@
 /**
  * Shared stamp dictionary: ids the shared ops/detection engine hardcodes,
- * plus cross-type standards (layout/main, page-header, pagination, post-*, chrome).
+ * plus cross-type standards (layout/main, page-header, posts-listing,
+ * pagination, post-*, inner slots, chrome).
  * Per-type ids live in `<type>/stamps.ts`; `registry.ts` aggregates all
  * dictionaries. See STAMPS.md for naming rules.
  *
@@ -21,6 +22,8 @@ export const SHARED_STAMPS: readonly StampDictionaryEntry[] = [
 	'section/page-header-title',
 	'section/page-header-description',
 	'section/page-header-breadcrumbs',
+	// Query loop that lists posts (archive, search, homepage, related, …).
+	'section/posts-listing',
 	// Query pagination (archive, search, homepage, and other listings).
 	'section/pagination',
 	'section/pagination-previous',
@@ -66,6 +69,12 @@ export const SHARED_STAMPS: readonly StampDictionaryEntry[] = [
 	'container/layout-columns',
 	'container/content-column',
 	'container/sidebar-column',
+	// Inner-region slots (page-header, listing cards, single article).
+	'container/start',
+	'container/media',
+	'container/body',
+	'container/end',
+	'container/comments',
 	// Site chrome sections handled by the shared chrome ops.
 	'section/header',
 	'section/footer',

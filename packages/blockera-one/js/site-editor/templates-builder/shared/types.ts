@@ -202,11 +202,17 @@ export type NestedPanelDef = {
 /** Reorder stamped children of `parentId` after an inner-element op. */
 export type InnerOrderRule = {
 	parentId: string;
+	/**
+	 * Ancestor section that owns this nested `parentId` (`page-header` vs
+	 * `posts-listing` when both have `container/body`). Reorders pin
+	 * immediately; toggles use it after canvas selection misses.
+	 */
+	within?: string;
 	/** Known child stamp ids (config fallback when a child is missing). */
 	ids: string[];
 	/**
-	 * When blocks can live in more than one parent (e.g. loop-item
-	 * media vs content), list those parent stamp ids in document order.
+	 * When blocks can live in more than one parent (e.g. listing
+	 * media vs body), list those parent stamp ids in document order.
 	 * The Blocks UI splits into sortable groups with separators.
 	 */
 	bucketParents?: string[];
