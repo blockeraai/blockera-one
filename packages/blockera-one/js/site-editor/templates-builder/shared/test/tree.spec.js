@@ -6,6 +6,8 @@
 import {
 	cloneTree,
 	findByStamp,
+	findByStampWithin,
+	findBlockByClientId,
 	getAtPath,
 	insertRelative,
 	mergeUserAttributes,
@@ -258,6 +260,75 @@ describe('findByStamp', () => {
 		expect(byName.path).toEqual([0, 0, 0]);
 
 		expect(findByStamp(tree, (stamp) => stamp?.id === 'nope')).toBeNull();
+	});
+});
+
+describe('findByStampWithin', () => {
+	const tree = [
+		stamped('core/query', 'section/posts-listing:list', [
+			stamped('core/column', 'container/media'),
+		]),
+		stamped('core/group', 'section/page-header:simple', [
+			stamped('core/group', 'container/body', [
+				stamped(
+					'core/query-title',
+					'section/page-header-title:default'
+				),
+			]),
+		]),
+	];
+
+	it('matches the ancestor itself', () => {
+		const body = findByStamp(tree, (stamp) => stamp?.id === 'body');
+		const match = findByStampWithin(
+			tree,
+			body.path,
+			(stamp) => stamp?.id === 'body'
+		);
+		expect(match.path).toEqual(body.path);
+	});
+
+	it('walks only descendants of the ancestor', () => {
+		const listing = findByStamp(
+			tree,
+			(stamp) => stamp?.id === 'posts-listing'
+		);
+		expect(
+			findByStampWithin(
+				tree,
+				listing.path,
+				(stamp) => stamp?.id === 'media'
+			).path
+		).toEqual([0, 0]);
+		expect(
+			findByStampWithin(
+				tree,
+				listing.path,
+				(stamp) => stamp?.id === 'page-header-title'
+			)
+		).toBeNull();
+	});
+});
+
+describe('findBlockByClientId', () => {
+	it('returns the path for a clientId', () => {
+		const tree = [
+			{
+				name: 'core/group',
+				clientId: 'root',
+				attributes: {},
+				innerBlocks: [
+					{
+						name: 'core/paragraph',
+						clientId: 'p1',
+						attributes: {},
+						innerBlocks: [],
+					},
+				],
+			},
+		];
+		expect(findBlockByClientId(tree, 'p1').path).toEqual([0, 0]);
+		expect(findBlockByClientId(tree, 'missing')).toBeNull();
 	});
 });
 
