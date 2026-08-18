@@ -134,6 +134,76 @@ function isControlValue(value: unknown): value is ControlValue {
 	);
 }
 
+function mapToggleAttributeToUi(
+	control: ControlDef,
+	raw: unknown
+): ControlValue {
+	if (control.type !== 'toggle' || control.onValue === undefined) {
+		return raw as ControlValue;
+	}
+	return raw === control.onValue;
+}
+
+// Local copy of WP core presets — this module is documented as no React /
+// no `@blockera/controls` (GP `CORE_WP_ASPECT_RATIO_VALUES` lives there).
+const CORE_WP_ASPECT_RATIO_VALUES = [
+	'1',
+	'4/3',
+	'3/4',
+	'3/2',
+	'2/3',
+	'16/9',
+	'9/16',
+];
+
+function isEmptyAspectRatio(raw: unknown): boolean {
+	if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+		return true;
+	}
+	const obj = raw as Record<string, unknown>;
+	const val = obj.val !== undefined && obj.val !== null ? obj.val : obj.value;
+	return val === undefined || val === '';
+}
+
+function aspectRatioFromWpValue(aspectRatio: unknown): Record<string, string> {
+	if (
+		typeof aspectRatio !== 'string' ||
+		!aspectRatio ||
+		aspectRatio === 'auto'
+	) {
+		return { val: '', width: '', height: '' };
+	}
+	if (CORE_WP_ASPECT_RATIO_VALUES.includes(aspectRatio)) {
+		return { val: aspectRatio, width: '', height: '' };
+	}
+	if (aspectRatio.includes('/')) {
+		const parts = aspectRatio.split('/');
+		return {
+			val: 'custom',
+			width: (parts[0] || '').trim(),
+			height: (parts[1] || '').trim(),
+		};
+	}
+	return { val: 'custom', width: aspectRatio, height: aspectRatio };
+}
+
+function hydrateAspectRatio(
+	raw: unknown,
+	attributes: Record<string, unknown> | undefined
+): ControlValue {
+	if (!isEmptyAspectRatio(raw)) {
+		return raw as ControlValue;
+	}
+	const fromWp = aspectRatioFromWpValue(attributes?.aspectRatio);
+	if (fromWp.val) {
+		return fromWp;
+	}
+	if (isControlValue(raw) && raw !== null) {
+		return raw;
+	}
+	return { val: '', width: '', height: '' };
+}
+
 /**
  * Top vs bottom from whether the section is the first inner block of its
  * placement parent. Missing → defaultValue or "bottom".
@@ -266,9 +336,12 @@ export function resolveControlViewStates(
 							? control.defaultValue
 							: (picked as ControlValue);
 				} else if (isControlValue(raw) && raw !== null) {
-					value = raw;
+					value = mapToggleAttributeToUi(control, raw);
 				} else if (control.defaultValue !== undefined) {
 					value = control.defaultValue;
+				}
+				if (control.type === 'aspect-ratio') {
+					value = hydrateAspectRatio(value, node?.attributes);
 				}
 			} else if (control.defaultValue !== undefined) {
 				value = control.defaultValue;

@@ -47,7 +47,16 @@ export type ControlType =
 	| 'button'
 	| 'layout-matrix'
 	| 'border'
+	| 'border-radius'
+	| 'aspect-ratio'
+	| 'resolution'
 	| 'gateway';
+
+/** Section-bound target for shared features and config factories. */
+export type SectionTarget = {
+	kind: 'section';
+	id: string;
+};
 
 /** Resolved UI value for a control (scalars plus Blockera value-addon objects). */
 export type ControlValue =
@@ -292,7 +301,7 @@ export type ControlDef = {
 	defaultDirection?: 'row' | 'column';
 	/** Setting nested path under blockera_one_template_settings. */
 	settingPath?: string;
-	defaultValue?: string | number | boolean;
+	defaultValue?: ControlValue;
 	min?: number;
 	max?: number;
 	step?: number;

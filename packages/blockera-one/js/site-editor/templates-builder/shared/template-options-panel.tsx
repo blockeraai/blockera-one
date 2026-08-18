@@ -31,17 +31,24 @@ import { parse as parseBlocks } from '@wordpress/blocks';
  * Blockera dependencies
  */
 import { classNames } from '@blockera/classnames';
-import { ControlContextProvider, Flex } from '@blockera/controls';
+import {
+	ControlContextProvider,
+	DEFAULT_RESOLUTION_VALUE,
+	Flex,
+} from '@blockera/controls';
 
 /**
  * Internal dependencies
  */
 import { GatewayCard, GatewayRow } from '../../nested-panels';
 import GroupCard from '../../components/group-card';
+import AspectRatioControlRow from './controls/aspect-ratio-control';
 import BlockStyleSelect from './controls/block-style-select';
 import BorderControlRow from './controls/border-control';
+import BorderRadiusControlRow from './controls/border-radius-control';
 import ColorControlRow from './controls/color-control';
 import InputControlRow from './controls/input-control';
+import ResolutionControlRow from './controls/resolution-control';
 import LayoutMatrixControlRow from './controls/layout-matrix-control';
 import LayoutPicker from './controls/layout-picker';
 import StepperControlRow from './controls/stepper-control';
@@ -691,6 +698,64 @@ export default function TemplateOptionsPanel({
 											control,
 											next as ControlValue
 										)
+									}
+								/>
+							);
+						} else if (control.type === 'border-radius') {
+							controlNode = (
+								<BorderRadiusControlRow
+									controlId={control.id}
+									label={control.label}
+									value={value}
+									disabled={commonDisabled}
+									attribute={blockeraAttributeId}
+									blockName={blockName}
+									columns={control.columns}
+									controlAddonTypes={
+										control.controlAddonTypes
+									}
+									variableTypes={control.variableTypes}
+									onChange={(next) =>
+										onChangeControl(
+											control,
+											next as ControlValue
+										)
+									}
+								/>
+							);
+						} else if (control.type === 'aspect-ratio') {
+							controlNode = (
+								<AspectRatioControlRow
+									controlId={control.id}
+									label={control.label}
+									value={value}
+									disabled={commonDisabled}
+									attribute={blockeraAttributeId}
+									blockName={blockName}
+									columns={control.columns}
+									onChange={(next) =>
+										onChangeControl(
+											control,
+											next as ControlValue
+										)
+									}
+								/>
+							);
+						} else if (control.type === 'resolution') {
+							controlNode = (
+								<ResolutionControlRow
+									controlId={control.id}
+									label={control.label}
+									value={value}
+									disabled={commonDisabled}
+									columns={control.columns}
+									defaultValue={
+										typeof control.defaultValue === 'string'
+											? control.defaultValue
+											: DEFAULT_RESOLUTION_VALUE
+									}
+									onChange={(next) =>
+										onChangeControl(control, next)
 									}
 								/>
 							);

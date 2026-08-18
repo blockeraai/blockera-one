@@ -96,6 +96,15 @@ function resolveAttributeWriteValue(
 	if (control.borderSide) {
 		return mergeBorderSide(current, control.borderSide, value);
 	}
+	if (
+		control.type === 'toggle' &&
+		(control.onValue !== undefined || control.offValue !== undefined)
+	) {
+		if (value === control.onValue || value === control.offValue) {
+			return value;
+		}
+		return value ? (control.onValue ?? true) : (control.offValue ?? false);
+	}
 	const mergeKeys = control.attributeMergeKeys;
 	if (!mergeKeys?.length) {
 		return value;
