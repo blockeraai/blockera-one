@@ -11,10 +11,16 @@
 import { __ } from '@wordpress/i18n';
 
 import { FILTER_IDS } from '../../templates/constants';
+import { postFeaturedImagePanel } from '../shared/blocks';
+import {
+	customizeInEditorFeature,
+	styleVariationPickerFeature,
+} from '../shared/features';
 import type {
 	ControlDef,
 	InnerOrderRule,
 	NestedPanelDef,
+	SectionTarget,
 	TemplateOptionsConfig,
 } from '../shared/types';
 
@@ -117,11 +123,6 @@ const UNIQUE_META_HEURISTICS: Array<{
 	{ suffix: 'comments-link', name: 'core/post-comments-link' },
 ];
 
-type SectionTarget = {
-	kind: 'section';
-	id: string;
-};
-
 const TITLE_TARGET: SectionTarget = {
 	kind: 'section',
 	id: 'page-header-title',
@@ -170,30 +171,6 @@ function sectionFontSizeControl(target: SectionTarget, id: string): ControlDef {
 	};
 }
 
-function sectionStyleControl(target: SectionTarget, id: string): ControlDef {
-	return {
-		id,
-		type: 'select',
-		label: __('Style Variation', 'blockera'),
-		target,
-		operation: 'setBlockStyle',
-		defaultValue: 'default',
-	};
-}
-
-function sectionCustomizeControl(
-	target: SectionTarget,
-	id: string
-): ControlDef {
-	return {
-		id,
-		type: 'button',
-		label: __('Customize in editor', 'blockera'),
-		target,
-		operation: 'selectInCanvas',
-	};
-}
-
 function elementDesignControls(
 	target: SectionTarget,
 	prefix: string,
@@ -211,7 +188,7 @@ function elementDesignControls(
 		__('BG Color', 'blockera'),
 		'blockeraBackgroundColor.value'
 	);
-	const style = sectionStyleControl(target, `${prefix}-style`);
+	const style = styleVariationPickerFeature(target, `${prefix}-style`);
 	const fontSize = sectionFontSizeControl(target, `${prefix}-font-size`);
 	if (alsoSetOn?.length) {
 		color.alsoSetOn = alsoSetOn;
@@ -224,7 +201,7 @@ function elementDesignControls(
 		bgColor,
 		style,
 		fontSize,
-		customize: sectionCustomizeControl(target, `${prefix}-customize`),
+		customize: customizeInEditorFeature(target, `${prefix}-customize`),
 	};
 }
 
@@ -239,14 +216,18 @@ function emptyDesignPanel(panelId: string, title: string): NestedPanelDef {
 				title: __('Styles', 'blockera'),
 				keepVisible: true,
 				controls: [
-					sectionCustomizeControl(target, `${panelId}-customize`),
+					customizeInEditorFeature(target, `${panelId}-customize`),
 				],
 			},
 		],
 	};
 }
 
-function loopItemElement(id: string, label: string): ControlDef {
+function loopItemElement(
+	id: string,
+	label: string,
+	nestedPanel?: NestedPanelDef
+): ControlDef {
 	return {
 		id,
 		type: 'toggle',
@@ -260,7 +241,7 @@ function loopItemElement(id: string, label: string): ControlDef {
 		},
 		innerOrder: LOOP_ITEM_INNER_ORDER,
 		requireAtLeastOneOf: LOOP_ITEM_IDS,
-		nestedPanel: emptyDesignPanel(id, label),
+		nestedPanel: nestedPanel ?? emptyDesignPanel(id, label),
 	};
 }
 
@@ -298,7 +279,7 @@ function postMetaElement(instance: 1 | 2): ControlDef {
 					title: __('Styles', 'blockera'),
 					keepVisible: true,
 					controls: [
-						sectionCustomizeControl(
+						customizeInEditorFeature(
 							rowTarget,
 							`${rowId}-customize`
 						),
@@ -635,7 +616,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 						title: __('Styles', 'blockera'),
 						keepVisible: true,
 						controls: [
-							sectionCustomizeControl(
+							customizeInEditorFeature(
 								HEADER_SECTION,
 								'header-customize'
 							),
@@ -776,7 +757,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 								conditions: PAGE_HEADER_BANNER,
 							},
 							{
-								...sectionCustomizeControl(
+								...customizeInEditorFeature(
 									PAGE_HEADER_SECTION,
 									'page-header-customize'
 								),
@@ -980,7 +961,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 						title: __('Styles', 'blockera'),
 						controls: [
 							POSTS_PER_PAGE,
-							sectionCustomizeControl(
+							customizeInEditorFeature(
 								POSTS_LISTING_TARGET,
 								'posts-loop-customize'
 							),
@@ -993,7 +974,8 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 						controls: [
 							loopItemElement(
 								'post-featured-image',
-								__('Featured Image', 'blockera')
+								__('Featured Image', 'blockera'),
+								postFeaturedImagePanel()
 							),
 							loopItemElement(
 								'post-title',
@@ -1070,7 +1052,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 						title: __('Styles', 'blockera'),
 						controls: [
 							{
-								...sectionStyleControl(
+								...styleVariationPickerFeature(
 									PAGINATION_TARGET,
 									'pagination-style'
 								),
@@ -1111,7 +1093,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 								},
 							},
 							{
-								...sectionCustomizeControl(
+								...customizeInEditorFeature(
 									PAGINATION_TARGET,
 									'pagination-customize'
 								),
@@ -1379,7 +1361,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 						title: __('Styles', 'blockera'),
 						keepVisible: true,
 						controls: [
-							sectionCustomizeControl(
+							customizeInEditorFeature(
 								FOOTER_SECTION,
 								'footer-customize'
 							),
