@@ -19,12 +19,12 @@ import type {
 } from '../shared/types';
 
 const HEADER_STACKED_PLACEMENT = {
-	relativeTo: 'archive-body',
+	relativeTo: 'main',
 	position: 'before' as const,
 };
 
 const FOOTER_STACKED_PLACEMENT = {
-	relativeTo: 'archive-body',
+	relativeTo: 'main',
 	position: 'after' as const,
 };
 
@@ -494,7 +494,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 		FILTER_IDS.taxonomy,
 	],
 	fallbackFilter: FILTER_IDS.archive,
-	layoutId: 'archive-body',
+	layoutId: 'main',
 	// Stampless fallbacks: when the user rebuilt a section by hand, detect it
 	// by block shape so the panel still resolves a (customized) state.
 	sectionHeuristics: {
@@ -655,7 +655,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 				offValue: false,
 				defaultValue: true,
 				insert: {
-					relativeTo: 'archive-body',
+					relativeTo: 'main',
 					position: 'inside-start',
 				},
 				catalogPool: 'page-header',
@@ -1298,7 +1298,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 				id: 'sidebar',
 				type: 'toggle',
 				label: __('Sidebar', 'blockera'),
-				target: { kind: 'layout', id: 'archive-body' },
+				target: { kind: 'layout', id: 'main' },
 				operation: 'transplantLayout',
 				onValue: 'sidebar-right',
 				offValue: 'no-sidebar',
@@ -1320,7 +1320,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 								scrollTarget: 'sidebar',
 								target: {
 									kind: 'layout',
-									id: 'archive-body',
+									id: 'main',
 								},
 								operation: 'transplantLayout',
 								conditions: [

@@ -6,5 +6,5 @@
 import type { StampDictionaryEntry } from '../shared/stamp';
 
 export const GLOBAL_FOOTER_STAMPS: readonly StampDictionaryEntry[] = [
-	'layout/footer-body',
+	'layout/site-footer',
 ];

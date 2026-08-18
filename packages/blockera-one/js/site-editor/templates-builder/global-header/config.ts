@@ -16,7 +16,7 @@ export const GLOBAL_HEADER_OPTIONS_CONFIG: TemplateOptionsConfig = {
 	filters: [],
 	partsAreas: ['header'],
 	entityPostType: 'wp_template_part',
-	layoutId: 'header-body',
+	layoutId: 'site-header',
 	groups: [
 		{
 			id: 'design',

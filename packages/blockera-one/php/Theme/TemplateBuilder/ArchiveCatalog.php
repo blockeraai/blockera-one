@@ -31,11 +31,11 @@ class ArchiveCatalog extends AbstractCatalog {
 	public function pools(): array {
 		// Chrome placement: stacked parts frame the layout root.
 		$before_body = array(
-			'relativeTo' => 'archive-body',
+			'relativeTo' => 'main',
 			'position'   => 'before',
 		);
 		$after_body  = array(
-			'relativeTo' => 'archive-body',
+			'relativeTo' => 'main',
 			'position'   => 'after',
 		);
 
@@ -98,7 +98,7 @@ class ArchiveCatalog extends AbstractCatalog {
 					array(
 						'thumbnail' => $this->thumbnail( 'page-header-banner' ),
 						'placement' => array(
-							'relativeTo' => 'archive-body',
+							'relativeTo' => 'main',
 							'position'   => 'inside-start',
 						),
 					)

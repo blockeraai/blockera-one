@@ -16,7 +16,7 @@ export const GLOBAL_FOOTER_OPTIONS_CONFIG: TemplateOptionsConfig = {
 	filters: [],
 	partsAreas: ['footer'],
 	entityPostType: 'wp_template_part',
-	layoutId: 'footer-body',
+	layoutId: 'site-footer',
 	groups: [
 		{
 			id: 'design',

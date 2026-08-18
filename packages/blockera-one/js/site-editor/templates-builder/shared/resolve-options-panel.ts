@@ -142,7 +142,7 @@ function stampIdForControl(control: ControlDef): string | null {
 	if (fromTarget) {
 		return fromTarget;
 	}
-	// Layout targets are the page frame (archive-body), not a stamp.
+	// Layout targets are the page frame (main), not a stamp.
 	// The control id is the stamp (sidebar). Setting-kind ids are not
 	// stamps — require scrollTarget so we do not start a canvas hunt.
 	if (control.target?.kind === 'layout' && control.id) {

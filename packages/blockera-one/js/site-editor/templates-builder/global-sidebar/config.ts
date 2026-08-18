@@ -16,7 +16,7 @@ export const GLOBAL_SIDEBAR_OPTIONS_CONFIG: TemplateOptionsConfig = {
 	filters: [],
 	partsAreas: ['sidebar'],
 	entityPostType: 'wp_template_part',
-	layoutId: 'sidebar-body',
+	layoutId: 'site-sidebar',
 	groups: [
 		{
 			id: 'design',

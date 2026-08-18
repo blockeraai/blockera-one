@@ -10,7 +10,7 @@
  */
 
 ?>
-<!-- wp:group {"metadata":{"blockeraOne":"layout/sidebar-body:default"},"layout":{"type":"default"}} -->
+<!-- wp:group {"metadata":{"blockeraOne":"layout/site-sidebar:default"},"layout":{"type":"default"}} -->
 <div class="wp-block-group">
 <!-- wp:heading {"style":{"typography":{"fontStyle":"normal","fontWeight":"600","textTransform":"uppercase","letterSpacing":"1.6px"}},"fontSize":"small"} -->
 <h2 class="wp-block-heading has-small-font-size" style="font-style:normal;font-weight:600;letter-spacing:1.6px;text-transform:uppercase"><?php esc_html_e( 'Other Posts', 'blockera-one' ); ?></h2>
