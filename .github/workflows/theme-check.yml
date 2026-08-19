@@ -33,6 +33,7 @@ jobs:
 
             - uses: ./packages/global-packages/packages/dev-tools/github/actions/theme-check
               with:
+                  repo-token: ${{ secrets.BLOCKERABOT_PAT }}
                   zip-file: blockera-one.zip
                   build-dir: ./build/blockera-one
                   accessible-ready: 'true'
