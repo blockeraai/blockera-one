@@ -844,7 +844,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 							loopItemElement(
 								'post-read-more',
 								__('Read More Button', 'blockera'),
-								readMorePanel()
+								readMorePanel({ targetId: 'post-read-more' })
 							),
 							postMetaElement(1),
 							postMetaElement(2),
