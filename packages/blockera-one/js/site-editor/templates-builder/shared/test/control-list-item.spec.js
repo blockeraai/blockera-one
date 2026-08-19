@@ -46,6 +46,14 @@ jest.mock('../controls/resolution-control', () => ({
 	__esModule: true,
 	default: () => null,
 }));
+jest.mock('../controls/font-family-control', () => ({
+	__esModule: true,
+	default: () => null,
+}));
+jest.mock('../controls/text-align-control', () => ({
+	__esModule: true,
+	default: () => null,
+}));
 jest.mock('../controls/color-control', () => ({
 	__esModule: true,
 	default: () => null,

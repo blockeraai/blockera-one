@@ -47,11 +47,13 @@ import BlockStyleSelect from './controls/block-style-select';
 import BorderControlRow from './controls/border-control';
 import BorderRadiusControlRow from './controls/border-radius-control';
 import ColorControlRow from './controls/color-control';
+import FontFamilyControlRow from './controls/font-family-control';
 import InputControlRow from './controls/input-control';
 import ResolutionControlRow from './controls/resolution-control';
 import LayoutMatrixControlRow from './controls/layout-matrix-control';
 import LayoutPicker from './controls/layout-picker';
 import StepperControlRow from './controls/stepper-control';
+import TextAlignControlRow from './controls/text-align-control';
 import ToggleControlRow from './controls/toggle-control';
 import ToggleSelectRow from './controls/toggle-select';
 import { hasUnresolvedVariants } from './resolve-variant-html';
@@ -726,6 +728,46 @@ export default function TemplateOptionsPanel({
 						} else if (control.type === 'aspect-ratio') {
 							controlNode = (
 								<AspectRatioControlRow
+									controlId={control.id}
+									label={control.label}
+									value={value}
+									disabled={commonDisabled}
+									attribute={blockeraAttributeId}
+									blockName={blockName}
+									columns={control.columns}
+									onChange={(next) =>
+										onChangeControl(
+											control,
+											next as ControlValue
+										)
+									}
+								/>
+							);
+						} else if (control.type === 'font-family') {
+							controlNode = (
+								<FontFamilyControlRow
+									controlId={control.id}
+									label={control.label}
+									value={value}
+									disabled={commonDisabled}
+									controlAddonTypes={
+										control.controlAddonTypes
+									}
+									variableTypes={control.variableTypes}
+									attribute={blockeraAttributeId}
+									blockName={blockName}
+									columns={control.columns}
+									onChange={(next) =>
+										onChangeControl(
+											control,
+											next as ControlValue
+										)
+									}
+								/>
+							);
+						} else if (control.type === 'text-align') {
+							controlNode = (
+								<TextAlignControlRow
 									controlId={control.id}
 									label={control.label}
 									value={value}

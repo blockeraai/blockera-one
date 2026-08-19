@@ -10,15 +10,17 @@ import {
 	borderRadiusFeature,
 	bottomSpacingFeature,
 	customizeInEditorFeature,
+	fontFamilyFeature,
 	fontSizeFeature,
 	gapFeature,
-	makeImageALinkFeature,
+	isLinkFeature,
 	maxWidthFeature,
 	minHeightFeature,
 	openInNewTabFeature,
 	resolutionFeature,
 	spacingFeature,
 	styleVariationPickerFeature,
+	textAlignFeature,
 	textColorFeature,
 } from '../features';
 
@@ -82,9 +84,9 @@ describe('shared features', () => {
 		});
 	});
 
-	it('makeImageALinkFeature and openInNewTabFeature pair on isLink', () => {
+	it('isLinkFeature and openInNewTabFeature pair on isLink', () => {
 		const isLinkId = 'post-featured-image-is-link';
-		expect(makeImageALinkFeature(TARGET, isLinkId)).toMatchObject({
+		expect(isLinkFeature(TARGET, isLinkId)).toMatchObject({
 			id: isLinkId,
 			type: 'toggle',
 			attributePath: 'isLink',
@@ -151,6 +153,17 @@ describe('shared features', () => {
 			id: 'title-font-size',
 			attributePath: 'blockeraFontSize.value',
 			variableTypes: ['font-size'],
+		});
+		expect(fontFamilyFeature(TARGET, 'title-font-family')).toMatchObject({
+			id: 'title-font-family',
+			type: 'font-family',
+			attributePath: 'blockeraFontFamily.value',
+			variableTypes: ['font-family'],
+		});
+		expect(textAlignFeature(TARGET, 'title-text-align')).toMatchObject({
+			id: 'title-text-align',
+			type: 'text-align',
+			attributePath: 'blockeraTextAlign.value',
 		});
 		expect(gapFeature(TARGET, 'page-header-gap')).toMatchObject({
 			id: 'page-header-gap',

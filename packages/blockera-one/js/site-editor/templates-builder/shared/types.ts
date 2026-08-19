@@ -50,6 +50,8 @@ export type ControlType =
 	| 'border-radius'
 	| 'aspect-ratio'
 	| 'resolution'
+	| 'font-family'
+	| 'text-align'
 	| 'gateway';
 
 /** Section-bound target for shared features and config factories. */

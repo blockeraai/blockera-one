@@ -637,6 +637,59 @@ describe('archive config structural invariants', () => {
 		]);
 	});
 
+	it('completes Title Styles and Settings', () => {
+		const pageLayout = config.groups.find((g) => g.id === 'page-layout');
+		const title = pageLayout.nestedPanel.groups
+			.find((g) => g.id === 'posts-loop-blocks')
+			.controls.find((c) => c.id === 'post-title');
+		expect(title.nestedPanel.groups.map((g) => g.id)).toEqual([
+			'post-title-styles',
+			'post-title-settings',
+		]);
+		expect(title.nestedPanel.groups.map((g) => g.title)).toEqual([
+			'Styles',
+			'Settings',
+		]);
+		const styles = title.nestedPanel.groups[0];
+		expect(styles.controls.map((c) => c.id)).toEqual([
+			'post-title-style',
+			'post-title-font-family',
+			'post-title-font-size',
+			'post-title-color',
+			'post-title-text-align',
+			'post-title-bottom-spacing',
+			'post-title-customize',
+		]);
+		expect(styles.controls[0].label).toBe('Style Variation');
+		expect(styles.controls[1].attributePath).toBe(
+			'blockeraFontFamily.value'
+		);
+		expect(styles.controls[1].variableTypes).toEqual(['font-family']);
+		expect(styles.controls[2].attributePath).toBe('blockeraFontSize.value');
+		expect(styles.controls[3].attributePath).toBe(
+			'blockeraFontColor.value'
+		);
+		expect(styles.controls[4].attributePath).toBe(
+			'blockeraTextAlign.value'
+		);
+		expect(styles.controls[5].attributeMergeKeys).toEqual([
+			'margin.bottom',
+		]);
+		expect(styles.controls[6].operation).toBe('selectInCanvas');
+		const settings = title.nestedPanel.groups[1];
+		expect(settings.controls.map((c) => c.id)).toEqual([
+			'post-title-is-link',
+			'post-title-open-in-new-tab',
+		]);
+		expect(settings.controls[0].label).toBe('Make title a link');
+		expect(settings.controls[0].attributePath).toBe('isLink');
+		expect(settings.controls[0].defaultValue).toBe(false);
+		expect(settings.controls[1].attributePath).toBe('linkTarget');
+		expect(settings.controls[1].conditions).toEqual([
+			{ controlId: 'post-title-is-link', equals: true },
+		]);
+	});
+
 	it('keeps two Post Meta rows on independent stamps and child lists', () => {
 		const meta1 = controls.find((c) => c.id === 'post-meta');
 		const meta2 = controls.find((c) => c.id === 'post-meta-2');

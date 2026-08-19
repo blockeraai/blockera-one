@@ -17,6 +17,7 @@ import {
 	paginationNumbersPanel,
 	paginationPreviousPanel,
 	postFeaturedImagePanel,
+	postTitlePanel,
 } from '../shared/blocks';
 import {
 	alignmentFeature,
@@ -811,7 +812,8 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 							),
 							loopItemElement(
 								'post-title',
-								__('Title', 'blockera')
+								__('Title', 'blockera'),
+								postTitlePanel()
 							),
 							loopItemElement(
 								'post-excerpt',

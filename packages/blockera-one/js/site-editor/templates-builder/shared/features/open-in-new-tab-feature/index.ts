@@ -1,7 +1,7 @@
 /**
  * Open in New Tab feature — `linkTarget` on a stamped image section.
- * Inspector UI is ToggleControlRow. Pass the Make Image a Link control id
- * to hide this row when the image is not a link.
+ * Inspector UI is ToggleControlRow. Pass the is-link control id
+ * to hide this row when the target is not a link.
  */
 
 import { __ } from '@wordpress/i18n';

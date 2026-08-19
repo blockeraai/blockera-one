@@ -1,5 +1,5 @@
 /**
- * Featured Image nested panel — stamp `section/post-featured-image`.
+ * Post Title nested panel — stamp `section/post-title`.
  * Shared across Posts Loop, and later single/page template types.
  */
 
@@ -7,45 +7,50 @@ import { __ } from '@wordpress/i18n';
 
 import type { NestedPanelDef, SectionTarget } from '../types';
 import {
-	aspectRatioFeature,
-	borderRadiusFeature,
 	bottomSpacingFeature,
 	customizeInEditorFeature,
+	fontFamilyFeature,
+	fontSizeFeature,
 	isLinkFeature,
 	openInNewTabFeature,
-	resolutionFeature,
 	styleVariationPickerFeature,
+	textAlignFeature,
+	textColorFeature,
 } from '../features';
 import { createBlockSubpanel } from './helpers';
 
-export type PostFeaturedImagePanelOptions = {
-	/** Stamp id. Defaults to `post-featured-image`. */
+export type PostTitlePanelOptions = {
+	/** Stamp id. Defaults to `post-title`. */
 	targetId?: string;
 	/** Control id prefix. Defaults to `targetId`. */
 	controlPrefix?: string;
 };
 
-export function postFeaturedImagePanel(
-	options: PostFeaturedImagePanelOptions = {}
+export function postTitlePanel(
+	options: PostTitlePanelOptions = {}
 ): NestedPanelDef {
-	const targetId = options.targetId ?? 'post-featured-image';
+	const targetId = options.targetId ?? 'post-title';
 	const prefix = options.controlPrefix ?? targetId;
 	const target: SectionTarget = { kind: 'section', id: targetId };
 	const isLinkId = `${prefix}-is-link`;
 
 	return createBlockSubpanel({
 		id: targetId,
-		title: __('Featured Image', 'blockera'),
+		title: __('Title', 'blockera'),
 		styles: [
 			styleVariationPickerFeature(target, `${prefix}-style`),
-			aspectRatioFeature(target, `${prefix}-aspect-ratio`),
-			borderRadiusFeature(target, `${prefix}-border-radius`),
+			fontFamilyFeature(target, `${prefix}-font-family`),
+			fontSizeFeature(target, `${prefix}-font-size`),
+			textColorFeature(target, `${prefix}-color`),
+			textAlignFeature(target, `${prefix}-text-align`),
 			bottomSpacingFeature(target, `${prefix}-bottom-spacing`),
 			customizeInEditorFeature(target, `${prefix}-customize`),
 		],
 		settings: [
-			resolutionFeature(target, `${prefix}-resolution`),
-			isLinkFeature(target, isLinkId),
+			isLinkFeature(target, isLinkId, {
+				label: __('Make title a link', 'blockera'),
+				defaultValue: false,
+			}),
 			openInNewTabFeature(target, `${prefix}-open-in-new-tab`, isLinkId),
 		],
 	});
