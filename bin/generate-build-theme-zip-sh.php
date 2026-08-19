@@ -145,7 +145,7 @@ while (true) {
 			echo implode(PHP_EOL, array_map(function (string $name): string {
 
 				return sprintf(
-					'	$(find ./vendor/blockera/%1$s/ -type f \( -name "*.php" -o -name "*.json" -o -name "*.css" \)) \\',
+					'	$(find ./vendor/blockera/%1$s/ -type f ! -path "*/tests/*" \( -name "*.php" -o -name "*.json" -o -name "*.css" \)) \\',
 					$name
 				);
 			}, $internal_packages));
@@ -159,7 +159,7 @@ while (true) {
 				array_map(function (string $name): string {
 
 					return sprintf(
-						'	$(find ./vendor/blockera/%1$s/) \\',
+						'	$(find ./vendor/blockera/%1$s/ ! -path "*/tests/*") \\',
 						$name
 					);
 				}, $sdks)
