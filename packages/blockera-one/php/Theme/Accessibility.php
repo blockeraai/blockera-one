@@ -20,7 +20,6 @@ class Accessibility {
 	public function register(): void {
 		add_action( 'after_setup_theme', array( $this, 'addThemeSupport' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueueBlockStyles' ), 11 );
-		add_action( 'wp_body_open', array( $this, 'printSkipLinks' ), 1 );
 	}
 
 	/**
@@ -43,28 +42,5 @@ class Accessibility {
 		}
 
 		wp_enqueue_style( 'wp-block-navigation' );
-	}
-
-	/**
-	 * Print WordPress theme review skip link markup.
-	 *
-	 * Theme Review expects the anchor with id `wp-skip-link` and href
-	 * `#wp--skip-link--target` to exist as the first tabbable element.
-	 *
-	 * @return void
-	 */
-	public function printSkipLinks(): void {
-		static $printed = false;
-		if ( $printed || is_admin() ) {
-			return;
-		}
-
-		$printed = true;
-
-		// Theme Review: https://github.com/WordPress/theme-review-action/blob/trunk/docs/ui-warnings.md#should-have-skip-links
-		echo '<a class="skip-link screen-reader-text" id="wp-skip-link" href="#wp--skip-link--target">' .
-			esc_html__( 'Skip to content', 'blockera-one' ) .
-		'</a>';
-		echo '<div id="wp--skip-link--target" tabindex="-1"></div>';
 	}
 }
