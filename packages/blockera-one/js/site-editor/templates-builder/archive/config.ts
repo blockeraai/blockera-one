@@ -13,11 +13,16 @@ import { __ } from '@wordpress/i18n';
 import { FILTER_IDS } from '../../templates/constants';
 import {
 	breadcrumbsPanel,
+	commentsLinkPanel,
+	contentPanel,
+	excerptPanel,
 	paginationNextPanel,
 	paginationNumbersPanel,
 	paginationPreviousPanel,
+	postDatePanel,
 	postFeaturedImagePanel,
 	postTitlePanel,
+	readMorePanel,
 } from '../shared/blocks';
 import {
 	alignmentFeature,
@@ -123,7 +128,7 @@ const POST_META_CHILD_DEFS = [
 	{ suffix: 'comments-count', label: __('Comments Count', 'blockera') },
 	{ suffix: 'comments-link', label: __('Comments Link', 'blockera') },
 	{ suffix: 'date', label: __('Date', 'blockera') },
-	{ suffix: 'post-date', label: __('Post Date', 'blockera') },
+	{ suffix: 'post-date', label: __('Published Date', 'blockera') },
 	{ suffix: 'modified-date', label: __('Modified Date', 'blockera') },
 	{ suffix: 'categories', label: __('Categories', 'blockera') },
 	{ suffix: 'tags', label: __('Tags', 'blockera') },
@@ -256,6 +261,17 @@ function postMetaElement(instance: 1 | 2): ControlDef {
 					sortable: true,
 					controls: POST_META_CHILD_DEFS.map((item) => {
 						const childId = `${prefix}-${item.suffix}`;
+						let nestedPanel: NestedPanelDef = emptyDesignPanel(
+							childId,
+							item.label
+						);
+						if (item.suffix === 'comments-link') {
+							nestedPanel = commentsLinkPanel({
+								targetId: childId,
+							});
+						} else if (item.suffix === 'post-date') {
+							nestedPanel = postDatePanel({ targetId: childId });
+						}
 						return {
 							id: childId,
 							type: 'toggle' as const,
@@ -269,7 +285,7 @@ function postMetaElement(instance: 1 | 2): ControlDef {
 							},
 							innerOrder: childOrder,
 							requireAtLeastOneOf: childIds,
-							nestedPanel: emptyDesignPanel(childId, item.label),
+							nestedPanel,
 						};
 					}),
 				},
@@ -817,15 +833,18 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 							),
 							loopItemElement(
 								'post-excerpt',
-								__('Excerpt', 'blockera')
+								__('Excerpt', 'blockera'),
+								excerptPanel()
 							),
 							loopItemElement(
 								'post-content',
-								__('Content', 'blockera')
+								__('Full Post Content', 'blockera'),
+								contentPanel()
 							),
 							loopItemElement(
 								'post-read-more',
-								__('Read More', 'blockera')
+								__('Read More Button', 'blockera'),
+								readMorePanel()
 							),
 							postMetaElement(1),
 							postMetaElement(2),
