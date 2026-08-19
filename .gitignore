@@ -126,3 +126,6 @@ images
 
 # Docs temporary for ai assistant
 docs-temp-ai/
+
+# Package lock files
+composer.lock
