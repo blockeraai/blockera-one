@@ -38,6 +38,26 @@ if ( ! function_exists( 'blockera_one_should_load_embedded_blockera' ) ) :
 	}
 endif;
 
+if ( ! function_exists( 'blockera_one_bootstrap_blockera' ) ) :
+	/**
+	 * Load embedded Blockera or companion-only theme hooks.
+	 *
+	 * Captures the embedded/companion decision once: loading blockera.php defines
+	 * BLOCKERA_SB_FILE, which would flip a second should_load_embedded check.
+	 *
+	 * @return void
+	 */
+	function blockera_one_bootstrap_blockera(): void {
+		if ( blockera_one_should_load_embedded_blockera() ) {
+			require_once __DIR__ . '/blockera.php';
+			return;
+		}
+
+		// Companion owns Blockera — enqueue theme `*-one` packages from Composer vendor.
+		require_once __DIR__ . '/vendor/blockera/blockera-one/php/hooks.php';
+	}
+endif;
+
 ### BEGIN AUTO-GENERATED AUTOLOADER
 require_once __DIR__ . '/packages/global-packages/packages/autoloader-coordinator/bootstrap.php';
 blockera_bootstrap_shared_autoloader(
@@ -66,14 +86,6 @@ blockera_bootstrap_shared_autoloader(
 );
 ### END AUTO-GENERATED AUTOLOADER
 
-// Load embedded Blockera only when the standalone plugin is not already active.
-if ( blockera_one_should_load_embedded_blockera() ) :
-	require_once get_template_directory() . '/blockera.php';
-endif;
-
-// Companion owns Blockera — still enqueue theme `*-one` packages from theme dist.
-if ( ! blockera_one_should_load_embedded_blockera() ) :
-	require_once get_template_directory() . '/packages/blockera-one/php/hooks.php';
-endif;
+blockera_one_bootstrap_blockera();
 
 \Blockera\One\Theme\Bootstrap::boot();
