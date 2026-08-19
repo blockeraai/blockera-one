@@ -54,7 +54,7 @@ a {
 }
 
 .skip-link.screen-reader-text:focus {
-	background-color: #eee;
+	background-color: #eeeeee;
 	clip: auto !important;
 	clip-path: none;
 	color: #444;
