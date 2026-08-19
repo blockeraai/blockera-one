@@ -3,14 +3,23 @@
  */
 
 import {
+	alignmentFeature,
 	aspectRatioFeature,
+	backgroundColorFeature,
+	borderFeature,
 	borderRadiusFeature,
 	bottomSpacingFeature,
 	customizeInEditorFeature,
+	fontSizeFeature,
+	gapFeature,
 	makeImageALinkFeature,
+	maxWidthFeature,
+	minHeightFeature,
 	openInNewTabFeature,
 	resolutionFeature,
+	spacingFeature,
 	styleVariationPickerFeature,
+	textColorFeature,
 } from '../features';
 
 const TARGET = { kind: 'section', id: 'post-featured-image' };
@@ -104,6 +113,112 @@ describe('shared features', () => {
 			type: 'button',
 			operation: 'selectInCanvas',
 			target: TARGET,
+		});
+	});
+
+	it('applies the options bag without spreading a ControlDef', () => {
+		const conditions = [{ controlId: 'pagination', equals: true }];
+		expect(
+			styleVariationPickerFeature(TARGET, 'pagination-style', {
+				conditions,
+				alsoSetOn: ['body'],
+			})
+		).toMatchObject({
+			id: 'pagination-style',
+			operation: 'setBlockStyle',
+			conditions,
+			alsoSetOn: ['body'],
+		});
+		expect(
+			styleVariationPickerFeature(TARGET, 'pagination-style', {
+				label: undefined,
+			}).label
+		).toBe('Style Variation');
+	});
+
+	it('text, background, font-size, and gap features write Blockera attrs', () => {
+		expect(textColorFeature(TARGET, 'title-color')).toMatchObject({
+			id: 'title-color',
+			type: 'color',
+			attributePath: 'blockeraFontColor.value',
+			variableTypes: ['color'],
+		});
+		expect(backgroundColorFeature(TARGET, 'title-bg-color')).toMatchObject({
+			id: 'title-bg-color',
+			attributePath: 'blockeraBackgroundColor.value',
+		});
+		expect(fontSizeFeature(TARGET, 'title-font-size')).toMatchObject({
+			id: 'title-font-size',
+			attributePath: 'blockeraFontSize.value',
+			variableTypes: ['font-size'],
+		});
+		expect(gapFeature(TARGET, 'page-header-gap')).toMatchObject({
+			id: 'page-header-gap',
+			attributePath: 'blockeraGap.value',
+			variableTypes: ['spacing'],
+		});
+	});
+
+	it('spacingFeature writes merge keys; bottomSpacingFeature defaults to margin.bottom', () => {
+		expect(
+			spacingFeature(TARGET, 'page-header-padding', {
+				label: 'Inner Padding',
+				attributeMergeKeys: ['padding.top', 'padding.bottom'],
+				unitType: 'padding',
+			})
+		).toMatchObject({
+			id: 'page-header-padding',
+			attributePath: 'blockeraSpacing.value',
+			attributeMergeKeys: ['padding.top', 'padding.bottom'],
+			unitType: 'padding',
+			label: 'Inner Padding',
+		});
+		expect(
+			bottomSpacingFeature(TARGET, 'page-header-bottom-spacing', {
+				label: 'Bottom Space',
+			})
+		).toMatchObject({
+			attributeMergeKeys: ['margin.bottom'],
+			label: 'Bottom Space',
+		});
+	});
+
+	it('alignment, min-height, max-width, and border features keep write paths', () => {
+		const container = { kind: 'container', id: 'body' };
+		expect(
+			alignmentFeature(container, 'page-header-align-banner')
+		).toMatchObject({
+			id: 'page-header-align-banner',
+			type: 'layout-matrix',
+			attributePath: 'blockeraFlexLayout.value',
+			defaultDirection: 'column',
+			isDirectionActive: false,
+			target: container,
+		});
+		expect(
+			minHeightFeature(TARGET, 'page-header-min-height')
+		).toMatchObject({
+			attributePath: 'blockeraMinHeight.value',
+			unitType: 'min-height',
+		});
+		expect(
+			maxWidthFeature(container, 'page-header-body-width')
+		).toMatchObject({
+			attributePath: 'blockeraMaxWidth.value',
+			alsoWrite: [
+				{ attributePath: 'blockeraWidth.value', value: 'stretch' },
+			],
+		});
+		expect(
+			borderFeature(TARGET, 'pagination-top-divider', {
+				borderSide: 'top',
+				label: 'Top Divider',
+			})
+		).toMatchObject({
+			type: 'border',
+			attributePath: 'blockeraBorder.value',
+			borderSide: 'top',
+			label: 'Top Divider',
 		});
 	});
 });
