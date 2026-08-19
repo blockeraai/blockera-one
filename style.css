@@ -80,7 +80,7 @@ a {
 /*
  * Submenu visibility for keyboard and pointer users (mirrors core block styles).
  */
-@media (min-width: 782px) {
+@media (min-width: 1px) {
 	.wp-block-navigation .has-child:not(.open-on-click):hover > .wp-block-navigation__submenu-container,
 	.wp-block-navigation .has-child:not(.open-on-click):not(.open-on-hover-click):focus-within > .wp-block-navigation__submenu-container,
 	.wp-block-navigation .has-child .wp-block-navigation-submenu__toggle[aria-expanded="true"] ~ .wp-block-navigation__submenu-container {
