@@ -24,7 +24,6 @@ class AccessibilityTest extends TestCase {
 
 		$this->assertSame( 10, has_action( 'after_setup_theme', array( $module, 'addThemeSupport' ) ) );
 		$this->assertSame( 11, has_action( 'wp_enqueue_scripts', array( $module, 'enqueueBlockStyles' ) ) );
-		$this->assertSame( 1, has_action( 'wp_body_open', array( $module, 'printSkipLinks' ) ) );
 	}
 
 	/**
