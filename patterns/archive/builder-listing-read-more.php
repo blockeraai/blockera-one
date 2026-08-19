@@ -12,4 +12,4 @@
  */
 
 ?>
-<!-- wp:read-more {"metadata":{"blockeraOne":"section/post-read-more:default"}} /-->
+<!-- wp:read-more {"content":"<?php esc_html_e( 'Read more', 'blockera-one' ); ?>","metadata":{"blockeraOne":"section/post-read-more:default"}} /-->
