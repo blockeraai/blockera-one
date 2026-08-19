@@ -36,6 +36,62 @@ a {
 	outline-style: solid;
 }
 
+/*
+ * Skip link visibility on keyboard focus.
+ * https://make.wordpress.org/themes/handbook/review/accessibility/required/#skip-links
+ */
+.skip-link.screen-reader-text {
+	border: 0;
+	clip: rect(1px, 1px, 1px, 1px);
+	clip-path: inset(50%);
+	height: 1px;
+	margin: -1px;
+	overflow: hidden;
+	padding: 0;
+	position: absolute;
+	width: 1px;
+	word-wrap: normal !important;
+}
+
+.skip-link.screen-reader-text:focus {
+	background-color: #eee;
+	clip: auto !important;
+	clip-path: none;
+	color: #444;
+	display: block;
+	font-size: 1em;
+	height: auto;
+	left: 5px;
+	line-height: normal;
+	padding: 15px 23px 14px;
+	text-decoration: none;
+	top: 5px;
+	width: auto;
+	z-index: 100000;
+}
+
+/*
+ * Keep keyboard tab order aligned with visible navigation when overlay menus are closed.
+ */
+.wp-block-navigation__responsive-container:not(.is-menu-open) {
+	display: none !important;
+}
+
+/*
+ * Submenu visibility for keyboard and pointer users (mirrors core block styles).
+ */
+@media (min-width: 782px) {
+	.wp-block-navigation .has-child:not(.open-on-click):hover > .wp-block-navigation__submenu-container,
+	.wp-block-navigation .has-child:not(.open-on-click):not(.open-on-hover-click):focus-within > .wp-block-navigation__submenu-container,
+	.wp-block-navigation .has-child .wp-block-navigation-submenu__toggle[aria-expanded="true"] ~ .wp-block-navigation__submenu-container {
+		visibility: visible;
+		opacity: 1;
+		height: auto;
+		min-width: 200px;
+		overflow: visible;
+	}
+}
+
 /* Increase the bottom margin on submenus, so that the outline is visible. */
 .wp-block-navigation .wp-block-navigation-submenu .wp-block-navigation-item:not(:last-child) {
 	margin-bottom: 3px;
