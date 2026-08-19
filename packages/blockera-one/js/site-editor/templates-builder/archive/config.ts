@@ -11,10 +11,26 @@
 import { __ } from '@wordpress/i18n';
 
 import { FILTER_IDS } from '../../templates/constants';
-import { postFeaturedImagePanel } from '../shared/blocks';
 import {
+	breadcrumbsPanel,
+	paginationNextPanel,
+	paginationNumbersPanel,
+	paginationPreviousPanel,
+	postFeaturedImagePanel,
+} from '../shared/blocks';
+import {
+	alignmentFeature,
+	backgroundColorFeature,
+	borderFeature,
+	bottomSpacingFeature,
 	customizeInEditorFeature,
+	fontSizeFeature,
+	gapFeature,
+	maxWidthFeature,
+	minHeightFeature,
+	spacingFeature,
 	styleVariationPickerFeature,
+	textColorFeature,
 } from '../shared/features';
 import type {
 	ControlDef,
@@ -138,69 +154,17 @@ const BREADCRUMBS_TARGET: SectionTarget = {
 	id: 'page-header-breadcrumbs',
 };
 
-function sectionColorControl(
-	target: SectionTarget,
-	id: string,
-	label: string,
-	attributePath: string
-): ControlDef {
-	return {
-		id,
-		type: 'color',
-		label,
-		target,
-		operation: 'setSectionAttribute',
-		attributePath,
-		controlAddonTypes: ['variable'],
-		variableTypes: ['color'],
-	};
-}
-
-function sectionFontSizeControl(target: SectionTarget, id: string): ControlDef {
-	return {
-		id,
-		type: 'input',
-		label: __('Font Size', 'blockera'),
-		target,
-		operation: 'setSectionAttribute',
-		attributePath: 'blockeraFontSize.value',
-		unitType: 'essential',
-		controlAddonTypes: ['variable'],
-		variableTypes: ['font-size'],
-		min: 0,
-	};
-}
-
 function elementDesignControls(
 	target: SectionTarget,
 	prefix: string,
 	alsoSetOn?: string[]
 ) {
-	const color = sectionColorControl(
-		target,
-		`${prefix}-color`,
-		__('Text Color', 'blockera'),
-		'blockeraFontColor.value'
-	);
-	const bgColor = sectionColorControl(
-		target,
-		`${prefix}-bg-color`,
-		__('BG Color', 'blockera'),
-		'blockeraBackgroundColor.value'
-	);
-	const style = styleVariationPickerFeature(target, `${prefix}-style`);
-	const fontSize = sectionFontSizeControl(target, `${prefix}-font-size`);
-	if (alsoSetOn?.length) {
-		color.alsoSetOn = alsoSetOn;
-		bgColor.alsoSetOn = alsoSetOn;
-		style.alsoSetOn = alsoSetOn;
-		fontSize.alsoSetOn = alsoSetOn;
-	}
+	const shared = alsoSetOn?.length ? { alsoSetOn } : undefined;
 	return {
-		color,
-		bgColor,
-		style,
-		fontSize,
+		color: textColorFeature(target, `${prefix}-color`, shared),
+		bgColor: backgroundColorFeature(target, `${prefix}-bg-color`, shared),
+		style: styleVariationPickerFeature(target, `${prefix}-style`, shared),
+		fontSize: fontSizeFeature(target, `${prefix}-font-size`, shared),
 		customize: customizeInEditorFeature(target, `${prefix}-customize`),
 	};
 }
@@ -341,11 +305,6 @@ function elementDesignPanel(
 	};
 }
 
-const BREADCRUMBS_DESIGN = elementDesignControls(
-	BREADCRUMBS_TARGET,
-	'breadcrumbs'
-);
-
 const PAGE_HEADER_DESIGN: ControlDef = {
 	id: 'page-header-design',
 	type: 'layout-picker',
@@ -392,8 +351,8 @@ const PAGE_HEADER_BANNER = [
 	{ controlId: 'page-header-design', equals: 'banner' },
 ];
 
-const PAGE_HEADER_SECTION = {
-	kind: 'section' as const,
+const PAGE_HEADER_SECTION: SectionTarget = {
+	kind: 'section',
 	id: 'page-header',
 };
 
@@ -415,16 +374,6 @@ const POSTS_LISTING_TARGET: SectionTarget = {
 const BODY_CONTAINER = {
 	kind: 'container' as const,
 	id: 'body',
-};
-
-const PAGE_HEADER_ALIGN = {
-	type: 'layout-matrix' as const,
-	label: __('Alignment', 'blockera'),
-	operation: 'setSectionAttribute' as const,
-	attributePath: 'blockeraFlexLayout.value',
-	isDirectionActive: false,
-	isAxisControlsActive: false,
-	defaultDirection: 'column' as const,
 };
 
 const POSTS_TEMPLATE: ControlDef = {
@@ -658,111 +607,75 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 						id: 'page-header-styles',
 						title: __('Styles', 'blockera'),
 						controls: [
-							{
-								id: 'page-header-gap',
-								type: 'input',
-								label: __('Gap', 'blockera'),
-								target: PAGE_HEADER_SECTION,
+							gapFeature(PAGE_HEADER_SECTION, 'page-header-gap', {
 								alsoSetOn: ['body'],
-								operation: 'setSectionAttribute',
-								attributePath: 'blockeraGap.value',
-								unitType: 'essential',
-								controlAddonTypes: ['variable'],
-								variableTypes: ['spacing'],
 								conditions: [...PAGE_HEADER_ON],
-							},
-							{
-								id: 'page-header-bottom-spacing',
-								type: 'input',
-								label: __('Bottom Space', 'blockera'),
-								target: PAGE_HEADER_SECTION,
-								operation: 'setSectionAttribute',
-								attributePath: 'blockeraSpacing.value',
-								attributeMergeKeys: ['margin.bottom'],
-								unitType: 'margin',
-								controlAddonTypes: ['variable'],
-								variableTypes: ['spacing'],
-								conditions: PAGE_HEADER_SIMPLE,
-							},
-							{
-								...PAGE_HEADER_ALIGN,
-								id: 'page-header-align',
-								target: PAGE_HEADER_SECTION,
-								alsoSetOn: ['body'],
-								conditions: PAGE_HEADER_SIMPLE,
-							},
-							{
-								...PAGE_HEADER_ALIGN,
-								id: 'page-header-align-banner',
-								target: BODY_CONTAINER,
-								conditions: PAGE_HEADER_BANNER,
-							},
-							{
-								id: 'page-header-bg-color',
-								type: 'color',
-								label: __('BG Color', 'blockera'),
-								target: PAGE_HEADER_SECTION,
-								operation: 'setSectionAttribute',
-								attributePath: 'blockeraBackgroundColor.value',
-								controlAddonTypes: ['variable'],
-								variableTypes: ['color'],
-								conditions: PAGE_HEADER_BANNER,
-							},
-							{
-								id: 'page-header-min-height',
-								type: 'input',
-								label: __('Min Height', 'blockera'),
-								target: PAGE_HEADER_SECTION,
-								operation: 'setSectionAttribute',
-								attributePath: 'blockeraMinHeight.value',
-								unitType: 'min-height',
-								controlAddonTypes: ['variable'],
-								variableTypes: ['width-size', 'spacing'],
-								min: 0,
-								conditions: PAGE_HEADER_BANNER,
-							},
-							{
-								id: 'page-header-padding',
-								type: 'input',
-								label: __('Inner Padding', 'blockera'),
-								target: PAGE_HEADER_SECTION,
-								operation: 'setSectionAttribute',
-								attributePath: 'blockeraSpacing.value',
-								attributeMergeKeys: [
-									'padding.top',
-									'padding.bottom',
-								],
-								unitType: 'padding',
-								controlAddonTypes: ['variable'],
-								variableTypes: ['spacing'],
-								conditions: PAGE_HEADER_BANNER,
-							},
-							{
-								id: 'page-header-body-width',
-								type: 'input',
-								label: __('Inner Width', 'blockera'),
-								target: BODY_CONTAINER,
-								operation: 'setSectionAttribute',
-								attributePath: 'blockeraMaxWidth.value',
-								alsoWrite: [
-									{
-										attributePath: 'blockeraWidth.value',
-										value: 'stretch',
-									},
-								],
-								unitType: 'max-width',
-								controlAddonTypes: ['variable'],
-								variableTypes: ['width-size', 'spacing'],
-								min: 0,
-								conditions: PAGE_HEADER_BANNER,
-							},
-							{
-								...customizeInEditorFeature(
-									PAGE_HEADER_SECTION,
-									'page-header-customize'
-								),
-								conditions: [...PAGE_HEADER_ON],
-							},
+							}),
+							bottomSpacingFeature(
+								PAGE_HEADER_SECTION,
+								'page-header-bottom-spacing',
+								{
+									label: __('Bottom Space', 'blockera'),
+									conditions: PAGE_HEADER_SIMPLE,
+								}
+							),
+							alignmentFeature(
+								PAGE_HEADER_SECTION,
+								'page-header-align',
+								{
+									alsoSetOn: ['body'],
+									conditions: PAGE_HEADER_SIMPLE,
+								}
+							),
+							alignmentFeature(
+								BODY_CONTAINER,
+								'page-header-align-banner',
+								{
+									conditions: PAGE_HEADER_BANNER,
+								}
+							),
+							backgroundColorFeature(
+								PAGE_HEADER_SECTION,
+								'page-header-bg-color',
+								{
+									conditions: PAGE_HEADER_BANNER,
+								}
+							),
+							minHeightFeature(
+								PAGE_HEADER_SECTION,
+								'page-header-min-height',
+								{
+									conditions: PAGE_HEADER_BANNER,
+								}
+							),
+							spacingFeature(
+								PAGE_HEADER_SECTION,
+								'page-header-padding',
+								{
+									label: __('Inner Padding', 'blockera'),
+									attributeMergeKeys: [
+										'padding.top',
+										'padding.bottom',
+									],
+									unitType: 'padding',
+									conditions: PAGE_HEADER_BANNER,
+								}
+							),
+							maxWidthFeature(
+								BODY_CONTAINER,
+								'page-header-body-width',
+								{
+									label: __('Inner Width', 'blockera'),
+									conditions: PAGE_HEADER_BANNER,
+								}
+							),
+							customizeInEditorFeature(
+								PAGE_HEADER_SECTION,
+								'page-header-customize',
+								{
+									conditions: [...PAGE_HEADER_ON],
+								}
+							),
 						],
 					},
 					{
@@ -852,88 +765,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 										equals: true,
 									},
 								],
-								nestedPanel: {
-									id: 'page-header-breadcrumbs',
-									title: __('Breadcrumbs', 'blockera'),
-									groups: [
-										{
-											id: 'breadcrumbs-styles',
-											title: __('Styles', 'blockera'),
-											controls: [
-												BREADCRUMBS_DESIGN.style,
-												BREADCRUMBS_DESIGN.color,
-												BREADCRUMBS_DESIGN.bgColor,
-												BREADCRUMBS_DESIGN.fontSize,
-												{
-													id: 'breadcrumbs-gap',
-													type: 'input',
-													label: __(
-														'Gap',
-														'blockera'
-													),
-													target: BREADCRUMBS_TARGET,
-													operation:
-														'setSectionAttribute',
-													attributePath:
-														'blockeraGap.value',
-													unitType: 'essential',
-													controlAddonTypes: [
-														'variable',
-													],
-													variableTypes: ['spacing'],
-												},
-												BREADCRUMBS_DESIGN.customize,
-											],
-										},
-										{
-											id: 'breadcrumbs-settings',
-											title: __('Settings', 'blockera'),
-											controls: [
-												{
-													id: 'breadcrumbs-separator',
-													type: 'input',
-													label: __(
-														'Separator',
-														'blockera'
-													),
-													target: BREADCRUMBS_TARGET,
-													operation:
-														'setSectionAttribute',
-													attributePath: 'separator',
-													defaultValue: '/',
-												},
-												{
-													id: 'breadcrumbs-show-home',
-													type: 'toggle',
-													label: __(
-														'Show home breadcrumb',
-														'blockera'
-													),
-													target: BREADCRUMBS_TARGET,
-													operation:
-														'setSectionAttribute',
-													attributePath:
-														'showHomeItem',
-													defaultValue: true,
-												},
-												{
-													id: 'breadcrumbs-show-current',
-													type: 'toggle',
-													label: __(
-														'Show current breadcrumb',
-														'blockera'
-													),
-													target: BREADCRUMBS_TARGET,
-													operation:
-														'setSectionAttribute',
-													attributePath:
-														'showCurrentItem',
-													defaultValue: true,
-												},
-											],
-										},
-									],
-								},
+								nestedPanel: breadcrumbsPanel(),
 							},
 						],
 					},
@@ -1051,54 +883,46 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 						id: 'pagination-styles',
 						title: __('Styles', 'blockera'),
 						controls: [
-							{
-								...styleVariationPickerFeature(
-									PAGINATION_TARGET,
-									'pagination-style'
-								),
-								conditions: PAGINATION_ON,
-							},
-							{
-								id: 'pagination-top-divider',
-								type: 'border',
-								label: __('Top Divider', 'blockera'),
-								target: PAGINATION_TARGET,
-								operation: 'setSectionAttribute',
-								attributePath: 'blockeraBorder.value',
-								borderSide: 'top',
-								conditions: PAGINATION_ON,
-								mirrorMergeWhen: {
-									whenControlId: 'pagination-top-spacing',
-									mergeKeys: ['padding.top'],
-									role: 'divider',
-									attributePath: 'blockeraSpacing.value',
-								},
-							},
-							{
-								id: 'pagination-top-spacing',
-								type: 'input',
-								label: __('Top Spacing', 'blockera'),
-								target: PAGINATION_TARGET,
-								operation: 'setSectionAttribute',
-								attributePath: 'blockeraSpacing.value',
-								attributeMergeKeys: ['margin.top'],
-								unitType: 'margin',
-								controlAddonTypes: ['variable'],
-								variableTypes: ['spacing'],
-								conditions: PAGINATION_ON,
-								mirrorMergeWhen: {
-									whenControlId: 'pagination-top-divider',
-									mergeKeys: ['padding.top'],
-									role: 'spacing',
-								},
-							},
-							{
-								...customizeInEditorFeature(
-									PAGINATION_TARGET,
-									'pagination-customize'
-								),
-								conditions: PAGINATION_ON,
-							},
+							styleVariationPickerFeature(
+								PAGINATION_TARGET,
+								'pagination-style',
+								{ conditions: PAGINATION_ON }
+							),
+							borderFeature(
+								PAGINATION_TARGET,
+								'pagination-top-divider',
+								{
+									label: __('Top Divider', 'blockera'),
+									borderSide: 'top',
+									conditions: PAGINATION_ON,
+									mirrorMergeWhen: {
+										whenControlId: 'pagination-top-spacing',
+										mergeKeys: ['padding.top'],
+										role: 'divider',
+										attributePath: 'blockeraSpacing.value',
+									},
+								}
+							),
+							spacingFeature(
+								PAGINATION_TARGET,
+								'pagination-top-spacing',
+								{
+									label: __('Top Spacing', 'blockera'),
+									attributeMergeKeys: ['margin.top'],
+									unitType: 'margin',
+									conditions: PAGINATION_ON,
+									mirrorMergeWhen: {
+										whenControlId: 'pagination-top-divider',
+										mergeKeys: ['padding.top'],
+										role: 'spacing',
+									},
+								}
+							),
+							customizeInEditorFeature(
+								PAGINATION_TARGET,
+								'pagination-customize',
+								{ conditions: PAGINATION_ON }
+							),
 						],
 					},
 					{
@@ -1122,43 +946,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 								innerOrder: PAGINATION_INNER_ORDER,
 								requireAtLeastOneOf: PAGINATION_REQUIRED,
 								conditions: PAGINATION_ON,
-								nestedPanel: {
-									id: 'pagination-previous',
-									title: __('Previous Page', 'blockera'),
-									groups: [
-										...elementDesignPanel(
-											'pagination-previous-design',
-											__('Previous Page', 'blockera'),
-											'pagination-prev-styles',
-											PAGINATION_PREV_TARGET,
-											'pagination-prev'
-										).groups,
-										{
-											id: 'pagination-prev-settings',
-											title: __('Settings', 'blockera'),
-											controls: [
-												{
-													id: 'pagination-previous-label',
-													type: 'input',
-													label: __(
-														'Label',
-														'blockera'
-													),
-													target: PAGINATION_PREV_TARGET,
-													operation:
-														'setSectionAttribute',
-													attributePath: 'label',
-													// Core edit() paints `label` as PlainText (placeholder
-													// only when empty). Persist the same default PHP uses.
-													defaultValue: __(
-														'Previous Page',
-														'blockera'
-													),
-												},
-											],
-										},
-									],
-								},
+								nestedPanel: paginationPreviousPanel(),
 							},
 							{
 								id: 'pagination-numbers',
@@ -1177,45 +965,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 								innerOrder: PAGINATION_INNER_ORDER,
 								requireAtLeastOneOf: PAGINATION_REQUIRED,
 								conditions: PAGINATION_ON,
-								nestedPanel: {
-									id: 'pagination-numbers',
-									title: __('Numbers', 'blockera'),
-									groups: [
-										...elementDesignPanel(
-											'pagination-numbers-design',
-											__('Numbers', 'blockera'),
-											'pagination-num-styles',
-											PAGINATION_NUMBERS_TARGET,
-											'pagination-num'
-										).groups,
-										{
-											id: 'pagination-num-settings',
-											title: __('Settings', 'blockera'),
-											controls: [
-												{
-													id: 'pagination-numbers-mid-size',
-													type: 'number',
-													label: __(
-														'Number of links',
-														'blockera'
-													),
-													target: PAGINATION_NUMBERS_TARGET,
-													operation:
-														'setSectionAttribute',
-													attributePath: 'midSize',
-													defaultValue: 2,
-													min: 0,
-													max: 5,
-													step: 1,
-													labelDescription: __(
-														'Specify how many links can appear before and after the current page number. Links to the first, current and last page are always visible.',
-														'blockera'
-													),
-												},
-											],
-										},
-									],
-								},
+								nestedPanel: paginationNumbersPanel(),
 							},
 							{
 								id: 'pagination-next',
@@ -1234,41 +984,7 @@ export const ARCHIVE_OPTIONS_CONFIG: TemplateOptionsConfig = {
 								innerOrder: PAGINATION_INNER_ORDER,
 								requireAtLeastOneOf: PAGINATION_REQUIRED,
 								conditions: PAGINATION_ON,
-								nestedPanel: {
-									id: 'pagination-next',
-									title: __('Next Page', 'blockera'),
-									groups: [
-										...elementDesignPanel(
-											'pagination-next-design',
-											__('Next Page', 'blockera'),
-											'pagination-next-styles',
-											PAGINATION_NEXT_TARGET,
-											'pagination-next'
-										).groups,
-										{
-											id: 'pagination-next-settings',
-											title: __('Settings', 'blockera'),
-											controls: [
-												{
-													id: 'pagination-next-label',
-													type: 'input',
-													label: __(
-														'Label',
-														'blockera'
-													),
-													target: PAGINATION_NEXT_TARGET,
-													operation:
-														'setSectionAttribute',
-													attributePath: 'label',
-													defaultValue: __(
-														'Next Page',
-														'blockera'
-													),
-												},
-											],
-										},
-									],
-								},
+								nestedPanel: paginationNextPanel(),
 							},
 						],
 					},

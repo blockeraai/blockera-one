@@ -13,18 +13,24 @@ export function createBlockSubpanel(args: {
 	title: string;
 	styles: ControlDef[];
 	settings?: ControlDef[];
+	/** Defaults to `${id}-styles`. */
+	stylesGroupId?: string;
+	/** Defaults to `${id}-settings`. */
+	settingsGroupId?: string;
+	/** Styles group stays visible when the parent toggle is off. Default true. */
+	keepVisible?: boolean;
 }): NestedPanelDef {
 	const groups: PanelGroupDef[] = [
 		{
-			id: `${args.id}-styles`,
+			id: args.stylesGroupId ?? `${args.id}-styles`,
 			title: __('Styles', 'blockera'),
-			keepVisible: true,
+			keepVisible: args.keepVisible ?? true,
 			controls: args.styles,
 		},
 	];
 	if (args.settings?.length) {
 		groups.push({
-			id: `${args.id}-settings`,
+			id: args.settingsGroupId ?? `${args.id}-settings`,
 			title: __('Settings', 'blockera'),
 			controls: args.settings,
 		});
