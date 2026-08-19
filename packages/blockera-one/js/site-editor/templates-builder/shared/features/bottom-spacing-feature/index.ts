@@ -1,26 +1,23 @@
 /**
  * Bottom Spacing feature — margin-bottom on a stamped section.
- * Inspector UI is InputControlRow.
+ * Convenience wrapper around `spacingFeature`.
  */
 
 import { __ } from '@wordpress/i18n';
 
 import type { ControlDef, SectionTarget } from '../../types';
+import type { FeatureOptions } from '../helpers';
+import { spacingFeature } from '../spacing-feature';
 
 export function bottomSpacingFeature(
 	target: SectionTarget,
-	id: string
+	id: string,
+	options?: FeatureOptions
 ): ControlDef {
-	return {
-		id,
-		type: 'input',
-		label: __('Bottom Spacing', 'blockera'),
-		target,
-		operation: 'setSectionAttribute',
-		attributePath: 'blockeraSpacing.value',
+	return spacingFeature(target, id, {
 		attributeMergeKeys: ['margin.bottom'],
 		unitType: 'margin',
-		controlAddonTypes: ['variable'],
-		variableTypes: ['spacing'],
-	};
+		label: __('Bottom Spacing', 'blockera'),
+		...options,
+	});
 }

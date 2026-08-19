@@ -1,6 +1,6 @@
 /**
- * Make Image a Link feature — `isLink` on a stamped image section.
- * Inspector UI is ToggleControlRow.
+ * Gap feature — Blockera gap on a stamped section.
+ * Inspector UI is InputControlRow.
  */
 
 import { __ } from '@wordpress/i18n';
@@ -8,7 +8,7 @@ import { __ } from '@wordpress/i18n';
 import type { ControlDef, SectionTarget } from '../../types';
 import { type FeatureOptions, withFeatureOptions } from '../helpers';
 
-export function makeImageALinkFeature(
+export function gapFeature(
 	target: SectionTarget,
 	id: string,
 	options?: FeatureOptions
@@ -16,12 +16,14 @@ export function makeImageALinkFeature(
 	return withFeatureOptions(
 		{
 			id,
-			type: 'toggle',
-			label: __('Make image a link', 'blockera'),
+			type: 'input',
+			label: __('Gap', 'blockera'),
 			target,
 			operation: 'setSectionAttribute',
-			attributePath: 'isLink',
-			defaultValue: true,
+			attributePath: 'blockeraGap.value',
+			unitType: 'essential',
+			controlAddonTypes: ['variable'],
+			variableTypes: ['spacing'],
 		},
 		options
 	);

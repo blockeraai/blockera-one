@@ -6,6 +6,7 @@
 import { __ } from '@wordpress/i18n';
 
 import type { ControlDef, SectionTarget } from '../../types';
+import { type FeatureOptions, withFeatureOptions } from '../helpers';
 
 const EMPTY_RADIUS = {
 	type: 'all',
@@ -14,17 +15,21 @@ const EMPTY_RADIUS = {
 
 export function borderRadiusFeature(
 	target: SectionTarget,
-	id: string
+	id: string,
+	options?: FeatureOptions
 ): ControlDef {
-	return {
-		id,
-		type: 'border-radius',
-		label: __('Border Radius', 'blockera'),
-		target,
-		operation: 'setSectionAttribute',
-		attributePath: 'blockeraBorderRadius.value',
-		defaultValue: EMPTY_RADIUS,
-		controlAddonTypes: ['variable'],
-		variableTypes: ['border-radius'],
-	};
+	return withFeatureOptions(
+		{
+			id,
+			type: 'border-radius',
+			label: __('Border Radius', 'blockera'),
+			target,
+			operation: 'setSectionAttribute',
+			attributePath: 'blockeraBorderRadius.value',
+			defaultValue: EMPTY_RADIUS,
+			controlAddonTypes: ['variable'],
+			variableTypes: ['border-radius'],
+		},
+		options
+	);
 }

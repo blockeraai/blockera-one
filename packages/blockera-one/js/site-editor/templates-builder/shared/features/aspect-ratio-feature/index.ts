@@ -6,6 +6,7 @@
 import { __ } from '@wordpress/i18n';
 
 import type { ControlDef, SectionTarget } from '../../types';
+import { type FeatureOptions, withFeatureOptions } from '../helpers';
 
 const EMPTY_RATIO = {
 	val: '',
@@ -15,15 +16,19 @@ const EMPTY_RATIO = {
 
 export function aspectRatioFeature(
 	target: SectionTarget,
-	id: string
+	id: string,
+	options?: FeatureOptions
 ): ControlDef {
-	return {
-		id,
-		type: 'aspect-ratio',
-		label: __('Aspect Ratio', 'blockera'),
-		target,
-		operation: 'setSectionAttribute',
-		attributePath: 'blockeraRatio.value',
-		defaultValue: EMPTY_RATIO,
-	};
+	return withFeatureOptions(
+		{
+			id,
+			type: 'aspect-ratio',
+			label: __('Aspect Ratio', 'blockera'),
+			target,
+			operation: 'setSectionAttribute',
+			attributePath: 'blockeraRatio.value',
+			defaultValue: EMPTY_RATIO,
+		},
+		options
+	);
 }

@@ -1,6 +1,6 @@
 /**
- * Make Image a Link feature — `isLink` on a stamped image section.
- * Inspector UI is ToggleControlRow.
+ * Min Height feature — Blockera min-height on a stamped section.
+ * Inspector UI is InputControlRow.
  */
 
 import { __ } from '@wordpress/i18n';
@@ -8,7 +8,7 @@ import { __ } from '@wordpress/i18n';
 import type { ControlDef, SectionTarget } from '../../types';
 import { type FeatureOptions, withFeatureOptions } from '../helpers';
 
-export function makeImageALinkFeature(
+export function minHeightFeature(
 	target: SectionTarget,
 	id: string,
 	options?: FeatureOptions
@@ -16,12 +16,15 @@ export function makeImageALinkFeature(
 	return withFeatureOptions(
 		{
 			id,
-			type: 'toggle',
-			label: __('Make image a link', 'blockera'),
+			type: 'input',
+			label: __('Min Height', 'blockera'),
 			target,
 			operation: 'setSectionAttribute',
-			attributePath: 'isLink',
-			defaultValue: true,
+			attributePath: 'blockeraMinHeight.value',
+			unitType: 'min-height',
+			controlAddonTypes: ['variable'],
+			variableTypes: ['width-size', 'spacing'],
+			min: 0,
 		},
 		options
 	);
