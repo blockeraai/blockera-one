@@ -12,7 +12,7 @@ use ReflectionProperty;
 
 /**
  * Covers blockera_one_get_product_details() / blockera_one_register_product()
- * and the `blockera/products/registry/init` wiring in php/hooks.php.
+ * and the `blockera/products/registry/init` wiring.
  */
 class ProductRegistrationTest extends TestCase {
 
@@ -86,13 +86,12 @@ class ProductRegistrationTest extends TestCase {
 	}
 
 	/**
-	 * hooks.php must wire the registrant so lazy registry access includes the theme.
+	 * functions.php (embedded) and hooks.php (companion fallback) must wire
+	 * the registrant so lazy registry access includes the theme.
 	 *
 	 * @return void
 	 */
 	public function test_lazy_registration_via_registry_init_action(): void {
-		require_once dirname( __DIR__ ) . '/hooks.php';
-
 		$this->assertNotFalse( has_action( 'blockera/products/registry/init', 'blockera_one_register_product' ) );
 
 		// First read access fires the init action which registers the theme.
@@ -104,5 +103,33 @@ class ProductRegistrationTest extends TestCase {
 		// The theme product must also appear in the localized payload.
 		$payload = blockera_products_localize();
 		$this->assertArrayHasKey( get_template(), $payload['products'] );
+	}
+
+	/**
+	 * Product hook registration must be idempotent across embedded + companion loaders.
+	 *
+	 * @return void
+	 */
+	public function test_product_hooks_registration_is_idempotent(): void {
+		blockera_one_register_product_hooks();
+		blockera_one_register_product_hooks();
+
+		$this->assertSame(
+			10,
+			has_action( 'blockera/products/registry/init', 'blockera_one_register_product' )
+		);
+	}
+
+	/**
+	 * Companion-mode hooks.php must keep the registrant wired (idempotent helper).
+	 *
+	 * @return void
+	 */
+	public function test_companion_hooks_file_keeps_product_action(): void {
+		require_once dirname( __DIR__ ) . '/hooks.php';
+
+		$this->assertNotFalse(
+			has_action( 'blockera/products/registry/init', 'blockera_one_register_product' )
+		);
 	}
 }

@@ -93,9 +93,10 @@ class FunctionsTest extends TestCase {
 		$this->assertFileExists( $file );
 
 		$script = 'if ( ! function_exists( "add_action" ) ) { function add_action( ...$args ) { return true; } }'
+			. ' if ( ! function_exists( "has_action" ) ) { function has_action( ...$args ) { return false; } }'
 			. ' if ( ! defined( "ABSPATH" ) ) { define( "ABSPATH", "/tmp/" ); }'
 			. ' include ' . var_export( $file, true ) . ';'
-			. ' exit ( function_exists( "blockera_one_get_companion_plugin_status" ) ? 0 : 4 );';
+			. ' exit ( function_exists( "blockera_one_get_companion_plugin_status" ) && function_exists( "blockera_one_register_product_hooks" ) ? 0 : 4 );';
 
 		$cmd = escapeshellarg( PHP_BINARY ) . ' -r ' . escapeshellarg( $script );
 		exec( $cmd, $output, $exit_code );

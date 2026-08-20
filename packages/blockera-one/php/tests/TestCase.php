@@ -37,6 +37,10 @@ abstract class TestCase extends AppTestCase {
 		if ( function_exists( 'blockera_one_register_companion_plugin_hooks' ) ) {
 			blockera_one_register_companion_plugin_hooks();
 		}
+
+		if ( function_exists( 'blockera_one_register_product_hooks' ) ) {
+			blockera_one_register_product_hooks();
+		}
 	}
 
 	/**

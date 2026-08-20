@@ -3,10 +3,11 @@
  *
  * Category: general (theme-only wp-env, companion plugin absent).
  *
- * PHP side: packages/blockera-one/php/hooks.php registers the theme on
- * `blockera/products/registry/init`; blockera_products_l10n() localizes the
- * registry as `window.blockeraProductsData`, and `@blockera/products`
- * bootstraps it into the store on dom ready.
+ * PHP side: packages/blockera-one/php/functions.php registers the theme on
+ * `blockera/products/registry/init` (php/hooks.php is a companion-mode
+ * fallback); blockera_products_l10n() localizes the registry as
+ * `window.blockeraProductsData`, and `@blockera/products` bootstraps it into
+ * the store on dom ready.
  */
 
 import { createPost } from '@blockera/dev-cypress/js/helpers';
