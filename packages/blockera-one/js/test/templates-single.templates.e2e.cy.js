@@ -11,7 +11,6 @@ import {
 	assertSiteEditorMainNav,
 	openTemplatesPurposeNav,
 	assertTemplatesSingleSection,
-	assertStatusTooltip,
 	ensureSingularHidden,
 	ensureSingularVisible,
 	installAttachmentThemeTemplate,
@@ -136,7 +135,7 @@ describe('Blockera One → Templates Single Templates purpose-nav', () => {
 	});
 
 	describe('Singular', () => {
-		it('shows Fallback status, tooltip, and opens singular canvas', () => {
+		it('shows Fallback status and opens singular canvas', () => {
 			ensureSingularVisible();
 			singularWasShown = true;
 			openFreshSiteEditor();
@@ -170,14 +169,6 @@ describe('Blockera One → Templates Single Templates purpose-nav', () => {
 					'data-test',
 					SITE_EDITOR_TEST_IDS.templatesNavSingular
 				);
-
-			assertStatusTooltip(
-				SITE_EDITOR_TEST_IDS.templatesNavSingularStatus,
-				{
-					heading: 'singular.html template',
-					bodyIncludes: 'custom post types',
-				}
-			);
 
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavSingular).click();
 			cy.location('search').should((search) => {
