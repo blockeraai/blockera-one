@@ -22,7 +22,7 @@ describe('Blockera One → Site Editor main panel chrome', () => {
 		openSiteEditorViewMode('/');
 	});
 
-	it('shows Blockera branding under core site hub', () => {
+	it('shows Blockera branding in the view-mode sidebar', () => {
 		assertSiteEditorChrome();
 		assertSiteEditorMainNav();
 	});
