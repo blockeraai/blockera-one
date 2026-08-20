@@ -222,7 +222,8 @@ if ( ! function_exists( 'blockera_one_register_product' ) ) :
 	 * Register the Blockera One theme into the blockera products registry.
 	 *
 	 * Hooked on `blockera/products/registry/init` (fires once, on first read
-	 * access of the registry) — see packages/blockera-one/php/hooks.php.
+	 * access of the registry). Wired from this file so it also runs in
+	 * embedded/theme-only mode, where php/hooks.php is not loaded.
 	 *
 	 * @return void
 	 */
@@ -236,8 +237,35 @@ if ( ! function_exists( 'blockera_one_register_product' ) ) :
 	}
 endif;
 
+if ( ! function_exists( 'blockera_one_register_product_hooks' ) ) :
+	/**
+	 * Wire the theme into the products registry.
+	 *
+	 * Embedded/theme-only mode never loads php/hooks.php, so this must also run
+	 * from this file. Companion mode may call it again from hooks.php.
+	 *
+	 * @return void
+	 */
+	function blockera_one_register_product_hooks(): void {
+		if ( ! function_exists( 'add_action' ) ) {
+			return;
+		}
+
+		// has_action() may be missing in Composer-autoload subprocess stubs.
+		if (
+			function_exists( 'has_action' )
+			&& has_action( 'blockera/products/registry/init', 'blockera_one_register_product' )
+		) {
+			return;
+		}
+
+		add_action( 'blockera/products/registry/init', 'blockera_one_register_product' );
+	}
+endif;
+
 // Only register when WordPress APIs exist. Composer may autoload this file after a
 // test prepend defines ABSPATH but before add_action() is available.
 if ( function_exists( 'add_action' ) ) {
 	blockera_one_register_companion_plugin_hooks();
+	blockera_one_register_product_hooks();
 }
