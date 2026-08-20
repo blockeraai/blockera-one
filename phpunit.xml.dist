@@ -41,6 +41,7 @@
             <exclude>./node_modules/</exclude>
             <exclude>./dist/</exclude>
             <exclude>./packages/global-packages/packages/products/php/tests/TestCase.php</exclude>
+            <exclude>./packages/blockera-one/php/tests/TestCase.php</exclude>
             <exclude>./packages/blockera-one/php/test-support/</exclude>
         </testsuite>
         <testsuite name="snapshots">
