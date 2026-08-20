@@ -29,7 +29,7 @@ import { ResetThemeModal } from './reset';
 import './main-panel-header.scss';
 
 /**
- * Branding row shown under core SiteHub on all Site Editor view-mode pages.
+ * Branding row shown at the top of the Site Editor view-mode sidebar.
  */
 export default function MainPanelHeader() {
 	const [isResetModalOpen, setIsResetModalOpen] = useState(false);

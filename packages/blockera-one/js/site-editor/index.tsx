@@ -26,8 +26,11 @@ import './admin-ui-card.scss';
 import './style.scss';
 
 /**
- * Ensure a mount node exists after core SiteHub (before sidebar content).
- * React may drop unknown siblings on reconcile — caller re-runs via observer.
+ * Ensure a mount node exists at the top of the view-mode sidebar (before
+ * `.edit-site-sidebar__content`). Gutenberg 7.1+ no longer renders desktop
+ * SiteHub here (mobile-only); if a legacy `.edit-site-site-hub` sibling exists,
+ * keep the mount after it. React may drop unknown siblings on reconcile —
+ * caller re-runs via observer.
  */
 function ensureMainPanelHeaderMount(sidebar: Element): Element {
 	const existing = sidebar.querySelector(
@@ -71,7 +74,7 @@ function ensureMainPanelHeaderMount(sidebar: Element): Element {
 
 /**
  * Portal MainPanelHeader into `.edit-site-layout__sidebar` whenever the
- * sidebar is present (all Site Editor view-mode pages). Core SiteHub stays.
+ * sidebar is present (all Site Editor view-mode pages).
  */
 function MainPanelHeaderInjector(): ReactNode {
 	const host = usePortalHost(

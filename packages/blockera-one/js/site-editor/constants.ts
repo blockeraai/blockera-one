@@ -24,7 +24,7 @@ export const STABLE_SIDEBAR_CONTENT_SELECTOR = '.edit-site-sidebar__content';
 /** Site Editor sidebar — stable while view mode is active. */
 export const STABLE_SIDEBAR_SELECTOR = '.edit-site-layout__sidebar';
 
-/** Mount node for Blockera MainPanelHeader (after core SiteHub). */
+/** Mount node for Blockera MainPanelHeader (top of view-mode sidebar). */
 export const MAIN_PANEL_HEADER_MOUNT_CLASS =
 	'blockera-site-editor-main-panel-header-mount';
 
