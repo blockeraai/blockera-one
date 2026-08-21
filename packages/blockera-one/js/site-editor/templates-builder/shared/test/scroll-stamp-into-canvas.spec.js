@@ -2,6 +2,12 @@
  * scroll-stamp-into-canvas.ts: top-of-block viewport check and scroll delta.
  */
 
+jest.mock('@wordpress/blocks', () => ({
+	getBlockType: () => undefined,
+	createBlock: () => ({}),
+	parse: () => [],
+	serialize: () => '',
+}));
 jest.mock('@wordpress/block-editor', () => ({
 	store: 'core/block-editor',
 }));
@@ -17,7 +23,7 @@ import {
 	scrollDeltaForTopOffset,
 	scrollRoomNeeded,
 	shouldScrollStampTop,
-} from '../scroll-stamp-into-canvas';
+} from '../canvas/scroll-stamp-into-canvas';
 
 const PORT_TOP = 0;
 const PORT_BOTTOM = 800;

@@ -11,7 +11,7 @@ jest.mock('../../../nested-panels', () => ({
 import {
 	resolveContentOnlySectionToEdit,
 	shouldEnterPatternEditOnTarget,
-} from '../select-section-in-canvas';
+} from '../canvas/select-section-in-canvas';
 
 describe('shouldEnterPatternEditOnTarget', () => {
 	it('enters edit for an unsynced pattern (patternName)', () => {
