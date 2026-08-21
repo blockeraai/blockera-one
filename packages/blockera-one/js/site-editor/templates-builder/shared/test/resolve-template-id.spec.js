@@ -10,7 +10,7 @@ jest.mock('../../../nested-panels', () => ({
 	readPanelStack: () => [],
 }));
 
-import { resolveTemplateIdForFilter } from '../resolve-template-id';
+import { resolveTemplateIdForFilter } from '../resolve/resolve-template-id';
 
 function makeFinder(records) {
 	return (slug) => records.find((r) => r.slug === slug);

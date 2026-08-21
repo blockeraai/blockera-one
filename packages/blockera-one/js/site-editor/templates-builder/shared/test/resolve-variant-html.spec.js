@@ -7,7 +7,7 @@ import {
 	hasUnresolvedVariants,
 	resolveConfigVariantsHtml,
 	resolveVariantHtml,
-} from '../resolve-variant-html';
+} from '../resolve/resolve-variant-html';
 import { buildTemplatePartHtml } from '../template-part-html';
 
 const PATTERNS = [

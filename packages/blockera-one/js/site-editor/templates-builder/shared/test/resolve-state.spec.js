@@ -13,7 +13,8 @@ import {
 	resolveSectionState,
 	resolveSidebarLayoutValue,
 	resolveToggleState,
-} from '../resolve-state';
+} from '../resolve/resolve-state';
+import { block, stamped } from './helpers/block-fixtures';
 
 const LAYOUT_ID = 'main';
 
@@ -26,18 +27,6 @@ beforeAll(() => {
 		sidebar: { kind: 'templatePart', slugIncludes: 'sidebar' },
 	});
 });
-
-function block(name, attributes = {}, innerBlocks = []) {
-	return { name, attributes, innerBlocks };
-}
-
-function stamped(name, stampValue, attributes = {}, innerBlocks = []) {
-	return block(
-		name,
-		{ ...attributes, metadata: { blockeraOne: stampValue } },
-		innerBlocks
-	);
-}
 
 const KNOWN_LAYOUTS = [
 	{ id: 'no-sidebar', label: 'No sidebar' },

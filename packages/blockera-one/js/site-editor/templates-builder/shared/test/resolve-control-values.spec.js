@@ -6,8 +6,9 @@
 import {
 	getPostsPerPageMap,
 	resolveControlViewStates,
-} from '../resolve-control-values';
-import { registerSectionHeuristics } from '../resolve-state';
+} from '../resolve/resolve-control-values';
+import { registerSectionHeuristics } from '../resolve/resolve-state';
+import { block, stamped } from './helpers/block-fixtures';
 
 const LAYOUT_ID = 'main';
 
@@ -16,18 +17,6 @@ beforeAll(() => {
 		'posts-listing': { kind: 'blockName', name: 'core/query' },
 	});
 });
-
-function block(name, attributes = {}, innerBlocks = []) {
-	return { name, attributes, innerBlocks };
-}
-
-function stamped(name, stampValue, attributes = {}, innerBlocks = []) {
-	return block(
-		name,
-		{ ...attributes, metadata: { blockeraOne: stampValue } },
-		innerBlocks
-	);
-}
 
 const LAYOUT_VARIANTS = [
 	{ id: 'no-sidebar', label: 'None' },
@@ -171,6 +160,31 @@ describe('resolveControlViewStates', () => {
 				'posts-per-page'
 			).value
 		).toBe(10);
+	});
+
+	it('resolves broadcastSetting from the stored settings path', () => {
+		const config = makeConfig([
+			{
+				id: 'sidebar-width',
+				type: 'number',
+				target: { kind: 'setting', id: 'sidebar-width' },
+				operation: 'broadcastSetting',
+				broadcastId: 'sidebar-width',
+				settingPath: 'sidebar_width',
+				defaultValue: 33.33,
+			},
+		]);
+		expect(
+			byId(resolve(makeNoSidebarTree(), config), 'sidebar-width').value
+		).toBe(33.33);
+		expect(
+			byId(
+				resolve(makeNoSidebarTree(), config, {
+					sidebar_width: '30',
+				}),
+				'sidebar-width'
+			).value
+		).toBe(30);
 	});
 
 	it('resolves layout toggle + picker values (including nested panels)', () => {
@@ -1091,6 +1105,362 @@ describe('requireAtLeastOneOf and alsoToggle', () => {
 		expect(
 			byId(unlinked, 'post-featured-image-open-in-new-tab').visible
 		).toBe(false);
+	});
+
+	it('reads post-meta parts, separator, and items design from the tree', () => {
+		const blocks = [
+			stamped('core/group', 'section/post-meta:default', {}, [
+				stamped(
+					'core/group',
+					'section/post-meta-author-name:default',
+					{},
+					[
+						stamped(
+							'core/paragraph',
+							'container/meta-item-prefix:default',
+							{ content: 'By' }
+						),
+						stamped(
+							'core/post-author-name',
+							'container/meta-item-block:default'
+						),
+					]
+				),
+				stamped('core/paragraph', 'container/meta-separator:default', {
+					content: '\u2022',
+				}),
+				stamped(
+					'core/group',
+					'section/post-meta-post-date:default',
+					{},
+					[
+						stamped(
+							'core/paragraph',
+							'container/meta-item-prefix:default',
+							{ content: 'Published:' }
+						),
+						stamped(
+							'core/post-date',
+							'container/meta-item-block:default',
+							{ isLink: true }
+						),
+					]
+				),
+			]),
+		];
+		const config = {
+			type: 'archive',
+			layoutId: LAYOUT_ID,
+			groups: [
+				{
+					id: 'posts-loop',
+					title: 'Loop',
+					controls: [
+						{
+							id: 'post-meta-items-design',
+							type: 'toggle-select',
+							target: { kind: 'section', id: 'post-meta' },
+							operation: 'setMetaItemsDesign',
+							defaultValue: 'labels',
+						},
+						{
+							id: 'post-meta-separator',
+							type: 'toggle-select',
+							target: { kind: 'section', id: 'post-meta' },
+							operation: 'setMetaSeparator',
+							defaultValue: 'bullet',
+						},
+						{
+							id: 'post-meta-author-name-prefix',
+							type: 'input',
+							target: {
+								kind: 'section',
+								id: 'post-meta-author-name',
+							},
+							operation: 'setMetaItemPart',
+							attributePath: 'prefix',
+						},
+						{
+							id: 'post-meta-author-name-icon',
+							type: 'icon',
+							target: {
+								kind: 'section',
+								id: 'post-meta-author-name',
+							},
+							operation: 'setMetaItemPart',
+							attributePath: 'icon',
+						},
+						{
+							id: 'post-meta-post-date-is-link',
+							type: 'toggle',
+							target: {
+								kind: 'container',
+								id: 'meta-item-block',
+							},
+							operation: 'setSectionAttribute',
+							attributePath: 'isLink',
+							defaultValue: true,
+							innerOrder: {
+								parentId: 'post-meta-post-date',
+								ids: [],
+							},
+						},
+					],
+				},
+			],
+		};
+		const states = resolve(blocks, config);
+		expect(byId(states, 'post-meta-items-design').value).toBe('labels');
+		expect(byId(states, 'post-meta-separator').value).toBe('bullet');
+		expect(byId(states, 'post-meta-author-name-prefix').value).toBe('By');
+		expect(byId(states, 'post-meta-author-name-icon').value).toMatchObject({
+			icon: '',
+			library: '',
+		});
+		expect(byId(states, 'post-meta-post-date-is-link').value).toBe(true);
+	});
+
+	it('leaves Items Design unselected when item parts are mixed', () => {
+		const blocks = [
+			stamped('core/group', 'section/post-meta:default', {}, [
+				stamped(
+					'core/group',
+					'section/post-meta-author-name:default',
+					{},
+					[
+						stamped(
+							'core/paragraph',
+							'container/meta-item-prefix:default',
+							{ content: 'By' }
+						),
+						stamped(
+							'core/post-author-name',
+							'container/meta-item-block:default'
+						),
+					]
+				),
+				stamped(
+					'core/group',
+					'section/post-meta-post-date:default',
+					{},
+					[
+						stamped(
+							'core/post-date',
+							'container/meta-item-block:default'
+						),
+					]
+				),
+			]),
+		];
+		const config = {
+			type: 'archive',
+			layoutId: LAYOUT_ID,
+			groups: [
+				{
+					id: 'posts-loop',
+					title: 'Loop',
+					controls: [
+						{
+							id: 'post-meta-items-design',
+							type: 'toggle-select',
+							target: { kind: 'section', id: 'post-meta' },
+							operation: 'setMetaItemsDesign',
+							defaultValue: 'labels',
+						},
+					],
+				},
+			],
+		};
+		expect(
+			byId(resolve(blocks, config), 'post-meta-items-design').value
+		).toBe(null);
+	});
+});
+
+describe('Post Meta lookup-scoped resolution', () => {
+	function metaRow(rowId) {
+		return stamped('core/group', `section/${rowId}:default`, {}, [
+			stamped('core/group', `section/${rowId}-author-name:default`, {}, [
+				stamped(
+					'core/post-author-name',
+					'container/meta-item-block:default'
+				),
+			]),
+		]);
+	}
+
+	function sectionWithBody(sectionId, inner) {
+		return stamped('core/group', `section/${sectionId}:default`, {}, [
+			stamped('core/group', 'container/body:default', {}, inner),
+		]);
+	}
+
+	function metaStyleControls(rowId, prefix) {
+		const id = (suffix) =>
+			prefix ? `${prefix}-${rowId}-${suffix}` : `${rowId}-${suffix}`;
+		const target = { kind: 'section', id: rowId };
+		const innerOrder = {
+			parentId: rowId,
+			ids: [],
+			within: prefix === 'page-header' ? 'page-header' : 'article',
+		};
+		return [
+			{
+				id: id('items-design'),
+				type: 'toggle-select',
+				target,
+				operation: 'setMetaItemsDesign',
+				innerOrder,
+			},
+			{
+				id: id('separator'),
+				type: 'toggle-select',
+				target,
+				operation: 'setMetaSeparator',
+				innerOrder,
+			},
+			{
+				id: id('customize'),
+				type: 'button',
+				target,
+				operation: 'selectInCanvas',
+				innerOrder,
+			},
+		];
+	}
+
+	function metaToggle(rowId, prefix) {
+		const id = prefix ? `${prefix}-${rowId}` : rowId;
+		return {
+			id,
+			type: 'toggle',
+			target: { kind: 'section', id: rowId },
+			operation: 'toggleSection',
+			nestedPanel: {
+				id,
+				title: 'Post Meta',
+				groups: [
+					{
+						id: `${id}-styles`,
+						controls: metaStyleControls(rowId, prefix),
+					},
+				],
+			},
+		};
+	}
+
+	function singleMetaConfig(groupOrder = ['page-header', 'article']) {
+		const groups = {
+			'page-header': {
+				id: 'page-header',
+				title: 'Page Header',
+				controls: [
+					metaToggle('post-meta', 'page-header'),
+					metaToggle('post-meta-2', 'page-header'),
+				],
+			},
+			article: {
+				id: 'article',
+				title: 'Post Content',
+				controls: [metaToggle('post-meta'), metaToggle('post-meta-2')],
+			},
+		};
+		return {
+			type: 'single',
+			layoutId: LAYOUT_ID,
+			groups: groupOrder.map((id) => groups[id]),
+		};
+	}
+
+	const PAGE_HEADER_STYLE_IDS = [
+		'page-header-post-meta-items-design',
+		'page-header-post-meta-separator',
+		'page-header-post-meta-customize',
+		'page-header-post-meta-2-items-design',
+		'page-header-post-meta-2-separator',
+		'page-header-post-meta-2-customize',
+	];
+	const ARTICLE_STYLE_IDS = [
+		'post-meta-items-design',
+		'post-meta-separator',
+		'post-meta-customize',
+		'post-meta-2-items-design',
+		'post-meta-2-separator',
+		'post-meta-2-customize',
+	];
+
+	function expectKinds(states, ids, kind) {
+		for (let i = 0; i < ids.length; i++) {
+			expect(byId(states, ids[i]).state.kind).toBe(kind);
+		}
+	}
+
+	function expectNotMissing(states, ids) {
+		for (let i = 0; i < ids.length; i++) {
+			expect(byId(states, ids[i]).state.kind).not.toBe('missing');
+		}
+	}
+
+	it('keeps article Items Design enabled when page-header Post Meta is off', () => {
+		const states = resolve(
+			[
+				sectionWithBody('page-header', []),
+				sectionWithBody('article', [
+					metaRow('post-meta'),
+					metaRow('post-meta-2'),
+				]),
+			],
+			singleMetaConfig()
+		);
+		expect(byId(states, 'page-header-post-meta').value).toBe(false);
+		expect(byId(states, 'post-meta').value).toBe(true);
+		expectKinds(states, PAGE_HEADER_STYLE_IDS, 'missing');
+		expectNotMissing(states, ARTICLE_STYLE_IDS);
+	});
+
+	it('resolves both instances as present when each parent has its own row', () => {
+		const states = resolve(
+			[
+				sectionWithBody('page-header', [
+					metaRow('post-meta'),
+					metaRow('post-meta-2'),
+				]),
+				sectionWithBody('article', [
+					metaRow('post-meta'),
+					metaRow('post-meta-2'),
+				]),
+			],
+			singleMetaConfig()
+		);
+		expectNotMissing(states, PAGE_HEADER_STYLE_IDS);
+		expectNotMissing(states, ARTICLE_STYLE_IDS);
+		expect(
+			byId(states, 'page-header-post-meta-items-design').state.path
+		).not.toEqual(byId(states, 'post-meta-items-design').state.path);
+	});
+
+	it('keeps page-header styles missing when only article has the row and article flattens first', () => {
+		const states = resolve(
+			[
+				sectionWithBody('page-header', []),
+				sectionWithBody('article', [metaRow('post-meta')]),
+			],
+			singleMetaConfig(['article', 'page-header'])
+		);
+		expectKinds(
+			states,
+			[
+				'page-header-post-meta-items-design',
+				'page-header-post-meta-separator',
+				'page-header-post-meta-customize',
+			],
+			'missing'
+		);
+		expectNotMissing(states, [
+			'post-meta-items-design',
+			'post-meta-separator',
+			'post-meta-customize',
+		]);
 	});
 });
 

@@ -10,7 +10,7 @@ import {
 	resolveEnableScrollTarget,
 	resolveNestedPanelScrollTarget,
 	resolveOptionsPanelGroups,
-} from '../resolve-options-panel';
+} from '../resolve/resolve-options-panel';
 
 function control(id) {
 	return {

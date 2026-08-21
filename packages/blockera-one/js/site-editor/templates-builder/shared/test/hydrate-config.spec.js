@@ -9,7 +9,7 @@ import {
 	getCatalog,
 	hydrateConfig,
 	SUPPORTED_VARIANT_KEYS,
-} from '../hydrate-config';
+} from '../resolve/hydrate-config';
 
 const schema = require('../../../../../schemas/template-builder-catalog.schema.json');
 const rawFixture = require('../../../../../php/tests/fixtures/template-builder-catalog.json');
