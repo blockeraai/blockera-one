@@ -8,8 +8,9 @@
  *   `<type>/stamps.ts`) via `registry.ts` `ALL_STAMPS` / `STAMP_DICTIONARIES`
  *   (`role/id` lists aggregated into an id → role map),
  *   so markup validation can never drift from the reference data.
- * - Stamps are validated in `patterns/**` AND `templates/*.html` (both ship
- *   `metadata.blockeraOne` anchors).
+ * - Stamps are validated in every `.patterns.config.js` `patternsDirs`
+ *   folder (`patterns/**`, `patterns-woocommerce/**`, …) AND
+ *   `templates/*.html` (all ship `metadata.blockeraOne` anchors).
  * - Catalog pattern slugs come from the shared PHP fixture
  *   (`php/tests/fixtures/template-builder-catalog.json`, asserted equal to
  *   the real PHP output by PHPUnit) plus a regex sweep of the
@@ -34,7 +35,11 @@ import { flattenPanelControls } from '../resolve/resolve-options-panel';
 const fixture = require('../../../../../php/tests/fixtures/template-builder-catalog.json');
 
 const themeRoot = path.resolve(__dirname, '../../../../../../..');
-const patternsRoot = path.join(themeRoot, 'patterns');
+const patternsConfig = require(path.join(themeRoot, '.patterns.config.js'));
+const patternsDirs = (
+	patternsConfig.patternsDirs ??
+	patternsConfig.patternsDir ?? ['patterns']
+).map((dir) => (path.isAbsolute(dir) ? dir : path.join(themeRoot, dir)));
 const templatesRoot = path.join(themeRoot, 'templates');
 const catalogsRoot = path.join(
 	themeRoot,
@@ -65,7 +70,7 @@ for (const [id, role] of Object.entries(ALL_STAMPS)) {
 	}
 }
 
-// --- Filesystem index (one pass over patterns/**, templates/*, catalogs) ---
+// --- Filesystem index (patternsDirs + templates/* + catalogs) ---
 
 /**
  * Recursively collect files matching a predicate.
@@ -119,8 +124,8 @@ function parsePatternFile(file) {
 	return {
 		file: path.relative(themeRoot, file),
 		name: path.basename(file),
-		// Type folder under patterns/ (e.g. "archive"); "patterns" itself
-		// for files living at the patterns root.
+		// Type folder under a patterns dir (e.g. "archive"); the dir name
+		// itself for files living at that patterns root.
 		typeDir: path.basename(path.dirname(file)),
 		slug: header(/^\s*\*\s*Slug:\s*(\S+)/m),
 		categories: header(/^\s*\*\s*Categories:\s*(.+)$/m),
@@ -129,9 +134,9 @@ function parsePatternFile(file) {
 	};
 }
 
-const allPatterns = collectFiles(patternsRoot, (name) =>
-	name.endsWith('.php')
-).map(parsePatternFile);
+const allPatterns = patternsDirs.flatMap((dir) =>
+	collectFiles(dir, (name) => name.endsWith('.php')).map(parsePatternFile)
+);
 
 /** WordPress template files also carry stamps (e.g. templates/archive.html). */
 const templateEntries = collectFiles(templatesRoot, (name) =>
@@ -194,6 +199,17 @@ describe('templates-builder patterns lint', () => {
 	describe('non-empty guards', () => {
 		it('finds builder layout patterns', () => {
 			expect(layoutPatterns.length).toBeGreaterThan(0);
+		});
+
+		it('finds pattern PHP files in every configured patterns directory', () => {
+			const empty = patternsDirs.filter(
+				(dir) =>
+					collectFiles(dir, (name) => name.endsWith('.php'))
+						.length === 0
+			);
+			expect(empty.map((dir) => path.relative(themeRoot, dir))).toEqual(
+				[]
+			);
 		});
 
 		it('finds stamped template files', () => {
