@@ -8,9 +8,10 @@
  *   `<type>/stamps.ts`) via `registry.ts` `ALL_STAMPS` / `STAMP_DICTIONARIES`
  *   (`role/id` lists aggregated into an id → role map),
  *   so markup validation can never drift from the reference data.
- * - Stamps are validated in every `.patterns.config.js` `patternsDirs`
- *   folder (`patterns/**`, `patterns-woocommerce/**`, …) AND
- *   `templates/*.html` (all ship `metadata.blockeraOne` anchors).
+ * - Stamps are validated in every `.block-markup.config.js`
+ *   `patternsDirs` and `templatesDirs` folder (all ship
+ *   `metadata.blockeraOne` anchors). Unset dirs mean this product has
+ *   no patterns / templates — no implicit fallback.
  * - Catalog pattern slugs come from the shared PHP fixture
  *   (`php/tests/fixtures/template-builder-catalog.json`, asserted equal to
  *   the real PHP output by PHPUnit) plus a regex sweep of the
@@ -33,14 +34,20 @@ import { STAMP_ROLES } from '../stamp';
 import { flattenPanelControls } from '../resolve/resolve-options-panel';
 
 const fixture = require('../../../../../php/tests/fixtures/template-builder-catalog.json');
+const {
+	loadBlockMarkupConfig,
+} = require('../../../../../../global-packages/packages/dev-tools/js/block-markup/load-config');
 
 const themeRoot = path.resolve(__dirname, '../../../../../../..');
-const patternsConfig = require(path.join(themeRoot, '.patterns.config.js'));
-const patternsDirs = (
-	patternsConfig.patternsDirs ??
-	patternsConfig.patternsDir ?? ['patterns']
-).map((dir) => (path.isAbsolute(dir) ? dir : path.join(themeRoot, dir)));
-const templatesRoot = path.join(themeRoot, 'templates');
+const { patternsDirs, templatesDirs } = loadBlockMarkupConfig(
+	{ quiet: true },
+	themeRoot
+);
+const hasPatterns = patternsDirs.length > 0;
+const hasTemplates = templatesDirs.length > 0;
+const describePatterns = hasPatterns ? describe : describe.skip;
+const describeTemplates = hasTemplates ? describe : describe.skip;
+const describeMarkup = hasPatterns || hasTemplates ? describe : describe.skip;
 const catalogsRoot = path.join(
 	themeRoot,
 	'packages/blockera-one/php/Theme/TemplateBuilder'
@@ -139,12 +146,12 @@ const allPatterns = patternsDirs.flatMap((dir) =>
 );
 
 /** WordPress template files also carry stamps (e.g. templates/archive.html). */
-const templateEntries = collectFiles(templatesRoot, (name) =>
-	name.endsWith('.html')
-).map((file) => ({
-	file: path.relative(themeRoot, file),
-	stamps: extractStamps(fs.readFileSync(file, 'utf8')),
-}));
+const templateEntries = templatesDirs.flatMap((dir) =>
+	collectFiles(dir, (name) => name.endsWith('.html')).map((file) => ({
+		file: path.relative(themeRoot, file),
+		stamps: extractStamps(fs.readFileSync(file, 'utf8')),
+	}))
+);
 
 const builderPatterns = allPatterns.filter((entry) =>
 	entry.name.startsWith(BUILDER_PREFIX)
@@ -197,23 +204,38 @@ for (const file of catalogFiles) {
 describe('templates-builder patterns lint', () => {
 	// Broken globs must never pass silently (ported from the old CLI).
 	describe('non-empty guards', () => {
-		it('finds builder layout patterns', () => {
-			expect(layoutPatterns.length).toBeGreaterThan(0);
+		describePatterns('patterns dirs', () => {
+			it('finds builder layout patterns', () => {
+				expect(layoutPatterns.length).toBeGreaterThan(0);
+			});
+
+			it('finds pattern PHP files in every configured patterns directory', () => {
+				const empty = patternsDirs.filter(
+					(dir) =>
+						collectFiles(dir, (name) => name.endsWith('.php'))
+							.length === 0
+				);
+				expect(
+					empty.map((dir) => path.relative(themeRoot, dir))
+				).toEqual([]);
+			});
 		});
 
-		it('finds pattern PHP files in every configured patterns directory', () => {
-			const empty = patternsDirs.filter(
-				(dir) =>
-					collectFiles(dir, (name) => name.endsWith('.php'))
-						.length === 0
-			);
-			expect(empty.map((dir) => path.relative(themeRoot, dir))).toEqual(
-				[]
-			);
-		});
+		describeTemplates('templates dirs', () => {
+			it('finds stamped template files', () => {
+				expect(templateEntries.length).toBeGreaterThan(0);
+			});
 
-		it('finds stamped template files', () => {
-			expect(templateEntries.length).toBeGreaterThan(0);
+			it('finds HTML files in every configured templates directory', () => {
+				const empty = templatesDirs.filter(
+					(dir) =>
+						collectFiles(dir, (name) => name.endsWith('.html'))
+							.length === 0
+				);
+				expect(
+					empty.map((dir) => path.relative(themeRoot, dir))
+				).toEqual([]);
+			});
 		});
 
 		it('finds PHP type catalogs', () => {
@@ -306,7 +328,7 @@ describe('templates-builder patterns lint', () => {
 		});
 	});
 
-	describe('stamp validation', () => {
+	describeMarkup('stamp validation', () => {
 		it('every stamp in patterns/templates is "role/id(:variant)" with a dictionary id + matching role', () => {
 			const invalid = [];
 			for (const entry of stampedEntries) {
@@ -393,7 +415,7 @@ describe('templates-builder patterns lint', () => {
 		});
 	});
 
-	describe('layout area consistency', () => {
+	describePatterns('layout area consistency', () => {
 		it('every layout pattern stamps a known layout id', () => {
 			const missing = layoutPatterns
 				.filter(
@@ -442,7 +464,7 @@ describe('templates-builder patterns lint', () => {
 		});
 	});
 
-	describe('header contract', () => {
+	describePatterns('header contract', () => {
 		it('every builder pattern declares the builder category', () => {
 			const offenders = builderPatterns
 				.filter(
@@ -484,7 +506,7 @@ describe('templates-builder patterns lint', () => {
 		});
 	});
 
-	describe('catalog <-> pattern files', () => {
+	describePatterns('catalog <-> pattern files', () => {
 		it('every fixture patternSlug maps to a pattern file Slug header', () => {
 			const missing = [...fixtureSlugs].filter(
 				(slug) => !registeredSlugs.has(slug)
@@ -511,7 +533,7 @@ describe('templates-builder patterns lint', () => {
 		});
 	});
 
-	describe('blockeraCompatId uniqueness', () => {
+	describePatterns('blockeraCompatId uniqueness', () => {
 		it('is unique within each builder pattern file', () => {
 			const offenders = [];
 			for (const entry of builderPatterns) {
@@ -538,7 +560,7 @@ describe('templates-builder patterns lint', () => {
 		});
 	});
 
-	describe('loop-item parent metadata.name', () => {
+	describePatterns('loop-item parent metadata.name', () => {
 		const LOOP_PARENT_STAMPS = new Set([
 			'container/media',
 			'container/body',
@@ -597,7 +619,7 @@ describe('templates-builder patterns lint', () => {
 		});
 	});
 
-	describe('post-meta space fillers', () => {
+	describePatterns('post-meta space fillers', () => {
 		it('are grow paragraphs, not flex rows', () => {
 			const fillers = builderPatterns.filter((entry) =>
 				entry.name.includes('space-filler')
