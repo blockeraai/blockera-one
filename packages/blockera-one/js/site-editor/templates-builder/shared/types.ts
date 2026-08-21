@@ -2,6 +2,8 @@
  * Shared types for the Templates Builder options engine.
  */
 
+import type { StampDictionaryEntry } from './stamp';
+
 export type BlockNode = {
 	clientId?: string;
 	name: string;
@@ -44,6 +46,7 @@ export type ControlType =
 	| 'input'
 	| 'color'
 	| 'select'
+	/** Non-visual; used for engine-only ops (e.g. inner-section reorder). */
 	| 'button'
 	| 'layout-matrix'
 	| 'border'
@@ -52,7 +55,9 @@ export type ControlType =
 	| 'resolution'
 	| 'font-family'
 	| 'text-align'
-	| 'gateway';
+	| 'gateway'
+	| 'icon'
+	| 'toggle-select';
 
 /** Section-bound target for shared features and config factories. */
 export type SectionTarget = {
@@ -122,12 +127,25 @@ export type OperationKind =
 	| 'placeSection'
 	| 'setBlockStyle'
 	| 'selectInCanvas'
-	| 'reorderInnerSections';
+	| 'reorderInnerSections'
+	| 'setMetaItemPart'
+	| 'setMetaSeparator'
+	| 'setMetaItemsDesign'
+	| 'broadcastSetting';
+
+/** Cross-template broadcast ids (see `ops/broadcast`). */
+export type BroadcastId = 'sidebar-width' | 'header-sticky';
 
 /** Where to insert a block, relative to another stamped block. */
 export type InsertRule = {
 	relativeTo: string;
 	position: 'before' | 'after' | 'inside-end' | 'inside-start';
+	/**
+	 * When `relativeTo` is a missing inner container (`start` / `media` /
+	 * `body` / `end` / `comments`), create that stamped group under this
+	 * owner section before inserting.
+	 */
+	ensureContainerOwner?: string;
 };
 
 /** Chrome (header/footer) page-frame layout when swapping template parts. */
@@ -262,8 +280,10 @@ export type ControlDef = {
 		id: string;
 	};
 	operation: OperationKind;
+	/** Broadcast handler id when `operation` is `broadcastSetting`. */
+	broadcastId?: BroadcastId;
 	/**
-	 * PHP catalog pool that fills `variants` (see `hydrate-config.ts`).
+	 * PHP catalog pool that fills `variants` (see `resolve/hydrate-config.ts`).
 	 * Configs never inline variant lists — the catalog is the child-theme
 	 * API (`blockera-one/template-builder/catalog/{type}` filter).
 	 */
@@ -425,6 +445,31 @@ export type PanelGroupDef = {
 	nestedPanel?: NestedPanelDef;
 };
 
+export type GroupPatch = Partial<Omit<PanelGroupDef, 'nestedPanel'>> & {
+	nestedPanel?: Partial<NestedPanelDef>;
+};
+
+export type TemplateOverride = {
+	removeGroups?: string[];
+	removeControls?: string[];
+	addGroups?: Array<{ group: PanelGroupDef; after?: string }>;
+	patchControls?: Array<{
+		controlId: string;
+		patch: Partial<ControlDef>;
+	}>;
+	/** Patch an existing group (including nested groups) by id. */
+	patchGroups?: Array<{
+		groupId: string;
+		patch: GroupPatch;
+	}>;
+	/** Insert controls into an existing group (including nested groups). */
+	injectControls?: Array<{
+		groupId: string;
+		controls: ControlDef[];
+		after?: string;
+	}>;
+};
+
 /**
  * Catalog payload printed by PHP (`Theme\TemplateBuilder`):
  * template type → pool id → Variant[]. Contract:
@@ -450,7 +495,21 @@ export type TemplateOptionsConfig = {
 	partsAreas?: string[];
 	/** Entity post type to edit. Defaults to `wp_template`. */
 	entityPostType?: BuilderEntityPostType;
-	/** Fallback filter when a child falls back to archive.html. */
+	/**
+	 * Extra matcher for purpose filters that are not exact ids
+	 * (e.g. `cpt-single:book` joining the single family).
+	 */
+	filterMatch?: (filter: string) => boolean;
+	/**
+	 * Prefix match: any filter starting with this string joins the family
+	 * (e.g. `cpt-single:`).
+	 */
+	filterPrefix?: string;
+	/**
+	 * Family default purpose id. Prefix/child filters that have no
+	 * `templateOverrides` entry still belong to this purpose
+	 * (e.g. `cpt-single:book` → `single`).
+	 */
 	fallbackFilter?: string;
 	layoutId: string;
 	/**
@@ -464,4 +523,15 @@ export type TemplateOptionsConfig = {
 	 */
 	layoutSiblingSections?: string[];
 	groups: PanelGroupDef[];
+	/**
+	 * Per-filter overlays applied after catalog hydration. Archive ships
+	 * none; child types (category, tag, …) can remove/add/patch groups.
+	 */
+	templateOverrides?: Record<string, TemplateOverride>;
+};
+
+export type BuilderTypeRegistration = {
+	config: TemplateOptionsConfig;
+	stamps: readonly StampDictionaryEntry[];
+	when?: () => boolean;
 };
