@@ -8,6 +8,10 @@ Runtime parsing lives in `shared/stamp.ts` (`parseStamp`, `formatStamp`).
 Dictionaries are reference data for lint only — `shared/test/template-builder.spec.js`
 checks uniqueness and markup ↔ dictionary role consistency.
 
+Ops-hardcoded id tokens live in `shared/stamp-ids.ts` (`STAMP_IDS`,
+`FULL_WIDTH_LISTING_STAMP`). Keep those constants aligned with the catalog
+tables below whenever an id used by meta/layout/broadcast ops changes.
+
 ## Grammar
 
 `metadata.blockeraOne` is a single string:
@@ -141,8 +145,9 @@ New type / new markup:
 
 1. Reuse the families above. Add a type-only id only if nothing shared
    fits.
-2. Empty `<type>/stamps.ts` is valid when everything is shared (archive
-   today).
+2. `stamps: []` on the registration is valid when everything is shared
+   (archive / single / 404 today). Add `<type>/stamps.ts` only for
+   type-only ids.
 3. Stamp `templates/<slug>.html` and `patterns/<type>/` in the same
    change as the builder.
 4. Promote to `shared/stamps.ts` when a second type needs the id; update
@@ -217,6 +222,8 @@ the same change as the dictionary entry.
 | `section/page-header-title` | Title inside the page-header band (query-title / post-title). |
 | `section/page-header-description` | Description inside the page-header band (term description, post excerpt, …). |
 | `section/page-header-breadcrumbs` | Breadcrumbs inside the page-header band. |
+| `section/page-header-search-form` | Search form inside the search page-header band. |
+| `section/page-header-results-count` | Results count (`core/query-total`) inside the search page-header band. |
 
 ### Section: listing
 
@@ -242,8 +249,27 @@ the same change as the dictionary entry.
 | `section/post-excerpt` | Excerpt of a post or page (loop item or single). |
 | `section/post-content` | Content of a post or page (loop item or single). |
 | `section/post-read-more` | Read-more link (usually on a loop item). |
-| `section/post-meta` | First meta row on a post or page. |
-| `section/post-meta-2` | Second meta row on a post or page. |
+| `section/article` | Singular post/page content wrapper (Content group). |
+| `section/post-comments` | `core/comments` block (not `container/comments`). |
+| `section/comments-title` | Comments heading inside `post-comments`. |
+| `section/comment-template` | Comment list template inside `post-comments`. |
+| `section/comments-pagination` | Comments pagination inside `post-comments`. |
+| `section/comments-form` | `core/post-comments-form` inside `post-comments`. |
+| `section/post-navigation` | Next/previous post wrapper. |
+| `section/post-navigation-previous` | Previous post link. |
+| `section/post-navigation-next` | Next post link. |
+| `section/not-found` | 404 template section (image / title / description / search). |
+| `section/not-found-image` | 404 illustration. |
+| `section/not-found-title` | 404 heading. |
+| `section/not-found-description` | 404 message. |
+| `section/not-found-search` | 404 search form. |
+| `section/sidebar-search` | Sidebar part Search widget. |
+| `section/sidebar-categories` | Sidebar part Categories widget. |
+| `section/sidebar-latest-posts` | Sidebar part Latest Posts widget. |
+| `section/sidebar-archives` | Sidebar part Archives widget. |
+| `section/sidebar-tag-cloud` | Sidebar part Tag Cloud widget. |
+| `section/post-meta` | First meta row on a post or page. Flex-child grow and width stretch so inner space fillers can expand. |
+| `section/post-meta-2` | Second meta row on a post or page. Same flex-child grow and width stretch as the first row. |
 | `section/post-meta-author-name` | Author name in the first meta row. |
 | `section/post-meta-comments-count` | Comments count in the first meta row. |
 | `section/post-meta-comments-link` | Comments link in the first meta row. |
@@ -254,6 +280,8 @@ the same change as the dictionary entry.
 | `section/post-meta-tags` | Tags in the first meta row. |
 | `section/post-meta-time-to-read` | Time-to-read in the first meta row. |
 | `section/post-meta-word-count` | Word count in the first meta row. |
+| `section/post-meta-space-filler` | `core/paragraph` with a single space and `blockeraFlexChildSizing: grow` in the first meta row. |
+| `section/post-meta-space-filler-2` | Second single-space grow paragraph in the first meta row. |
 | `section/post-meta-2-author-name` | Author name in the second meta row. |
 | `section/post-meta-2-comments-count` | Comments count in the second meta row. |
 | `section/post-meta-2-comments-link` | Comments link in the second meta row. |
@@ -264,6 +292,8 @@ the same change as the dictionary entry.
 | `section/post-meta-2-tags` | Tags in the second meta row. |
 | `section/post-meta-2-time-to-read` | Time-to-read in the second meta row. |
 | `section/post-meta-2-word-count` | Word count in the second meta row. |
+| `section/post-meta-2-space-filler` | `core/paragraph` with a single space and `blockeraFlexChildSizing: grow` in the second meta row. |
+| `section/post-meta-2-space-filler-2` | Second single-space grow paragraph in the second meta row. |
 
 ### Section: chrome
 
@@ -286,23 +316,28 @@ the same change as the dictionary entry.
 | Stamp | Desc |
 | --- | --- |
 | `container/chrome-rail` | Vertical-rail columns wrapper around header + body. |
-| `container/layout-columns` | Columns wrapper for content + sidebar layouts. |
-| `container/content-column` | Main column beside the sidebar. |
-| `container/sidebar-column` | Sidebar column beside the main content. |
+| `container/layout-columns` | Columns wrapper for content + sidebar layouts. (`STAMP_IDS.layoutColumns`) |
+| `container/content-column` | Main column beside the sidebar. (`STAMP_IDS.contentColumn`; complement of Sidebar width) |
+| `container/sidebar-column` | Sidebar column beside the main content. (`STAMP_IDS.sidebarColumn`; Sidebar width target) |
 | `container/start` | Leading inner region (e.g. page-header kicker, article lead). Not chrome `section/header`. |
 | `container/media` | Media region of a listing card or article. |
 | `container/body` | Text/content region of a listing card, article, or page-header band. Not the page+sidebar `content-column`. |
 | `container/end` | Trailing inner region (e.g. author band, page-header extra). |
 | `container/comments` | Comments region on a single post. Not `section/post-meta-comments-count` / `comments-link`. |
+| `container/meta-item-icon` | Optional icon inside a post-meta item wrapper. Repeatable under each item parent. |
+| `container/meta-item-prefix` | Optional prefix paragraph inside a post-meta item wrapper. Repeatable under each item parent. |
+| `container/meta-item-block` | The core meta block inside a post-meta item wrapper. Repeatable under each item parent. |
+| `container/meta-item-suffix` | Optional suffix paragraph inside a post-meta item wrapper. Repeatable under each item parent. |
+| `container/meta-separator` | Builder-managed separator paragraph between post-meta items. Repeatable under the meta row. |
 
 ## Type catalogs
 
 Type-only stamps. Promote a row to the matching shared table when a
 second type needs the same id — never copy.
 
-### Archive (`archive/stamps.ts`)
+### Archive / single / 404
 
-None.
+None (`stamps: []` on the registration).
 
 ### Global header (`global-header/stamps.ts`)
 

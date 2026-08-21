@@ -24,6 +24,22 @@ There is **no SlotFill** for Design sidebar items in `@wordpress/edit-site`. We 
 
 Drill-down screens use a Blockera-owned `DrillDownScreen` (back → `/` + title + content) instead of importing core `SidebarNavigationScreen`.
 
+## Layering
+
+```
+filter-ids.ts (pure ids) → templates/ host  → nested-panels/ URL stack
+                         ↘ templates-builder/ → ops + stamps
+Gutenberg adapters (routes/) wrap host only — do not import TB internals.
+```
+
+- **Kernel:** `templates/filter-ids.ts` — `FILTER_IDS`, children-filter helpers. No React, no history.
+- **Host:** `templates/` owns purpose-nav + drill-down. It may import the Templates Builder **barrel** (`templates-builder/index.ts`), not `shared/canvas/...`.
+- **Builder:** type configs and `resolve-template-id.ts` import **only** `filter-ids`. URL parse lives in `templates-url.ts`; SPA writes in `navigate-templates.ts`.
+- **Nested panels:** generic URL stack. TB `NestedPanelDef` → `toNestedPanelNode()` in `resolve-options-panel.ts` is the only adapter.
+- **Matchers:** `hierarchy.ts` / `filter-match.ts` / `template-display.ts`, re-exported from `templates-matchers.ts`.
+
+PHP array key `'404'` is coerced to int `404`. Keep the `(string)` cast in `CatalogValidator.php`; do not alias the type.
+
 ## Files
 
 | File | Role |
@@ -36,7 +52,7 @@ Drill-down screens use a Blockera-owned `DrillDownScreen` (back → `/` + title 
 | `hooks/` | Shared hooks: `use-edited-site-record`, `use-portal-host`, `use-clear-core-slide`, `use-sidebar-enter-class` (`useSiteEditorUrlState` lives in `@blockera/utils`) |
 | `navigation/` | Nav catalog (`nav-config.ts`) + SPA history writer (`history.ts`) |
 | `panels/` | Settings panels: `site-identity-panel`, `homepage-settings-panel`, `performance-panel` (+ scss) |
-| `routes/` | Styles / templates / settings route registration (config-driven) |
+| `routes/` | Styles / templates / settings route registration (config-driven). `REGISTER_ROUTE` stays in `routes/index.tsx`; area wraps in `wrap-templates-areas.tsx`; settings payloads in `register-settings-routes.tsx`. |
 | `styles-drill-down.tsx` | Styles wrapper: portals Style Book into drill-down title row |
 | `admin-ui-card.scss` | `.blockera-se-admin-ui-card` wrapper — tighter override for core `.admin-ui-page*` |
 | `styles-panel.scss` | Styles-only tweaks (hide Page header, GS navigator padding) |
@@ -52,16 +68,23 @@ Drill-down screens use a Blockera-owned `DrillDownScreen` (back → `/` + title 
 | File | Role |
 |------|------|
 | `index.ts` | Public exports for route wiring |
-| `constants.ts` | `boFilter` / `partsArea` query helpers + SPA navigate |
+| `filter-ids.ts` | Pure `FILTER_IDS` + children-filter helpers (TB kernel import) |
+| `constants.ts` | Barrel: filter ids + URL helpers + SPA navigate |
+| `templates-url.ts` | `boFilter` / `partsArea` / `boBuilder` parse |
+| `navigate-templates.ts` | SPA navigate (scroll, pending direction, panel stack) |
 | `templates-nav-config.ts` | Static purpose-nav IA (homepage shell filled at runtime) |
-| `templates-homepage-resolve.ts` | Homepage / Blog·Posts + fallback badges from Reading settings |
-| `templates-matchers.ts` | Slug / custom / author matchers |
+| `templates-homepage-resolve.ts` | Barrel: homepage status + nav builders |
+| `templates-homepage-status.ts` | Pure slug/status/path helpers |
+| `templates-homepage-nav.ts` | React tooltip + Homepage / Blog·Posts nav items |
+| `templates-nav.tsx` | Parent/child purpose menu UI |
+| `use-templates-nav-actions.ts` | Click / navigate actions for purpose-nav rows |
+| `templates-matchers.ts` | Barrel: slug / custom / author matchers |
+| `hierarchy.ts` / `filter-match.ts` / `template-display.ts` | Matcher splits |
 | `use-templates-data.ts` | Thin composition of records + sections + counts |
 | `use-template-records.ts` | Entity fetch + active/user lookups + filter matcher |
 | `build-nav-sections.ts` | Runtime section builder (homepage / CPT / Woo / authors) |
 | `templates-counts.ts` | Browse counts + "Specific templates" child rows |
 | `templates-drill-down.tsx` | DrillDownScreen + purpose-nav (General Area Hub) |
-| `templates-nav.tsx` | Parent/child purpose menu UI |
 | `templates-hub-parts.ts` | Canonical header/footer/sidebar helpers |
 | `templates-area-hub.tsx` | Live Editor banner for global site parts (+ Patterns link) |
 | `templates-browse-content.tsx` | Browse gate (core / filtered / missing-base / hub empty) |

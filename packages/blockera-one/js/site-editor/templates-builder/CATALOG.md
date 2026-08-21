@@ -6,7 +6,7 @@ they look like; JS only wires controls and applies operations.
 
 - Schema (single source of truth): `packages/blockera-one/schemas/template-builder-catalog.schema.json`
 - Assembler: `packages/blockera-one/php/Theme/TemplateBuilder/Catalog.php`
-- Payload printed on the Site Editor screen: `window.blockeraOneTemplateBuilder = { catalog: … }` (inline, before `wp-core-data`)
+- Payload printed on the Site Editor screen: `window.blockeraOneTemplateBuilder = { catalog: …, metaItemsDesign: … }` (inline, before `wp-core-data`)
 
 ## Payload shape
 
@@ -20,12 +20,14 @@ they look like; JS only wires controls and applies operations.
         'header'        => [ Variant… ], // templatePart (stacked) + pattern (vertical rail)
         'footer'        => [ Variant… ],
     ],
-    // later: 'single' => [ … ], 'home' => [ … ]
+    'single' => [ … ],                   // + page overlay pools `page-page-header`, `page-article`
+    '404' => [ … ],                      // JSON/JS key is the string "404"; PHP array keys coerce it to int
+    'global-sidebar' => [ … ],           // sidebar part widget restore pools
 ]
 ```
 
 JS controls bind to pools by id (`catalogPool` in `<type>/config.ts`);
-`shared/hydrate-config.ts` fills each control's `variants` from the pool.
+`shared/resolve/hydrate-config.ts` fills each control's `variants` from the pool.
 
 ## Variant keys
 
@@ -48,7 +50,7 @@ JS controls bind to pools by id (`catalogPool` in `<type>/config.ts`);
 A **disabled variant** (coming-soon tile) omits `patternSlug` and requires `disabled: true`. It is a third schema kind (`disabledVariant`) so a click cannot swap empty markup.
 
 Unknown keys are rejected (`additionalProperties: false`). Every schema key
-must be consumed by `shared/hydrate-config.ts` (`SUPPORTED_VARIANT_KEYS`) —
+must be consumed by `shared/resolve/hydrate-config.ts` (`SUPPORTED_VARIANT_KEYS`) —
 the schema-sync jest test fails when either side drifts.
 
 ## Child-theme recipes
@@ -88,6 +90,70 @@ add_filter( 'blockera-one/template-builder/catalog/archive', function ( $pools )
 
 The global filter `blockera-one/template-builder/catalog` runs after every
 per-type filter and receives the full `type → pools` array.
+
+## Post Meta Items Design
+
+`window.blockeraOneTemplateBuilder.metaItemsDesign` is a separate payload
+key (not part of the catalog schema). PHP owns the shared item map and
+optional per-listing recipes so child themes can override prefixes,
+suffixes, icons, and which Items Design a listing applies — without a JS
+rebuild.
+
+`default.items` is the shared map (all listings inherit it). There is **no
+default preset**: a listing without a `listings` stamp entry keeps the
+pattern markup as authored.
+
+`listings` is keyed by the listing **stamp** (`section/posts-listing:{variant}`).
+Each entry may set `preset` (`simple` / `labels` / `icons`) and/or overlay
+`items` (merged over `default.items` by suffix, then by design). Built-in:
+only full-width sets `preset => icons`. List / grid stay date-only unless
+a child theme adds a stamp entry. Listing swap still applies the preset so
+a filter overlay is honored; full-width also bakes the calendar icon into
+the pattern for first paint.
+
+```php
+[
+    'default'  => [
+        'items' => [
+            'author-name' => [
+                'simple' => [ 'icon' => '', 'prefix' => '', 'suffix' => '' ],
+                'labels' => [ 'icon' => '', 'prefix' => 'By', 'suffix' => '' ],
+                'icons'  => [
+                    'icon'   => [ 'icon' => 'comment-author-avatar', 'library' => 'wp' ],
+                    'prefix' => '',
+                    'suffix' => '',
+                ],
+            ],
+            // post-date, tags, …
+        ],
+    ],
+    'listings' => [
+        'section/posts-listing:full-width' => [
+            'preset' => 'icons',
+            // optional: 'items' => [ … ] overlay on default items
+        ],
+    ],
+]
+```
+
+`icon` is `''` (omit / remove) or a Blockera IconControl object (`library`
+can be `wp`, `feather`, …). Any non-empty prefix, suffix, or icon in a
+design is created — Labels is not locked to prefix-only.
+
+```php
+add_filter( 'blockera-one/template-builder/meta-items-design', function ( $payload ) {
+    $payload['default']['items']['author-name']['labels']['prefix'] = __( 'Written by', 'my-child' );
+    $payload['default']['items']['author-name']['labels']['suffix'] = '.';
+    $payload['default']['items']['author-name']['icons']['icon']    = array(
+        'library' => 'feather',
+        'icon'    => 'user',
+    );
+    $payload['listings']['section/posts-listing:list'] = array(
+        'preset' => 'labels',
+    );
+    return $payload;
+} );
+```
 
 New variants use the child text domain in the slug
 (`my-child/builder-archive-listing-magazine`) but keep the
@@ -133,10 +199,84 @@ pattern slug; the op keeps working as long as the override keeps the
    it in `Catalog::TYPE_CATALOGS` — schema, validator, and JS hydrate need
    no changes
 3. `templates-builder/<type>/config.ts` — heuristics, groups,
-   `catalogPool`s — plus `<type>/stamps.ts` (`role/id` dictionary list)
-4. Register the config in `registry.ts` `CONFIGS` and the dictionary in
-   `STAMP_DICTIONARIES`
+   `catalogPool`s — plus `<type>/stamps.ts` only when the type has type-only
+   ids (`stamps: []` on the registration until then)
+4. Export the registration from `<type>/index.ts` and list it in
+   `registry.ts` `REGISTRATIONS`
 5. `templates/<slug>.html` at the WordPress path (do not nest)
+
+## Checklists
+
+### Add a control type
+
+1. Add the member to `ControlType` in `shared/types.ts` (document non-visual types).
+2. Add a `CONTROL_RENDERERS` entry in `shared/panel/render-control.tsx`
+   (`satisfies Record<ControlType, …>` — `null` is allowed for reserved types).
+3. Add `shared/controls/<name>-control/` (component + `index.ts`).
+4. Optional: a feature factory under `shared/features/` that emits the control.
+5. Unit tests under `shared/test/` (renderer + value resolution if the op is new).
+
+`controls/select-control/` is reserved (`null` in the renderer map) until its
+feature lands.
+
+### Add a template family (or join via overlay)
+
+1. Compose groups from `shared/sections/` (`siteHeaderGroup`, `pageHeaderGroup`,
+   `singularContentGroup`, `postsLoopGroup`, `paginationGroup`, `postNavigationGroup`,
+   `postCommentsGroup`, `notFoundGroup`, `sidebarGroup`, `sidebarBlocksGroup`,
+   `siteFooterGroup`, plus section-block factories). Keep the type folder thin.
+2. For a sibling purpose that is almost the same family, set
+   `templateOverrides[filterId]` (`removeGroups` / `removeControls` / `addGroups`
+   / `patchControls` / `patchGroups` / `injectControls`) instead of cloning the config. Registry memoizes overlays
+   per `${type}:${filter}`.
+3. Export `BuilderTypeRegistration` `{ config, stamps, when? }`. Use `when`
+   for gated types (Woo shop).
+4. PHP: `<Type>Catalog extends AbstractCatalog` (reuse `chromeHeaderPool` /
+   `chromeFooterPool` / `postMetaPools` / `listingElementPool` when they fit).
+   Keep `php/tests/fixtures/template-builder-catalog.json` in sync.
+5. Patterns: `patterns/<type>/builder-*.php`. Shared Post Meta item markup
+   lives under `patterns/post-meta/`.
+
+### Add a broadcast setting
+
+1. Extend `BroadcastId` in `shared/types.ts` and add a handler in
+   `shared/ops/broadcast/` registered on `BROADCAST_HANDLERS`
+   (`satisfies Record<BroadcastId, …>`).
+2. Add the stored key to `TemplateSettingsRecord` + PHP
+   `Theme\TemplateSettings` schema/sanitize.
+3. Add a control with `operation: 'broadcastSetting'`, `broadcastId`, and
+   `settingPath`. Parts screens use `createPartsAreaConfig({ groups })`.
+4. Pure tests for the handler + planner; PHPUnit sanitize coverage.
+5. Persistence is the editor multi-entity save panel (entities stay dirty).
+
+Sidebar width is the first consumer (`global-sidebar` Settings, stored
+`sidebar_width`, baked into `container/sidebar-column` +
+`container/content-column`). Header sticky is the second (`global-header`
+Settings, stored `header_sticky`, sticky position on `layout/site-header`
+and `section/header`).
+
+### i18n domains
+
+JS inspector copy in type configs and `shared/sections` uses the `'blockera'`
+domain (existing Site Editor strings). PHP catalog labels
+(`ArchiveCatalog` / `AbstractCatalog` / `MetaItemsDesign`) use
+`'blockera-one'`. Do not mix the two in one file.
+
+### E2e selectors
+
+Keep these `data-test` values stable; extend rather than rename:
+
+| Selector | Where |
+| --- | --- |
+| `blockera-templates-builder-panel` | Panel root (`data-dirty="true"` when unsaved) |
+| `blockera-templates-builder-group-{group.id}` | Group card |
+| `blockera-templates-builder-header-toggle-{group.id}` | Group header `FormToggle` |
+| `blockera-templates-builder-gateway-{id}` | Nested-panel gateway row |
+| `blockera-templates-builder-control-{control.id}` | Non-gateway control row |
+| `blockera-templates-builder-sortable-{group.id}` | Sortable element list |
+| `blockera-templates-builder-more` / `-reset` | Title-action menu |
+
+Smoke spec: `packages/blockera-one/js/test/templates-builder-panel.templates-2.e2e.cy.js`.
 
 ## Validation (dev mode only)
 
@@ -163,5 +303,6 @@ CI coverage:
   `php/tests/fixtures/template-builder-catalog.json` (also asserted equal to
   the real PHP output by PHPUnit)
 - Jest `shared/test/template-builder.spec.js` — area consistency, stamp
-  validation, `builder-*` header contract, every catalog `patternSlug`
-  maps to a pattern file `Slug:` header (and no orphan builder patterns)
+  validation, `builder-*` header contract, unique `blockeraCompatId` per
+  builder pattern file, every catalog `patternSlug` maps to a pattern file
+  `Slug:` header (and no orphan builder patterns)
