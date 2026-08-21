@@ -50,6 +50,42 @@ class TemplateSettingsTest extends TestCase {
 		$this->assertSame( 100, $result['posts_per_page']['huge'] );
 	}
 
+	public function test_sanitize_settings_clamps_sidebar_width(): void {
+		$result = $this->settings->sanitizeSettings(
+			array(
+				'posts_per_page' => array(
+					'archive' => 9,
+				),
+				'sidebar_width'  => '5%',
+			)
+		);
+		$this->assertSame( '10', $result['sidebar_width'] );
+		$this->assertSame( 9, $result['posts_per_page']['archive'] );
+
+		$high = $this->settings->sanitizeSettings(
+			array(
+				'posts_per_page' => array(),
+				'sidebar_width'  => 99,
+			)
+		);
+		$this->assertSame( '60', $high['sidebar_width'] );
+
+		$mid = $this->settings->sanitizeSettings(
+			array(
+				'sidebar_width' => '33.336',
+			)
+		);
+		$this->assertSame( '33.34', $mid['sidebar_width'] );
+		$this->assertSame( array(), $mid['posts_per_page'] );
+
+		$sticky = $this->settings->sanitizeSettings(
+			array(
+				'header_sticky' => true,
+			)
+		);
+		$this->assertSame( '1', $sticky['header_sticky'] );
+	}
+
 	public function test_sanitize_settings_handles_invalid_input(): void {
 		$result = $this->settings->sanitizeSettings( 'nope' );
 		$this->assertSame( array( 'posts_per_page' => array() ), $result );

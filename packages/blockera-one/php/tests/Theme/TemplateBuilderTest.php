@@ -9,9 +9,11 @@ namespace Blockera\One\Tests\Theme;
 
 use Blockera\One\Tests\TestCase;
 use Blockera\One\Theme\TemplateBuilder;
+use Blockera\One\Theme\TemplateBuilder\AbstractCatalog;
 use Blockera\One\Theme\TemplateBuilder\ArchiveCatalog;
 use Blockera\One\Theme\TemplateBuilder\Catalog;
 use Blockera\One\Theme\TemplateBuilder\CatalogValidator;
+use Blockera\One\Theme\TemplateBuilder\MetaItemsDesign;
 
 /**
  * Covers Catalog assembly, the child-theme filters, the dev-mode validator
@@ -33,6 +35,10 @@ class TemplateBuilderTest extends TestCase {
 	public function tear_down(): void {
 		remove_all_filters( 'blockera-one/template-builder/catalog' );
 		remove_all_filters( 'blockera-one/template-builder/catalog/archive' );
+		remove_all_filters( 'blockera-one/template-builder/catalog/single' );
+		remove_all_filters( 'blockera-one/template-builder/catalog/404' );
+		remove_all_filters( 'blockera-one/template-builder/catalog/global-sidebar' );
+		remove_all_filters( 'blockera-one/template-builder/meta-items-design' );
 		unset( $GLOBALS['current_screen'] );
 
 		parent::tear_down();
@@ -88,6 +94,9 @@ class TemplateBuilderTest extends TestCase {
 		$catalog = array( 'archive' => ( new ArchiveCatalog() )->pools() );
 
 		$this->assertSame( $catalog, ( new CatalogValidator() )->validate( $catalog ) );
+
+		$full = ( new Catalog() )->get();
+		$this->assertSame( $full, ( new CatalogValidator() )->validate( $full ) );
 	}
 
 	/**
@@ -132,7 +141,7 @@ class TemplateBuilderTest extends TestCase {
 
 		$catalog = ( new Catalog() )->get();
 
-		$this->assertSame( array( 'archive' ), $seen_types );
+		$this->assertSame( array( 'archive', 'single', '404', 'global-sidebar' ), array_map( 'strval', $seen_types ) );
 		$this->assertArrayNotHasKey( 'footer', $catalog['archive'] );
 	}
 
@@ -355,6 +364,102 @@ class TemplateBuilderTest extends TestCase {
 		$inline = implode( '', array_filter( $before ) );
 		$this->assertStringContainsString( 'window.blockeraOneTemplateBuilder', $inline );
 		$this->assertStringContainsString( '"catalog"', $inline );
+		$this->assertStringContainsString( '"metaItemsDesign"', $inline );
 		$this->assertStringContainsString( 'builder-archive-listing-list', $inline );
+	}
+
+	/**
+	 * @return void
+	 */
+	public function test_meta_items_design_includes_shared_items_and_full_width_icons(): void {
+		$payload = ( new MetaItemsDesign() )->get();
+
+		$this->assertSame( '', $payload['default']['items']['author-name']['simple']['prefix'] );
+		$this->assertSame( 'By', $payload['default']['items']['author-name']['labels']['prefix'] );
+		$this->assertSame( '', $payload['default']['items']['author-name']['labels']['suffix'] );
+		$this->assertSame(
+			array(
+				'icon'    => 'comment-author-avatar',
+				'library' => 'wp',
+			),
+			$payload['default']['items']['author-name']['icons']['icon']
+		);
+		$this->assertSame(
+			'icons',
+			$payload['listings']['section/posts-listing:full-width']['preset']
+		);
+		$this->assertArrayNotHasKey( 'section/posts-listing:list', $payload['listings'] );
+	}
+
+	/**
+	 * @return void
+	 */
+	public function test_meta_items_design_filter_can_overlay_items_and_listing_stamp(): void {
+		add_filter(
+			'blockera-one/template-builder/meta-items-design',
+			static function ( array $payload ): array {
+				$payload['default']['items']['author-name']['labels']['prefix'] = 'Written by';
+				$payload['default']['items']['author-name']['labels']['suffix'] = '.';
+				$payload['default']['items']['author-name']['labels']['icon']   = array(
+					'library' => 'wp',
+					'icon'    => 'comment-author-avatar',
+				);
+				$payload['default']['items']['author-name']['icons']['icon']    = array(
+					'library' => 'feather',
+					'icon'    => 'user',
+				);
+				$payload['listings']['section/posts-listing:list']              = array(
+					'preset' => 'labels',
+				);
+
+				return $payload;
+			}
+		);
+
+		$payload = ( new MetaItemsDesign() )->get();
+
+		$this->assertSame( 'Written by', $payload['default']['items']['author-name']['labels']['prefix'] );
+		$this->assertSame( '.', $payload['default']['items']['author-name']['labels']['suffix'] );
+		$this->assertSame( 'comment-author-avatar', $payload['default']['items']['author-name']['labels']['icon']['icon'] );
+		$this->assertSame( 'feather', $payload['default']['items']['author-name']['icons']['icon']['library'] );
+		$this->assertSame( 'user', $payload['default']['items']['author-name']['icons']['icon']['icon'] );
+		$this->assertSame( 'labels', $payload['listings']['section/posts-listing:list']['preset'] );
+		$this->assertSame( 'icons', $payload['listings']['section/posts-listing:full-width']['preset'] );
+	}
+
+	/**
+	 * Variant builder optional-arg lists must stay a subset of the matching
+	 * schema definition properties (typos cannot leak into the payload).
+	 *
+	 * @return void
+	 */
+	public function test_variant_builder_args_exist_in_schema_properties(): void {
+		$schema_file = dirname( __DIR__, 3 ) . '/schemas/template-builder-catalog.schema.json';
+		$this->assertFileExists( $schema_file );
+
+		$schema = json_decode( (string) file_get_contents( $schema_file ), true );
+		$this->assertIsArray( $schema['definitions'] ?? null );
+
+		$reflection = new \ReflectionClass( AbstractCatalog::class );
+		$map        = array(
+			'PATTERN_ARGS'       => 'patternVariant',
+			'TEMPLATE_PART_ARGS' => 'templatePartVariant',
+			'DISABLED_ARGS'      => 'disabledVariant',
+		);
+
+		foreach ( $map as $const => $definition ) {
+			$keys       = $reflection->getConstant( $const );
+			$properties = $schema['definitions'][ $definition ]['properties'] ?? null;
+			$this->assertIsArray( $keys, $const . ' must be an array of optional keys.' );
+			$this->assertIsArray( $properties, $definition . ' schema properties must exist.' );
+
+			foreach ( $keys as $key ) {
+				$this->assertArrayHasKey(
+					$key,
+					$properties,
+					sprintf( '%s key "%s" is missing from schema definitions.%s.properties.', $const, $key, $definition )
+				);
+			}
+		}
 	}
 }
