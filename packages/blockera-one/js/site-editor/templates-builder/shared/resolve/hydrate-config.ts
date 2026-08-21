@@ -1,26 +1,21 @@
 /**
  * Hydrate a type config from the PHP variant catalog
- * (`window.blockeraOneTemplateBuilder.catalog`, printed by
- * `Theme\TemplateBuilder`). Controls declare a `catalogPool`; PHP owns the
- * variant lists (child themes filter them via
+ * (`window.blockeraOneTemplateBuilder.catalog` / `metaItemsDesign`, printed
+ * by `Theme\TemplateBuilder`). Controls declare a `catalogPool`; PHP owns
+ * the variant lists (child themes filter them via
  * `blockera-one/template-builder/catalog/{type}`), JS owns wiring and ops.
  */
 
 import { applyFilters } from '@wordpress/hooks';
 
+import { JS_FILTER_CATALOG } from '../contracts';
 import type {
 	CatalogPayload,
 	ControlDef,
 	PanelGroupDef,
 	TemplateOptionsConfig,
 	VariantDef,
-} from './types';
-
-declare global {
-	interface Window {
-		blockeraOneTemplateBuilder?: { catalog?: CatalogPayload };
-	}
-}
+} from '../types';
 
 /**
  * Every catalog variant key the hydrate layer consumes. Must stay in sync
@@ -55,10 +50,7 @@ export function getCatalog(): CatalogPayload {
 			window.blockeraOneTemplateBuilder?.catalog) ||
 		{};
 
-	return applyFilters(
-		'blockeraOne.templatesBuilder.catalog',
-		catalog
-	) as CatalogPayload;
+	return applyFilters(JS_FILTER_CATALOG, catalog) as CatalogPayload;
 }
 
 /** Copy only supported keys so unknown payload keys never reach the engine. */

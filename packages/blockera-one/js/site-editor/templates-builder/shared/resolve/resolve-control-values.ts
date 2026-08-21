@@ -3,7 +3,7 @@
  * state/value from the block tree + template settings (no React, no WP data).
  */
 
-import type { TemplateSettingsRecord } from './constants';
+import type { TemplateSettingsRecord } from '../constants';
 import { flattenPanelControls } from './resolve-options-panel';
 import {
 	resolveCompoundToggleEnabled,
@@ -12,18 +12,24 @@ import {
 	resolveSidebarLayoutValue,
 	resolveToggleState,
 } from './resolve-state';
-import { lookupFromControl } from './stamp-lookup';
-import { pickMergedAttributeValue } from './attribute-merge';
-import { getAtPath } from './tree';
-import { getStamp } from './metadata';
-import { getActiveBlockStyleName } from './block-style';
+import { lookupFromControl } from '../stamp-lookup';
+import { pickMergedAttributeValue } from '../attribute-merge';
+import { getAtPath } from '../tree';
+import { getStamp } from '../metadata';
+import { getActiveBlockStyleName } from '../block-style';
+import { getAttributeAtPath } from '../attribute-path';
+import {
+	deriveMetaItemsDesign,
+	readMetaItemPart,
+	readMetaSeparatorOption,
+} from '../ops/meta';
 import type {
 	BlockNode,
 	ControlDef,
 	ControlValue,
 	ResolvedOptionState,
 	TemplateOptionsConfig,
-} from './types';
+} from '../types';
 
 export type ControlViewState = {
 	control: ControlDef;
@@ -104,24 +110,6 @@ export function getPostsPerPageMap(
 	return rawMap && typeof rawMap === 'object' && !Array.isArray(rawMap)
 		? (rawMap as Record<string, number>)
 		: {};
-}
-
-function getAttributeAtPath(
-	attributes: Record<string, unknown> | undefined,
-	path: string
-): unknown {
-	if (!attributes || !path) {
-		return undefined;
-	}
-	const parts = path.split('.');
-	let cursor: unknown = attributes;
-	for (let i = 0; i < parts.length; i++) {
-		if (!cursor || typeof cursor !== 'object' || Array.isArray(cursor)) {
-			return undefined;
-		}
-		cursor = (cursor as Record<string, unknown>)[parts[i]];
-	}
-	return cursor;
 }
 
 function isControlValue(value: unknown): value is ControlValue {
@@ -275,6 +263,18 @@ export function resolveControlViewStates(
 	const lookupOf = (control: ControlDef) =>
 		lookupFromControl(control, selectedClientId);
 
+	// Same stamp id can live under page-header and article. `within` on
+	// `page-header-*` control ids must not poison the article cache entry.
+	const lookupKey = (control: ControlDef): string => {
+		const lookup = lookupOf(control);
+		return [
+			lookup.within || '',
+			lookup.fallbackWithin || '',
+			lookup.parentId || '',
+			lookup.selectedClientId || '',
+		].join(':');
+	};
+
 	for (const control of flattenPanelControls(config.groups)) {
 		// Header toggle and a body control may share an id; resolve once.
 		if (seenIds.has(control.id)) {
@@ -288,6 +288,21 @@ export function resolveControlViewStates(
 			const map = getPostsPerPageMap(settings);
 			value =
 				map[settingBucket] ?? (control.defaultValue as number) ?? 10;
+			state = { kind: 'value', value };
+		} else if (control.operation === 'broadcastSetting') {
+			const path = control.settingPath;
+			const stored =
+				path && settings
+					? (settings as Record<string, unknown>)[path]
+					: undefined;
+			if (typeof stored === 'string' || typeof stored === 'number') {
+				const n = Number.parseFloat(String(stored).replace('%', ''));
+				value = Number.isFinite(n)
+					? n
+					: ((control.defaultValue as number) ?? null);
+			} else {
+				value = (control.defaultValue as number) ?? null;
+			}
 			state = { kind: 'value', value };
 		} else if (control.target.kind === 'layout') {
 			const layout = resolveCached(
@@ -307,9 +322,65 @@ export function resolveControlViewStates(
 				value = layoutValue;
 				state = { ...layout, value };
 			}
+		} else if (control.operation === 'setMetaItemPart') {
+			state = resolveCached(
+				`section:${control.target.id}:${lookupKey(control)}:meta-part`,
+				() =>
+					resolveSectionState(
+						blocks,
+						control.target.id,
+						[],
+						lookupOf(control)
+					)
+			);
+			const part = control.attributePath;
+			if (part === 'icon' || part === 'prefix' || part === 'suffix') {
+				value = readMetaItemPart(
+					blocks,
+					control.target.id,
+					part,
+					lookupOf(control)
+				);
+			} else if (control.defaultValue !== undefined) {
+				value = control.defaultValue;
+			}
+		} else if (control.operation === 'setMetaSeparator') {
+			state = resolveCached(
+				`section:${control.target.id}:${lookupKey(control)}:meta-sep`,
+				() =>
+					resolveSectionState(
+						blocks,
+						control.target.id,
+						[],
+						lookupOf(control)
+					)
+			);
+			value = readMetaSeparatorOption(
+				blocks,
+				control.target.id,
+				lookupOf(control)
+			);
+		} else if (control.operation === 'setMetaItemsDesign') {
+			state = resolveCached(
+				`section:${control.target.id}:${lookupKey(control)}:meta-design`,
+				() =>
+					resolveSectionState(
+						blocks,
+						control.target.id,
+						[],
+						lookupOf(control)
+					)
+			);
+			value = deriveMetaItemsDesign(
+				blocks,
+				control.target.id,
+				undefined,
+				undefined,
+				lookupOf(control)
+			);
 		} else if (control.operation === 'setSectionAttribute') {
 			state = resolveCached(
-				`section:${control.target.id}:${selectedClientId || ''}:${control.innerOrder?.parentId || ''}:`,
+				`section:${control.target.id}:${lookupKey(control)}:attr`,
 				() =>
 					resolveSectionState(
 						blocks,
@@ -348,7 +419,7 @@ export function resolveControlViewStates(
 			}
 		} else if (control.operation === 'setBlockStyle') {
 			state = resolveCached(
-				`section:${control.target.id}:${selectedClientId || ''}:${control.innerOrder?.parentId || ''}:style`,
+				`section:${control.target.id}:${lookupKey(control)}:style`,
 				() =>
 					resolveSectionState(
 						blocks,
@@ -371,7 +442,7 @@ export function resolveControlViewStates(
 			}
 		} else if (control.operation === 'selectInCanvas') {
 			state = resolveCached(
-				`section:${control.target.id}:${selectedClientId || ''}:canvas`,
+				`section:${control.target.id}:${lookupKey(control)}:canvas`,
 				() =>
 					resolveSectionState(
 						blocks,
@@ -402,7 +473,7 @@ export function resolveControlViewStates(
 			value = control.invertPresence ? !enabled : enabled;
 		} else {
 			state = resolveCached(
-				`section:${control.target.id}:${variantsKey(control)}:${selectedClientId || ''}`,
+				`section:${control.target.id}:${variantsKey(control)}:${lookupKey(control)}`,
 				() =>
 					resolveSectionState(
 						blocks,

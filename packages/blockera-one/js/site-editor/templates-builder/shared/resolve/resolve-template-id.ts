@@ -7,8 +7,8 @@ import {
 	getBaseSlugForFilter,
 	getTemplateHierarchySlugs,
 	type TemplateLike,
-} from '../../templates/templates-matchers';
-import type { FilterId } from '../../templates/constants';
+} from '../../../templates/templates-matchers';
+import type { FilterId } from '../../../templates/filter-ids';
 
 export function resolveTemplateIdForFilter(
 	filter: FilterId,

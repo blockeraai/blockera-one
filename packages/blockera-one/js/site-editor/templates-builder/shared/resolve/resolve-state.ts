@@ -2,17 +2,17 @@
  * Section / layout detection — stamp anchors first, then heuristics.
  */
 
-import { getStamp } from './metadata';
-import { findStampById, type StampLookupOptions } from './stamp-lookup';
-import { findByStamp, getAtPath, walkBlocks } from './tree';
+import { getStamp } from '../metadata';
+import { findStampById, type StampLookupOptions } from '../stamp-lookup';
+import { findByStamp, getAtPath, walkBlocks } from '../tree';
 import type {
 	BlockNode,
 	ResolvedOptionState,
 	SectionHeuristic,
 	VariantDef,
-} from './types';
+} from '../types';
 
-export type { StampLookupOptions } from './stamp-lookup';
+export type { StampLookupOptions } from '../stamp-lookup';
 
 /**
  * The layout root block doubles as the "main" container for attribute

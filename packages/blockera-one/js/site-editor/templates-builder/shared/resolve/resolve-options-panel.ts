@@ -3,8 +3,8 @@ import type {
 	NestedPanelDef,
 	PanelGroupDef,
 	TemplateOptionsConfig,
-} from './types';
-import type { NestedPanelNode } from '../../nested-panels';
+} from '../types';
+import type { NestedPanelNode } from '../../../nested-panels';
 
 export type ResolvedOptionsPanel = {
 	/** Groups to render on the current screen. */
@@ -168,6 +168,18 @@ export function resolveEnableScrollTarget(
 }
 
 /**
+ * TB `NestedPanelDef` → nested-panels `NestedPanelNode`. This is the only
+ * adapter between Templates Builder panels and the generic URL stack.
+ */
+export function toNestedPanelNode(panel: NestedPanelDef): NestedPanelNode {
+	return {
+		id: panel.id,
+		title: panel.title,
+		children: buildNestedPanelTree(panel.groups),
+	};
+}
+
+/**
  * Build a navigation tree from groups/controls that declare `nestedPanel`.
  */
 export function buildNestedPanelTree(
@@ -176,11 +188,7 @@ export function buildNestedPanelTree(
 	const nodes: NestedPanelNode[] = [];
 	for (const group of groups) {
 		if (group.nestedPanel) {
-			nodes.push({
-				id: group.nestedPanel.id,
-				title: group.nestedPanel.title,
-				children: buildNestedPanelTree(group.nestedPanel.groups),
-			});
+			nodes.push(toNestedPanelNode(group.nestedPanel));
 		}
 		const controls = controlList(group);
 		for (let i = 0; i < controls.length; i++) {
@@ -188,11 +196,7 @@ export function buildNestedPanelTree(
 			if (!nested) {
 				continue;
 			}
-			nodes.push({
-				id: nested.id,
-				title: nested.title,
-				children: buildNestedPanelTree(nested.groups),
-			});
+			nodes.push(toNestedPanelNode(nested));
 		}
 	}
 	return nodes;

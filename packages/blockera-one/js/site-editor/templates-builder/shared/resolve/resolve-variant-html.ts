@@ -5,13 +5,13 @@
  * stays sync and pure — it only ever sees `variant.html`.
  */
 
-import { buildTemplatePartHtml } from './template-part-html';
+import { buildTemplatePartHtml } from '../template-part-html';
 import type {
 	ControlDef,
 	PanelGroupDef,
 	TemplateOptionsConfig,
 	VariantDef,
-} from './types';
+} from '../types';
 
 /** Minimal shape of a `getBlockPatterns()` record we rely on. */
 export type PatternRecord = {
