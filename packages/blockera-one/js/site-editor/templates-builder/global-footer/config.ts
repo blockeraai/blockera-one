@@ -8,27 +8,11 @@
 
 import { __ } from '@wordpress/i18n';
 
-import type { TemplateOptionsConfig } from '../shared/types';
+import { createPartsAreaConfig } from '../shared/sections';
 
-export const GLOBAL_FOOTER_OPTIONS_CONFIG: TemplateOptionsConfig = {
+export const GLOBAL_FOOTER_OPTIONS_CONFIG = createPartsAreaConfig({
 	type: 'global-footer',
 	title: __('Footer', 'blockera'),
-	filters: [],
-	partsAreas: ['footer'],
-	entityPostType: 'wp_template_part',
+	partsArea: 'footer',
 	layoutId: 'site-footer',
-	groups: [
-		{
-			id: 'design',
-			title: __('Design', 'blockera'),
-			keepVisible: true,
-			controls: [],
-		},
-		{
-			id: 'settings',
-			title: __('Settings', 'blockera'),
-			keepVisible: true,
-			controls: [],
-		},
-	],
-};
+});

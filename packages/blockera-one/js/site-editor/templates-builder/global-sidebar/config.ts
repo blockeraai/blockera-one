@@ -1,21 +1,18 @@
 /**
  * Global sidebar template-part options config.
  *
- * Design / Settings stay visible as empty shells until controls land. The
- * panel edits the canonical `wp_template_part` (slug `sidebar`), not a
+ * The panel edits the canonical `wp_template_part` (slug `sidebar`), not a
  * wp_template. Purpose-nav label stays "Sidebar".
  */
 
 import { __ } from '@wordpress/i18n';
 
-import type { TemplateOptionsConfig } from '../shared/types';
+import { createPartsAreaConfig, sidebarBlocksGroup } from '../shared/sections';
 
-export const GLOBAL_SIDEBAR_OPTIONS_CONFIG: TemplateOptionsConfig = {
+export const GLOBAL_SIDEBAR_OPTIONS_CONFIG = createPartsAreaConfig({
 	type: 'global-sidebar',
 	title: __('Sidebar', 'blockera'),
-	filters: [],
-	partsAreas: ['sidebar'],
-	entityPostType: 'wp_template_part',
+	partsArea: 'sidebar',
 	layoutId: 'site-sidebar',
 	groups: [
 		{
@@ -24,11 +21,26 @@ export const GLOBAL_SIDEBAR_OPTIONS_CONFIG: TemplateOptionsConfig = {
 			keepVisible: true,
 			controls: [],
 		},
+		sidebarBlocksGroup(),
 		{
 			id: 'settings',
 			title: __('Settings', 'blockera'),
 			keepVisible: true,
-			controls: [],
+			controls: [
+				{
+					id: 'sidebar-width',
+					type: 'number',
+					label: __('Width', 'blockera'),
+					target: { kind: 'setting', id: 'sidebar-width' },
+					operation: 'broadcastSetting',
+					broadcastId: 'sidebar-width',
+					settingPath: 'sidebar_width',
+					defaultValue: 33.33,
+					min: 10,
+					max: 60,
+					step: 0.01,
+				},
+			],
 		},
 	],
-};
+});

@@ -1,35 +1,49 @@
 /**
  * Central registry of Templates Builder type configs.
- * Add a type folder (e.g. `single/`) and register its config here, plus its
- * `<type>/stamps.ts` dictionary in `STAMP_DICTIONARIES`.
+ * Add a type folder (e.g. `single/`) and register it via
+ * `BuilderTypeRegistration` in `REGISTRATIONS`.
  */
 
-import { ARCHIVE_OPTIONS_CONFIG } from './archive/config';
-import { ARCHIVE_STAMPS } from './archive/stamps';
-import { GLOBAL_FOOTER_OPTIONS_CONFIG } from './global-footer/config';
-import { GLOBAL_FOOTER_STAMPS } from './global-footer/stamps';
-import { GLOBAL_HEADER_OPTIONS_CONFIG } from './global-header/config';
-import { GLOBAL_HEADER_STAMPS } from './global-header/stamps';
-import { GLOBAL_SIDEBAR_OPTIONS_CONFIG } from './global-sidebar/config';
-import { GLOBAL_SIDEBAR_STAMPS } from './global-sidebar/stamps';
-import { hydrateConfig } from './shared/hydrate-config';
-import { registerSectionHeuristics } from './shared/resolve-state';
+import { archiveRegistration } from './archive';
+import { globalFooterRegistration } from './global-footer';
+import { globalHeaderRegistration } from './global-header';
+import { globalSidebarRegistration } from './global-sidebar';
+import { notFoundRegistration } from './not-found';
+import { singleRegistration } from './single';
+import { hydrateConfig } from './shared/resolve/hydrate-config';
+import { registerSectionHeuristics } from './shared/resolve/resolve-state';
 import {
 	stampDictionaryToMap,
 	type StampDictionaryEntry,
 	type StampRole,
 } from './shared/stamp';
 import { SHARED_STAMPS } from './shared/stamps';
-import type { TemplateOptionsConfig } from './shared/types';
+import type {
+	BuilderTypeRegistration,
+	TemplateOptionsConfig,
+} from './shared/types';
+import { applyTemplateOverrides } from './registry-overrides';
+
+export { applyTemplateOverrides } from './registry-overrides';
+
+export const REGISTRATIONS: BuilderTypeRegistration[] = [
+	archiveRegistration,
+	singleRegistration,
+	notFoundRegistration,
+	globalHeaderRegistration,
+	globalFooterRegistration,
+	globalSidebarRegistration,
+];
+
+const ACTIVE_REGISTRATIONS = REGISTRATIONS.filter(
+	(entry) => entry.when?.() !== false
+);
 
 // Exported for the template-builder lint spec, which cross-checks every
 // registered config against the stamp dictionaries and theme markup.
-export const CONFIGS: TemplateOptionsConfig[] = [
-	ARCHIVE_OPTIONS_CONFIG,
-	GLOBAL_HEADER_OPTIONS_CONFIG,
-	GLOBAL_FOOTER_OPTIONS_CONFIG,
-	GLOBAL_SIDEBAR_OPTIONS_CONFIG,
-];
+export const CONFIGS: TemplateOptionsConfig[] = ACTIVE_REGISTRATIONS.map(
+	(entry) => entry.config
+);
 
 /**
  * Stamp dictionaries as authored (`role/id` lists), one entry per source
@@ -38,13 +52,7 @@ export const CONFIGS: TemplateOptionsConfig[] = [
  * roles come from the parsed `role/id:variant` stamp string.
  */
 export const STAMP_DICTIONARIES: readonly (readonly StampDictionaryEntry[])[] =
-	[
-		SHARED_STAMPS,
-		ARCHIVE_STAMPS,
-		GLOBAL_HEADER_STAMPS,
-		GLOBAL_FOOTER_STAMPS,
-		GLOBAL_SIDEBAR_STAMPS,
-	];
+	[SHARED_STAMPS, ...ACTIVE_REGISTRATIONS.map((entry) => entry.stamps)];
 
 /** Merged id → role map across every dictionary (for lookups/validation). */
 export const ALL_STAMPS: Record<string, StampRole> = Object.assign(
@@ -60,24 +68,56 @@ for (const config of CONFIGS) {
 	}
 }
 
-// Hydrated (catalog-applied) copies, memoized per type. The PHP payload is
-// static per page load, so hydration runs once per type; the static config
-// objects are never mutated.
+// Hydrated (catalog-applied) copies, then per-filter overlays. Memoized
+// per `${type}` (base hydrate) and `${type}:${filter}` (overlay result).
 const HYDRATED = new Map<string, TemplateOptionsConfig>();
 
-function getHydratedConfig(config: TemplateOptionsConfig) {
-	let hydrated = HYDRATED.get(config.type);
-	if (!hydrated) {
-		hydrated = hydrateConfig(config);
-		HYDRATED.set(config.type, hydrated);
+export function getHydratedConfig(
+	config: TemplateOptionsConfig,
+	filter?: string
+): TemplateOptionsConfig {
+	const cacheKey = filter ? `${config.type}:${filter}` : config.type;
+	const cached = HYDRATED.get(cacheKey);
+	if (cached) {
+		return cached;
 	}
-	return hydrated;
+
+	let base = HYDRATED.get(config.type);
+	if (!base) {
+		base = hydrateConfig(config);
+		HYDRATED.set(config.type, base);
+	}
+
+	const result = filter ? applyTemplateOverrides(base, filter) : base;
+	HYDRATED.set(cacheKey, result);
+	return result;
+}
+
+/**
+ * Whether a builder config owns this purpose-nav filter.
+ * Exact id, then `filterPrefix`, then `filterMatch`.
+ */
+export function matchesFilter(
+	config: TemplateOptionsConfig,
+	filter: string
+): boolean {
+	if (config.filters.includes(filter)) {
+		return true;
+	}
+	if (config.filterPrefix && filter.startsWith(config.filterPrefix)) {
+		return true;
+	}
+	if (config.filterMatch?.(filter)) {
+		return true;
+	}
+	return false;
 }
 
 /**
  * Resolve options config for a Templates purpose filter. Returns the
- * catalog-hydrated copy (variants filled from the PHP payload), or null
- * when the filter has no builder (use as the builder gate).
+ * catalog-hydrated copy (variants filled from the PHP payload), with the
+ * filter's `templateOverrides` applied, or null when the filter has no
+ * builder (use as the builder gate).
  */
 export function getOptionsConfigForFilter(
 	filter: string | null | undefined
@@ -86,8 +126,8 @@ export function getOptionsConfigForFilter(
 		return null;
 	}
 	for (const config of CONFIGS) {
-		if (config.filters.includes(filter)) {
-			return getHydratedConfig(config);
+		if (matchesFilter(config, filter)) {
+			return getHydratedConfig(config, filter);
 		}
 	}
 	return null;
@@ -111,9 +151,9 @@ export function getOptionsConfigForPartsArea(
 	return null;
 }
 
-export {
-	ARCHIVE_OPTIONS_CONFIG,
-	GLOBAL_FOOTER_OPTIONS_CONFIG,
-	GLOBAL_HEADER_OPTIONS_CONFIG,
-	GLOBAL_SIDEBAR_OPTIONS_CONFIG,
-};
+export const ARCHIVE_OPTIONS_CONFIG = archiveRegistration.config;
+export const SINGLE_OPTIONS_CONFIG = singleRegistration.config;
+export const NOT_FOUND_OPTIONS_CONFIG = notFoundRegistration.config;
+export const GLOBAL_HEADER_OPTIONS_CONFIG = globalHeaderRegistration.config;
+export const GLOBAL_FOOTER_OPTIONS_CONFIG = globalFooterRegistration.config;
+export const GLOBAL_SIDEBAR_OPTIONS_CONFIG = globalSidebarRegistration.config;

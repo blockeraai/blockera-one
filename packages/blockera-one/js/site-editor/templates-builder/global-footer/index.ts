@@ -5,4 +5,11 @@
  * - `parts/footer.html`
  */
 
-export { GLOBAL_FOOTER_OPTIONS_CONFIG } from './config';
+import type { BuilderTypeRegistration } from '../shared/types';
+import { GLOBAL_FOOTER_OPTIONS_CONFIG } from './config';
+import { GLOBAL_FOOTER_STAMPS } from './stamps';
+
+export const globalFooterRegistration: BuilderTypeRegistration = {
+	config: GLOBAL_FOOTER_OPTIONS_CONFIG,
+	stamps: GLOBAL_FOOTER_STAMPS,
+};
