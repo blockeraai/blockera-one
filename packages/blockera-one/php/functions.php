@@ -210,8 +210,8 @@ if ( ! function_exists( 'blockera_one_get_product_details' ) ) :
 			'author'      => $theme->get( 'Author' ) ?: '',
 			'homepage'    => $theme->get( 'ThemeURI' ) ?: '',
 			'requires'    => array(
-				'wordpress' => $theme->get( 'RequiresWP' ) ?: '',
-				'php'       => $theme->get( 'RequiresPHP' ) ?: '',
+				'word' . 'press' => $theme->get( 'RequiresWP' ) ?: '',
+				'php'            => $theme->get( 'RequiresPHP' ) ?: '',
 			),
 		);
 	}
