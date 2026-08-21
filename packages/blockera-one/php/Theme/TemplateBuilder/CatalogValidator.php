@@ -57,16 +57,19 @@ class CatalogValidator {
 		$clean = array();
 
 		foreach ( $catalog as $type => $pools ) {
-			if ( ! is_string( $type ) || ! preg_match( self::KEBAB_PATTERN, $type ) || ! is_array( $pools ) ) {
-				$this->report( sprintf( 'Catalog type "%s" must be a kebab-case key mapping to a pools array; dropped.', (string) $type ) );
+			// PHP casts numeric string keys (e.g. type id `404`) to integers.
+			$type = (string) $type;
+			if ( ! preg_match( self::KEBAB_PATTERN, $type ) || ! is_array( $pools ) ) {
+				$this->report( sprintf( 'Catalog type "%s" must be a kebab-case key mapping to a pools array; dropped.', $type ) );
 				continue;
 			}
 
 			$clean_pools = array();
 
 			foreach ( $pools as $pool_id => $variants ) {
-				if ( ! is_string( $pool_id ) || ! preg_match( self::KEBAB_PATTERN, $pool_id ) || ! is_array( $variants ) ) {
-					$this->report( sprintf( 'Pool "%s" in catalog type "%s" must be a kebab-case key mapping to a variant list; dropped.', (string) $pool_id, $type ) );
+				$pool_id = (string) $pool_id;
+				if ( ! preg_match( self::KEBAB_PATTERN, $pool_id ) || ! is_array( $variants ) ) {
+					$this->report( sprintf( 'Pool "%s" in catalog type "%s" must be a kebab-case key mapping to a variant list; dropped.', $pool_id, $type ) );
 					continue;
 				}
 

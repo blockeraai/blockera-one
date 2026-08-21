@@ -8,11 +8,13 @@
 namespace Blockera\One\Theme;
 
 use Blockera\One\Theme\TemplateBuilder\Catalog;
+use Blockera\One\Theme\TemplateBuilder\MetaItemsDesign;
 
 /**
- * Exposes the PHP variant catalog to the Site Editor JS
- * (`window.blockeraOneTemplateBuilder`). Pattern HTML is intentionally NOT
- * part of this payload — JS resolves markup from the core patterns store.
+ * Exposes the PHP variant catalog and Post Meta Items Design config to the
+ * Site Editor JS (`window.blockeraOneTemplateBuilder`). Pattern HTML is
+ * intentionally NOT part of this payload — JS resolves markup from the
+ * core patterns store.
  */
 class TemplateBuilder {
 
@@ -44,7 +46,12 @@ class TemplateBuilder {
 
 		wp_add_inline_script(
 			'wp-core-data',
-			'window.blockeraOneTemplateBuilder = ' . wp_json_encode( array( 'catalog' => ( new Catalog() )->get() ) ) . ';',
+			'window.blockeraOneTemplateBuilder = ' . wp_json_encode(
+				array(
+					'catalog'         => ( new Catalog() )->get(),
+					'metaItemsDesign' => ( new MetaItemsDesign() )->get(),
+				)
+			) . ';',
 			'before'
 		);
 	}

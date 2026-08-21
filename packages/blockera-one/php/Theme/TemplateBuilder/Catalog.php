@@ -29,6 +29,9 @@ class Catalog {
 	 */
 	private const TYPE_CATALOGS = array(
 		ArchiveCatalog::class,
+		SingleCatalog::class,
+		NotFoundCatalog::class,
+		SidebarCatalog::class,
 	);
 
 	/**

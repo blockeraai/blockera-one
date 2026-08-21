@@ -110,6 +110,306 @@ abstract class AbstractCatalog {
 	}
 
 	/**
+	 * Thumbnail URL for a layout-picker tile. get_theme_file_uri() resolves
+	 * the child theme file first, so children can restyle tiles by shipping
+	 * the same asset path.
+	 *
+	 * @param string $dir  Folder under assets/templates-builder/.
+	 * @param string $name SVG basename (no extension).
+	 *
+	 * @return string
+	 */
+	protected function thumbnail( string $dir, string $name ): string {
+		return get_theme_file_uri( 'assets/templates-builder/' . $dir . '/' . $name . '.svg' );
+	}
+
+	/**
+	 * Single-variant restore pool for a Posts Loop / Post Meta element.
+	 *
+	 * @param string $label        Translated picker label.
+	 * @param string $pattern_slug Full `blockera-one/builder-…` slug.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	protected function listingElementPool( string $label, string $pattern_slug ): array {
+		return array(
+			$this->patternVariant(
+				'default',
+				$label,
+				$pattern_slug
+			),
+		);
+	}
+
+	/**
+	 * Site-header chrome pool (stacked parts + vertical-rail pattern).
+	 *
+	 * @param string $thumbnail_dir          Folder under assets/templates-builder/.
+	 * @param string $vertical_pattern_slug  Vertical-rail pattern slug.
+	 *
+	 * @return array<string,array<int,array<string,mixed>>>
+	 */
+	protected function chromeHeaderPool(
+		string $thumbnail_dir,
+		string $vertical_pattern_slug = 'blockera-one/builder-archive-header-vertical'
+	): array {
+		$before_body = array(
+			'relativeTo' => 'main',
+			'position'   => 'before',
+		);
+
+		return array(
+			'header' => array(
+				$this->templatePartVariant(
+					'header',
+					__( 'Default', 'blockera-one' ),
+					'header',
+					array(
+						'area'         => 'header',
+						'tagName'      => 'header',
+						'thumbnail'    => $this->thumbnail( $thumbnail_dir, 'header-default' ),
+						'placement'    => $before_body,
+						'chromeLayout' => 'stacked',
+					)
+				),
+				$this->templatePartVariant(
+					'header-large-title',
+					__( 'Large Title', 'blockera-one' ),
+					'header-large-title',
+					array(
+						'area'         => 'header',
+						'tagName'      => 'header',
+						'thumbnail'    => $this->thumbnail( $thumbnail_dir, 'header-large-title' ),
+						'placement'    => $before_body,
+						'chromeLayout' => 'stacked',
+					)
+				),
+				// Vertical rail has no placement: the pattern ships the whole
+				// chrome frame (columns + header part + empty rail-body-area)
+				// and the chrome-rail op re-frames the page around it.
+				$this->patternVariant(
+					'vertical-header',
+					__( 'Vertical', 'blockera-one' ),
+					$vertical_pattern_slug,
+					array(
+						'thumbnail'    => $this->thumbnail( $thumbnail_dir, 'header-vertical' ),
+						'chromeLayout' => 'vertical-rail',
+					)
+				),
+			),
+		);
+	}
+
+	/**
+	 * Site-footer chrome pool (stacked parts).
+	 *
+	 * @param string $thumbnail_dir Folder under assets/templates-builder/.
+	 *
+	 * @return array<string,array<int,array<string,mixed>>>
+	 */
+	protected function chromeFooterPool( string $thumbnail_dir ): array {
+		$after_body = array(
+			'relativeTo' => 'main',
+			'position'   => 'after',
+		);
+
+		return array(
+			'footer' => array(
+				$this->templatePartVariant(
+					'footer',
+					__( 'Default', 'blockera-one' ),
+					'footer',
+					array(
+						'area'         => 'footer',
+						'tagName'      => 'footer',
+						'thumbnail'    => $this->thumbnail( $thumbnail_dir, 'footer-default' ),
+						'placement'    => $after_body,
+						'chromeLayout' => 'stacked',
+					)
+				),
+				$this->templatePartVariant(
+					'footer-columns',
+					__( 'Columns', 'blockera-one' ),
+					'footer-columns',
+					array(
+						'area'         => 'footer',
+						'tagName'      => 'footer',
+						'thumbnail'    => $this->thumbnail( $thumbnail_dir, 'footer-columns' ),
+						'placement'    => $after_body,
+						'chromeLayout' => 'stacked',
+					)
+				),
+				$this->templatePartVariant(
+					'footer-newsletter',
+					__( 'Newsletter', 'blockera-one' ),
+					'footer-newsletter',
+					array(
+						'area'         => 'footer',
+						'tagName'      => 'footer',
+						'thumbnail'    => $this->thumbnail( $thumbnail_dir, 'footer-newsletter' ),
+						'placement'    => $after_body,
+						'chromeLayout' => 'stacked',
+					)
+				),
+			),
+		);
+	}
+
+	/**
+	 * Post Meta row, item, and space-filler pools (shared across families).
+	 *
+	 * @return array<string,array<int,array<string,mixed>>>
+	 */
+	protected function postMetaPools(): array {
+		return array(
+			'post-meta'                  => $this->listingElementPool(
+				__( 'Post Meta', 'blockera-one' ),
+				'blockera-one/builder-post-meta'
+			),
+			'post-meta-2'                => $this->listingElementPool(
+				__( 'Post Meta', 'blockera-one' ),
+				'blockera-one/builder-post-meta-2'
+			),
+			'post-meta-author-name'      => $this->listingElementPool(
+				__( 'Author Name', 'blockera-one' ),
+				'blockera-one/builder-post-meta-author-name'
+			),
+			'post-meta-comments-count'   => $this->listingElementPool(
+				__( 'Comments Count', 'blockera-one' ),
+				'blockera-one/builder-post-meta-comments-count'
+			),
+			'post-meta-comments-link'    => $this->listingElementPool(
+				__( 'Comments Link', 'blockera-one' ),
+				'blockera-one/builder-post-meta-comments-link'
+			),
+			'post-meta-date'             => $this->listingElementPool(
+				__( 'Date', 'blockera-one' ),
+				'blockera-one/builder-post-meta-date'
+			),
+			'post-meta-post-date'        => $this->listingElementPool(
+				__( 'Post Date', 'blockera-one' ),
+				'blockera-one/builder-post-meta-post-date'
+			),
+			'post-meta-modified-date'    => $this->listingElementPool(
+				__( 'Modified Date', 'blockera-one' ),
+				'blockera-one/builder-post-meta-modified-date'
+			),
+			'post-meta-categories'       => $this->listingElementPool(
+				__( 'Categories', 'blockera-one' ),
+				'blockera-one/builder-post-meta-categories'
+			),
+			'post-meta-tags'             => $this->listingElementPool(
+				__( 'Tags', 'blockera-one' ),
+				'blockera-one/builder-post-meta-tags'
+			),
+			'post-meta-time-to-read'     => $this->listingElementPool(
+				__( 'Time to Read', 'blockera-one' ),
+				'blockera-one/builder-post-meta-time-to-read'
+			),
+			'post-meta-word-count'       => $this->listingElementPool(
+				__( 'Word Count', 'blockera-one' ),
+				'blockera-one/builder-post-meta-word-count'
+			),
+			'post-meta-2-author-name'    => $this->listingElementPool(
+				__( 'Author Name', 'blockera-one' ),
+				'blockera-one/builder-post-meta-2-author-name'
+			),
+			'post-meta-2-comments-count' => $this->listingElementPool(
+				__( 'Comments Count', 'blockera-one' ),
+				'blockera-one/builder-post-meta-2-comments-count'
+			),
+			'post-meta-2-comments-link'  => $this->listingElementPool(
+				__( 'Comments Link', 'blockera-one' ),
+				'blockera-one/builder-post-meta-2-comments-link'
+			),
+			'post-meta-2-date'           => $this->listingElementPool(
+				__( 'Date', 'blockera-one' ),
+				'blockera-one/builder-post-meta-2-date'
+			),
+			'post-meta-2-post-date'      => $this->listingElementPool(
+				__( 'Post Date', 'blockera-one' ),
+				'blockera-one/builder-post-meta-2-post-date'
+			),
+			'post-meta-2-modified-date'  => $this->listingElementPool(
+				__( 'Modified Date', 'blockera-one' ),
+				'blockera-one/builder-post-meta-2-modified-date'
+			),
+			'post-meta-2-categories'     => $this->listingElementPool(
+				__( 'Categories', 'blockera-one' ),
+				'blockera-one/builder-post-meta-2-categories'
+			),
+			'post-meta-2-tags'           => $this->listingElementPool(
+				__( 'Tags', 'blockera-one' ),
+				'blockera-one/builder-post-meta-2-tags'
+			),
+			'post-meta-2-time-to-read'   => $this->listingElementPool(
+				__( 'Time to Read', 'blockera-one' ),
+				'blockera-one/builder-post-meta-2-time-to-read'
+			),
+			'post-meta-2-word-count'     => $this->listingElementPool(
+				__( 'Word Count', 'blockera-one' ),
+				'blockera-one/builder-post-meta-2-word-count'
+			),
+			'post-meta-space-filler'     => $this->listingElementPool(
+				__( 'Space Filler', 'blockera-one' ),
+				'blockera-one/builder-post-meta-space-filler'
+			),
+			'post-meta-space-filler-2'   => $this->listingElementPool(
+				__( 'Space Filler', 'blockera-one' ),
+				'blockera-one/builder-post-meta-space-filler-2'
+			),
+			'post-meta-2-space-filler'   => $this->listingElementPool(
+				__( 'Space Filler', 'blockera-one' ),
+				'blockera-one/builder-post-meta-2-space-filler'
+			),
+			'post-meta-2-space-filler-2' => $this->listingElementPool(
+				__( 'Space Filler', 'blockera-one' ),
+				'blockera-one/builder-post-meta-2-space-filler-2'
+			),
+		);
+	}
+
+	/**
+	 * Page layout variants. Order matters: no-sidebar first (toggle-off),
+	 * then the nested position picker (catalogExclude: no-sidebar) shows
+	 * Left, Right.
+	 *
+	 * @param string $thumbnail_dir Folder under assets/templates-builder/.
+	 *
+	 * @return array<string,array<int,array<string,mixed>>>
+	 */
+	protected function layoutPool( string $thumbnail_dir = 'archive' ): array {
+		return array(
+			'layout' => array(
+				$this->patternVariant(
+					'no-sidebar',
+					__( 'No Sidebar', 'blockera-one' ),
+					'blockera-one/builder-archive-layout-no-sidebar',
+					array( 'areas' => array( 'content' ) )
+				),
+				$this->patternVariant(
+					'sidebar-left',
+					__( 'Left Sidebar', 'blockera-one' ),
+					'blockera-one/builder-archive-layout-sidebar-left',
+					array(
+						'areas'     => array( 'content', 'sidebar-area' ),
+						'thumbnail' => $this->thumbnail( $thumbnail_dir, 'sidebar-left' ),
+					)
+				),
+				$this->patternVariant(
+					'sidebar-right',
+					__( 'Right Sidebar', 'blockera-one' ),
+					'blockera-one/builder-archive-layout-sidebar-right',
+					array(
+						'areas'     => array( 'content', 'sidebar-area' ),
+						'thumbnail' => $this->thumbnail( $thumbnail_dir, 'sidebar-right' ),
+					)
+				),
+			),
+		);
+	}
+
+	/**
 	 * Copy only allowed optional keys onto the variant (unknown keys are
 	 * silently ignored so a typo cannot leak into the public payload).
 	 *
