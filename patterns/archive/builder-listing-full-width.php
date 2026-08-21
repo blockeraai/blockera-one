@@ -27,9 +27,14 @@
 				<div class="wp-block-column is-vertically-aligned-center" style="flex-basis:60%">
 					<!-- wp:post-title {"isLink":true,"fontSize":"x-large","metadata":{"blockeraOne":"section/post-title:default"}} /-->
 					<!-- wp:post-excerpt {"fontSize":"medium","metadata":{"blockeraOne":"section/post-excerpt:default"}} /-->
-					<!-- wp:group {"metadata":{"name":"Post Meta","blockeraOne":"section/post-meta:default"},"layout":{"type":"flex","flexWrap":"nowrap"}} -->
-					<div class="wp-block-group">
-						<!-- wp:post-date {"isLink":true,"metadata":{"bindings":{"datetime":{"source":"core/post-data","args":{"field":"date"}}},"blockeraOne":"section/post-meta-post-date:default"},"fontSize":"small"} /-->
+					<!-- wp:group {"metadata":{"name":"Post Meta","blockeraOne":"section/post-meta:default"},"blockeraPropsId":"820192000014","blockeraCompatId":"820192000014","blockeraFlexChildSizing":{"value":"grow"},"blockeraWidth":{"value":"stretch"},"className":"blockera-block blockera-block-820192000014","layout":{"type":"flex","flexWrap":"nowrap"}} -->
+					<div class="wp-block-group blockera-block blockera-block-820192000014">
+						<!-- wp:group {"metadata":{"name":"Published Date","blockeraOne":"section/post-meta-post-date:default"},"style":{"spacing":{"blockGap":"0.35em"}},"layout":{"type":"flex","flexWrap":"nowrap","verticalAlignment":"center"}} -->
+						<div class="wp-block-group">
+							<!-- wp:icon {"icon":"core/calendar","metadata":{"blockeraOne":"container/meta-item-icon:default"},"blockeraIcon":{"value":{"icon":"calendar","library":"wp","uploadSVG":"","svgString":"","renderedIcon":""}},"blockeraPropsId":"820192000015","blockeraCompatId":"820192000015","className":"wp-block-icon-blockera blockera-block blockera-block-820192000015","style":{"dimensions":{"width":"1em"}}} /-->
+							<!-- wp:post-date {"isLink":true,"metadata":{"bindings":{"datetime":{"source":"core/post-data","args":{"field":"date"}}},"blockeraOne":"container/meta-item-block:default"},"fontSize":"small"} /-->
+						</div>
+						<!-- /wp:group -->
 					</div>
 					<!-- /wp:group -->
 				</div>

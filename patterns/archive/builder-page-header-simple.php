@@ -18,7 +18,7 @@
 	<div class="wp-block-group blockera-block blockera-block-8n21sf">
 		<!-- wp:query-title {"type":"archive","metadata":{"blockeraOne":"section/page-header-title:default"},"blockeraPropsId":"71513349183","blockeraCompatId":"71513349183","className":"blockera-block blockera-block-71513349183 is-style-default","style":{"color":[],"typography":[]}} /-->
 
-		<!-- wp:term-description {"metadata":{"blockeraOne":"section/page-header-description:default"},"blockeraPropsId":"71513349183","blockeraCompatId":"71513349183","className":"blockera-block blockera-block-71513349183 is-style-default","style":{"color":[],"typography":[]}} /-->
+		<!-- wp:term-description {"metadata":{"blockeraOne":"section/page-header-description:default"},"blockeraPropsId":"71513349284","blockeraCompatId":"71513349284","className":"blockera-block blockera-block-71513349284 is-style-default","style":{"color":[],"typography":[]}} /-->
 	</div>
 	<!-- /wp:group -->
 </div>
