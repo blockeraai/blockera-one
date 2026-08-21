@@ -22,7 +22,7 @@ import {
 	getTemplatesUrlState,
 	navigateTemplates,
 } from './constants';
-import { stopContentOnlySectionEdit } from '../templates-builder/shared/select-section-in-canvas';
+import { stopContentOnlySectionEdit } from '../templates-builder';
 import useOpenNavigationInterceptor from './use-open-navigation-interceptor';
 
 type TemplatesPurposePreviewProps = {

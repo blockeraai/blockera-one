@@ -11,7 +11,7 @@
  * inside the primary sidebar.
  */
 
-import type { ComponentType, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 import { useRegistry } from '@wordpress/data';
 import {
@@ -19,36 +19,25 @@ import {
 	isValidElement,
 	useLayoutEffect,
 } from '@wordpress/element';
-import { getQueryArg } from '@wordpress/url';
 
 import { EDIT_SITE_STORE_NAME } from '../constants';
-import DrillDownScreen from '../components/drill-down-screen';
 import { getSettingsRouteItems } from '../navigation/nav-config';
 import StylesDrillDown from '../styles-drill-down';
-import {
-	TEMPLATES_FILTER_QUERY,
-	TemplatesBrowseContent,
-	TemplatesDrillDown,
-	isTemplatesOwnedPagePreview,
-} from '../templates';
+import { TemplatesDrillDown } from '../templates';
 import TemplatesAreaHub from '../templates/templates-area-hub';
-import TemplatesPurposePreview from '../templates/templates-purpose-preview';
-import { getTemplatesUrlState } from '../templates/constants';
 import { isSiteEditorUrl } from '../utils';
+import { buildSettingsRoute } from './register-settings-routes';
+import {
+	type RouteAreaFn,
+	type RouteAreas,
+	wrapPageItemSidebar,
+	wrapTemplateItemPurposePreview,
+	wrapTemplatesBrowseArea,
+	wrapTemplatesBrowsePreview,
+} from './wrap-templates-areas';
 import '../styles-panel.scss';
 
 let didRegister = false;
-
-type RouteAreaFn = (args: unknown) => ReactNode | Promise<ReactNode>;
-
-type RouteAreas = {
-	sidebar?: ReactNode | RouteAreaFn;
-	content?: ReactNode | RouteAreaFn;
-	preview?: ReactNode | RouteAreaFn;
-	mobile?: ReactNode | RouteAreaFn;
-	mobileContent?: ReactNode | RouteAreaFn;
-	mobileSidebar?: ReactNode | RouteAreaFn;
-};
 
 type EditSiteRoute = {
 	name?: string;
@@ -105,127 +94,10 @@ function duplicateAreaNode(
 	return node;
 }
 
-/**
- * Invoke a core route area (element or `({ siteData, query }) => …` function).
- * Core preview/widths may be async — callers must await thenables.
- */
-function resolveAreaNode(
-	area: ReactNode | RouteAreaFn | undefined,
-	args: unknown
-): ReactNode | Promise<ReactNode> {
-	if (typeof area === 'function') {
-		return area(args);
-	}
-	return area ?? null;
-}
-
-/**
- * Resolve a core route area and await it when async (core preview areas can
- * return promises: list → Editor, grid → undefined).
- */
-async function resolveAreaNodeAsync(
-	area: ReactNode | RouteAreaFn | undefined,
-	args: unknown
-): Promise<ReactNode> {
-	const resolved = resolveAreaNode(area, args);
-	if (
-		!!resolved &&
-		typeof (resolved as { then?: unknown }).then === 'function'
-	) {
-		return await (resolved as Promise<ReactNode>);
-	}
-	return resolved as ReactNode;
-}
-
-/**
- * Keep core area as a function so the router still passes `siteData` / `query`,
- * then gate the resolved node (e.g. missing-base empty state).
- */
-function wrapTemplatesBrowseArea(
-	area: ReactNode | RouteAreaFn | undefined
-): RouteAreaFn {
-	return async (args: unknown) => {
-		const node = await resolveAreaNodeAsync(area, args);
-		return <TemplatesBrowseContent>{node}</TemplatesBrowseContent>;
-	};
-}
-
-/**
- * Await core async preview. Return null when empty or when Area Hub owns the
- * view so layout does not mount an empty canvas.
- */
-function wrapTemplatesBrowsePreview(
-	area: ReactNode | RouteAreaFn | undefined
-): RouteAreaFn {
-	return async (args: unknown) => {
-		if (getTemplatesUrlState().partsArea) {
-			return null;
-		}
-
-		return (await resolveAreaNodeAsync(area, args)) ?? null;
-	};
-}
-
-/**
- * Keep `template-item` preview as a route area function so the router still
- * resolves core `({ siteData }) => <Editor />`. Wrapping the function as JSX
- * children leaves a blank canvas.
- */
-function wrapTemplateItemPurposePreview(
-	area: ReactNode | RouteAreaFn | undefined
-): RouteAreaFn {
-	return async (args: unknown) => {
-		const node = await resolveAreaNodeAsync(area, args);
-		return <TemplatesPurposePreview>{node}</TemplatesPurposePreview>;
-	};
-}
-
 // Core styles content is an element in practice; a function area would pass
 // through untouched (same runtime behavior as before the type widening).
 function wrapStylesDrillDown(content: ReactNode | RouteAreaFn): ReactNode {
 	return <StylesDrillDown>{content as ReactNode}</StylesDrillDown>;
-}
-
-/**
- * Register a sidebar-only settings route (drill-down title + panel), building
- * separate sidebar / mobileSidebar screen instances. Route entries come from
- * the navigation catalog (`getSettingsRouteItems`).
- */
-function registerSettingsRoute(
-	reduxStore: NonNullable<ReturnType<typeof getEditSiteReduxStore>>,
-	{
-		name,
-		path,
-		title,
-		Panel,
-		preview,
-	}: {
-		name: string;
-		path: string;
-		title: string;
-		Panel: ComponentType;
-		preview: ReactNode | RouteAreaFn;
-	}
-): void {
-	const screen = () => (
-		<DrillDownScreen title={title}>
-			<Panel />
-		</DrillDownScreen>
-	);
-
-	unregisterIfPresent(reduxStore, name);
-	reduxStore.dispatch?.({
-		type: 'REGISTER_ROUTE',
-		route: {
-			name,
-			path,
-			areas: {
-				sidebar: screen(),
-				preview,
-				mobileSidebar: screen(),
-			},
-		},
-	});
 }
 
 /**
@@ -374,34 +246,11 @@ export default function SiteEditorMainPanelRoutes(): null {
 				});
 			}
 
-			// Homepage / Blog·Posts preview pages via `/page/{id}` but keep
-			// Templates purpose-nav when `boFilter` marks a Templates-owned preview.
 			const pageItem = routes.find((r) => r?.name === 'page-item');
 			if (pageItem?.areas?.preview) {
 				const corePageSidebar = pageItem.areas.sidebar;
 				const corePageMobileSidebar =
 					pageItem.areas.mobileSidebar ?? pageItem.areas.sidebar;
-
-				const templatesOrPagesSidebar = (
-					coreSidebar: ReactNode | RouteAreaFn
-				): RouteAreaFn => {
-					return (args: unknown) => {
-						const boFilter = getQueryArg(
-							typeof window !== 'undefined'
-								? window.location.href
-								: '',
-							TEMPLATES_FILTER_QUERY
-						);
-						const keepTemplates = isTemplatesOwnedPagePreview(
-							typeof boFilter === 'string' ? boFilter : null
-						);
-
-						if (keepTemplates) {
-							return <TemplatesDrillDown />;
-						}
-						return resolveAreaNode(coreSidebar, args);
-					};
-				};
 
 				unregisterIfPresent(reduxStore, 'page-item');
 				reduxStore.dispatch({
@@ -410,9 +259,9 @@ export default function SiteEditorMainPanelRoutes(): null {
 						name: 'page-item',
 						path: pageItem.path || '/page/:postId',
 						areas: {
-							sidebar: templatesOrPagesSidebar(corePageSidebar),
+							sidebar: wrapPageItemSidebar(corePageSidebar),
 							preview: pageItem.areas.preview,
-							mobileSidebar: templatesOrPagesSidebar(
+							mobileSidebar: wrapPageItemSidebar(
 								corePageMobileSidebar
 							),
 						},
@@ -422,12 +271,17 @@ export default function SiteEditorMainPanelRoutes(): null {
 
 			// Identity / Homepage / Performance — one catalog entry each.
 			for (const item of getSettingsRouteItems()) {
-				registerSettingsRoute(reduxStore, {
+				const route = buildSettingsRoute({
 					name: item.key,
 					path: item.path,
 					title: item.label,
 					Panel: item.settingsPanel,
 					preview: settingsPreview,
+				});
+				unregisterIfPresent(reduxStore, route.name);
+				reduxStore.dispatch({
+					type: 'REGISTER_ROUTE',
+					route,
 				});
 			}
 

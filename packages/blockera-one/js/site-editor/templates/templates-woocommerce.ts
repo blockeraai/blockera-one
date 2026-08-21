@@ -9,7 +9,7 @@
 import { __ } from '@wordpress/i18n';
 
 import type { NavItemIcon } from '../components/nav-item';
-import { getTemplateTitle } from './templates-matchers';
+import { getTemplateTitle } from './template-display';
 
 type WooTemplateLike = {
 	slug?: string;
