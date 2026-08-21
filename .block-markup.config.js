@@ -14,4 +14,5 @@ module.exports = {
 	imagePathRoots: ['assets', 'patterns/images'],
 	patternsDirs: ['patterns', 'patterns-woocommerce'],
 	templatesDirs: ['templates'],
+	webpack: true,
 };
