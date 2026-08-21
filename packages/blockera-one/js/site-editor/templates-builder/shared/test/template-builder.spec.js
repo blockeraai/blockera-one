@@ -608,11 +608,11 @@ describe('templates-builder patterns lint', () => {
 				'section/post-meta:default',
 				'section/post-meta-2:default',
 			];
-			const rowPatterns = builderPatterns.filter((entry) =>
+			const rowEntries = stampedEntries.filter((entry) =>
 				entry.stamps.some((stamp) => stamps.includes(stamp))
 			);
-			expect(rowPatterns.length).toBeGreaterThan(0);
-			for (const entry of rowPatterns) {
+			expect(rowEntries.length).toBeGreaterThan(0);
+			for (const entry of rowEntries) {
 				const source = fs.readFileSync(
 					path.join(themeRoot, entry.file),
 					'utf8'
