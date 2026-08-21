@@ -13,8 +13,8 @@
 import { store as blockEditorStore } from '@wordpress/block-editor';
 import { select, subscribe } from '@wordpress/data';
 
-import { findStampById } from './stamp-lookup';
-import type { BlockNode } from './types';
+import { findStampById } from '../stamp-lookup';
+import type { BlockNode } from '../types';
 
 const SCROLL_TIMEOUT_MS = 8000;
 /** Watch after the first reveal so query-loop growth can be followed. */
@@ -183,6 +183,30 @@ function ensureBottomScrollRoom(
 	html.style.paddingBottom = `${nextPad}px`;
 }
 
+function clearBottomScrollPad(view?: Window | null): void {
+	const views: Window[] = [];
+	if (view) {
+		views.push(view);
+	} else {
+		if (typeof window !== 'undefined') {
+			views.push(window);
+		}
+		const iframe = getEditorCanvasIframe();
+		if (iframe?.contentWindow) {
+			views.push(iframe.contentWindow);
+		}
+	}
+	for (let i = 0; i < views.length; i++) {
+		const html = views[i].document?.documentElement as
+			HTMLElement | undefined;
+		if (!html?.hasAttribute(SCROLL_PAD_ATTR)) {
+			continue;
+		}
+		html.removeAttribute(SCROLL_PAD_ATTR);
+		html.style.paddingBottom = '';
+	}
+}
+
 function isDocumentScroller(scroller: Element, view: Window): boolean {
 	return (
 		scroller === view.document.scrollingElement ||
@@ -310,11 +334,12 @@ export function scrollStampIntoCanvas(
 		if (activeRevealStop === stop) {
 			activeRevealStop = null;
 		}
-		cachedFound = null;
 		if (settleTimer) {
 			window.clearTimeout(settleTimer);
 			settleTimer = 0;
 		}
+		clearBottomScrollPad(cachedFound?.view);
+		cachedFound = null;
 		unsubscribe();
 	};
 

@@ -12,12 +12,10 @@
 import { store as blockEditorStore } from '@wordpress/block-editor';
 import { dispatch, select, subscribe } from '@wordpress/data';
 
-import {
-	getTemplatesUrlState,
-	navigateTemplates,
-} from '../../templates/constants';
-import { findStampById } from './stamp-lookup';
-import type { BlockNode } from './types';
+import { navigateTemplates } from '../../../templates/navigate-templates';
+import { getTemplatesUrlState } from '../../../templates/templates-url';
+import { findStampById } from '../stamp-lookup';
+import type { BlockNode } from '../types';
 
 /** Gutenberg complementary area id for the block inspector (unified editor). */
 const BLOCK_INSPECTOR_AREA = 'edit-post/block';
