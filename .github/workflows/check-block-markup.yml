@@ -1,15 +1,16 @@
-name: Check Pattern Normalization
+name: Check Block Markup
 
 on:
     pull_request:
         types: [opened, synchronize, ready_for_review]
         paths:
             - 'patterns/**'
-            - '.patterns.config.js'
-            - 'packages/global-packages/packages/utils/js/patterns/**'
-            - 'packages/global-packages/packages/dev-tools/js/patterns/**'
-            - 'packages/global-packages/packages/dev-tools/js/webpack/normalize-patterns-plugin.js'
-            - '.github/workflows/check-patterns.yml'
+            - 'patterns-woocommerce/**'
+            - 'templates/**'
+            - '.block-markup.config.js'
+            - 'packages/global-packages/packages/dev-tools/js/block-markup/**'
+            - 'packages/global-packages/packages/dev-tools/js/webpack/normalize-block-markup-plugin.js'
+            - '.github/workflows/check-block-markup.yml'
     workflow_dispatch:
 
 concurrency:
@@ -17,8 +18,8 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
-    check-patterns:
-        name: patterns are normalized
+    check-block-markup:
+        name: block-markup is normalized
         runs-on: ubuntu-latest
         timeout-minutes: 30
         if: ${{ github.repository == 'blockeraai/blockera-one' || github.event_name == 'pull_request' }}
@@ -34,6 +35,6 @@ jobs:
 
             - uses: ./packages/global-packages/packages/dev-tools/github/actions/setup-node
 
-            - name: Check pattern files are normalized
+            - name: Check block-markup files are normalized
               run: |
-                  node ./packages/global-packages/packages/dev-tools/js/patterns/normalize-patterns-cli.js --check --quiet
+                  node ./packages/global-packages/packages/dev-tools/js/block-markup/normalize-block-markup-cli.js --check --quiet
