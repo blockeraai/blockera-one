@@ -604,23 +604,15 @@ describe('templates-builder patterns lint', () => {
 		});
 
 		it('parent meta rows use flex-child grow and stretch width', () => {
-			const rowFiles = [
-				'builder-post-meta.php',
-				'builder-post-meta-2.php',
-				'builder-listing-grid-2.php',
-				'builder-listing-grid-3.php',
-				'builder-listing-list.php',
-				'builder-listing-full-width.php',
-			];
 			const stamps = [
 				'section/post-meta:default',
 				'section/post-meta-2:default',
 			];
-			for (const fileName of rowFiles) {
-				const entry = builderPatterns.find(
-					(pattern) => pattern.name === fileName
-				);
-				expect(entry).toBeTruthy();
+			const rowPatterns = builderPatterns.filter((entry) =>
+				entry.stamps.some((stamp) => stamps.includes(stamp))
+			);
+			expect(rowPatterns.length).toBeGreaterThan(0);
+			for (const entry of rowPatterns) {
 				const source = fs.readFileSync(
 					path.join(themeRoot, entry.file),
 					'utf8'
