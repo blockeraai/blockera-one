@@ -9,6 +9,8 @@
 import { getBlockType } from '@wordpress/blocks';
 import { applyFilters } from '@wordpress/hooks';
 
+import type { BlockNode } from './types';
+
 /**
  * Same identifier scheme as `getAttributesWithIds` in
  * `@blockera/editor` `hooks/use-attributes`.
@@ -78,6 +80,32 @@ function withBlockeraBlockClassName(
 	};
 }
 
+/**
+ * Blockera style-engine selectors need `blockeraPropsId` / `blockeraCompatId`
+ * plus `blockera-block` / `blockera-block-{id}` class tokens. Inspector writes
+ * get this via `applyBlockeraInspectorAttribute`; inserted builder blocks must
+ * too or generated CSS never attaches.
+ */
+export function withBlockeraCompatibility(
+	attributes: Record<string, unknown>
+): Record<string, unknown> {
+	let next = { ...attributes };
+	next = withBlockeraId(next, 'blockeraPropsId');
+	next = withBlockeraId(next, 'blockeraCompatId');
+	return withBlockeraBlockClassName(next);
+}
+
+/** Walk an inserted restore tree and stamp Blockera ids/classes on every node. */
+export function prepareInsertedBlocks(blocks: BlockNode[]): BlockNode[] {
+	return blocks.map((block) => ({
+		...block,
+		attributes: withBlockeraCompatibility(
+			(block.attributes || {}) as Record<string, unknown>
+		),
+		innerBlocks: prepareInsertedBlocks(block.innerBlocks || []),
+	}));
+}
+
 function inspectorAttributeId(attributePath: string): string | null {
 	const [id] = attributePath.split('.');
 	if (!id || !id.startsWith('blockera') || id === 'blockeraOne') {
@@ -113,10 +141,7 @@ export function applyBlockeraInspectorAttribute(
 		return attributes;
 	}
 
-	let next: Record<string, unknown> = { ...attributes };
-	next = withBlockeraId(next, 'blockeraPropsId');
-	next = withBlockeraId(next, 'blockeraCompatId');
-	next = withBlockeraBlockClassName(next);
+	const next: Record<string, unknown> = withBlockeraCompatibility(attributes);
 
 	// Inspector reducer: blockera* keys are stored as `{ value: newValue }`.
 	next[attributeId] = { value: newValue };

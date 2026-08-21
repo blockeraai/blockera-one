@@ -14,7 +14,7 @@ import {
 	findChromeRail,
 	resolveLayoutState,
 	resolveSectionState,
-} from './resolve-state';
+} from './resolve/resolve-state';
 import {
 	cloneTree,
 	findByStamp,

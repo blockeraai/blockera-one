@@ -115,9 +115,11 @@ function findWithinAncestorId(
  * Resolve a stamp id with parent scope, then miss fallbacks.
  *
  * Nested ids: within (exclusive) → selection → fallbackWithin →
- * parentId → tree-global first-match. Always-global ids skip the
- * scoped steps. An explicit `within` never falls through to another
- * section, so reorder cannot land in a sibling `body` / `start`.
+ * parentId (scoped under within/fallbackWithin when those differ) →
+ * tree-global first-match only when fallbackWithin is absent.
+ * Always-global ids skip the scoped steps. An explicit `within` never
+ * falls through to another section, so reorder cannot land in a
+ * sibling `body` / `start`.
  */
 export function findStampById(
 	blocks: BlockNode[],
@@ -159,10 +161,32 @@ export function findStampById(
 	}
 
 	if (options?.parentId) {
-		const match = findWithinAncestorId(blocks, options.parentId, byId);
-		if (match) {
-			return match;
+		const ancestorScope = options.within || options.fallbackWithin;
+		let parent: WalkMatch | null = null;
+		if (ancestorScope && ancestorScope !== options.parentId) {
+			parent = findWithinAncestorId(
+				blocks,
+				ancestorScope,
+				(stamp) => stamp?.id === options.parentId
+			);
+		} else {
+			parent = findByStamp(
+				blocks,
+				(stamp) => stamp?.id === options.parentId
+			);
 		}
+		if (parent) {
+			const match = findByStampWithin(blocks, parent.path, byId);
+			if (match) {
+				return match;
+			}
+		}
+	}
+
+	// fallbackWithin already searched its ancestor. Do not steal a
+	// sibling instance (page-header post-meta for an article toggle).
+	if (options?.fallbackWithin) {
+		return null;
 	}
 
 	return findByStamp(blocks, byId);
@@ -187,8 +211,19 @@ export function lookupFromInnerOrder(
  * Page-header* ids always pin under `page-header`. Nested inner-order
  * `within` pins reorders immediately and listing toggles after selection.
  */
+function isExclusiveWithinOperation(
+	operation: ControlDef['operation'] | undefined
+): boolean {
+	return (
+		operation === 'setMetaItemsDesign' ||
+		operation === 'setMetaSeparator' ||
+		operation === 'setMetaItemPart' ||
+		operation === 'selectInCanvas'
+	);
+}
+
 function controlLookupScope(
-	control: Pick<ControlDef, 'id' | 'innerOrder'>
+	control: Pick<ControlDef, 'id' | 'innerOrder' | 'operation'>
 ): Pick<StampLookupOptions, 'within' | 'fallbackWithin'> {
 	if (control.id?.startsWith('page-header')) {
 		return { within: 'page-header' };
@@ -197,7 +232,10 @@ function controlLookupScope(
 	if (!scope) {
 		return {};
 	}
-	if (control.id?.startsWith('reorder-')) {
+	if (
+		control.id?.startsWith('reorder-') ||
+		isExclusiveWithinOperation(control.operation)
+	) {
 		return { within: scope };
 	}
 	return { fallbackWithin: scope };
@@ -205,7 +243,7 @@ function controlLookupScope(
 
 /** Lookup options from a control plus an optional canvas selection. */
 export function lookupFromControl(
-	control: Pick<ControlDef, 'innerOrder' | 'id'>,
+	control: Pick<ControlDef, 'innerOrder' | 'id' | 'operation'>,
 	selectedClientId?: string | null
 ): StampLookupOptions {
 	return {

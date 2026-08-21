@@ -9,7 +9,7 @@ import {
 	LAYOUT_ROOT_CONTAINER_KEY,
 	resolveLayoutState,
 	resolveSectionState,
-} from './resolve-state';
+} from './resolve/resolve-state';
 import {
 	cloneTree,
 	findByStamp,

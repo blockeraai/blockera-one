@@ -3,6 +3,7 @@
  */
 
 import { formatStamp, parseStamp, type Stamp, type StampRole } from './stamp';
+import { withBlockeraCompatibility } from './blockera-attribute';
 import type { BlockNode } from './types';
 
 export function getStamp(block: BlockNode | null | undefined): Stamp | null {
@@ -38,13 +39,13 @@ export function withStamp(
 
 	return {
 		...block,
-		attributes: {
+		attributes: withBlockeraCompatibility({
 			...(block.attributes || {}),
 			metadata: {
 				...prevMeta,
 				blockeraOne: formatStamp(role, id, variant),
 			},
-		},
+		}),
 		innerBlocks: block.innerBlocks ? [...block.innerBlocks] : [],
 	};
 }

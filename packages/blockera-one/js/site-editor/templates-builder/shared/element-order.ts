@@ -7,7 +7,7 @@
  */
 
 import { getMetaName, getStamp } from './metadata';
-import { resolveSectionState } from './resolve-state';
+import { resolveSectionState } from './resolve/resolve-state';
 import { lookupFromInnerOrder, type StampLookupOptions } from './stamp-lookup';
 import { getAtPath, replaceAtPath } from './tree';
 import type {
