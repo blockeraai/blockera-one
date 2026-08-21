@@ -13,6 +13,7 @@ import {
 	openTemplatesNavItem,
 	assertTemplatesSpecialSection,
 	assertTemplatesMissingBase,
+	assertTemplatesBuilderShell,
 	hideSpecialThemeTemplate,
 	restoreSpecialThemeTemplate,
 } from '@blockera/dev-cypress/js/helpers';
@@ -127,7 +128,7 @@ describe('Blockera One → Templates Special Templates purpose-nav', () => {
 				expect(decoded).to.include('index');
 				expect(decoded).to.include('boFilter=index');
 			});
-			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should('exist');
+			assertTemplatesBuilderShell();
 
 			openFreshSiteEditor();
 			openTemplatesPurposeNav();
@@ -192,7 +193,7 @@ describe('Blockera One → Templates Special Templates purpose-nav', () => {
 				expect(decoded).to.include('index');
 				expect(decoded).to.include('boFilter=index');
 			});
-			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should('exist');
+			assertTemplatesBuilderShell();
 
 			openFreshSiteEditor();
 			openTemplatesPurposeNav();

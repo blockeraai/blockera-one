@@ -11,6 +11,7 @@ import {
 	assertSiteEditorMainNav,
 	openTemplatesPurposeNav,
 	assertTemplatesSingleSection,
+	assertTemplatesBuilderShell,
 	ensureSingularHidden,
 	ensureSingularVisible,
 	installAttachmentThemeTemplate,
@@ -257,9 +258,9 @@ describe('Blockera One → Templates Single Templates purpose-nav', () => {
 				const decoded = decodeURIComponent(search);
 				expect(decoded).to.include('boFilter=page');
 			});
-			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should('exist');
+			assertTemplatesBuilderShell();
 
-			// Remount purpose-nav after canvas preview (main Design nav is gone).
+			// Remount purpose-nav after builder preview (main Design nav is gone).
 			openFreshSiteEditor();
 			openTemplatesPurposeNav();
 

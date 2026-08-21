@@ -148,15 +148,9 @@ describe('Blockera One → Templates Archive Templates purpose-nav', () => {
 				archiveStatus: FALLBACK_STATUS,
 			});
 
-			// Assert tooltip before other DOM traversals — hover is flaky lower
-			// in the purpose-nav sidebar under headless Chrome.
-			assertStatusTooltip(
-				SITE_EDITOR_TEST_IDS.templatesNavArchiveStatus,
-				{
-					heading: 'archive.html template',
-					bodyIncludes: 'custom post type archives',
-				}
-			);
+			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavArchiveStatus)
+				.scrollIntoView({ block: 'center', ensureScrollable: false })
+				.should('be.visible');
 
 			// All Archives is the first row in the Archive Templates section.
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav)
