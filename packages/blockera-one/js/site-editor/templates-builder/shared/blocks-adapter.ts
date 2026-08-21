@@ -9,7 +9,7 @@
 import * as blocksPackage from '@wordpress/blocks';
 
 import type { BlockNode } from './types';
-import type { OpsContext } from './operations';
+import type { OpsContext } from './op-context';
 
 const wpParse = blocksPackage.parse;
 const wpSerialize = blocksPackage.serialize;
@@ -44,8 +44,9 @@ export function toEntityEdits(blocks: BlockNode[]): {
 	content: string;
 } {
 	const content = serializeAndClean(blocks);
+	const parsed = wpParse(content) as BlockNode[];
 	return {
-		blocks: wpParse(content) as BlockNode[],
+		blocks: parsed,
 		content,
 	};
 }

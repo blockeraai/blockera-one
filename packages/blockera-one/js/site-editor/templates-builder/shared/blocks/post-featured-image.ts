@@ -1,6 +1,6 @@
 /**
  * Featured Image nested panel — stamp `section/post-featured-image`.
- * Shared across Posts Loop, and later single/page template types.
+ * Shared across Posts Loop and singular template types.
  */
 
 import { __ } from '@wordpress/i18n';

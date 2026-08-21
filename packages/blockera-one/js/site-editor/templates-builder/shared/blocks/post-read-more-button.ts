@@ -1,39 +1,49 @@
 /**
- * Comments Link nested panel — stamp `section/comments-link`.
- * Shared across Posts Loop, and later single/page template types.
+ * Post Read More Button nested panel — stamp `section/post-read-more`.
+ * Shared across Posts Loop and singular template types.
  */
 
 import { __ } from '@wordpress/i18n';
 
-import type { NestedPanelDef, SectionTarget } from '../types';
+import type { ControlDef, NestedPanelDef, SectionTarget } from '../types';
 import {
 	bottomSpacingFeature,
 	customizeInEditorFeature,
 	fontFamilyFeature,
 	fontSizeFeature,
+	openInNewTabFeature,
 	styleVariationPickerFeature,
 	textAlignFeature,
 	textColorFeature,
 } from '../features';
 import { createBlockSubpanel } from './helpers';
 
-export type CommentsLinkPanelOptions = {
-	/** Stamp id. Defaults to `comments-link`. */
+export type PostReadMoreButtonPanelOptions = {
+	/** Stamp id. Defaults to `post-read-more`. */
 	targetId?: string;
 	/** Control id prefix. Defaults to `targetId`. */
 	controlPrefix?: string;
 };
 
-export function commentsLinkPanel(
-	options: CommentsLinkPanelOptions = {}
+export function postReadMoreButtonPanel(
+	options: PostReadMoreButtonPanelOptions = {}
 ): NestedPanelDef {
-	const targetId = options.targetId ?? 'comments-link';
+	const targetId = options.targetId ?? 'post-read-more';
 	const prefix = options.controlPrefix ?? targetId;
 	const target: SectionTarget = { kind: 'section', id: targetId };
 
+	const openInNewTabControl: ControlDef = openInNewTabFeature(
+		target,
+		`${prefix}-open-in-new-tab`,
+		// Read-more is always rendered as a link, so we want the row
+		// always visible. Override the feature's conditions to none.
+		`${prefix}-is-link`,
+		{ conditions: [] }
+	);
+
 	return createBlockSubpanel({
 		id: targetId,
-		title: __('Comments Link', 'blockera'),
+		title: __('Read More Button', 'blockera'),
 		styles: [
 			styleVariationPickerFeature(target, `${prefix}-style`),
 			fontFamilyFeature(target, `${prefix}-font-family`),
@@ -43,5 +53,6 @@ export function commentsLinkPanel(
 			bottomSpacingFeature(target, `${prefix}-bottom-spacing`),
 			customizeInEditorFeature(target, `${prefix}-customize`),
 		],
+		settings: [openInNewTabControl],
 	});
 }

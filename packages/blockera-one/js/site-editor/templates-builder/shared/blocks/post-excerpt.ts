@@ -1,6 +1,6 @@
 /**
- * Excerpt nested panel — stamp `section/post-excerpt`.
- * Shared across Posts Loop, and later single/page template types.
+ * Post Excerpt nested panel — stamp `section/post-excerpt`.
+ * Shared across Posts Loop and singular template types.
  */
 
 import { __ } from '@wordpress/i18n';
@@ -17,15 +17,15 @@ import {
 } from '../features';
 import { createBlockSubpanel } from './helpers';
 
-export type ExcerptPanelOptions = {
+export type PostExcerptPanelOptions = {
 	/** Stamp id. Defaults to `post-excerpt`. */
 	targetId?: string;
 	/** Control id prefix. Defaults to `targetId`. */
 	controlPrefix?: string;
 };
 
-export function excerptPanel(
-	options: ExcerptPanelOptions = {}
+export function postExcerptPanel(
+	options: PostExcerptPanelOptions = {}
 ): NestedPanelDef {
 	const targetId = options.targetId ?? 'post-excerpt';
 	const prefix = options.controlPrefix ?? targetId;

@@ -1,49 +1,39 @@
 /**
- * Read More nested panel — stamp `section/read-more`.
- * Shared across Posts Loop, and later single/page template types.
+ * Post Content nested panel — stamp `section/post-content`.
+ * Shared across Posts Loop and singular template types.
  */
 
 import { __ } from '@wordpress/i18n';
 
-import type { ControlDef, NestedPanelDef, SectionTarget } from '../types';
+import type { NestedPanelDef, SectionTarget } from '../types';
 import {
 	bottomSpacingFeature,
 	customizeInEditorFeature,
 	fontFamilyFeature,
 	fontSizeFeature,
-	openInNewTabFeature,
 	styleVariationPickerFeature,
 	textAlignFeature,
 	textColorFeature,
 } from '../features';
 import { createBlockSubpanel } from './helpers';
 
-export type ReadMorePanelOptions = {
-	/** Stamp id. Defaults to `read-more`. */
+export type PostContentPanelOptions = {
+	/** Stamp id. Defaults to `post-content`. */
 	targetId?: string;
 	/** Control id prefix. Defaults to `targetId`. */
 	controlPrefix?: string;
 };
 
-export function readMorePanel(
-	options: ReadMorePanelOptions = {}
+export function postContentPanel(
+	options: PostContentPanelOptions = {}
 ): NestedPanelDef {
-	const targetId = options.targetId ?? 'read-more';
+	const targetId = options.targetId ?? 'post-content';
 	const prefix = options.controlPrefix ?? targetId;
 	const target: SectionTarget = { kind: 'section', id: targetId };
 
-	const openInNewTabControl: ControlDef = openInNewTabFeature(
-		target,
-		`${prefix}-open-in-new-tab`,
-		// Read-more is always rendered as a link, so we want the row
-		// always visible. Override the feature's conditions to none.
-		`${prefix}-is-link`,
-		{ conditions: [] }
-	);
-
 	return createBlockSubpanel({
 		id: targetId,
-		title: __('Read More Button', 'blockera'),
+		title: __('Full Post Content', 'blockera'),
 		styles: [
 			styleVariationPickerFeature(target, `${prefix}-style`),
 			fontFamilyFeature(target, `${prefix}-font-family`),
@@ -53,6 +43,5 @@ export function readMorePanel(
 			bottomSpacingFeature(target, `${prefix}-bottom-spacing`),
 			customizeInEditorFeature(target, `${prefix}-customize`),
 		],
-		settings: [openInNewTabControl],
 	});
 }

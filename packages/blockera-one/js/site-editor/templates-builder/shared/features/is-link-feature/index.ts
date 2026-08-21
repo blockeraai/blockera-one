@@ -6,11 +6,15 @@
 
 import { __ } from '@wordpress/i18n';
 
-import type { ControlDef, SectionTarget } from '../../types';
-import { type FeatureOptions, withFeatureOptions } from '../helpers';
+import type { ControlDef } from '../../types';
+import {
+	type FeatureOptions,
+	type FeatureTarget,
+	withFeatureOptions,
+} from '../helpers';
 
 export function isLinkFeature(
-	target: SectionTarget,
+	target: FeatureTarget,
 	id: string,
 	options?: FeatureOptions
 ): ControlDef {
