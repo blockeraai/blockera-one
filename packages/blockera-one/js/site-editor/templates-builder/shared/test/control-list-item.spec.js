@@ -3,86 +3,6 @@
  * on the control root (through ControlContextProvider when present).
  */
 
-jest.mock('../template-options-panel.scss', () => ({}));
-jest.mock('../controls/shared/_controls.scss', () => ({}));
-
-jest.mock('../../../nested-panels', () => ({
-	GatewayCard: () => null,
-	GatewayRow: () => null,
-}));
-
-jest.mock('../use-template-options', () => ({
-	__esModule: true,
-	default: () => ({}),
-}));
-
-jest.mock('../group-header-edit', () => ({
-	__esModule: true,
-	default: () => null,
-}));
-
-jest.mock('../sortable-element-list', () => ({
-	__esModule: true,
-	default: () => null,
-}));
-
-jest.mock('../controls/block-style-select', () => ({
-	__esModule: true,
-	default: () => null,
-}));
-jest.mock('../controls/border-control', () => ({
-	__esModule: true,
-	default: () => null,
-}));
-jest.mock('../controls/border-radius-control', () => ({
-	__esModule: true,
-	default: () => null,
-}));
-jest.mock('../controls/aspect-ratio-control', () => ({
-	__esModule: true,
-	default: () => null,
-}));
-jest.mock('../controls/resolution-control', () => ({
-	__esModule: true,
-	default: () => null,
-}));
-jest.mock('../controls/font-family-control', () => ({
-	__esModule: true,
-	default: () => null,
-}));
-jest.mock('../controls/text-align-control', () => ({
-	__esModule: true,
-	default: () => null,
-}));
-jest.mock('../controls/color-control', () => ({
-	__esModule: true,
-	default: () => null,
-}));
-jest.mock('../controls/input-control', () => ({
-	__esModule: true,
-	default: () => null,
-}));
-jest.mock('../controls/layout-matrix-control', () => ({
-	__esModule: true,
-	default: () => null,
-}));
-jest.mock('../controls/layout-picker', () => ({
-	__esModule: true,
-	default: () => null,
-}));
-jest.mock('../controls/stepper-control', () => ({
-	__esModule: true,
-	default: () => null,
-}));
-jest.mock('../controls/toggle-control', () => ({
-	__esModule: true,
-	default: () => null,
-}));
-jest.mock('../controls/toggle-select', () => ({
-	__esModule: true,
-	default: () => null,
-}));
-
 jest.mock('@blockera/controls', () => {
 	const { createElement } = require('@wordpress/element');
 	function ControlContextProvider({ children }) {
@@ -99,7 +19,7 @@ import { render } from '@testing-library/react';
 
 import { ControlContextProvider } from '@blockera/controls';
 
-import { asControlListItem } from '../template-options-panel';
+import { asControlListItem } from '../panel/as-control-list-item';
 
 function Field({ className, children }) {
 	return createElement('div', { className, 'data-test': 'field' }, children);
