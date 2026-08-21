@@ -13,23 +13,12 @@ import {
 	setSectionBlockStyle,
 	swapSection,
 	toggleSection,
-} from '../operations';
-import { registerSectionHeuristics } from '../resolve-state';
-import { findByStamp, getAtPath } from '../tree';
+} from '../section-ops';
+import { registerSectionHeuristics } from '../resolve/resolve-state';
+import { getAtPath } from '../tree';
+import { block, findStamp, stamped } from './helpers/block-fixtures';
 
 const SECTION_ID = 'posts-listing';
-
-function block(name, attributes = {}, innerBlocks = []) {
-	return { name, attributes, innerBlocks };
-}
-
-function stamped(name, stampValue, attributes = {}, innerBlocks = []) {
-	return block(
-		name,
-		{ ...attributes, metadata: { blockeraOne: stampValue } },
-		innerBlocks
-	);
-}
 
 /** html key → fixture tree; mirrors the injected-parse test convention. */
 const MARKUP = {
@@ -55,6 +44,11 @@ const MARKUP = {
 			},
 		}),
 	],
+	'nested-restore': [
+		stamped('core/group', 'section/post-meta:default', {}, [
+			block('core/paragraph', { content: 'child' }),
+		]),
+	],
 	empty: [],
 };
 
@@ -65,10 +59,6 @@ const ctx = {
 
 const GRID_VARIANT = { id: 'grid-2', label: 'Grid 2', html: 'listing-grid' };
 const KNOWN = [{ id: 'list', label: 'List' }, GRID_VARIANT];
-
-function findStamp(blocks, id) {
-	return findByStamp(blocks, (stamp) => stamp?.id === id);
-}
 
 describe('swapSection', () => {
 	it('replaces the section without carrying Blockera extension attributes', () => {
@@ -96,7 +86,8 @@ describe('swapSection', () => {
 		// Default: previous blockera* attrs must not overlay the new pattern.
 		expect(swapped.attributes.blockeraFontColor).toBeUndefined();
 		// Previous design look (WP native) must not carry either.
-		expect(swapped.attributes.className).toBeUndefined();
+		expect(swapped.attributes.className).not.toContain('user-class');
+		expect(swapped.attributes.className).toContain('blockera-block');
 		expect(swapped.attributes.style).toBeUndefined();
 	});
 
@@ -155,7 +146,8 @@ describe('swapSection', () => {
 		);
 
 		expect(next[0].attributes.blockeraFontColor).toBe('#abc');
-		expect(next[0].attributes.className).toBeUndefined();
+		expect(next[0].attributes.className).not.toContain('user-class');
+		expect(next[0].attributes.className).toContain('blockera-block');
 	});
 
 	it('preserves the query envelope when preserveQuery is set', () => {
@@ -374,6 +366,26 @@ describe('toggleSection', () => {
 			ctx
 		);
 		expect(viaRootAppend[1].name).toBe('core/query');
+	});
+
+	it('stamps Blockera ids on restored nested blocks', () => {
+		const next = toggleSection(
+			[stamped('core/group', 'area/content', {}, [])],
+			{
+				sectionId: 'post-meta',
+				enabled: true,
+				defaultVariant: {
+					id: 'default',
+					label: 'Post Meta',
+					html: 'nested-restore',
+				},
+			},
+			ctx
+		);
+		const child = getAtPath(next, [0, 0]).innerBlocks[0];
+		expect(child.attributes.className).toContain('blockera-block');
+		expect(child.attributes.blockeraPropsId).toBeTruthy();
+		expect(child.attributes.blockeraCompatId).toBeTruthy();
 	});
 
 	it('is a no-op when enabling without usable default markup', () => {

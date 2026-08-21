@@ -18,15 +18,12 @@ import {
 	replaceNodeWithBlocks,
 	walkBlocks,
 } from '../tree';
-import { insertAtPlacement, replaceSectionAtPath } from '../op-context';
-
-function block(name, attributes = {}, innerBlocks = []) {
-	return { name, attributes, innerBlocks };
-}
-
-function stamped(name, stampValue, innerBlocks = []) {
-	return block(name, { metadata: { blockeraOne: stampValue } }, innerBlocks);
-}
+import {
+	ensureInnerContainer,
+	insertAtPlacement,
+	replaceSectionAtPath,
+} from '../op-context';
+import { block, stamped } from './helpers/block-fixtures';
 
 /** [group[p1, group[p2]], p3] — small nested tree reused across cases. */
 function makeTree() {
@@ -420,6 +417,30 @@ describe('insertAtPlacement', () => {
 				nodes
 			)
 		).toBeNull();
+	});
+
+	it('creates a missing inner container before inserting', () => {
+		const article = [
+			stamped('core/group', 'section/article', {}, [
+				stamped('core/post-content', 'section/post-content'),
+			]),
+		];
+		const placed = insertAtPlacement(
+			article,
+			{
+				relativeTo: 'comments',
+				position: 'inside-end',
+				ensureContainerOwner: 'article',
+			},
+			[stamped('core/comments', 'section/post-comments')]
+		);
+		expect(placed).not.toBeNull();
+		const comments = findByStamp(
+			placed,
+			(stamp) => stamp.role === 'container' && stamp.id === 'comments'
+		);
+		expect(comments).not.toBeNull();
+		expect(comments.block.innerBlocks[0].name).toBe('core/comments');
 	});
 });
 
