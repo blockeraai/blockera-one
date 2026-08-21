@@ -152,10 +152,14 @@ const {
 	GLOBAL_FOOTER_OPTIONS_CONFIG,
 	GLOBAL_HEADER_OPTIONS_CONFIG,
 	GLOBAL_SIDEBAR_OPTIONS_CONFIG,
+	SINGLE_OPTIONS_CONFIG,
+	applyTemplateOverrides,
+	getHydratedConfig,
 	getOptionsConfigForFilter,
 	getOptionsConfigForPartsArea,
+	matchesFilter,
 } = require('../../registry');
-const { flattenPanelControls } = require('../resolve-options-panel');
+const { flattenPanelControls } = require('../resolve/resolve-options-panel');
 
 const KEBAB = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -200,10 +204,106 @@ describe('getOptionsConfigForFilter', () => {
 	});
 
 	it('returns null for unknown or empty filters', () => {
-		expect(getOptionsConfigForFilter('single')).toBeNull();
+		expect(getOptionsConfigForFilter('woocommerce-shop')).toBeNull();
 		expect(getOptionsConfigForFilter('')).toBeNull();
 		expect(getOptionsConfigForFilter(null)).toBeNull();
 		expect(getOptionsConfigForFilter(undefined)).toBeNull();
+	});
+
+	it('resolves single, page, CPT singles, 404, search, home, and index', () => {
+		expect(getOptionsConfigForFilter('single').type).toBe('single');
+		expect(
+			getOptionsConfigForFilter('single').groups.map((g) => g.id)
+		).toEqual([
+			'site-header',
+			'page-header',
+			'article',
+			'post-navigation',
+			'post-comments',
+			'sidebar',
+			'site-footer',
+		]);
+		expect(getOptionsConfigForFilter('cpt-single:book').type).toBe(
+			'single'
+		);
+		expect(getOptionsConfigForFilter('page').type).toBe('single');
+		expect(
+			getOptionsConfigForFilter('single').groups.find(
+				(g) => g.id === 'article'
+			).title
+		).toBe('Post Content');
+		expect(
+			getOptionsConfigForFilter('cpt-single:book').groups.find(
+				(g) => g.id === 'article'
+			).title
+		).toBe('Post Content');
+		const pageArticle = getOptionsConfigForFilter('page').groups.find(
+			(g) => g.id === 'article'
+		);
+		expect(pageArticle.title).toBe('Page Content');
+		expect(pageArticle.nestedPanel.title).toBe('Page Content');
+		expect(
+			flattenPanelControls(getOptionsConfigForFilter('page').groups).find(
+				(c) => c.id === 'page-header-design'
+			).catalogPool
+		).toBe('page-page-header');
+		expect(
+			flattenPanelControls(getOptionsConfigForFilter('page').groups).find(
+				(c) => c.id === 'article-design'
+			)
+		).toBeUndefined();
+		expect(getOptionsConfigForFilter('404').type).toBe('404');
+		expect(
+			getOptionsConfigForFilter('404').groups.map((g) => g.id)
+		).toEqual(['site-header', 'not-found', 'sidebar', 'site-footer']);
+		expect(getOptionsConfigForFilter('home')).toBe(
+			getOptionsConfigForFilter('archive')
+		);
+		expect(getOptionsConfigForFilter('index')).toBe(
+			getOptionsConfigForFilter('archive')
+		);
+		const search = getOptionsConfigForFilter('search');
+		expect(search.type).toBe('archive');
+		expect(search).not.toBe(getOptionsConfigForFilter('archive'));
+		expect(
+			flattenPanelControls(search.groups).find(
+				(c) => c.id === 'page-header-design'
+			).catalogPool
+		).toBe('page-header-search');
+		expect(
+			flattenPanelControls(search.groups)
+				.map((c) => c.id)
+				.includes('page-header-search-form')
+		).toBe(true);
+	});
+
+	it('keeps page-header meta space-filler customize on stamp ids', () => {
+		const filler = flattenPanelControls(SINGLE_OPTIONS_CONFIG.groups).find(
+			(c) => c.id === 'page-header-post-meta-space-filler-customize'
+		);
+		expect(filler.target).toEqual({
+			kind: 'section',
+			id: 'post-meta-space-filler',
+		});
+	});
+});
+
+describe('matchesFilter', () => {
+	const config = {
+		type: 'single',
+		filters: ['single'],
+		filterPrefix: 'cpt-single:',
+		filterMatch: (filter) => filter === 'custom-single',
+		layoutId: 'main',
+		groups: [],
+	};
+
+	it('matches exact ids, prefixes, and filterMatch', () => {
+		expect(matchesFilter(config, 'single')).toBe(true);
+		expect(matchesFilter(config, 'cpt-single:book')).toBe(true);
+		expect(matchesFilter(config, 'custom-single')).toBe(true);
+		expect(matchesFilter(config, 'page')).toBe(false);
+		expect(matchesFilter(config, 'archive')).toBe(false);
 	});
 });
 
@@ -217,10 +317,47 @@ describe('getOptionsConfigForPartsArea', () => {
 		expect(config).not.toBeNull();
 		expect(config.type).toBe(type);
 		expect(config.entityPostType).toBe('wp_template_part');
-		expect(config.groups.map((g) => g.id)).toEqual(['design', 'settings']);
-		expect(
-			config.groups.every((g) => g.keepVisible && g.controls.length === 0)
-		).toBe(true);
+		if (area === 'sidebar') {
+			expect(config.groups.map((g) => g.id)).toEqual([
+				'design',
+				'sidebar-elements',
+				'settings',
+			]);
+			expect(config.groups[0].keepVisible).toBe(true);
+			expect(config.groups[0].controls).toEqual([]);
+			expect(config.groups[1].controls.map((c) => c.id)).toEqual([
+				'sidebar-search',
+				'sidebar-categories',
+				'sidebar-latest-posts',
+				'sidebar-archives',
+				'sidebar-tag-cloud',
+			]);
+			expect(config.groups[2].keepVisible).toBe(true);
+			expect(config.groups[2].controls.map((c) => c.id)).toEqual([
+				'sidebar-width',
+			]);
+		} else if (area === 'header') {
+			expect(config.groups.map((g) => g.id)).toEqual([
+				'design',
+				'settings',
+			]);
+			expect(config.groups[0].keepVisible).toBe(true);
+			expect(config.groups[0].controls).toEqual([]);
+			expect(config.groups[1].keepVisible).toBe(true);
+			expect(config.groups[1].controls.map((c) => c.id)).toEqual([
+				'header-sticky',
+			]);
+		} else {
+			expect(config.groups.map((g) => g.id)).toEqual([
+				'design',
+				'settings',
+			]);
+			expect(
+				config.groups.every(
+					(g) => g.keepVisible && g.controls.length === 0
+				)
+			).toBe(true);
+		}
 	});
 
 	it('memoizes the hydrated config per area (same reference)', () => {
@@ -250,7 +387,7 @@ describe('part config structural invariants', () => {
 		['footer', GLOBAL_FOOTER_OPTIONS_CONFIG, 'site-footer', 'Footer'],
 		['sidebar', GLOBAL_SIDEBAR_OPTIONS_CONFIG, 'site-sidebar', 'Sidebar'],
 	])(
-		'binds empty Design and Settings groups to the %s part',
+		'binds Design and Settings groups to the %s part',
 		(area, config, layoutId, title) => {
 			expect(config.layoutId).toBe(layoutId);
 			expect(config.partsAreas).toEqual([area]);
@@ -707,16 +844,30 @@ describe('archive config structural invariants', () => {
 		expect(meta2.nestedPanel.groups[1].title).toBe('Blocks');
 		expect(meta1.nestedPanel.groups[0].keepVisible).toBe(true);
 		expect(meta1.nestedPanel.groups[0].controls.map((c) => c.id)).toEqual([
+			'post-meta-items-design',
+			'post-meta-separator',
 			'post-meta-customize',
 		]);
-		expect(meta1.nestedPanel.groups[0].controls[0].operation).toBe(
+		expect(meta1.nestedPanel.groups[0].controls[0]).toMatchObject({
+			type: 'toggle-select',
+			operation: 'setMetaItemsDesign',
+			defaultValue: 'labels',
+		});
+		expect(meta1.nestedPanel.groups[0].controls[1]).toMatchObject({
+			type: 'toggle-select',
+			operation: 'setMetaSeparator',
+			defaultValue: 'bullet',
+		});
+		expect(meta1.nestedPanel.groups[0].controls[2].operation).toBe(
 			'selectInCanvas'
 		);
-		expect(meta1.nestedPanel.groups[0].controls[0].target).toEqual({
+		expect(meta1.nestedPanel.groups[0].controls[2].target).toEqual({
 			kind: 'section',
 			id: 'post-meta',
 		});
 		expect(meta2.nestedPanel.groups[0].controls.map((c) => c.id)).toEqual([
+			'post-meta-2-items-design',
+			'post-meta-2-separator',
 			'post-meta-2-customize',
 		]);
 		const children1 = meta1.nestedPanel.groups[1].controls.map((c) => c.id);
@@ -732,10 +883,28 @@ describe('archive config structural invariants', () => {
 			'post-meta-tags',
 			'post-meta-time-to-read',
 			'post-meta-word-count',
+			'post-meta-space-filler',
+			'post-meta-space-filler-2',
 		]);
 		expect(children2).toEqual(
 			children1.map((id) => id.replace('post-meta-', 'post-meta-2-'))
 		);
+		expect(
+			meta1.nestedPanel.groups[1].controls.map((c) => c.label)
+		).toEqual([
+			'Author Name',
+			'Comments Count',
+			'Comments Link',
+			'Date',
+			'Published Date',
+			'Modified Date',
+			'Categories',
+			'Tags',
+			'Time to Read',
+			'Word Count',
+			'Space Filler',
+			'Space Filler',
+		]);
 		expect(
 			meta1.nestedPanel.groups[1].controls[0].innerOrder.parentId
 		).toBe('post-meta');
@@ -745,12 +914,107 @@ describe('archive config structural invariants', () => {
 		expect(
 			meta2.nestedPanel.groups[1].controls[0].innerOrder.parentId
 		).toBe('post-meta-2');
+		const contentIds1 = children1.filter(
+			(id) => !id.includes('space-filler')
+		);
+		const contentIds2 = children2.filter(
+			(id) => !id.includes('space-filler')
+		);
 		expect(
 			meta1.nestedPanel.groups[1].controls[0].requireAtLeastOneOf
-		).toEqual(children1);
+		).toEqual(contentIds1);
 		expect(
 			meta2.nestedPanel.groups[1].controls[0].requireAtLeastOneOf
-		).toEqual(children2);
+		).toEqual(contentIds2);
+		const authorPanel = meta1.nestedPanel.groups[1].controls[0].nestedPanel;
+		expect(authorPanel.groups.map((g) => g.id)).toEqual([
+			'post-meta-author-name-styles',
+			'post-meta-author-name-settings',
+		]);
+		expect(authorPanel.groups[1].controls.map((c) => c.id)).toEqual([
+			'post-meta-author-name-icon',
+			'post-meta-author-name-prefix',
+			'post-meta-author-name-suffix',
+		]);
+		for (const child of meta1.nestedPanel.groups[1].controls) {
+			if (child.id.includes('space-filler')) {
+				expect(child.nestedPanel.groups).toHaveLength(1);
+				expect(
+					child.nestedPanel.groups[0].controls.some(
+						(c) => c.operation === 'setMetaItemPart'
+					)
+				).toBe(false);
+				continue;
+			}
+			const settings = child.nestedPanel.groups.find((g) =>
+				g.id.endsWith('-settings')
+			);
+			expect(settings.controls.map((c) => c.attributePath)).toEqual(
+				expect.arrayContaining(['icon', 'prefix', 'suffix'])
+			);
+		}
+		const commentsLink = meta1.nestedPanel.groups[1].controls.find(
+			(c) => c.id === 'post-meta-comments-link'
+		);
+		expect(
+			commentsLink.nestedPanel.groups[0].controls.map((c) => c.id)
+		).toEqual([
+			'post-meta-comments-link-style',
+			'post-meta-comments-link-font-family',
+			'post-meta-comments-link-font-size',
+			'post-meta-comments-link-color',
+			'post-meta-comments-link-text-align',
+			'post-meta-comments-link-bottom-spacing',
+			'post-meta-comments-link-customize',
+		]);
+		expect(
+			commentsLink.nestedPanel.groups[1].controls.map((c) => c.id)
+		).toEqual([
+			'post-meta-comments-link-icon',
+			'post-meta-comments-link-prefix',
+			'post-meta-comments-link-suffix',
+		]);
+		const dateControl = meta1.nestedPanel.groups[1].controls.find(
+			(c) => c.id === 'post-meta-post-date'
+		);
+		expect(
+			dateControl.nestedPanel.groups[0].controls.map((c) => c.id)
+		).toEqual([
+			'post-meta-post-date-style',
+			'post-meta-post-date-font-family',
+			'post-meta-post-date-font-size',
+			'post-meta-post-date-color',
+			'post-meta-post-date-text-align',
+			'post-meta-post-date-bottom-spacing',
+			'post-meta-post-date-customize',
+		]);
+		const dateSettings = dateControl.nestedPanel.groups.find(
+			(g) => g.id === 'post-meta-post-date-settings'
+		);
+		expect(dateSettings.controls.map((c) => c.id)).toEqual([
+			'post-meta-post-date-icon',
+			'post-meta-post-date-prefix',
+			'post-meta-post-date-suffix',
+			'post-meta-post-date-is-link',
+		]);
+		expect(
+			dateSettings.controls.find(
+				(c) => c.id === 'post-meta-post-date-is-link'
+			)
+		).toMatchObject({
+			attributePath: 'isLink',
+			target: { kind: 'container', id: 'meta-item-block' },
+			innerOrder: { parentId: 'post-meta-post-date', ids: [] },
+		});
+		const filler = meta1.nestedPanel.groups[1].controls.find(
+			(c) => c.id === 'post-meta-space-filler'
+		);
+		expect(filler.nestedPanel.groups.map((g) => g.id)).toEqual([
+			'post-meta-space-filler-styles',
+		]);
+		expect(filler.nestedPanel.groups[0].controls.map((c) => c.id)).toEqual([
+			'post-meta-space-filler-customize',
+		]);
 	});
 
 	it('splits Site Header and Site Footer into Layout plus a visible Styles shell', () => {
@@ -810,5 +1074,138 @@ describe('archive config structural invariants', () => {
 		expect(sidebar.nestedPanel.groups[0].controls.map((c) => c.id)).toEqual(
 			['sidebar-position']
 		);
+	});
+});
+
+describe('single config structural invariants', () => {
+	const config = SINGLE_OPTIONS_CONFIG;
+
+	it('puts Content blocks on the main card before Styles & Blocks, with no layout', () => {
+		const article = config.groups.find((g) => g.id === 'article');
+		const blockIds = [
+			'post-featured-image',
+			'post-title',
+			'post-excerpt',
+			'post-content',
+			'post-read-more',
+			'post-meta',
+			'post-meta-2',
+		];
+
+		expect(article.title).toBe('Post Content');
+		expect(article.nestedPanel.title).toBe('Post Content');
+		expect(article.sortable).toBe(true);
+		expect(article.controls.map((c) => c.id)).toEqual(blockIds);
+		expect(article.controls.some((c) => c.type === 'layout-picker')).toBe(
+			false
+		);
+		expect(article.nestedPanel.gatewayLabel).toBe('Styles & Blocks');
+		expect(article.nestedPanel.groups.map((g) => g.id)).toEqual([
+			'article-styles',
+			'article-blocks',
+		]);
+		expect(article.nestedPanel.groups.map((g) => g.title)).toEqual([
+			'Styles',
+			'Blocks',
+		]);
+		expect(article.nestedPanel.groups[0].controls.map((c) => c.id)).toEqual(
+			['article-customize']
+		);
+		expect(article.nestedPanel.groups[1].sortable).toBe(true);
+		expect(article.nestedPanel.groups[1].controls.map((c) => c.id)).toEqual(
+			blockIds
+		);
+	});
+});
+
+describe('applyTemplateOverrides', () => {
+	const extraGroup = {
+		id: 'extra',
+		title: 'Extra',
+		controls: [],
+	};
+	const stay = {
+		id: 'stay',
+		type: 'toggle',
+		label: 'Stay',
+		target: { kind: 'section', id: 'stay' },
+		operation: 'toggleSection',
+	};
+	const drop = {
+		id: 'drop',
+		type: 'toggle',
+		label: 'Drop',
+		target: { kind: 'section', id: 'drop' },
+		operation: 'toggleSection',
+	};
+	const config = {
+		type: 'override-fixture',
+		filters: ['plain', 'tweaked'],
+		layoutId: 'main',
+		groups: [
+			{
+				id: 'keep',
+				title: 'Keep',
+				controls: [stay, drop],
+				nestedPanel: {
+					id: 'keep',
+					title: 'Keep nested',
+					groups: [],
+				},
+			},
+			{ id: 'gone', title: 'Gone', controls: [] },
+		],
+		templateOverrides: {
+			tweaked: {
+				removeGroups: ['gone'],
+				removeControls: ['drop'],
+				addGroups: [{ group: extraGroup, after: 'keep' }],
+				patchControls: [
+					{ controlId: 'stay', patch: { label: 'Patched' } },
+				],
+				patchGroups: [
+					{
+						groupId: 'keep',
+						patch: {
+							title: 'Kept',
+							nestedPanel: { title: 'Kept nested' },
+						},
+					},
+				],
+			},
+		},
+	};
+
+	it('returns the same object when the filter has no overlay', () => {
+		expect(applyTemplateOverrides(config, 'plain')).toBe(config);
+	});
+
+	it('applies add, remove, and patch without mutating the source', () => {
+		const next = applyTemplateOverrides(config, 'tweaked');
+		expect(next).not.toBe(config);
+		expect(next.groups.map((g) => g.id)).toEqual(['keep', 'extra']);
+		expect(next.groups[0].controls.map((c) => c.id)).toEqual(['stay']);
+		expect(next.groups[0].controls[0].label).toBe('Patched');
+		expect(next.groups[0].title).toBe('Kept');
+		expect(next.groups[0].nestedPanel.title).toBe('Kept nested');
+		expect(config.groups.map((g) => g.id)).toEqual(['keep', 'gone']);
+		expect(config.groups[0].controls.map((c) => c.id)).toEqual([
+			'stay',
+			'drop',
+		]);
+		expect(config.groups[0].controls[0].label).toBe('Stay');
+	});
+
+	it('memoizes hydrate+overlay per type:filter', () => {
+		const tweaked = getHydratedConfig(config, 'tweaked');
+		const tweakedAgain = getHydratedConfig(config, 'tweaked');
+		const plain = getHydratedConfig(config, 'plain');
+		const plainAgain = getHydratedConfig(config, 'plain');
+
+		expect(tweakedAgain).toBe(tweaked);
+		expect(plainAgain).toBe(plain);
+		expect(tweaked).not.toBe(plain);
+		expect(tweaked.groups.map((g) => g.id)).toEqual(['keep', 'extra']);
+		expect(plain.groups.map((g) => g.id)).toEqual(['keep', 'gone']);
 	});
 });

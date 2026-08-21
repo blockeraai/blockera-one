@@ -29,7 +29,7 @@ import path from 'path';
 
 import { ALL_STAMPS, CONFIGS, STAMP_DICTIONARIES } from '../../registry';
 import { STAMP_ROLES } from '../stamp';
-import { flattenPanelControls } from '../resolve-options-panel';
+import { flattenPanelControls } from '../resolve/resolve-options-panel';
 
 const fixture = require('../../../../../php/tests/fixtures/template-builder-catalog.json');
 
@@ -274,7 +274,15 @@ describe('templates-builder patterns lint', () => {
 			// Inner-region slots are opt-in per template. They belong in
 			// the shared dictionary so markup can stamp them; they do
 			// not have to appear in every (or any current) pattern.
-			const optInInnerSlots = new Set(['start', 'end', 'comments']);
+			// Meta item suffix is inserted by builder ops. The icon stamp
+			// is also baked into full-width listing markup.
+			const optInInnerSlots = new Set([
+				'start',
+				'end',
+				'comments',
+				'meta-item-icon',
+				'meta-item-suffix',
+			]);
 			const dead = Object.keys(ALL_STAMPS).filter(
 				(id) => !usedIds.has(id) && !optInInnerSlots.has(id)
 			);
@@ -442,10 +450,17 @@ describe('templates-builder patterns lint', () => {
 		it('every builder pattern slug is shaped blockera-one/builder-<type>-… matching its folder', () => {
 			const offenders = [];
 			for (const entry of builderPatterns) {
-				const expectedPrefix = `blockera-one/${BUILDER_PREFIX}${entry.typeDir}-`;
-				if (!entry.slug || !entry.slug.startsWith(expectedPrefix)) {
+				if (!entry.slug) {
+					offenders.push(`${entry.file}: missing Slug header`);
+					continue;
+				}
+				const folderPrefix = `blockera-one/${BUILDER_PREFIX}${entry.typeDir}`;
+				if (
+					entry.slug !== folderPrefix &&
+					!entry.slug.startsWith(`${folderPrefix}-`)
+				) {
 					offenders.push(
-						`${entry.file}: slug "${entry.slug}" must start with "${expectedPrefix}"`
+						`${entry.file}: slug "${entry.slug}" must be "${folderPrefix}" or start with "${folderPrefix}-"`
 					);
 				}
 			}
@@ -477,6 +492,33 @@ describe('templates-builder patterns lint', () => {
 				)
 				.map((entry) => `${entry.file} (${entry.slug})`);
 			expect(orphans).toEqual([]);
+		});
+	});
+
+	describe('blockeraCompatId uniqueness', () => {
+		it('is unique within each builder pattern file', () => {
+			const offenders = [];
+			for (const entry of builderPatterns) {
+				const source = fs.readFileSync(
+					path.join(themeRoot, entry.file),
+					'utf8'
+				);
+				const counts = new Map();
+				const idRe = /"blockeraCompatId"\s*:\s*"([^"]+)"/g;
+				let match;
+				while ((match = idRe.exec(source))) {
+					const id = match[1];
+					counts.set(id, (counts.get(id) || 0) + 1);
+				}
+				for (const [id, count] of counts) {
+					if (count > 1) {
+						offenders.push(
+							`${entry.file}: "${id}" appears ${count} times`
+						);
+					}
+				}
+			}
+			expect(offenders).toEqual([]);
 		});
 	});
 
@@ -536,6 +578,69 @@ describe('templates-builder patterns lint', () => {
 				expect(actual).toEqual(expected);
 			}
 			expect(mismatches).toEqual([]);
+		});
+	});
+
+	describe('post-meta space fillers', () => {
+		it('are grow paragraphs, not flex rows', () => {
+			const fillers = builderPatterns.filter((entry) =>
+				entry.name.includes('space-filler')
+			);
+			expect(fillers.length).toBe(4);
+			for (const entry of fillers) {
+				const source = fs.readFileSync(
+					path.join(themeRoot, entry.file),
+					'utf8'
+				);
+				expect(source).toContain('wp:paragraph');
+				expect(source).toContain(
+					'"blockeraFlexChildSizing":{"value":"grow"}'
+				);
+				expect(source).toContain('"blockeraWidth":{"value":"stretch"}');
+				expect(source).toContain('\\u{00A0}');
+				expect(source).not.toContain('<p></p>');
+				expect(source).not.toContain('wp:group');
+			}
+		});
+
+		it('parent meta rows use flex-child grow and stretch width', () => {
+			const rowFiles = [
+				'builder-post-meta.php',
+				'builder-post-meta-2.php',
+				'builder-listing-grid-2.php',
+				'builder-listing-grid-3.php',
+				'builder-listing-list.php',
+				'builder-listing-full-width.php',
+			];
+			const stamps = [
+				'section/post-meta:default',
+				'section/post-meta-2:default',
+			];
+			for (const fileName of rowFiles) {
+				const entry = builderPatterns.find(
+					(pattern) => pattern.name === fileName
+				);
+				expect(entry).toBeTruthy();
+				const source = fs.readFileSync(
+					path.join(themeRoot, entry.file),
+					'utf8'
+				);
+				const expected = stamps.filter((stamp) =>
+					source.includes(`"blockeraOne":"${stamp}"`)
+				);
+				expect(expected.length).toBeGreaterThan(0);
+				for (const stamp of expected) {
+					const idx = source.indexOf(`"blockeraOne":"${stamp}"`);
+					expect(idx).toBeGreaterThan(-1);
+					const window = source.slice(idx, idx + 500);
+					expect(window).toContain(
+						'"blockeraFlexChildSizing":{"value":"grow"}'
+					);
+					expect(window).toContain(
+						'"blockeraWidth":{"value":"stretch"}'
+					);
+				}
+			}
 		});
 	});
 });
