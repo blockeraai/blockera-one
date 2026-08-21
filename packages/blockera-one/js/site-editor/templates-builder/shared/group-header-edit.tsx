@@ -3,11 +3,12 @@
  */
 
 import { Button } from '@wordpress/components';
+import { useCallback } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 import { Icon } from '@blockera/icons';
 
-import { selectSectionInCanvas } from './select-section-in-canvas';
+import { selectSectionInCanvas } from './canvas/select-section-in-canvas';
 
 export type GroupHeaderEditProps = {
 	/** Customize control id (data-test suffix). */
@@ -21,6 +22,10 @@ export default function GroupHeaderEdit({
 	sectionId,
 	disabled,
 }: GroupHeaderEditProps) {
+	const onCustomize = useCallback(() => {
+		selectSectionInCanvas(sectionId);
+	}, [sectionId]);
+
 	return (
 		<Button
 			variant="secondary"
@@ -28,7 +33,7 @@ export default function GroupHeaderEdit({
 			disabled={disabled}
 			label={__('Customize in the block editor', 'blockera')}
 			showTooltip
-			onClick={() => selectSectionInCanvas(sectionId)}
+			onClick={onCustomize}
 			className="blockera-templates-builder-header-edit"
 			data-test={`blockera-templates-builder-customize-${controlId}`}
 		>

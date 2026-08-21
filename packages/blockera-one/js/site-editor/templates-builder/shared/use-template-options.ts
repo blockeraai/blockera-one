@@ -1,7 +1,7 @@
 /**
  * Bind a template options config to the edited entity (`wp_template` or
  * `wp_template_part`) + site settings. Thin React hook — pure logic lives
- * in `resolve-control-values.ts` (state resolution) and `apply-operation.ts`
+ * in `resolve-control-values.ts` (state resolution) and `ops/apply-operation.ts`
  * (operation dispatch).
  */
 
@@ -19,28 +19,30 @@ import { __ } from '@wordpress/i18n';
 
 import { parseBlocks, toEntityEdits } from './blocks-adapter';
 import {
+	EMPTY_TEMPLATE_SETTINGS,
 	TEMPLATE_SETTINGS_KEY,
 	type TemplateSettingsRecord,
 } from './constants';
-import { applyOperation } from './apply-operation';
+import { applyOperation } from './ops/apply-operation';
+import { runBroadcast } from './ops/broadcast';
 import {
 	isPresenceToggle,
 	resolveEnableScrollTarget,
-} from './resolve-options-panel';
+} from './resolve/resolve-options-panel';
 import {
 	cancelStampCanvasReveal,
 	scrollStampIntoCanvas,
-} from './scroll-stamp-into-canvas';
+} from './canvas/scroll-stamp-into-canvas';
 import { ensurePaginationNavLabels } from './section-ops';
 import {
 	getPostsPerPageMap,
 	resolveControlViewStates,
 	type ControlViewState,
-} from './resolve-control-values';
+} from './resolve/resolve-control-values';
 import {
 	resolveConfigVariantsHtml,
 	type PatternRecord,
-} from './resolve-variant-html';
+} from './resolve/resolve-variant-html';
 import type {
 	BlockNode,
 	ControlDef,
@@ -146,7 +148,8 @@ export default function useTemplateOptions(
 
 			return {
 				record: template,
-				settings: site?.[TEMPLATE_SETTINGS_KEY] || {},
+				settings:
+					site?.[TEMPLATE_SETTINGS_KEY] || EMPTY_TEMPLATE_SETTINGS,
 				sitePostsPerPage: Number(site?.posts_per_page) || 0,
 				isDirty: templateDirty || hasPersistableSiteEdits,
 			};
@@ -327,6 +330,8 @@ export default function useTemplateOptions(
 				}
 				if (result.kind === 'site-edits') {
 					editEntityRecord('root', 'site', undefined, result.edits);
+				} else if (result.kind === 'broadcast') {
+					runBroadcast(result);
 				} else {
 					applyBlocks(result.blocks);
 				}
@@ -406,8 +411,6 @@ export default function useTemplateOptions(
 		isDirty,
 		onChangeControl,
 		onReorderElements,
-		/** False while the patterns REST request is still in flight. */
-		patternsReady: patternsResolved,
 		confirmMessage,
 		confirmPending,
 		cancelPending,
