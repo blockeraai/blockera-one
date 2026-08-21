@@ -5,26 +5,15 @@
  */
 
 import { getStamp } from '../metadata';
-import { transplantLayout } from '../operations';
+import { transplantLayout } from '../layout-transplant';
 import { findByStamp, getAtPath } from '../tree';
+import { block, findStamp, stamped } from './helpers/block-fixtures';
 
 const userParagraph = {
 	name: 'core/paragraph',
 	attributes: { content: 'USER-CUSTOM-CONTENT', className: 'keep-me' },
 	innerBlocks: [],
 };
-
-function block(name, attributes = {}, innerBlocks = []) {
-	return { name, attributes, innerBlocks };
-}
-
-function stamped(name, stampValue, attributes = {}, innerBlocks = []) {
-	return block(
-		name,
-		{ ...attributes, metadata: { blockeraOne: stampValue } },
-		innerBlocks
-	);
-}
 
 const noSidebar = stamped(
 	'core/group',
@@ -126,10 +115,6 @@ function transplant(blocks, variantId, extraParams = {}) {
 	);
 }
 
-function findStamp(blocks, id) {
-	return findByStamp(blocks, (stamp) => stamp?.id === id);
-}
-
 describe('transplantLayout round-trip', () => {
 	it('preserves user content and attributes across A→B→A', () => {
 		const afterLeft = transplant(makeStart(), 'sidebar-left');
@@ -214,7 +199,7 @@ describe('container attribute carry-over', () => {
 		});
 
 		const nextContentColumn = findStamp(next, 'content-column');
-		expect(nextContentColumn.block.attributes.className).toBe(
+		expect(nextContentColumn.block.attributes.className).toContain(
 			'user-column'
 		);
 		// Layout attrs (not user styling) come from the target variant.
@@ -230,7 +215,7 @@ describe('container attribute carry-over', () => {
 	it('carries the layout-root ("main") styling across transplants', () => {
 		const afterLeft = transplant(makeStart(), 'sidebar-left');
 		const layout = findStamp(afterLeft, 'main');
-		expect(layout.block.attributes.className).toBe('user-styled-main');
+		expect(layout.block.attributes.className).toContain('user-styled-main');
 	});
 });
 
@@ -257,7 +242,9 @@ describe('sibling sections', () => {
 			id: 'page-header',
 			variant: 'banner',
 		});
-		expect(layout.block.innerBlocks[0].attributes.className).toBe('band');
+		expect(layout.block.innerBlocks[0].attributes.className).toContain(
+			'band'
+		);
 	});
 
 	it('honors the active design placement for carried sections', () => {
@@ -327,7 +314,7 @@ describe('unrecognized / fallback flows', () => {
 		);
 		// User styling on the legacy main carries onto the new layout root.
 		const layout = findStamp(next, 'main');
-		expect(layout.block.attributes.className).toBe('legacy');
+		expect(layout.block.attributes.className).toContain('legacy');
 		expect(getStamp(layout.block).variant).toBe('sidebar-left');
 	});
 

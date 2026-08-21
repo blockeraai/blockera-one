@@ -16,6 +16,7 @@ import {
 	resolveElementOrder,
 	resolveParentStampName,
 } from '../element-order';
+import { block, stamped } from './helpers/block-fixtures';
 
 const RULE = {
 	parentId: 'page-header',
@@ -25,22 +26,6 @@ const RULE = {
 		'page-header-breadcrumbs',
 	],
 };
-
-function block(name, attributes = {}, innerBlocks = []) {
-	return { name, attributes, innerBlocks };
-}
-
-function stamped(name, stampValue, attributes = {}, innerBlocks = []) {
-	const { metadata, ...rest } = attributes;
-	return block(
-		name,
-		{
-			...rest,
-			metadata: { ...(metadata || {}), blockeraOne: stampValue },
-		},
-		innerBlocks
-	);
-}
 
 function header(children, extraMeta = {}) {
 	return [

@@ -8,24 +8,13 @@ import {
 	prepareHideChromeSection,
 	swapTemplatePart,
 	unwrapChromeRail,
-} from '../operations';
-import { findChromeRail } from '../resolve-state';
+} from '../chrome-rail';
+import { findChromeRail } from '../resolve/resolve-state';
 import { getStamp } from '../metadata';
 import { findByStamp } from '../tree';
+import { block, stamped } from './helpers/block-fixtures';
 
 const LAYOUT_ID = 'main';
-
-function block(name, attributes = {}, innerBlocks = []) {
-	return { name, attributes, innerBlocks };
-}
-
-function stamped(name, stampValue, attributes = {}, innerBlocks = []) {
-	return block(
-		name,
-		{ ...attributes, metadata: { blockeraOne: stampValue } },
-		innerBlocks
-	);
-}
 
 const MARKUP = {
 	'header-large': [

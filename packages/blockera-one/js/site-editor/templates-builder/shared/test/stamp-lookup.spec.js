@@ -16,23 +16,8 @@ import {
 	lookupFromInnerOrder,
 	resolveWithinFromSelection,
 } from '../stamp-lookup';
-import { resolveSectionState } from '../resolve-state';
-
-function stamped(name, stampValue, attributes = {}, innerBlocks = []) {
-	const { clientId, ...rest } = attributes;
-	return {
-		name,
-		clientId,
-		attributes: {
-			...rest,
-			metadata: {
-				...(rest.metadata || {}),
-				blockeraOne: stampValue,
-			},
-		},
-		innerBlocks,
-	};
-}
+import { resolveSectionState } from '../resolve/resolve-state';
+import { stamped } from './helpers/block-fixtures';
 
 function collisionTree() {
 	return [
@@ -294,6 +279,60 @@ describe('lookupFromControl + setSectionAttribute', () => {
 		expect(lookup.fallbackWithin).toBe('posts-listing');
 		expect(findStampById(tree, 'body', lookup).block.clientId).toBe(
 			'listing-body'
+		);
+	});
+
+	it('does not treat page-header post-meta as article post-meta via parentId body', () => {
+		const tree = [
+			stamped(
+				'core/group',
+				'section/page-header:simple',
+				{ clientId: 'page-header' },
+				[
+					stamped(
+						'core/group',
+						'container/body',
+						{ clientId: 'page-header-body' },
+						[
+							stamped('core/group', 'section/post-meta:default', {
+								clientId: 'header-meta',
+							}),
+						]
+					),
+				]
+			),
+			stamped(
+				'core/group',
+				'section/article:default',
+				{ clientId: 'article' },
+				[
+					stamped(
+						'core/group',
+						'container/body',
+						{ clientId: 'article-body' },
+						[
+							stamped(
+								'core/post-content',
+								'section/post-content:default',
+								{ clientId: 'article-content' }
+							),
+						]
+					),
+				]
+			),
+		];
+		const lookup = lookupFromControl({
+			id: 'post-meta',
+			innerOrder: {
+				parentId: 'body',
+				within: 'article',
+				ids: ['post-meta'],
+			},
+		});
+		expect(lookup.fallbackWithin).toBe('article');
+		expect(findStampById(tree, 'post-meta', lookup)).toBeNull();
+		expect(findStampById(tree, 'post-meta').block.clientId).toBe(
+			'header-meta'
 		);
 	});
 

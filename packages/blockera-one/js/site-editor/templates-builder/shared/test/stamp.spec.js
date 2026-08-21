@@ -174,7 +174,10 @@ describe('withStamp', () => {
 
 		expect(stamped.attributes.metadata.blockeraOne).toBe('area/content');
 		expect(stamped.attributes.metadata.name).toBe('Custom label');
-		expect(stamped.attributes.className).toBe('keep');
+		expect(stamped.attributes.className).toContain('keep');
+		expect(stamped.attributes.className).toContain('blockera-block');
+		expect(stamped.attributes.blockeraPropsId).toBeTruthy();
+		expect(stamped.attributes.blockeraCompatId).toBeTruthy();
 		// Input stays untouched.
 		expect(original.attributes.metadata.blockeraOne).toBe(
 			'section/old:stamp'
