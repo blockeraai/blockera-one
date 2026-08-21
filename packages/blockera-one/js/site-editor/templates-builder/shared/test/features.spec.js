@@ -15,6 +15,9 @@ import {
 	gapFeature,
 	isLinkFeature,
 	maxWidthFeature,
+	metaItemIconFeature,
+	metaItemPrefixFeature,
+	metaItemSuffixFeature,
 	minHeightFeature,
 	openInNewTabFeature,
 	resolutionFeature,
@@ -232,6 +235,32 @@ describe('shared features', () => {
 			attributePath: 'blockeraBorder.value',
 			borderSide: 'top',
 			label: 'Top Divider',
+		});
+	});
+
+	it('meta item part features write setMetaItemPart', () => {
+		const item = { kind: 'section', id: 'post-meta-author-name' };
+		expect(
+			metaItemIconFeature(item, 'post-meta-author-name-icon')
+		).toMatchObject({
+			type: 'icon',
+			operation: 'setMetaItemPart',
+			attributePath: 'icon',
+			target: item,
+		});
+		expect(
+			metaItemPrefixFeature(item, 'post-meta-author-name-prefix')
+		).toMatchObject({
+			type: 'input',
+			operation: 'setMetaItemPart',
+			attributePath: 'prefix',
+		});
+		expect(
+			metaItemSuffixFeature(item, 'post-meta-author-name-suffix')
+		).toMatchObject({
+			type: 'input',
+			operation: 'setMetaItemPart',
+			attributePath: 'suffix',
 		});
 	});
 });
