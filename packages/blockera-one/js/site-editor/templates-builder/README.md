@@ -102,15 +102,15 @@ naming rules, and how to add or promote a stamp. Keep that file updated
 when dictionaries or markup change.
 
 ```
-"metadata":{"blockeraOne":"section/posts-listing:list"}
-"metadata":{"blockeraOne":"layout/main:no-sidebar"}
-"metadata":{"blockeraOne":"area/content"}
+"metadata":{"blockeraOne":{"stamp":"section/posts-listing:list"}}
+"metadata":{"blockeraOne":{"stamp":"layout/main:no-sidebar"}}
+"metadata":{"blockeraOne":{"stamp":"area/content"}}
 ```
 
 Short runtime notes (full rules in STAMPS.md):
 
-- Each block carries **exactly one** stamp. Dictionaries are lint
-  reference data; `parseStamp` reads the string on the block.
+- Each block carries **exactly one** stamp on `metadata.blockeraOne.stamp`. Dictionaries are lint
+  reference data; `parseStamp` reads that string on the block.
 - The layout root doubles as the `main` container for attribute carry-over.
 - The sidebar template-part sits inside a `sidebar-area` group so the area
   and the section stay on separate blocks.
@@ -142,7 +142,7 @@ Short runtime notes (full rules in STAMPS.md):
 
 ## Architecture
 
-1. **Anchors** — the `metadata.blockeraOne` stamp string on theme templates/patterns (see [STAMPS.md](./STAMPS.md)).
+1. **Anchors** — `metadata.blockeraOne.stamp` on theme templates/patterns (see [STAMPS.md](./STAMPS.md)).
 2. **Detection** — `shared/resolve/resolve-state.ts` (stamps first, heuristics fallback).
 3. **Operations** — `shared/ops/apply-operation.ts` dispatcher (`OPERATION_HANDLERS` is exhaustive over `OperationKind`).
 4. **Config** — per-type folder (e.g. `archive/config.ts` composed from `shared/sections`); hydrated + overlay-resolved via `registry.ts`.

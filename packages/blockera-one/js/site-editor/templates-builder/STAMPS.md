@@ -14,12 +14,15 @@ tables below whenever an id used by meta/layout/broadcast ops changes.
 
 ## Grammar
 
-`metadata.blockeraOne` is a single string:
+`metadata.blockeraOne` is an object. The stamp lives in `.stamp`:
 
 ```
 role/id
 role/id:variant
 ```
+
+Optional keys on the same object: `metaParts`, `metaSeparator`. Extra keys
+are allowed. Empty optional keys are omitted.
 
 - `role` is the closed enum `layout | section | area | container`.
 - `id` and `variant` are kebab-case (`[a-z0-9-]+`).
@@ -28,9 +31,9 @@ role/id:variant
   look up roles from the dictionaries.
 
 ```
-"metadata":{"blockeraOne":"section/posts-listing:list"}
-"metadata":{"blockeraOne":"layout/main:no-sidebar"}
-"metadata":{"blockeraOne":"area/content"}
+"metadata":{"blockeraOne":{"stamp":"section/posts-listing:list"}}
+"metadata":{"blockeraOne":{"stamp":"layout/main:no-sidebar"}}
+"metadata":{"blockeraOne":{"stamp":"area/content"}}
 ```
 
 ## Roles

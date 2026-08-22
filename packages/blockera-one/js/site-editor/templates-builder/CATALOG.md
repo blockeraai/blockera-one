@@ -166,7 +166,7 @@ New variants use the child text domain in the slug
   and other types reuse section names (`page-header`, `pagination`, …)
 - Header: `Slug: blockera-one/builder-<type>-<section>-<variant>`,
   `Categories: blockera-one/template-builder`, `Inserter: no`
-- Root block stamps `metadata.blockeraOne` = `section/{poolId}:{variantId}`
+- Root block stamps `metadata.blockeraOne.stamp` = `section/{poolId}:{variantId}`
   (`layout/…` for layout pool variants — the role prefix is part of the
   stamp string)
 - Layout variants keep the `area/content` area (and `area/sidebar-area`
