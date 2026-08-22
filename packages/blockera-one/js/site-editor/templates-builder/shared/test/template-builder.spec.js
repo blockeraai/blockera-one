@@ -17,6 +17,9 @@
  *   the real PHP output by PHPUnit) plus a regex sweep of the
  *   `php/Theme/TemplateBuilder/*Catalog.php` sources as a cross-check for
  *   Catalog.php edits that skipped the fixture.
+ *
+ * Family-specific pattern contracts live in sibling modules
+ * (`template-builder-post-meta.spec.js`, …).
  */
 
 // templates/constants (pulled via archive/config) imports the nested-panels
@@ -32,39 +35,29 @@ import path from 'path';
 import { ALL_STAMPS, CONFIGS, STAMP_DICTIONARIES } from '../../registry';
 import { STAMP_ROLES } from '../stamp';
 import { flattenPanelControls } from '../resolve/resolve-options-panel';
-
-const fixture = require('../../../../../php/tests/fixtures/template-builder-catalog.json');
-const {
-	loadBlockMarkupConfig,
-} = require('../../../../../../global-packages/packages/dev-tools/js/block-markup/load-config');
-
-const themeRoot = path.resolve(__dirname, '../../../../../../..');
-const { patternsDirs, templatesDirs } = loadBlockMarkupConfig(
-	{ quiet: true },
-	themeRoot
-);
-const hasPatterns = patternsDirs.length > 0;
-const hasTemplates = templatesDirs.length > 0;
-const describePatterns = hasPatterns ? describe : describe.skip;
-const describeTemplates = hasTemplates ? describe : describe.skip;
-const describeMarkup = hasPatterns || hasTemplates ? describe : describe.skip;
-const catalogsRoot = path.join(
+import {
+	BUILDER_CATEGORY,
+	BUILDER_PREFIX,
+	DICTIONARY_ENTRY_SHAPE,
+	KEBAB,
+	LAYOUT_MARKER,
+	STAMP_SHAPE,
+	builderPatterns,
+	catalogFiles,
+	collectFiles,
+	describeMarkup,
+	describePatterns,
+	describeTemplates,
+	fixtureSlugs,
+	layoutPatterns,
+	patternsDirs,
+	phpCatalogSlugs,
+	registeredSlugs,
+	stampedEntries,
+	templateEntries,
+	templatesDirs,
 	themeRoot,
-	'packages/blockera-one/php/Theme/TemplateBuilder'
-);
-
-const BUILDER_PREFIX = 'builder-';
-const LAYOUT_MARKER = '-layout-';
-const BUILDER_CATEGORY = 'blockera-one/template-builder';
-const KEBAB = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-/** Stamp strings are `role/id` or `role/id:variant`, kebab-case throughout. */
-const STAMP_SHAPE =
-	/^(layout|section|area|container)\/([a-z0-9-]+)(?::([a-z0-9-]+))?$/;
-/** Dictionary entries are `role/id` only (no variant). */
-const DICTIONARY_ENTRY_SHAPE =
-	/^(layout|section|area|container)\/([a-z0-9-]+)$/;
-
-// --- Role ids derived from the source dictionaries --------------------------
+} from './helpers/pattern-lint';
 
 const layoutIds = new Set();
 const areaIds = new Set();
@@ -74,130 +67,6 @@ for (const [id, role] of Object.entries(ALL_STAMPS)) {
 		layoutIds.add(id);
 	} else if ('area' === role) {
 		areaIds.add(id);
-	}
-}
-
-// --- Filesystem index (patternsDirs + templates/* + catalogs) ---
-
-/**
- * Recursively collect files matching a predicate.
- *
- * @param {string} dir Directory to walk.
- * @param {(name: string) => boolean} matches Filename predicate.
- * @return {string[]} Absolute file paths.
- */
-function collectFiles(dir, matches) {
-	const out = [];
-	if (!fs.existsSync(dir)) {
-		return out;
-	}
-	for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-		const full = path.join(dir, entry.name);
-		if (entry.isDirectory()) {
-			out.push(...collectFiles(full, matches));
-			continue;
-		}
-		if (entry.isFile() && matches(entry.name)) {
-			out.push(full);
-		}
-	}
-	return out;
-}
-
-/** Extract every raw `metadata.blockeraOne` stamp string from a source. */
-function extractStamps(source) {
-	const stamps = [];
-	const stampRe = /"blockeraOne"\s*:\s*"([^"]*)"/g;
-	let match;
-	while ((match = stampRe.exec(source))) {
-		stamps.push(match[1]);
-	}
-	return stamps;
-}
-
-/**
- * Parse a pattern PHP file into headers + raw stamps.
- *
- * @param {string} file Absolute file path.
- * @return {Object} Parsed pattern entry.
- */
-function parsePatternFile(file) {
-	const source = fs.readFileSync(file, 'utf8');
-	const header = (re) => {
-		const match = source.match(re);
-		return match ? match[1].trim() : null;
-	};
-
-	return {
-		file: path.relative(themeRoot, file),
-		name: path.basename(file),
-		// Type folder under a patterns dir (e.g. "archive"); the dir name
-		// itself for files living at that patterns root.
-		typeDir: path.basename(path.dirname(file)),
-		slug: header(/^\s*\*\s*Slug:\s*(\S+)/m),
-		categories: header(/^\s*\*\s*Categories:\s*(.+)$/m),
-		inserter: header(/^\s*\*\s*Inserter:\s*(\S+)/m),
-		stamps: extractStamps(source),
-	};
-}
-
-const allPatterns = patternsDirs.flatMap((dir) =>
-	collectFiles(dir, (name) => name.endsWith('.php')).map(parsePatternFile)
-);
-
-/** WordPress template files also carry stamps (e.g. templates/archive.html). */
-const templateEntries = templatesDirs.flatMap((dir) =>
-	collectFiles(dir, (name) => name.endsWith('.html')).map((file) => ({
-		file: path.relative(themeRoot, file),
-		stamps: extractStamps(fs.readFileSync(file, 'utf8')),
-	}))
-);
-
-const builderPatterns = allPatterns.filter((entry) =>
-	entry.name.startsWith(BUILDER_PREFIX)
-);
-
-const layoutPatterns = builderPatterns.filter((entry) =>
-	entry.name.includes(LAYOUT_MARKER)
-);
-
-/** Every file entry that carries stamps (patterns + templates). */
-const stampedEntries = [...allPatterns, ...templateEntries].filter(
-	(entry) => entry.stamps.length > 0
-);
-
-/** Every `Slug:` header registered by theme pattern files. */
-const registeredSlugs = new Set();
-for (const entry of allPatterns) {
-	if (entry.slug) {
-		registeredSlugs.add(entry.slug);
-	}
-}
-
-/** patternSlug references from the shared fixture (kind: "pattern" rows). */
-const fixtureSlugs = new Set();
-for (const pools of Object.values(fixture)) {
-	for (const variants of Object.values(pools)) {
-		for (const variant of variants) {
-			if ('pattern' === variant.kind && variant.patternSlug) {
-				fixtureSlugs.add(variant.patternSlug);
-			}
-		}
-	}
-}
-
-/** patternSlug references regex-swept from the PHP catalog sources. */
-const catalogFiles = collectFiles(
-	catalogsRoot,
-	(name) => name.endsWith('Catalog.php') && 'AbstractCatalog.php' !== name
-);
-const phpCatalogSlugs = new Set();
-for (const file of catalogFiles) {
-	const source = fs.readFileSync(file, 'utf8');
-	const slugRe = /'([a-z0-9-]+\/builder-[a-z0-9-]+)'/g;
-	let match;
-	while ((match = slugRe.exec(source))) {
-		phpCatalogSlugs.add(match[1]);
 	}
 }
 
@@ -616,61 +485,6 @@ describe('templates-builder patterns lint', () => {
 				expect(actual).toEqual(expected);
 			}
 			expect(mismatches).toEqual([]);
-		});
-	});
-
-	describePatterns('post-meta space fillers', () => {
-		it('are grow paragraphs, not flex rows', () => {
-			const fillers = builderPatterns.filter((entry) =>
-				entry.name.includes('space-filler')
-			);
-			expect(fillers.length).toBe(4);
-			for (const entry of fillers) {
-				const source = fs.readFileSync(
-					path.join(themeRoot, entry.file),
-					'utf8'
-				);
-				expect(source).toContain('wp:paragraph');
-				expect(source).toContain(
-					'"blockeraFlexChildSizing":{"value":"grow"}'
-				);
-				expect(source).toContain('"blockeraWidth":{"value":"stretch"}');
-				expect(source).toContain('\\u{00A0}');
-				expect(source).not.toContain('<p></p>');
-				expect(source).not.toContain('wp:group');
-			}
-		});
-
-		it('parent meta rows use flex-child grow and stretch width', () => {
-			const stamps = [
-				'section/post-meta:default',
-				'section/post-meta-2:default',
-			];
-			const rowEntries = stampedEntries.filter((entry) =>
-				entry.stamps.some((stamp) => stamps.includes(stamp))
-			);
-			expect(rowEntries.length).toBeGreaterThan(0);
-			for (const entry of rowEntries) {
-				const source = fs.readFileSync(
-					path.join(themeRoot, entry.file),
-					'utf8'
-				);
-				const expected = stamps.filter((stamp) =>
-					source.includes(`"blockeraOne":"${stamp}"`)
-				);
-				expect(expected.length).toBeGreaterThan(0);
-				for (const stamp of expected) {
-					const idx = source.indexOf(`"blockeraOne":"${stamp}"`);
-					expect(idx).toBeGreaterThan(-1);
-					const window = source.slice(idx, idx + 500);
-					expect(window).toContain(
-						'"blockeraFlexChildSizing":{"value":"grow"}'
-					);
-					expect(window).toContain(
-						'"blockeraWidth":{"value":"stretch"}'
-					);
-				}
-			}
 		});
 	});
 });
