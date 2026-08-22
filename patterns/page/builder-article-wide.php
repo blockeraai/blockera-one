@@ -14,7 +14,7 @@
 ?>
 <!-- wp:group {"tagName":"article","align":"wide","metadata":{"name":"Page","blockeraOne":"section/article:wide"},"layout":{"type":"constrained"}} -->
 <article class="wp-block-group alignwide">
-	<!-- wp:group {"metadata":{"name":"Content Blocks","blockeraOne":"container/body","blockeraOneInnerOrder":["post-featured-image","post-title","post-excerpt","post-content","post-read-more","post-meta","post-meta-2"]},"layout":{"type":"default"}} -->
+	<!-- wp:group {"metadata":{"name":"Content Blocks","blockeraOne":"container/body"},"layout":{"type":"default"}} -->
 	<div class="wp-block-group">
 		<!-- wp:post-content {"align":"full","layout":{"type":"default"},"metadata":{"blockeraOne":"section/post-content:default"}} /-->
 	</div>
