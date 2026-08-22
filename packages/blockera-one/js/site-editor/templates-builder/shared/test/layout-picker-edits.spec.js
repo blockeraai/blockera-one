@@ -23,28 +23,13 @@ jest.mock('../blocks-adapter', () => {
 	};
 });
 
-jest.mock('../controls/layout-picker', () => {
-	const { createElement } = require('@wordpress/element');
-	return {
-		__esModule: true,
-		default: ({ editedVariantIds = [] }) =>
-			createElement('div', {
-				'data-test': 'captured-edits',
-				'data-ids': editedVariantIds.join(','),
-			}),
-	};
-});
-
-import { createElement } from '@wordpress/element';
-import { render } from '@testing-library/react';
-
 import {
 	createSessionBag,
 	sessionSwapKey,
 	sessionSwapCleanCurrentKey,
 	wrapSwapSnapshot,
 } from '../../../session';
-import { renderControl } from '../panel/render-control';
+import { editedVariantIds } from '../panel/layout-picker-edits';
 
 const ENTITY = 'wp_template:blockera-one//archive';
 const CATALOG_NODE = {
@@ -70,60 +55,47 @@ const CONTROL = {
 	],
 };
 
-function renderEdits({ blocks, session, entityDirty, value = 'list' } = {}) {
-	return render(
-		createElement(renderControl, {
-			control: CONTROL,
-			state: { kind: 'value', value, path: [0] },
-			value,
-			commonDisabled: false,
-			onChangeControl: jest.fn(),
-			session,
-			entityKey: ENTITY,
-			blocks,
-			entityDirty,
-		})
-	);
-}
+const STATE = { kind: 'value', value: 'list', path: [0] };
 
-function capturedIds(container) {
-	const node = container.querySelector('[data-test="captured-edits"]');
-	const raw = node?.getAttribute('data-ids') || '';
-	return raw ? raw.split(',') : [];
+function ids({ blocks, session, entityDirty, value = 'list' } = {}) {
+	return editedVariantIds(
+		CONTROL,
+		value,
+		STATE,
+		session,
+		ENTITY,
+		blocks,
+		entityDirty
+	);
 }
 
 describe('layout picker editedVariantIds', () => {
 	it('marks the selected tile only while the entity is dirty vs catalog', () => {
-		const { container, rerender } = renderEdits({
-			blocks: [DIRTY_NODE],
-			session: createSessionBag(),
-			entityDirty: true,
-		});
-		expect(capturedIds(container)).toEqual(['list']);
-
-		rerender(
-			createElement(renderControl, {
-				control: CONTROL,
-				state: { kind: 'value', value: 'list', path: [0] },
-				value: 'list',
-				commonDisabled: false,
-				onChangeControl: jest.fn(),
-				session: createSessionBag(),
-				entityKey: ENTITY,
+		expect(
+			ids({
 				blocks: [DIRTY_NODE],
+				session: createSessionBag(),
+				entityDirty: true,
+			})
+		).toEqual(['list']);
+
+		expect(
+			ids({
+				blocks: [DIRTY_NODE],
+				session: createSessionBag(),
 				entityDirty: false,
 			})
-		);
-		expect(capturedIds(container)).toEqual([]);
+		).toEqual([]);
 	});
 
 	it('does not mark the selected tile when live matches catalog', () => {
-		const { container } = renderEdits({
-			blocks: [CATALOG_NODE],
-			session: createSessionBag(),
-			entityDirty: true,
-		});
-		expect(capturedIds(container)).toEqual([]);
+		expect(
+			ids({
+				blocks: [CATALOG_NODE],
+				session: createSessionBag(),
+				entityDirty: true,
+			})
+		).toEqual([]);
 	});
 
 	it('still marks a parked non-current variant from the session bag', () => {
@@ -132,12 +104,13 @@ describe('layout picker editedVariantIds', () => {
 			sessionSwapKey(ENTITY, 'content', 'posts-listing', 'grid-2'),
 			wrapSwapSnapshot([DIRTY_NODE], true)
 		);
-		const { container } = renderEdits({
-			blocks: [CATALOG_NODE],
-			session,
-			entityDirty: false,
-		});
-		expect(capturedIds(container)).toEqual(['grid-2']);
+		expect(
+			ids({
+				blocks: [CATALOG_NODE],
+				session,
+				entityDirty: false,
+			})
+		).toEqual(['grid-2']);
 	});
 
 	it('does not mark a parked variant that was saved before the swap', () => {
@@ -146,12 +119,13 @@ describe('layout picker editedVariantIds', () => {
 			sessionSwapKey(ENTITY, 'content', 'posts-listing', 'grid-2'),
 			wrapSwapSnapshot([DIRTY_NODE], false)
 		);
-		const { container } = renderEdits({
-			blocks: [CATALOG_NODE],
-			session,
-			entityDirty: false,
-		});
-		expect(capturedIds(container)).toEqual([]);
+		expect(
+			ids({
+				blocks: [CATALOG_NODE],
+				session,
+				entityDirty: false,
+			})
+		).toEqual([]);
 	});
 
 	it('does not mark the selected tile after restoring a saved (clean) snapshot while the entity is dirty', () => {
@@ -160,12 +134,13 @@ describe('layout picker editedVariantIds', () => {
 			sectionId: 'posts-listing',
 			variantId: 'list',
 		});
-		const { container } = renderEdits({
-			blocks: [DIRTY_NODE],
-			session,
-			entityDirty: true,
-		});
-		expect(capturedIds(container)).toEqual([]);
+		expect(
+			ids({
+				blocks: [DIRTY_NODE],
+				session,
+				entityDirty: true,
+			})
+		).toEqual([]);
 	});
 
 	it('still marks the selected tile when the clean marker is for another variant', () => {
@@ -174,11 +149,12 @@ describe('layout picker editedVariantIds', () => {
 			sectionId: 'posts-listing',
 			variantId: 'grid-2',
 		});
-		const { container } = renderEdits({
-			blocks: [DIRTY_NODE],
-			session,
-			entityDirty: true,
-		});
-		expect(capturedIds(container)).toEqual(['list']);
+		expect(
+			ids({
+				blocks: [DIRTY_NODE],
+				session,
+				entityDirty: true,
+			})
+		).toEqual(['list']);
 	});
 });
