@@ -24,7 +24,6 @@ import {
 	makeBlocks,
 } from './helpers/apply-operation-setup';
 import { __setMarkup } from '../blocks-adapter';
-import { INNER_ORDER_META_KEY } from '../element-order';
 import { getStamp } from '../metadata';
 import { findStamp, stamped } from './helpers/block-fixtures';
 
@@ -243,34 +242,20 @@ describe('swapSection reapply toggles', () => {
 			],
 		};
 		const blocks = [
-			stamped(
-				'core/group',
-				'section/page-header:default',
-				{
-					metadata: {
-						blockeraOne: 'section/page-header:default',
-						[INNER_ORDER_META_KEY]: [
-							'page-header-breadcrumbs',
-							'page-header-title',
-							'page-header-description',
-						],
-					},
-				},
-				[
-					stamped(
-						'core/breadcrumbs',
-						'section/page-header-breadcrumbs:default'
-					),
-					stamped(
-						'core/query-title',
-						'section/page-header-title:default'
-					),
-					stamped(
-						'core/term-description',
-						'section/page-header-description:default'
-					),
-				]
-			),
+			stamped('core/group', 'section/page-header:default', {}, [
+				stamped(
+					'core/breadcrumbs',
+					'section/page-header-breadcrumbs:default'
+				),
+				stamped(
+					'core/query-title',
+					'section/page-header-title:default'
+				),
+				stamped(
+					'core/term-description',
+					'section/page-header-description:default'
+				),
+			]),
 		];
 		const breadcrumbToggle = {
 			id: 'page-header-breadcrumbs',
@@ -316,9 +301,6 @@ describe('swapSection reapply toggles', () => {
 		};
 
 		const result = apply(design, 'banner', { blocks, config });
-		expect(
-			result.blocks[0].attributes.metadata[INNER_ORDER_META_KEY]
-		).toBeUndefined();
 		expect(result.blocks[0].innerBlocks.map((b) => b.name)).toEqual([
 			'core/query-title',
 			'core/term-description',

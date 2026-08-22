@@ -22,12 +22,11 @@ import {
 	LOOP_BLOCK_ORDER,
 	fullWidthListing,
 } from './helpers/apply-operation-setup';
-import { INNER_ORDER_META_KEY } from '../element-order';
 import { getStamp } from '../metadata';
 import { findStamp, stamped } from './helpers/block-fixtures';
 
 describe('reorderInnerSections', () => {
-	it('writes stored order and reorders present children', () => {
+	it('reorders present children', () => {
 		const innerOrder = {
 			parentId: 'page-header',
 			ids: [
@@ -66,13 +65,6 @@ describe('reorderInnerSections', () => {
 			],
 			{ blocks }
 		);
-		expect(
-			result.blocks[0].attributes.metadata[INNER_ORDER_META_KEY]
-		).toEqual([
-			'page-header-breadcrumbs',
-			'page-header-description',
-			'page-header-title',
-		]);
 		expect(result.blocks[0].innerBlocks.map((b) => b.name)).toEqual([
 			'core/term-description',
 			'core/query-title',
@@ -136,7 +128,7 @@ describe('reorderInnerSections', () => {
 	});
 });
 describe('reorderInnerSections buckets', () => {
-	it('moves a loop-item across parents and persists both orders', () => {
+	it('moves a loop-item across parents', () => {
 		const result = apply(
 			{
 				id: 'reorder-body',
@@ -166,12 +158,6 @@ describe('reorderInnerSections buckets', () => {
 		const content = findStamp(result.blocks, 'body').block;
 		expect(media.innerBlocks).toEqual([]);
 		expect(content.innerBlocks.map((b) => getStamp(b)?.id)).toEqual([
-			'post-featured-image',
-			'post-title',
-			'post-meta',
-		]);
-		expect(media.attributes.metadata[INNER_ORDER_META_KEY]).toEqual([]);
-		expect(content.attributes.metadata[INNER_ORDER_META_KEY]).toEqual([
 			'post-featured-image',
 			'post-title',
 			'post-meta',

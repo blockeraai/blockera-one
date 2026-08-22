@@ -1,18 +1,16 @@
 /**
- * element-order.ts: derive list order from the live parent, stored
- * metadata, and remaining config ids.
+ * element-order.ts: derive list order from the live parent and remaining
+ * config ids.
  */
 
 import {
-	INNER_ORDER_META_KEY,
-	clearStoredElementOrder,
 	findLiveParentStampId,
 	getGroupInnerOrder,
 	isSortableElementControl,
 	normalizeElementOrder,
 	overlayFrozenBuckets,
+	overlayFrozenIds,
 	partitionOffIdsToEnd,
-	persistElementOrder,
 	resolveBucketInsertParent,
 	resolveDisplayBuckets,
 	resolveElementBuckets,
@@ -76,7 +74,7 @@ describe('resolveElementOrder', () => {
 		]);
 	});
 
-	it('prefers stored metadata over the live child order', () => {
+	it('ignores leftover inner-order metadata and follows live children', () => {
 		const blocks = header(
 			[
 				stamped(
@@ -89,7 +87,7 @@ describe('resolveElementOrder', () => {
 				),
 			],
 			{
-				[INNER_ORDER_META_KEY]: [
+				blockeraOneInnerOrder: [
 					'page-header-breadcrumbs',
 					'page-header-title',
 					'page-header-description',
@@ -97,9 +95,9 @@ describe('resolveElementOrder', () => {
 			}
 		);
 		expect(resolveElementOrder(blocks, RULE)).toEqual([
-			'page-header-breadcrumbs',
 			'page-header-title',
 			'page-header-description',
+			'page-header-breadcrumbs',
 		]);
 	});
 
@@ -119,34 +117,6 @@ describe('normalizeElementOrder', () => {
 			'page-header-breadcrumbs',
 			'page-header-title',
 			'page-header-description',
-		]);
-	});
-});
-
-describe('persistElementOrder / clearStoredElementOrder', () => {
-	it('writes and clears metadata.blockeraOneInnerOrder on the parent', () => {
-		const blocks = header([
-			stamped('core/query-title', 'section/page-header-title:default'),
-		]);
-		const ordered = [
-			'page-header-description',
-			'page-header-title',
-			'page-header-breadcrumbs',
-		];
-		const persisted = persistElementOrder(blocks, 'page-header', ordered);
-		expect(persisted[0].attributes.metadata[INNER_ORDER_META_KEY]).toEqual(
-			ordered
-		);
-		expect(resolveElementOrder(persisted, RULE)).toEqual(ordered);
-
-		const cleared = clearStoredElementOrder(persisted, 'page-header');
-		expect(
-			cleared[0].attributes.metadata[INNER_ORDER_META_KEY]
-		).toBeUndefined();
-		expect(resolveElementOrder(cleared, RULE)).toEqual([
-			'page-header-title',
-			'page-header-description',
-			'page-header-breadcrumbs',
 		]);
 	});
 });
@@ -311,11 +281,8 @@ describe('resolveElementBuckets', () => {
 		).toBe('Body');
 	});
 
-	it('keeps off items on the last stored parent', () => {
-		const blocks = persistElementOrder(fullWidthLoop(), 'media', [
-			'post-featured-image',
-			'post-excerpt',
-		]);
+	it('assigns off items to the last existing parent', () => {
+		const blocks = fullWidthLoop();
 		const content = blocks[0].innerBlocks[0].innerBlocks[0].innerBlocks[1];
 		content.innerBlocks = content.innerBlocks.filter(
 			(child) =>
@@ -323,8 +290,8 @@ describe('resolveElementBuckets', () => {
 				'section/post-excerpt:default'
 		);
 		const buckets = resolveElementBuckets(blocks, LOOP_RULE);
-		expect(buckets[0].ids).toEqual(['post-featured-image', 'post-excerpt']);
-		expect(buckets[1].ids).not.toContain('post-excerpt');
+		expect(buckets[0].ids).toEqual(['post-featured-image']);
+		expect(buckets[1].ids).toContain('post-excerpt');
 	});
 
 	it('falls back to a single parent when bucketParents is empty', () => {
@@ -434,6 +401,16 @@ describe('partitionOffIdsToEnd / overlayFrozenBuckets', () => {
 		]);
 	});
 
+	it('overlays a frozen id list the same way as a single bucket', () => {
+		expect(
+			overlayFrozenIds(
+				['post-content', 'post-title', 'post-excerpt', 'post-meta'],
+				['post-title', 'post-content', 'post-excerpt'],
+				isOn
+			)
+		).toEqual(['post-title', 'post-content', 'post-excerpt', 'post-meta']);
+	});
+
 	it('keeps a frozen mixed order and appends new ids on-then-off', () => {
 		const frozen = [
 			{
@@ -471,6 +448,40 @@ describe('partitionOffIdsToEnd / overlayFrozenBuckets', () => {
 			},
 		]);
 	});
+
+	it('keeps a frozen off item in media even when resolved leftover is body', () => {
+		expect(
+			overlayFrozenBuckets(
+				[
+					{ parentId: 'media', ids: ['post-featured-image'] },
+					{
+						parentId: 'body',
+						ids: ['post-title', 'post-excerpt', 'post-content'],
+					},
+				],
+				[
+					{
+						parentId: 'media',
+						ids: ['post-title', 'post-featured-image'],
+					},
+					{
+						parentId: 'body',
+						ids: ['post-content', 'post-excerpt'],
+					},
+				],
+				isOn
+			)
+		).toEqual([
+			{
+				parentId: 'media',
+				ids: ['post-title', 'post-featured-image'],
+			},
+			{
+				parentId: 'body',
+				ids: ['post-content', 'post-excerpt'],
+			},
+		]);
+	});
 });
 
 describe('findLiveParentStampId / resolveBucketInsertParent', () => {
@@ -483,22 +494,19 @@ describe('findLiveParentStampId / resolveBucketInsertParent', () => {
 		);
 	});
 
-	it('inserts into the stored home, else the last existing parent', () => {
-		const stored = persistElementOrder(fullWidthLoop(), 'media', [
-			'post-excerpt',
-		]);
+	it('inserts into the last existing parent', () => {
 		expect(
 			resolveBucketInsertParent(
-				stored,
+				fullWidthLoop(),
 				'post-excerpt',
 				LOOP_RULE.bucketParents,
 				'body'
 			)
-		).toBe('media');
+		).toBe('body');
 		expect(
 			resolveBucketInsertParent(
-				fullWidthLoop(),
-				'post-content',
+				[],
+				'post-featured-image',
 				LOOP_RULE.bucketParents,
 				'body'
 			)

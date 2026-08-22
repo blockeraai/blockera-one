@@ -3,7 +3,6 @@
  * container/media; selection and parentId pick the right one.
  */
 
-import { INNER_ORDER_META_KEY, persistElementOrder } from '../element-order';
 import { getStamp } from '../metadata';
 import {
 	setSectionAttribute,
@@ -622,14 +621,8 @@ describe('reorder stays inside the owning section', () => {
 			id: 'reorder-body',
 			innerOrder: pageHeaderBodyOrder,
 		});
-		let next = persistElementOrder(
+		const next = orderInnerSections(
 			tree,
-			'body',
-			['page-header-description', 'page-header-title'],
-			lookup
-		);
-		next = orderInnerSections(
-			next,
 			'body',
 			['page-header-description', 'page-header-title'],
 			lookup
@@ -640,10 +633,6 @@ describe('reorder stays inside the owning section', () => {
 			)
 		).toEqual(['page-header-description', 'page-header-title']);
 		expect(snapshotForeignRegions(next)).toEqual(before);
-		expect(
-			findStampById(next, 'body', { within: 'page-header' }).block
-				.attributes.metadata[INNER_ORDER_META_KEY]
-		).toEqual(['page-header-description', 'page-header-title']);
 	});
 
 	it('reorders page-header start without moving body children', () => {

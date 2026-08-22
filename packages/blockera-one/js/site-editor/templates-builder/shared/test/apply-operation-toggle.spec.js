@@ -27,7 +27,6 @@ import {
 	paginationTree,
 } from './helpers/apply-operation-setup';
 import { __setMarkup } from '../blocks-adapter';
-import { INNER_ORDER_META_KEY } from '../element-order';
 import { getStamp } from '../metadata';
 import { findStampById } from '../stamp-lookup';
 import { block, findStamp, stamped } from './helpers/block-fixtures';
@@ -66,7 +65,7 @@ describe('toggleSection', () => {
 		expect(findStamp(result.blocks, 'header')).toBeNull();
 	});
 
-	it('appends a restored title after present children when no stored order exists', () => {
+	it('appends a restored title after present children', () => {
 		__setMarkup('page-header-title', [
 			stamped('core/query-title', 'section/page-header-title:default'),
 		]);
@@ -111,7 +110,7 @@ describe('toggleSection', () => {
 		]);
 	});
 
-	it('persists pre-toggle order so a hidden title keeps its list slot', () => {
+	it('removes a hidden title without writing inner-order metadata', () => {
 		const innerOrder = {
 			parentId: 'page-header',
 			ids: [
@@ -150,15 +149,11 @@ describe('toggleSection', () => {
 			'core/term-description',
 		]);
 		expect(
-			result.blocks[0].attributes.metadata[INNER_ORDER_META_KEY]
-		).toEqual([
-			'page-header-title',
-			'page-header-description',
-			'page-header-breadcrumbs',
-		]);
+			result.blocks[0].attributes.metadata.blockeraOneInnerOrder
+		).toBeUndefined();
 	});
 
-	it('restores a toggled-on title at its stored list slot', () => {
+	it('ignores leftover inner-order metadata and appends a restored title', () => {
 		__setMarkup('page-header-title', [
 			stamped('core/query-title', 'section/page-header-title:default'),
 		]);
@@ -177,7 +172,7 @@ describe('toggleSection', () => {
 				{
 					metadata: {
 						blockeraOne: 'section/page-header:default',
-						[INNER_ORDER_META_KEY]: [
+						blockeraOneInnerOrder: [
 							'page-header-breadcrumbs',
 							'page-header-title',
 							'page-header-description',
@@ -212,8 +207,8 @@ describe('toggleSection', () => {
 		const result = apply(control, true, { blocks });
 		expect(result.blocks[0].innerBlocks.map((b) => b.name)).toEqual([
 			'core/breadcrumbs',
-			'core/query-title',
 			'core/term-description',
+			'core/query-title',
 		]);
 	});
 
@@ -236,11 +231,6 @@ describe('toggleSection', () => {
 				{
 					metadata: {
 						blockeraOne: 'section/page-header:default',
-						[INNER_ORDER_META_KEY]: [
-							'page-header-title',
-							'page-header-description',
-							'page-header-breadcrumbs',
-						],
 					},
 				},
 				[
@@ -288,6 +278,7 @@ describe('toggleSection', () => {
 		]);
 	});
 });
+
 describe('pagination elements and requireAtLeastOneOf', () => {
 	it('removes previous without touching next', () => {
 		const blocks = paginationTree([
@@ -399,8 +390,9 @@ describe('pagination elements and requireAtLeastOneOf', () => {
 		).toContain('is-style-underline');
 	});
 });
+
 describe('toggleSection bucket home', () => {
-	it('toggles a media-column item back into media, not content', () => {
+	it('toggles a media-column item back into the last existing parent', () => {
 		__setMarkup('listing-featured-image', [
 			stamped(
 				'core/post-featured-image',
@@ -437,8 +429,61 @@ describe('toggleSection bucket home', () => {
 			variant: 'default',
 		});
 		expect(
-			getStamp(findStamp(on.blocks, 'media').block.innerBlocks[0])?.id
-		).toBe('post-featured-image');
+			findStamp(on.blocks, 'media').block.innerBlocks.map(
+				(b) => getStamp(b)?.id
+			)
+		).not.toContain('post-featured-image');
+		expect(
+			findStamp(on.blocks, 'body').block.innerBlocks.map(
+				(b) => getStamp(b)?.id
+			)
+		).toContain('post-featured-image');
+	});
+
+	it('toggles on into the frozen media bucket slot', () => {
+		__setMarkup('listing-post-title', [
+			stamped('core/post-title', 'section/post-title:default'),
+		]);
+		const control = {
+			id: 'post-title',
+			type: 'toggle',
+			label: 'Title',
+			target: { kind: 'section', id: 'post-title' },
+			operation: 'toggleSection',
+			variants: [
+				{ id: 'default', label: 'Title', html: 'listing-post-title' },
+			],
+			insert: {
+				relativeTo: 'body',
+				position: 'inside-end',
+			},
+			innerOrder: LOOP_BLOCK_ORDER,
+		};
+		const off = apply(control, false, { blocks: fullWidthListing() });
+		expect(findStamp(off.blocks, 'post-title')).toBeNull();
+		const on = apply(control, true, {
+			blocks: off.blocks,
+			orderBuckets: [
+				{
+					parentId: 'media',
+					ids: ['post-title', 'post-featured-image'],
+				},
+				{
+					parentId: 'body',
+					ids: ['post-meta'],
+				},
+			],
+		});
+		expect(
+			findStamp(on.blocks, 'media').block.innerBlocks.map(
+				(b) => getStamp(b)?.id
+			)
+		).toEqual(['post-title', 'post-featured-image']);
+		expect(
+			findStamp(on.blocks, 'body').block.innerBlocks.map(
+				(b) => getStamp(b)?.id
+			)
+		).not.toContain('post-title');
 	});
 
 	it('toggles excerpt only inside the selected listing card body', () => {
