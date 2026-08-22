@@ -20,7 +20,7 @@
 
 		<!-- wp:group {"metadata":{"name":"Post Meta","blockeraOne":{"stamp":"section/post-meta:default","metaSeparator":"bullet"}},"blockeraPropsId":"820192000016","blockeraCompatId":"820192000016","blockeraFlexChildSizing":{"value":"grow"},"blockeraWidth":{"value":"stretch"},"className":"blockera-block blockera-block-820192000016","layout":{"type":"flex","flexWrap":"nowrap"}} -->
 		<div class="wp-block-group blockera-block blockera-block-820192000016">
-			<!-- wp:group {"metadata":{"name":"Modified Date Meta","blockeraOne":{"stamp":"section/post-meta-modified-date:default","metaParts":{"icon":{"icon":"update","library":"wp","uploadSVG":"","svgString":"","renderedIcon":""},"prefix":"Updated on"}}},"blockeraPropsId":"722165257768","blockeraCompatId":"722165257768","className":"blockera-block blockera-block-722165257768","style":{"spacing":{"blockGap":"0.35em"}},"layout":{"type":"flex","flexWrap":"nowrap","verticalAlignment":"center"}} -->
+			<!-- wp:group {"metadata":{"name":"Modified Date Meta","blockeraOne":{"stamp":"section/post-meta-modified-date:default"}},"blockeraPropsId":"722165257768","blockeraCompatId":"722165257768","className":"blockera-block blockera-block-722165257768","style":{"spacing":{"blockGap":"0.35em"}},"layout":{"type":"flex","flexWrap":"nowrap","verticalAlignment":"center"}} -->
 			<div class="wp-block-group blockera-block blockera-block-722165257768">
 				<!-- wp:paragraph {"metadata":{"name":"Meta Prefix","blockeraOne":{"stamp":"container/meta-item-prefix:default"}},"blockeraPropsId":"72216530215","blockeraCompatId":"72216530215"} -->
 				<p><?php esc_html_e( 'Updated on', 'blockera-one' ); ?></p>
@@ -34,7 +34,7 @@
 			<p>•</p>
 			<!-- /wp:paragraph -->
 
-			<!-- wp:group {"metadata":{"name":"Author Name Meta","blockeraOne":{"stamp":"section/post-meta-author-name:default","metaParts":{"icon":{"icon":"comment-author-avatar","library":"wp","uploadSVG":"","svgString":"","renderedIcon":""},"prefix":"By"}}},"blockeraPropsId":"722165250368","blockeraCompatId":"722165250369","className":"blockera-block blockera-block-722165250369","style":{"spacing":{"blockGap":"0.35em"}},"layout":{"type":"flex","flexWrap":"nowrap","verticalAlignment":"center"}} -->
+			<!-- wp:group {"metadata":{"name":"Author Name Meta","blockeraOne":{"stamp":"section/post-meta-author-name:default"}},"blockeraPropsId":"722165250368","blockeraCompatId":"722165250369","className":"blockera-block blockera-block-722165250369","style":{"spacing":{"blockGap":"0.35em"}},"layout":{"type":"flex","flexWrap":"nowrap","verticalAlignment":"center"}} -->
 			<div class="wp-block-group blockera-block blockera-block-722165250369">
 				<!-- wp:paragraph {"metadata":{"name":"Meta Prefix","blockeraOne":{"stamp":"container/meta-item-prefix:default"}},"blockeraPropsId":"72216530216","blockeraCompatId":"72216530216"} -->
 				<p><?php esc_html_e( 'By', 'blockera-one' ); ?></p>
