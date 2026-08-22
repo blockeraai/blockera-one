@@ -99,6 +99,27 @@ describe('resolveLayoutState', () => {
 		expect(state.areaMap['sidebar-area'].path).toEqual([0, 0, 1, 0]);
 	});
 
+	it('does not map container/body nested inside a section', () => {
+		const tree = [
+			stamped('core/group', `layout/${LAYOUT_ID}:no-sidebar`, {}, [
+				stamped('core/group', 'section/page-header:banner', {}, [
+					stamped('core/group', 'container/body', {
+						className: 'header-body',
+					}),
+				]),
+				stamped('core/group', 'area/content', {}, [
+					stamped('core/query', 'section/posts-listing:list', {}, [
+						stamped('core/group', 'container/body', {
+							className: 'listing-body',
+						}),
+					]),
+				]),
+			]),
+		];
+		const state = resolveLayoutState(tree, LAYOUT_ID, KNOWN_LAYOUTS);
+		expect(state.containerMap.body).toBeUndefined();
+	});
+
 	it('marks unknown stamped variants as customized', () => {
 		const state = resolveLayoutState(
 			makeStampedTree('hand-rolled'),

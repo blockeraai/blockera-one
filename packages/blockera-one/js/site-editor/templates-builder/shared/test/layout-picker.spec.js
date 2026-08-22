@@ -18,6 +18,32 @@ jest.mock('@blockera/controls', () => {
 				},
 				children
 			),
+		ChangeIndicator: ({
+			isChanged,
+			isAnimated,
+			className,
+			primaryColor,
+			outlineSize,
+			size,
+			...props
+		}) =>
+			isChanged
+				? createElement('span', {
+						className,
+						'data-animated': isAnimated ? 'true' : 'false',
+						'data-size': size,
+						...props,
+					})
+				: null,
+		Tooltip: ({ text, children }) =>
+			createElement(
+				'span',
+				{
+					'data-test': 'layout-picker-edits-tooltip',
+					'data-tooltip': text,
+				},
+				children
+			),
 	};
 });
 
@@ -122,5 +148,69 @@ describe('LayoutPicker', () => {
 			byTest(container, 'blockera-templates-builder-layout-banner')
 		);
 		expect(onChange).not.toHaveBeenCalled();
+	});
+
+	it('does not re-emit the already selected design', () => {
+		const onChange = jest.fn();
+		const { container } = renderPicker({
+			value: 'simple',
+			onChange,
+			variants: [
+				{ id: 'simple', label: 'Simple', thumbnail: 'simple.png' },
+				{ id: 'banner', label: 'Banner', thumbnail: 'banner.png' },
+			],
+		});
+
+		fireEvent.click(
+			byTest(container, 'blockera-templates-builder-layout-simple')
+		);
+		expect(onChange).not.toHaveBeenCalled();
+	});
+
+	it('shows a static change indicator on selected and other edited tiles', () => {
+		const { container } = renderPicker({
+			value: 'simple',
+			editedVariantIds: ['simple', 'banner'],
+			variants: [
+				{ id: 'simple', label: 'Simple', thumbnail: 'simple.png' },
+				{ id: 'banner', label: 'Banner', thumbnail: 'banner.png' },
+			],
+		});
+
+		const selected = byTest(
+			container,
+			'blockera-templates-builder-layout-edits-simple'
+		);
+		const other = byTest(
+			container,
+			'blockera-templates-builder-layout-edits-banner'
+		);
+
+		expect(selected).toBeTruthy();
+		expect(other).toBeTruthy();
+		expect(selected.getAttribute('data-animated')).toBe('false');
+		expect(other.getAttribute('data-animated')).toBe('false');
+		expect(
+			byTest(
+				container,
+				'blockera-templates-builder-layout-simple'
+			).getAttribute('data-session-edits')
+		).toBe('true');
+		expect(
+			byTest(
+				container,
+				'blockera-templates-builder-layout-banner'
+			).getAttribute('data-session-edits')
+		).toBe('true');
+		expect(
+			container.querySelectorAll(
+				'[data-test="layout-picker-edits-tooltip"]'
+			)
+		).toHaveLength(2);
+		expect(
+			byTest(container, 'layout-picker-edits-tooltip').getAttribute(
+				'data-tooltip'
+			)
+		).toBe('You edited this design during current session.');
 	});
 });

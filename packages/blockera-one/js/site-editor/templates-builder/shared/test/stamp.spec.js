@@ -223,7 +223,7 @@ describe('withStamp', () => {
 		});
 	});
 
-	it('keeps metaParts and extra keys when restamping', () => {
+	it('keeps extra keys when restamping and drops metaParts', () => {
 		const block = {
 			name: 'core/group',
 			attributes: {
@@ -241,7 +241,6 @@ describe('withStamp', () => {
 		expect(stamped.attributes.metadata.blockeraOne).toEqual({
 			stamp: 'section/post-meta-author-name',
 			future: 1,
-			metaParts: { prefix: 'By' },
 		});
 	});
 });
@@ -261,13 +260,77 @@ describe('withBlockeraOneMeta', () => {
 		innerBlocks: [],
 	};
 
-	it('omits empty metaParts and drops keys patched to undefined', () => {
+	it('never stores metaParts and drops keys patched to undefined', () => {
+		const other = {
+			name: 'core/group',
+			attributes: {
+				metadata: {
+					blockeraOne: {
+						stamp: 'section/article:default',
+						metaParts: { prefix: 'By' },
+						metaSeparator: 'bullet',
+					},
+				},
+			},
+			innerBlocks: [],
+		};
+		const cleared = withBlockeraOneMeta(other, {
+			metaParts: {},
+			metaSeparator: undefined,
+		});
+		expect(getBlockeraOneMeta(cleared)).toEqual({
+			stamp: 'section/article:default',
+		});
+	});
+
+	it('does not store metaParts on post-meta items', () => {
+		const item = withStamp(
+			{ name: 'core/group', attributes: {}, innerBlocks: [] },
+			'section',
+			'post-meta-author-name',
+			'default'
+		);
+		expect(getBlockeraOneMeta(item)).toEqual({
+			stamp: 'section/post-meta-author-name:default',
+		});
+	});
+
+	it('always stores metaSeparator on post-meta rows', () => {
+		const row = withStamp(
+			{ name: 'core/group', attributes: {}, innerBlocks: [] },
+			'section',
+			'post-meta',
+			'default'
+		);
+		expect(getBlockeraOneMeta(row)).toEqual({
+			stamp: 'section/post-meta:default',
+			metaSeparator: 'none',
+		});
 		const cleared = withBlockeraOneMeta(block, {
 			metaParts: {},
 			metaSeparator: undefined,
 		});
 		expect(getBlockeraOneMeta(cleared)).toEqual({
 			stamp: 'section/post-meta:default',
+			metaSeparator: 'none',
+		});
+	});
+
+	it('never stores metaParts or metaSeparator on space fillers', () => {
+		const filler = withBlockeraOneMeta(
+			withStamp(
+				{ name: 'core/paragraph', attributes: {}, innerBlocks: [] },
+				'section',
+				'post-meta-space-filler',
+				'default'
+			),
+			{
+				metaParts: { prefix: 'By' },
+				metaSeparator: 'bullet',
+			}
+		);
+		expect(getBlockeraOneMeta(filler)).toEqual({
+			stamp: 'section/post-meta-space-filler:default',
 		});
 	});
 });

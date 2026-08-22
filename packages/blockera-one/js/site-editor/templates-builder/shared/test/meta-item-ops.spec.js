@@ -160,17 +160,19 @@ describe('setMetaItemPart', () => {
 				]),
 			]),
 		];
+		const overlay = {};
 		tree = setMetaItemPart(tree, {
 			sectionId: AUTHOR,
 			part: 'prefix',
 			value: '',
+			overlay,
 		});
 		expect(readMetaItemPart(tree, AUTHOR, 'prefix')).toBe('');
 		expect(idsOf(find(tree, AUTHOR).block)).toEqual(['meta-item-block']);
+		expect(overlay[AUTHOR].prefix).toBe('Written by');
 		expect(
 			find(tree, AUTHOR).block.attributes.metadata.blockeraOne.metaParts
-				.prefix
-		).toBe('Written by');
+		).toBeUndefined();
 	});
 });
 
@@ -497,10 +499,27 @@ describe('setMetaItemsDesign', () => {
 				]),
 			]),
 		];
-		tree = setMetaItemsDesign(tree, 'post-meta', 'icons');
+		const overlay = {};
+		tree = setMetaItemsDesign(
+			tree,
+			'post-meta',
+			'icons',
+			undefined,
+			undefined,
+			overlay
+		);
 		expect(readMetaItemPart(tree, AUTHOR, 'prefix')).toBe('');
-		tree = setMetaItemsDesign(tree, 'post-meta', 'labels');
+		expect(overlay[AUTHOR].prefix).toBe('Written by');
+		tree = setMetaItemsDesign(
+			tree,
+			'post-meta',
+			'labels',
+			undefined,
+			undefined,
+			overlay
+		);
 		expect(readMetaItemPart(tree, AUTHOR, 'prefix')).toBe('Written by');
+		expect(overlay[AUTHOR]?.prefix).toBeUndefined();
 	});
 
 	it('skips Space Fillers', () => {
@@ -775,10 +794,12 @@ describe('meta item id helpers and no-ops', () => {
 		let tree = [
 			row([wrapper(AUTHOR, [metaBlock('core/post-author-name')])]),
 		];
+		const overlay = {};
 		tree = setMetaItemPart(tree, {
 			sectionId: AUTHOR,
 			part: 'icon',
 			value: { icon: 'star', library: 'wp' },
+			overlay,
 		});
 		expect(find(tree, 'meta-item-icon').block.attributes.icon).toBe(
 			'core/star'
@@ -787,21 +808,43 @@ describe('meta item id helpers and no-ops', () => {
 			sectionId: AUTHOR,
 			part: 'suffix',
 			value: 'says',
+			overlay,
 		});
-		tree = setMetaItemsDesign(tree, 'post-meta', 'simple');
-		tree = setMetaItemsDesign(tree, 'post-meta', 'icons');
+		tree = setMetaItemsDesign(
+			tree,
+			'post-meta',
+			'simple',
+			undefined,
+			undefined,
+			overlay
+		);
+		tree = setMetaItemsDesign(
+			tree,
+			'post-meta',
+			'icons',
+			undefined,
+			undefined,
+			overlay
+		);
 		expect(readMetaItemPart(tree, AUTHOR, 'icon')).toMatchObject({
 			icon: 'star',
 			library: 'wp',
 		});
-		tree = setMetaItemsDesign(tree, 'post-meta', 'labels');
+		tree = setMetaItemsDesign(
+			tree,
+			'post-meta',
+			'labels',
+			undefined,
+			undefined,
+			overlay
+		);
 		expect(readMetaItemPart(tree, AUTHOR, 'prefix')).toBe(
 			META_ITEM_DEFAULTS['author-name'].labels.prefix
 		);
+		expect(overlay[AUTHOR].suffix).toBe('says');
 		expect(
 			find(tree, AUTHOR).block.attributes.metadata.blockeraOne.metaParts
-				.suffix
-		).toBe('says');
+		).toBeUndefined();
 	});
 });
 
@@ -900,6 +943,7 @@ describe('separator edge cases', () => {
 		expect(readMetaItemPart(tree, DATE, 'prefix')).toBe(
 			META_ITEM_DEFAULTS['post-date'].labels.prefix
 		);
+		expect(item.attributes.metadata.blockeraOne.metaParts).toBeUndefined();
 	});
 
 	it('wraps a void post-date section before Icons can insert an icon', () => {

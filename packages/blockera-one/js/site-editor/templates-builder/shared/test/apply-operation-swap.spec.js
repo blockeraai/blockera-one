@@ -26,6 +26,11 @@ import {
 import { __setMarkup } from '../blocks-adapter';
 import { getStamp } from '../metadata';
 import { findStamp, stamped } from './helpers/block-fixtures';
+import {
+	createSessionBag,
+	sessionSwapKey,
+	sessionSwapCleanCurrentKey,
+} from '../../../session';
 
 describe('swapSection', () => {
 	it('swaps the listing and re-applies pagination elements', () => {
@@ -606,5 +611,255 @@ describe('swapSection reapply toggles', () => {
 		expect(description.attributes.blockeraFontSize).toEqual({
 			value: '16px',
 		});
+	});
+});
+
+describe('swapSection session snapshots', () => {
+	const entity = 'wp_template:99';
+	const design = {
+		id: 'page-header-design',
+		type: 'layout-picker',
+		target: { kind: 'section', id: 'page-header' },
+		operation: 'swapSection',
+		innerOrder: { parentId: 'page-header', ids: [], within: 'page-header' },
+		variants: [
+			{ id: 'simple', label: 'Simple', html: 'page-header-simple' },
+			{ id: 'banner', label: 'Banner', html: 'page-header-banner' },
+		],
+	};
+	const config = {
+		type: 'archive',
+		filters: ['archive'],
+		layoutId: LAYOUT_ID,
+		groups: [
+			{ id: 'page-header', title: 'Page Header', controls: [design] },
+		],
+	};
+
+	beforeAll(() => {
+		__setMarkup('page-header-simple', [
+			stamped('core/group', 'section/page-header:simple'),
+		]);
+		__setMarkup('page-header-banner', [
+			stamped('core/group', 'section/page-header:banner'),
+		]);
+	});
+
+	it('does not store a snapshot that matches catalog HTML', () => {
+		const session = createSessionBag();
+		const blocks = [stamped('core/group', 'section/page-header:simple')];
+		apply(design, 'banner', { blocks, config, session, entityKey: entity });
+		expect(
+			session.get(
+				sessionSwapKey(entity, 'page-header', 'page-header', 'simple')
+			)
+		).toBeUndefined();
+	});
+
+	it('parks a saved customization without marking it session-edited', () => {
+		const session = createSessionBag();
+		const simpleKey = sessionSwapKey(
+			entity,
+			'page-header',
+			'page-header',
+			'simple'
+		);
+		const saved = stamped('core/group', 'section/page-header:simple', {
+			customTitle: 'Saved',
+		});
+		apply(design, 'banner', {
+			blocks: [saved],
+			config,
+			session,
+			entityKey: entity,
+			entityDirty: false,
+		});
+		const stored = session.get(simpleKey);
+		expect(stored.tree[0].attributes.customTitle).toBe('Saved');
+		expect(stored.sessionEdited).toBe(false);
+	});
+
+	it('marks a clean restore and parks it without session-edited on the next swap', () => {
+		const session = createSessionBag();
+		const saved = stamped('core/group', 'section/page-header:simple', {
+			customTitle: 'Saved',
+		});
+		const away = apply(design, 'banner', {
+			blocks: [saved],
+			config,
+			session,
+			entityKey: entity,
+			entityDirty: false,
+		});
+		const restored = apply(design, 'simple', {
+			blocks: away.blocks,
+			config,
+			session,
+			entityKey: entity,
+			entityDirty: true,
+		});
+		expect(session.get(sessionSwapCleanCurrentKey(entity))).toEqual({
+			sectionId: 'page-header',
+			variantId: 'simple',
+		});
+
+		apply(design, 'banner', {
+			blocks: restored.blocks,
+			config,
+			session,
+			entityKey: entity,
+			entityDirty: true,
+		});
+		const parked = session.get(
+			sessionSwapKey(entity, 'page-header', 'page-header', 'simple')
+		);
+		expect(parked.sessionEdited).toBe(false);
+	});
+
+	it('clears the clean-restore marker on a non-swap operation', () => {
+		const session = createSessionBag();
+		session.set(sessionSwapCleanCurrentKey(entity), {
+			sectionId: 'page-header',
+			variantId: 'simple',
+		});
+		apply(CONTROLS.headerToggle, false, {
+			session,
+			entityKey: entity,
+		});
+		expect(session.get(sessionSwapCleanCurrentKey(entity))).toBeUndefined();
+	});
+
+	it('stores a dirty outgoing tree, restores it, remaps ids, and deletes the key', () => {
+		const session = createSessionBag();
+		const bannerKey = sessionSwapKey(
+			entity,
+			'page-header',
+			'page-header',
+			'banner'
+		);
+		const dirtyBanner = stamped(
+			'core/group',
+			'section/page-header:banner',
+			{
+				clientId: 'old-banner',
+				blockeraPropsId: 'old-banner',
+				customTitle: 'Edited',
+			}
+		);
+		const first = apply(design, 'simple', {
+			blocks: [dirtyBanner],
+			config,
+			session,
+			entityKey: entity,
+		});
+		expect(
+			getStamp(findStamp(first.blocks, 'page-header').block).variant
+		).toBe('simple');
+		const stored = session.get(bannerKey);
+		expect(stored.tree[0].attributes.customTitle).toBe('Edited');
+		expect(stored.sessionEdited).toBe(true);
+
+		const restored = apply(design, 'banner', {
+			blocks: first.blocks,
+			config,
+			session,
+			entityKey: entity,
+		});
+		const live = findStamp(restored.blocks, 'page-header').block;
+		expect(live.attributes.customTitle).toBe('Edited');
+		expect(live.clientId).not.toBe('old-banner');
+		expect(session.get(bannerKey)).toBeUndefined();
+	});
+
+	it('restores a snapshot at the target variant placement, not the live path', () => {
+		const session = createSessionBag();
+		const placed = {
+			...design,
+			variants: [
+				{
+					id: 'simple',
+					label: 'Simple',
+					html: 'page-header-simple',
+					placement: {
+						relativeTo: 'content',
+						position: 'inside-start',
+					},
+				},
+				{
+					id: 'banner',
+					label: 'Banner',
+					html: 'page-header-banner',
+					placement: {
+						relativeTo: 'main',
+						position: 'inside-start',
+					},
+				},
+			],
+		};
+		const blocks = [
+			stamped('core/group', `layout/${LAYOUT_ID}:sidebar-right`, {}, [
+				stamped('core/group', 'area/content', {}, [
+					stamped('core/group', 'section/page-header:simple', {
+						customTitle: 'Edited',
+					}),
+				]),
+				stamped('core/group', 'area/sidebar', {}, []),
+			]),
+		];
+		const bannered = apply(placed, 'banner', {
+			blocks,
+			config,
+			session,
+			entityKey: entity,
+		});
+		expect(
+			getStamp(findStamp(bannered.blocks, 'page-header').block).variant
+		).toBe('banner');
+		expect(
+			getStamp(findStamp(bannered.blocks, LAYOUT_ID).block.innerBlocks[0])
+				.id
+		).toBe('page-header');
+
+		const restored = apply(placed, 'simple', {
+			blocks: bannered.blocks,
+			config,
+			session,
+			entityKey: entity,
+		});
+		const content = findStamp(restored.blocks, 'content').block;
+		expect(getStamp(content.innerBlocks[0]).id).toBe('page-header');
+		expect(content.innerBlocks[0].attributes.customTitle).toBe('Edited');
+		expect(
+			getStamp(findStamp(restored.blocks, LAYOUT_ID).block.innerBlocks[0])
+				.id
+		).toBe('content');
+	});
+
+	it('does not snapshot or restore when the design is already current', () => {
+		const session = createSessionBag();
+		const simpleKey = sessionSwapKey(
+			entity,
+			'page-header',
+			'page-header',
+			'simple'
+		);
+		session.set(simpleKey, [
+			stamped('core/group', 'section/page-header:simple', {
+				customTitle: 'Parked',
+			}),
+		]);
+		const blocks = [
+			stamped('core/group', 'section/page-header:simple', {
+				customTitle: 'Live',
+			}),
+		];
+		const result = apply(design, 'simple', {
+			blocks,
+			config,
+			session,
+			entityKey: entity,
+		});
+		expect(result).toBeNull();
+		expect(session.get(simpleKey)[0].attributes.customTitle).toBe('Parked');
 	});
 });

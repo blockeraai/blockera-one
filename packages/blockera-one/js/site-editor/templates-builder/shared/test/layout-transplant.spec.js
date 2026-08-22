@@ -217,6 +217,53 @@ describe('container attribute carry-over', () => {
 		const layout = findStamp(afterLeft, 'main');
 		expect(layout.block.attributes.className).toContain('user-styled-main');
 	});
+
+	it('does not copy listing body flex onto the page-header body', () => {
+		const headerBody = stamped('core/group', 'container/body', {
+			blockeraFlexLayout: {
+				value: {
+					direction: 'column',
+					alignItems: 'center',
+					justifyContent: 'center',
+				},
+			},
+		});
+		const listingBody = stamped('core/group', 'container/body', {
+			align: 'full',
+			blockeraFlexLayout: {
+				value: {
+					direction: 'column',
+					alignItems: 'flex-start',
+					justifyContent: 'flex-start',
+				},
+			},
+		});
+		const layout = clone(noSidebar);
+		layout.innerBlocks.unshift(
+			stamped('core/group', 'section/page-header:banner', {}, [
+				headerBody,
+			])
+		);
+		layout.innerBlocks[1].innerBlocks = [
+			stamped('core/query', 'section/posts-listing:list', {}, [
+				listingBody,
+			]),
+		];
+
+		const next = transplant([layout], 'sidebar-right', {
+			siblingSectionIds: ['page-header'],
+		});
+		const header = findStamp(next, 'page-header');
+		const body = header.block.innerBlocks.find(
+			(node) => getStamp(node)?.id === 'body'
+		);
+		expect(body.attributes.blockeraFlexLayout.value).toEqual({
+			direction: 'column',
+			alignItems: 'center',
+			justifyContent: 'center',
+		});
+		expect(body.attributes.align).toBeUndefined();
+	});
 });
 
 describe('sibling sections', () => {

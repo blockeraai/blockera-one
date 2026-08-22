@@ -6,11 +6,15 @@ import fs from 'fs';
 import path from 'path';
 
 import {
-	getMetaRowIdForSection,
 	isMetaRowId,
+	isPostMetaItemId,
 	isSpaceFillerId,
 } from '../ops/meta/ids';
-import { META_ITEM_PART_IDS, META_SEPARATOR_ID } from '../ops/meta/constants';
+import {
+	META_ITEM_PART_IDS,
+	META_SEPARATOR_ID,
+	META_SEPARATOR_OPTIONS,
+} from '../ops/meta/constants';
 import {
 	getMetaItemListName,
 	META_PART_LIST_NAMES,
@@ -44,12 +48,6 @@ function isPostMetaSectionStamp(stamp) {
 	}
 	const id = match[2];
 	return id === 'post-meta' || id.startsWith('post-meta-');
-}
-
-function isPostMetaItemId(id) {
-	return (
-		!!getMetaRowIdForSection(id) && !isMetaRowId(id) && !isSpaceFillerId(id)
-	);
 }
 
 function stampFromCommentBody(body) {
@@ -104,8 +102,12 @@ function parseSerializedBlocks(source) {
 		}
 		const selfClosing = /\/$/.test(body);
 		const stampId = stampFromCommentBody(body);
+		const separator = body.match(
+			/"metaSeparator"\s*:\s*"(none|slash|dash|bullet)"/
+		);
 		const node = {
 			id: stampId || '',
+			metaSeparator: separator ? separator[1] : '',
 			children: [],
 			innerStart: cursor,
 			inner: '',
@@ -458,6 +460,139 @@ describe('templates-builder post-meta patterns lint', () => {
 				});
 			}
 			expect(separators).toBeGreaterThan(0);
+			expect(offenders).toEqual([]);
+		});
+
+		it('never stores metaParts on any stamp', () => {
+			const offenders = [];
+			let stamps = 0;
+			const phpEntries = stampedEntries.filter((entry) =>
+				entry.file.endsWith('.php')
+			);
+			for (const entry of phpEntries) {
+				const source = fs.readFileSync(
+					path.join(themeRoot, entry.file),
+					'utf8'
+				);
+				const metas = extractMetadataObjects(source);
+				for (const meta of metas) {
+					const stamp =
+						typeof meta.blockeraOne?.stamp === 'string'
+							? meta.blockeraOne.stamp
+							: '';
+					if (!stamp) {
+						continue;
+					}
+					stamps += 1;
+					if (meta.blockeraOne?.metaParts !== undefined) {
+						offenders.push(
+							`${entry.file}: ${stamp} must not include metaParts`
+						);
+					}
+				}
+			}
+			expect(stamps).toBeGreaterThan(0);
+			expect(offenders).toEqual([]);
+		});
+
+		it('does not store metaParts or metaSeparator on space fillers', () => {
+			const offenders = [];
+			let fillers = 0;
+			const phpEntries = stampedEntries.filter((entry) =>
+				entry.file.endsWith('.php')
+			);
+			for (const entry of phpEntries) {
+				const source = fs.readFileSync(
+					path.join(themeRoot, entry.file),
+					'utf8'
+				);
+				const metas = extractMetadataObjects(source);
+				for (const meta of metas) {
+					const stamp =
+						typeof meta.blockeraOne?.stamp === 'string'
+							? meta.blockeraOne.stamp
+							: '';
+					const match = stamp.match(STAMP_SHAPE);
+					if (!match || !isSpaceFillerId(match[2])) {
+						continue;
+					}
+					fillers += 1;
+					if (meta.blockeraOne?.metaParts !== undefined) {
+						offenders.push(
+							`${entry.file}: ${stamp} must not include metaParts`
+						);
+					}
+					if (meta.blockeraOne?.metaSeparator !== undefined) {
+						offenders.push(
+							`${entry.file}: ${stamp} must not include metaSeparator`
+						);
+					}
+				}
+			}
+			expect(fillers).toBeGreaterThan(0);
+			expect(offenders).toEqual([]);
+		});
+
+		it('stores metaSeparator on every Post Meta row', () => {
+			const allowed = Object.keys(META_SEPARATOR_OPTIONS);
+			const offenders = [];
+			let rows = 0;
+			const phpEntries = stampedEntries.filter((entry) =>
+				entry.file.endsWith('.php')
+			);
+			for (const entry of phpEntries) {
+				const source = fs.readFileSync(
+					path.join(themeRoot, entry.file),
+					'utf8'
+				);
+				const metas = extractMetadataObjects(source);
+				for (const meta of metas) {
+					const stamp =
+						typeof meta.blockeraOne?.stamp === 'string'
+							? meta.blockeraOne.stamp
+							: '';
+					const match = stamp.match(STAMP_SHAPE);
+					if (!match || !isMetaRowId(match[2])) {
+						continue;
+					}
+					rows += 1;
+					const option = meta.blockeraOne?.metaSeparator;
+					if (!allowed.includes(option)) {
+						offenders.push(
+							`${entry.file}: ${stamp} is missing required metaSeparator`
+						);
+					}
+					if (meta.blockeraOne?.metaParts !== undefined) {
+						offenders.push(
+							`${entry.file}: ${stamp} must not include metaParts`
+						);
+					}
+				}
+			}
+			expect(rows).toBeGreaterThan(0);
+			expect(offenders).toEqual([]);
+		});
+
+		it('does not keep an inner separator when metaSeparator is none', () => {
+			const offenders = [];
+			let noneRows = 0;
+			for (const entry of phpEntriesWithSource()) {
+				walkSerialized(entry.tree, (node) => {
+					if (
+						!isMetaRowId(node.id) ||
+						node.metaSeparator !== 'none'
+					) {
+						return;
+					}
+					noneRows += 1;
+					if (descendantHasId(node, META_SEPARATOR_ID)) {
+						offenders.push(
+							`${entry.file}: ${node.id} metaSeparator none has an inner separator`
+						);
+					}
+				});
+			}
+			expect(noneRows).toBeGreaterThan(0);
 			expect(offenders).toEqual([]);
 		});
 	});

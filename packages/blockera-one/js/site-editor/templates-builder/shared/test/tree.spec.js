@@ -395,7 +395,6 @@ describe('mergeUserAttributes', () => {
 		expect(merged.metadata).toEqual({
 			blockeraOne: {
 				stamp: 'section/target-stamp',
-				metaParts: { prefix: 'By' },
 			},
 			name: 'Custom name',
 		});
