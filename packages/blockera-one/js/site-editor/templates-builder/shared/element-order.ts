@@ -1,23 +1,21 @@
 /**
- * Resolve and persist the full inner-element order for a stamped parent.
+ * Resolve inner-element order for a stamped parent.
  *
- * Present children live in the block tree. Off items are removed, so the
- * complete list (including off slots) is stored on the parent as
- * `metadata.blockeraOneInnerOrder` after the first drag.
+ * Present children live in the block tree. Off items are removed from
+ * the tree and listed after live stamps (config `rule.ids` order).
+ * Session freeze keeps mixed on/off order while the panel is open.
  */
 
 import { getMetaName, getStamp } from './metadata';
 import { resolveSectionState } from './resolve/resolve-state';
 import { lookupFromInnerOrder, type StampLookupOptions } from './stamp-lookup';
-import { getAtPath, replaceAtPath } from './tree';
+import { getAtPath } from './tree';
 import type {
 	BlockNode,
 	ControlDef,
 	InnerOrderRule,
 	PanelGroupDef,
 } from './types';
-
-export const INNER_ORDER_META_KEY = 'blockeraOneInnerOrder';
 
 function getParentNode(
 	blocks: BlockNode[],
@@ -33,16 +31,6 @@ function getParentNode(
 		return null;
 	}
 	return { path: parent.path, node };
-}
-
-function getMetadata(
-	block: BlockNode | null | undefined
-): Record<string, unknown> {
-	const metadata = block?.attributes?.metadata;
-	if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) {
-		return {};
-	}
-	return metadata as Record<string, unknown>;
 }
 
 function sanitizeIds(ids: unknown, knownIds?: string[]): string[] {
@@ -86,7 +74,7 @@ function appendMissing(ids: string[], knownIds: string[]): string[] {
 
 /**
  * Dedupe, drop unknown ids, then append any missing config ids so off
- * items keep a slot in the stored list.
+ * items keep a slot in the resolved list.
  */
 export function normalizeElementOrder(
 	ids: unknown,
@@ -114,23 +102,9 @@ function liveChildIds(node: BlockNode, knownIds: string[]): string[] {
 	return result;
 }
 
-/** Read a previously dragged order from the parent section, if any. */
-export function getStoredElementOrder(
-	blocks: BlockNode[],
-	parentId: string,
-	lookup?: StampLookupOptions
-): string[] | null {
-	const found = getParentNode(blocks, parentId, lookup);
-	if (!found) {
-		return null;
-	}
-	const stored = sanitizeIds(getMetadata(found.node)[INNER_ORDER_META_KEY]);
-	return stored.length ? stored : null;
-}
-
 /**
- * Full list order: stored metadata wins; otherwise live child stamps plus
- * remaining `rule.ids` (off items append in config order).
+ * Full list order: live child stamps plus remaining `rule.ids`
+ * (off items append in config order).
  */
 export function resolveElementOrder(
 	blocks: BlockNode[],
@@ -142,59 +116,7 @@ export function resolveElementOrder(
 	if (!found) {
 		return knownIds.slice();
 	}
-	const stored = getMetadata(found.node)[INNER_ORDER_META_KEY];
-	if (Array.isArray(stored) && stored.length) {
-		return normalizeElementOrder(stored, knownIds);
-	}
 	return appendMissing(liveChildIds(found.node, knownIds), knownIds);
-}
-
-/** Write the full ordered id list onto the parent section. */
-export function persistElementOrder(
-	blocks: BlockNode[],
-	parentId: string,
-	orderedIds: string[],
-	lookup?: StampLookupOptions
-): BlockNode[] {
-	const found = getParentNode(blocks, parentId, lookup);
-	if (!found) {
-		return blocks;
-	}
-	return replaceAtPath(blocks, found.path, {
-		...found.node,
-		attributes: {
-			...(found.node.attributes || {}),
-			metadata: {
-				...getMetadata(found.node),
-				[INNER_ORDER_META_KEY]: orderedIds.slice(),
-			},
-		},
-	});
-}
-
-/** Drop a stored drag order so the next resolve reads the live pattern. */
-export function clearStoredElementOrder(
-	blocks: BlockNode[],
-	parentId: string,
-	lookup?: StampLookupOptions
-): BlockNode[] {
-	const found = getParentNode(blocks, parentId, lookup);
-	if (!found) {
-		return blocks;
-	}
-	const metadata = getMetadata(found.node);
-	if (!(INNER_ORDER_META_KEY in metadata)) {
-		return blocks;
-	}
-	const nextMeta = { ...metadata };
-	delete nextMeta[INNER_ORDER_META_KEY];
-	return replaceAtPath(blocks, found.path, {
-		...found.node,
-		attributes: {
-			...(found.node.attributes || {}),
-			metadata: nextMeta,
-		},
-	});
 }
 
 export function getGroupInnerOrder(
@@ -286,23 +208,53 @@ export function overlayFrozenIds(
 	return result.concat(partitionOffIdsToEnd(missing, isOn));
 }
 
+/**
+ * Frozen parent wins even when resolved leftovers sit on the last
+ * parent (off items are not in the tree).
+ */
 export function overlayFrozenBuckets(
 	resolved: ElementBucket[],
 	frozen: ElementBucket[],
 	isOn: (id: string) => boolean
 ): ElementBucket[] {
+	const known: Record<string, true> = {};
+	for (let i = 0; i < resolved.length; i++) {
+		const ids = resolved[i].ids;
+		for (let j = 0; j < ids.length; j++) {
+			known[ids[j]] = true;
+		}
+	}
 	const frozenByParent: Record<string, string[]> = {};
 	for (let i = 0; i < frozen.length; i++) {
 		frozenByParent[frozen[i].parentId] = frozen[i].ids;
 	}
-	return resolved.map((bucket) => ({
-		parentId: bucket.parentId,
-		ids: overlayFrozenIds(
-			bucket.ids,
-			frozenByParent[bucket.parentId] || [],
-			isOn
-		),
-	}));
+	const placed: Record<string, true> = {};
+	const next: ElementBucket[] = [];
+	for (let i = 0; i < resolved.length; i++) {
+		const bucket = resolved[i];
+		const frozenIds = frozenByParent[bucket.parentId] || [];
+		const ids: string[] = [];
+		for (let f = 0; f < frozenIds.length; f++) {
+			const id = frozenIds[f];
+			if (!known[id] || placed[id]) {
+				continue;
+			}
+			placed[id] = true;
+			ids.push(id);
+		}
+		const missing: string[] = [];
+		for (let r = 0; r < bucket.ids.length; r++) {
+			const id = bucket.ids[r];
+			if (!placed[id]) {
+				missing.push(id);
+			}
+		}
+		next.push({
+			parentId: bucket.parentId,
+			ids: ids.concat(partitionOffIdsToEnd(missing, isOn)),
+		});
+	}
+	return next;
 }
 
 /** Display buckets: freeze overlay, or partition on first view. */
@@ -354,22 +306,9 @@ export function findLiveParentStampId(
 	return getStamp(parent)?.id || null;
 }
 
-function storedHasId(
-	blocks: BlockNode[],
-	parentId: string,
-	sectionId: string,
-	lookup?: StampLookupOptions
-): boolean {
-	const stored = getStoredElementOrder(blocks, parentId, lookup);
-	if (!stored) {
-		return false;
-	}
-	return stored.indexOf(sectionId) !== -1;
-}
-
 /**
- * Parent to insert a toggled-on bucketed element into: last stored home,
- * otherwise the last existing bucket parent (body is listed last).
+ * Parent to insert a toggled-on bucketed element into: last existing
+ * bucket parent (body is listed last).
  */
 export function resolveBucketInsertParent(
 	blocks: BlockNode[],
@@ -378,12 +317,6 @@ export function resolveBucketInsertParent(
 	fallbackId: string,
 	lookup?: StampLookupOptions
 ): string {
-	for (let i = 0; i < bucketParents.length; i++) {
-		const parentId = bucketParents[i];
-		if (storedHasId(blocks, parentId, sectionId, lookup)) {
-			return parentId;
-		}
-	}
 	for (let i = bucketParents.length - 1; i >= 0; i--) {
 		const parentId = bucketParents[i];
 		if (resolveSectionState(blocks, parentId, [], lookup).path) {
@@ -394,9 +327,8 @@ export function resolveBucketInsertParent(
 }
 
 /**
- * Split known element ids across existing bucket parents. Live placement
- * wins; stored order keeps off items in their last parent; leftovers go
- * to the last existing parent.
+ * Split known element ids across existing bucket parents. Live
+ * placement wins; leftovers go to the last existing parent.
  */
 export function resolveElementBuckets(
 	blocks: BlockNode[],
@@ -426,21 +358,12 @@ export function resolveElementBuckets(
 	}
 
 	const assigned: Record<string, string> = {};
+	const lastParent = existing[existing.length - 1];
 	for (let i = 0; i < knownIds.length; i++) {
 		const id = knownIds[i];
 		const live = findLiveParentStampId(blocks, id, lookup);
-		if (live && existing.indexOf(live) !== -1) {
-			assigned[id] = live;
-			continue;
-		}
-		let storedParent: string | null = null;
-		for (let p = 0; p < existing.length; p++) {
-			if (storedHasId(blocks, existing[p], id, lookup)) {
-				storedParent = existing[p];
-				break;
-			}
-		}
-		assigned[id] = storedParent || existing[existing.length - 1];
+		assigned[id] =
+			live && existing.indexOf(live) !== -1 ? live : lastParent;
 	}
 
 	const buckets: ElementBucket[] = [];

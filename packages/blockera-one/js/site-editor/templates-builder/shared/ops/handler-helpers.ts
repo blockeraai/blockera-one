@@ -29,7 +29,7 @@ export function resolveInnerOrderIds(
 	return resolveElementOrder(sourceBlocks, rule);
 }
 
-/** Reorder present children to the stored/derived list after a toggle. */
+/** Reorder present children to the derived list after a toggle. */
 export function applyInnerOrder(
 	tree: BlockNode[],
 	control: ControlDef,

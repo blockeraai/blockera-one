@@ -1,12 +1,9 @@
 /**
- * reorderInnerSections — persist and apply inner child order (and buckets).
+ * reorderInnerSections — apply inner child order (and buckets).
  */
 
 import { moveInnerSection, orderInnerSections } from '../../section-ops';
-import {
-	normalizeElementOrder,
-	persistElementOrder,
-} from '../../element-order';
+import { normalizeElementOrder } from '../../element-order';
 import { lookupFromControl } from '../../stamp-lookup';
 import type {
 	BlockNode,
@@ -55,12 +52,6 @@ export const handleReorderInnerSections: OperationHandler = ({
 		}
 		for (let i = 0; i < nextValue.buckets.length; i++) {
 			const bucket = nextValue.buckets[i];
-			tree = persistElementOrder(
-				tree,
-				bucket.parentId,
-				bucket.ids,
-				lookup
-			);
 			tree = orderInnerSections(
 				tree,
 				bucket.parentId,
@@ -78,10 +69,7 @@ export const handleReorderInnerSections: OperationHandler = ({
 		return null;
 	}
 	const lookup = lookupFromControl(control, selectedClientId);
-	// Persist the full list (including off items) first, then reorder
-	// only the children that are currently in the tree.
-	let tree = persistElementOrder(blocks, rule.parentId, ordered, lookup);
-	tree = orderInnerSections(tree, rule.parentId, ordered, lookup);
+	const tree = orderInnerSections(blocks, rule.parentId, ordered, lookup);
 	return {
 		kind: 'blocks',
 		blocks: syncMetaRowIfNeeded(tree, rule.parentId),

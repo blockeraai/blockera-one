@@ -231,7 +231,6 @@ export function reapplyAfterSwap(
 				plan.enabled,
 				next,
 				config.layoutId,
-				false,
 				selectedClientId
 			);
 			continue;

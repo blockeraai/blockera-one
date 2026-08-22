@@ -2,7 +2,6 @@
  * swapSection / swapTemplatePart — replace a stamped section or chrome part.
  */
 
-import { clearStoredElementOrder } from '../../element-order';
 import { swapTemplatePart } from '../../chrome-rail';
 import { ensurePaginationNavLabels, swapSection } from '../../section-ops';
 import { STAMP_IDS } from '../../stamp-ids';
@@ -41,8 +40,6 @@ function applySwapSection(
 		},
 		opsContextFor(control, selectedClientId)
 	);
-	// New design pattern is the order source — drop any previous drag list.
-	next = clearStoredElementOrder(next, control.target.id);
 	next = reapplyAfterSwap(next, blocks, control, config, selectedClientId);
 	if (control.target.id === STAMP_IDS.postsListing) {
 		next = applyListingMetaItemsPreset(next);

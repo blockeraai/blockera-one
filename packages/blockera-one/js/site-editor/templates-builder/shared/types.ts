@@ -335,7 +335,7 @@ export type ControlDef = {
 	variableTypes?: string[];
 	/**
 	 * After this op, reorder stamped children of `parentId` using the
-	 * stored/derived element order (see `element-order.ts`).
+	 * live/derived element order (see `element-order.ts`).
 	 */
 	innerOrder?: InnerOrderRule;
 	/** Control-level nested DrillDown (toggle + chevron rows). */
@@ -428,8 +428,8 @@ export type PanelGroupDef = {
 	controls: ControlDef[];
 	/**
 	 * When true, toggle+nestedPanel rows that share `innerOrder` become a
-	 * drag-sortable list. Order comes from the live parent (or stored
-	 * `metadata.blockeraOneInnerOrder` after the first drag).
+	 * drag-sortable list. Order comes from the live parent; off items
+	 * append in config order (session freeze while the panel is open).
 	 */
 	sortable?: boolean;
 	/**

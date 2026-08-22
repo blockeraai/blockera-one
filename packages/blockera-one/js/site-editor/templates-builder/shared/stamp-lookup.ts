@@ -194,7 +194,7 @@ export function findStampById(
 
 /**
  * Pin nested `parentId` under the rule's ancestor. Used for panel reads
- * (buckets, stored order, parent names) where canvas selection is absent.
+ * (buckets, parent names) where canvas selection is absent.
  */
 export function lookupFromInnerOrder(
 	rule: Pick<InnerOrderRule, 'parentId' | 'within'>,

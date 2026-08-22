@@ -7,7 +7,6 @@ import { prepareHideChromeSection } from '../../chrome-rail';
 import { orderInnerSections, toggleSection } from '../../section-ops';
 import {
 	findLiveParentStampId,
-	persistElementOrder,
 	resolveBucketInsertParent,
 	resolveElementBuckets,
 	type ElementBucket,
@@ -17,32 +16,80 @@ import { lookupFromControl, type StampLookupOptions } from '../../stamp-lookup';
 import { flattenPanelControls } from '../../resolve/resolve-options-panel';
 import type { BlockNode, ControlDef, TemplateOptionsConfig } from '../../types';
 import { applyMetaToggleSideEffects } from '../meta';
-import { applyInnerOrder, resolveInnerOrderIds } from '../handler-helpers';
+import { applyInnerOrder } from '../handler-helpers';
 import type { OperationHandler } from '../types';
 
+function findBucketParentId(
+	buckets: ElementBucket[],
+	sectionId: string
+): string | null {
+	for (let i = 0; i < buckets.length; i++) {
+		if (buckets[i].ids.indexOf(sectionId) !== -1) {
+			return buckets[i].parentId;
+		}
+	}
+	return null;
+}
+
+function cloneBuckets(buckets: ElementBucket[]): ElementBucket[] {
+	return buckets.map((bucket) => ({
+		parentId: bucket.parentId,
+		ids: bucket.ids.slice(),
+	}));
+}
+
 /**
- * Keep a toggled loop-item in its last parent (media vs body) even
- * after it is removed from the tree, then persist each bucket separately.
+ * Live parent, else the freeze/resolved bucket that already lists the
+ * id (off items stay in Media while frozen), else last existing parent.
+ */
+function resolveToggleHomeParent(
+	blocks: BlockNode[],
+	sectionId: string,
+	rule: NonNullable<ControlDef['innerOrder']>,
+	buckets: ElementBucket[],
+	lookup?: StampLookupOptions
+): string {
+	const live = findLiveParentStampId(blocks, sectionId, lookup);
+	if (live) {
+		return live;
+	}
+	const fromBuckets = findBucketParentId(buckets, sectionId);
+	if (fromBuckets) {
+		return fromBuckets;
+	}
+	if (rule.bucketParents?.length) {
+		return resolveBucketInsertParent(
+			blocks,
+			sectionId,
+			rule.bucketParents,
+			rule.parentId,
+			lookup
+		);
+	}
+	return rule.parentId;
+}
+
+/**
+ * Reorder live children in each bucket after a toggle (media vs body).
  */
 function applyBucketedInnerOrder(
 	tree: BlockNode[],
 	rule: NonNullable<ControlDef['innerOrder']>,
 	sectionId: string,
 	homeParent: string,
-	persistOrder: boolean,
 	capturedBuckets?: ElementBucket[],
 	lookup?: StampLookupOptions
 ): BlockNode[] {
-	const resolved = capturedBuckets || resolveElementBuckets(tree, rule);
-	const buckets = resolved.map((bucket) => ({
-		parentId: bucket.parentId,
-		ids: bucket.ids.slice(),
-	}));
-	const dest =
-		buckets.find((bucket) => bucket.parentId === homeParent) ||
-		buckets[buckets.length - 1];
-	if (dest && dest.ids.indexOf(sectionId) === -1) {
-		dest.ids.push(sectionId);
+	const buckets = cloneBuckets(
+		capturedBuckets || resolveElementBuckets(tree, rule)
+	);
+	if (!findBucketParentId(buckets, sectionId)) {
+		const dest =
+			buckets.find((bucket) => bucket.parentId === homeParent) ||
+			buckets[buckets.length - 1];
+		if (dest) {
+			dest.ids.push(sectionId);
+		}
 	}
 	let next = tree;
 	for (let i = 0; i < buckets.length; i++) {
@@ -53,14 +100,6 @@ function applyBucketedInnerOrder(
 			bucket.ids,
 			lookup || { parentId: bucket.parentId }
 		);
-		if (persistOrder) {
-			next = persistElementOrder(
-				next,
-				bucket.parentId,
-				bucket.ids,
-				lookup
-			);
-		}
 	}
 	return next;
 }
@@ -100,45 +139,28 @@ export function applyToggleControl(
 	enabled: boolean,
 	orderSource: BlockNode[],
 	layoutId: string,
-	persistOrder = true,
 	selectedClientId?: string | null,
 	orderBuckets?: ElementBucket[]
 ): BlockNode[] {
 	const lookup = lookupFromControl(control, selectedClientId);
 	const ctx = { ...defaultOpsContext, lookup };
 	const rule = control.innerOrder;
-	const bucketParents = rule?.bucketParents;
 	let homeParent: string | null = null;
 	let capturedBuckets: ElementBucket[] | null = null;
 	if (rule && orderBuckets?.length) {
-		capturedBuckets = orderBuckets.map((bucket) => ({
-			parentId: bucket.parentId,
-			ids: bucket.ids.slice(),
-		}));
-		homeParent =
-			findLiveParentStampId(blocks, control.target.id, lookup) ||
-			(bucketParents?.length
-				? resolveBucketInsertParent(
-						blocks,
-						control.target.id,
-						bucketParents,
-						rule.parentId,
-						lookup
-					)
-				: rule.parentId);
-	} else if (bucketParents?.length && rule) {
-		// Capture order while the section is still in the tree so a
-		// toggle-off does not append the id to the end of the list.
+		capturedBuckets = orderBuckets;
+	} else if (rule?.bucketParents?.length) {
+		// Capture buckets before toggle-off removes the stamp from the tree.
 		capturedBuckets = resolveElementBuckets(blocks, rule);
-		homeParent =
-			findLiveParentStampId(blocks, control.target.id, lookup) ||
-			resolveBucketInsertParent(
-				blocks,
-				control.target.id,
-				bucketParents,
-				rule.parentId,
-				lookup
-			);
+	}
+	if (capturedBuckets && rule) {
+		homeParent = resolveToggleHomeParent(
+			blocks,
+			control.target.id,
+			rule,
+			capturedBuckets,
+			lookup
+		);
 	}
 
 	let insert = control.insert;
@@ -183,7 +205,6 @@ export function applyToggleControl(
 			rule,
 			control.target.id,
 			homeParent || rule.parentId,
-			persistOrder,
 			capturedBuckets,
 			lookup
 		);
@@ -191,19 +212,6 @@ export function applyToggleControl(
 	}
 
 	tree = applyInnerOrder(tree, control, orderSource, selectedClientId);
-	// User toggles persist the drag list. Design-swap reapply must not —
-	// the new pattern is the order source and stored order was just cleared.
-	if (persistOrder && control.innerOrder) {
-		const ids = resolveInnerOrderIds(control, orderSource);
-		if (ids) {
-			tree = persistElementOrder(
-				tree,
-				control.innerOrder.parentId,
-				ids,
-				lookup
-			);
-		}
-	}
 	return applyMetaToggleSideEffects(tree, control, enabled);
 }
 
@@ -227,7 +235,6 @@ export const handleToggleSection: OperationHandler = ({
 			enabled,
 			blocks,
 			config.layoutId,
-			true,
 			selectedClientId,
 			orderBuckets
 		),

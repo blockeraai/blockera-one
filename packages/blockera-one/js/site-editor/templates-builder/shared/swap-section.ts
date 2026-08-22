@@ -67,8 +67,6 @@ export function swapSection(
 			// Simple keep the banner band. Native WP attrs are never copied.
 			// `blockera*` attrs are copied only when opted in — otherwise
 			// Simple flex-start / spacing would overwrite Banner defaults.
-			// Do not copy metadata.blockeraOneInnerOrder — a new design
-			// resets element order to the pattern.
 			if (params.preserveBlockeraExtensions) {
 				const extensions = pickBlockeraExtensionAttributes(
 					prev.attributes || {}
