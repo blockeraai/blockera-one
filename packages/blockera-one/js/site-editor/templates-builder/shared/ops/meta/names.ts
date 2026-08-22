@@ -20,7 +20,6 @@ export const META_PART_LIST_NAMES = {
 export const META_ITEM_LABELS: Record<string, string> = {
 	'author-name': 'Author Name',
 	'post-date': 'Published Date',
-	date: 'Date',
 	'modified-date': 'Modified Date',
 	categories: 'Categories',
 	tags: 'Tags',

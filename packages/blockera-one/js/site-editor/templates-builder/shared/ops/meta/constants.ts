@@ -66,7 +66,6 @@ function wpIcon(icon: string): Record<string, unknown> {
 /** JS fallback when PHP has not printed `window.blockeraOneTemplateBuilder`. */
 export const META_ITEM_DEFAULTS: Record<string, MetaItemDesignConfig> = {
 	'author-name': itemDefaults('By', wpIcon('comment-author-avatar')),
-	date: itemDefaults('On', wpIcon('calendar')),
 	'post-date': itemDefaults('Published:', wpIcon('calendar')),
 	'modified-date': itemDefaults('Updated on', wpIcon('update')),
 	categories: itemDefaults('In', wpIcon('category')),

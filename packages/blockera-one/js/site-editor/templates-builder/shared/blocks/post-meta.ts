@@ -33,7 +33,6 @@ export const POST_META_CHILD_DEFS = [
 	{ suffix: 'author-name', label: __('Author Name', 'blockera') },
 	{ suffix: 'comments-count', label: __('Comments Count', 'blockera') },
 	{ suffix: 'comments-link', label: __('Comments Link', 'blockera') },
-	{ suffix: 'date', label: __('Date', 'blockera') },
 	{ suffix: 'post-date', label: __('Published Date', 'blockera') },
 	{ suffix: 'modified-date', label: __('Modified Date', 'blockera') },
 	{ suffix: 'categories', label: __('Categories', 'blockera') },

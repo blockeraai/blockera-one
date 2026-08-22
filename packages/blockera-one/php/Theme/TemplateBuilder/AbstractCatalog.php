@@ -282,10 +282,6 @@ abstract class AbstractCatalog {
 				__( 'Comments Link', 'blockera-one' ),
 				'blockera-one/builder-post-meta-comments-link'
 			),
-			'post-meta-date'             => $this->listingElementPool(
-				__( 'Date', 'blockera-one' ),
-				'blockera-one/builder-post-meta-date'
-			),
 			'post-meta-post-date'        => $this->listingElementPool(
 				__( 'Post Date', 'blockera-one' ),
 				'blockera-one/builder-post-meta-post-date'
@@ -321,10 +317,6 @@ abstract class AbstractCatalog {
 			'post-meta-2-comments-link'  => $this->listingElementPool(
 				__( 'Comments Link', 'blockera-one' ),
 				'blockera-one/builder-post-meta-2-comments-link'
-			),
-			'post-meta-2-date'           => $this->listingElementPool(
-				__( 'Date', 'blockera-one' ),
-				'blockera-one/builder-post-meta-2-date'
 			),
 			'post-meta-2-post-date'      => $this->listingElementPool(
 				__( 'Post Date', 'blockera-one' ),

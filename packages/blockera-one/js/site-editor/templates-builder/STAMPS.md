@@ -284,7 +284,6 @@ the same change as the dictionary entry.
 | `section/post-meta-author-name` | Author name in the first meta row. |
 | `section/post-meta-comments-count` | Comments count in the first meta row. |
 | `section/post-meta-comments-link` | Comments link in the first meta row. |
-| `section/post-meta-date` | Date in the first meta row. |
 | `section/post-meta-post-date` | Published date in the first meta row. |
 | `section/post-meta-modified-date` | Modified date in the first meta row. |
 | `section/post-meta-categories` | Categories in the first meta row. |
@@ -296,7 +295,6 @@ the same change as the dictionary entry.
 | `section/post-meta-2-author-name` | Author name in the second meta row. |
 | `section/post-meta-2-comments-count` | Comments count in the second meta row. |
 | `section/post-meta-2-comments-link` | Comments link in the second meta row. |
-| `section/post-meta-2-date` | Date in the second meta row. |
 | `section/post-meta-2-post-date` | Published date in the second meta row. |
 | `section/post-meta-2-modified-date` | Modified date in the second meta row. |
 | `section/post-meta-2-categories` | Categories in the second meta row. |

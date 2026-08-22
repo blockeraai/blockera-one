@@ -77,26 +77,6 @@ class MetaItemsDesign {
 					'suffix' => '',
 				),
 			),
-			'date'           => array(
-				'simple' => array(
-					'icon'   => '',
-					'prefix' => '',
-					'suffix' => '',
-				),
-				'labels' => array(
-					'icon'   => '',
-					'prefix' => __( 'On', 'blockera-one' ),
-					'suffix' => '',
-				),
-				'icons'  => array(
-					'icon'   => array(
-						'icon'    => 'calendar',
-						'library' => 'wp',
-					),
-					'prefix' => '',
-					'suffix' => '',
-				),
-			),
 			'post-date'      => array(
 				'simple' => array(
 					'icon'   => '',
