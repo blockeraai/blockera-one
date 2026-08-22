@@ -20,7 +20,7 @@ import { __ } from '@wordpress/i18n';
  */
 import DrillDownScreen from '../components/drill-down-screen';
 import { ROUTES } from '../constants';
-import { resolveNestedPanel, useUrlPanelStack } from '../nested-panels';
+import { resolveNestedPanel } from '../nested-panels';
 import {
 	getOptionsConfigForFilter,
 	getOptionsConfigForPartsArea,
@@ -35,9 +35,9 @@ import { SortableOrderFreezeProvider } from '../templates-builder/shared/sortabl
 import {
 	buildTemplatePartItemPath,
 	navigateTemplates,
-	TEMPLATES_OPTIONS_PANEL_QUERY,
 	type PartAreaId,
 } from './constants';
+import useTemplatesBuilderStack from './use-templates-builder-stack';
 import useTemplatesUrlState from './use-templates-url-state';
 import { findCanonicalPart } from './templates-hub-parts';
 import { findNavItemLabel } from './templates-nav-config';
@@ -52,9 +52,7 @@ export default function TemplatesDrillDown() {
 	const { parts, findBySlug, sections } = useTemplatesData();
 	const panelRef = useRef<HTMLDivElement | null>(null);
 	const urlState = useTemplatesUrlState();
-	const { stack, push, pop, replace } = useUrlPanelStack({
-		queryKey: TEMPLATES_OPTIONS_PANEL_QUERY,
-	});
+	const { stack, push, pop, replace } = useTemplatesBuilderStack();
 
 	const stackKey = stack.join('/');
 

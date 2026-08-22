@@ -3,7 +3,7 @@
  * canvas edit on a wp_template preview.
  *
  * Core “Open Navigation” on template-item routes to `/template` (All templates)
- * via getNavigationPath — dropping `boFilter` / `boBuilder`. Intercept while a
+ * via getNavigationPath — dropping `blockera-builder`. Intercept while a
  * purpose filter is active and return to the same template preview instead.
  *
  * Mounted around the resolved Editor (see wrapTemplateItemPurposePreview) so the

@@ -146,7 +146,7 @@ Short runtime notes (full rules in STAMPS.md):
 2. **Detection** — `shared/resolve/resolve-state.ts` (stamps first, heuristics fallback).
 3. **Operations** — `shared/ops/apply-operation.ts` dispatcher (`OPERATION_HANDLERS` is exhaustive over `OperationKind`).
 4. **Config** — per-type folder (e.g. `archive/config.ts` composed from `shared/sections`); hydrated + overlay-resolved via `registry.ts`.
-5. **Panel** — `shared/panel/template-options-panel.tsx`, shown from `TemplatesDrillDown` when `boFilter` matches a registered type.
+5. **Panel** — `shared/panel/template-options-panel.tsx`, shown from `TemplatesDrillDown` when `blockera-builder` matches a registered type.
 6. **PHP** — `Theme\TemplateBuilder` (variant catalog + filters) and `Theme\TemplateSettings` (`posts_per_page` per purpose + broadcast keys such as `sidebar_width` and `header_sticky`).
 
 ## Lint / tests

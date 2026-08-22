@@ -2,7 +2,7 @@
  * Intercept core “Open Navigation” clicks (view-mode toggle) in capture phase.
  *
  * Core routes those clicks through getNavigationPath, which drops Blockera's
- * `boFilter` / parts-hub context. Consumers pass a handler that decides — per
+ * `blockera-builder` context. Consumers pass a handler that decides — per
  * current Site Editor `p` path — whether to take over navigation; when it
  * returns true the original click is fully suppressed.
  *

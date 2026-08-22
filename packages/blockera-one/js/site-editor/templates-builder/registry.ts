@@ -135,7 +135,7 @@ export function getOptionsConfigForFilter(
 
 /**
  * Resolve options config for a Templates purpose-nav part area
- * (`partsArea=header|footer|sidebar`). Returns the catalog-hydrated copy, or null.
+ * (`blockera-builder=header|footer|sidebar`). Returns the catalog-hydrated copy, or null.
  */
 export function getOptionsConfigForPartsArea(
 	area: string | null | undefined

@@ -4,10 +4,8 @@
  */
 
 import type { ReactNode } from 'react';
-import { getQueryArg } from '@wordpress/url';
 
 import {
-	TEMPLATES_FILTER_QUERY,
 	TemplatesBrowseContent,
 	isTemplatesOwnedPagePreview,
 } from '../templates';
@@ -103,18 +101,14 @@ export function wrapTemplateItemPurposePreview(
 
 /**
  * Homepage / Blog·Posts preview pages via `/page/{id}` but keep Templates
- * purpose-nav when `boFilter` marks a Templates-owned preview.
+ * purpose-nav when `blockera-builder` marks a Templates-owned preview.
  */
 export function wrapPageItemSidebar(
 	coreSidebar: ReactNode | RouteAreaFn | undefined
 ): RouteAreaFn {
 	return (args: unknown) => {
-		const boFilter = getQueryArg(
-			typeof window !== 'undefined' ? window.location.href : '',
-			TEMPLATES_FILTER_QUERY
-		);
 		const keepTemplates = isTemplatesOwnedPagePreview(
-			typeof boFilter === 'string' ? boFilter : null
+			getTemplatesUrlState().filter
 		);
 
 		if (keepTemplates) {

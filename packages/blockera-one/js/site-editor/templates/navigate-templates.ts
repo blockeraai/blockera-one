@@ -21,13 +21,12 @@ import { FILTER_IDS, type FilterId } from './filter-ids';
 import { rememberTemplatesSidebarScroll } from './templates-sidebar-scroll';
 import {
 	TEMPLATES_ACTIVE_VIEW_QUERY,
-	TEMPLATES_FILTER_QUERY,
-	TEMPLATES_OPTIONS_PANEL_QUERY,
-	TEMPLATES_PARTS_AREA_QUERY,
+	TEMPLATES_BUILDER_QUERY,
 	TEMPLATES_QUERY_KEYS_TO_SCRUB,
 	buildPatternsTemplatePartsPath,
 	getCoreActiveViewForFilter,
 	getTemplatesUrlState,
+	serializeBlockeraBuilder,
 	type PartAreaId,
 } from './templates-url';
 
@@ -72,46 +71,46 @@ export function navigateTemplates(
 	}
 
 	const current = getTemplatesUrlState();
-	const nextQuery: Record<string, string | undefined> = {
-		p: path,
-	};
+
+	let nextFilter = current.filter;
+	let nextPartsArea = current.partsArea;
+	let nextOptionsPanel = current.optionsPanel;
 
 	if (options?.clearFilter) {
-		nextQuery[TEMPLATES_FILTER_QUERY] = undefined;
+		nextFilter = FILTER_IDS.all;
 	} else if (options?.filter !== undefined) {
-		nextQuery[TEMPLATES_FILTER_QUERY] =
+		nextFilter =
 			options.filter && options.filter !== FILTER_IDS.all
-				? String(options.filter)
-				: undefined;
-	} else if (current.filter && current.filter !== FILTER_IDS.all) {
-		nextQuery[TEMPLATES_FILTER_QUERY] = String(current.filter);
+				? options.filter
+				: FILTER_IDS.all;
 	}
 
 	if (options?.partsArea === null) {
-		nextQuery[TEMPLATES_PARTS_AREA_QUERY] = undefined;
+		nextPartsArea = null;
 	} else if (options?.partsArea !== undefined) {
-		nextQuery[TEMPLATES_PARTS_AREA_QUERY] = options.partsArea || undefined;
-	} else if (current.partsArea) {
-		nextQuery[TEMPLATES_PARTS_AREA_QUERY] = current.partsArea;
+		nextPartsArea = options.partsArea || null;
 	}
 
 	if (
-		options?.clearFilter ||
 		options?.optionsPanel === null ||
 		(Array.isArray(options?.optionsPanel) &&
 			options.optionsPanel.length === 0)
 	) {
-		nextQuery[TEMPLATES_OPTIONS_PANEL_QUERY] = undefined;
+		nextOptionsPanel = [];
 	} else if (options?.optionsPanel !== undefined) {
-		nextQuery[TEMPLATES_OPTIONS_PANEL_QUERY] =
-			options.optionsPanel.join('/') || undefined;
-	} else if (options?.filter !== undefined) {
-		// Changing purpose filter drops nested options screens.
-		nextQuery[TEMPLATES_OPTIONS_PANEL_QUERY] = undefined;
-	} else if (current.optionsPanel.length) {
-		nextQuery[TEMPLATES_OPTIONS_PANEL_QUERY] =
-			current.optionsPanel.join('/');
+		nextOptionsPanel = options.optionsPanel;
+	} else if (options?.clearFilter || options?.filter !== undefined) {
+		nextOptionsPanel = [];
 	}
+
+	const nextQuery: Record<string, string | undefined> = {
+		p: path,
+		[TEMPLATES_BUILDER_QUERY]: serializeBlockeraBuilder({
+			filter: nextFilter,
+			partsArea: nextPartsArea,
+			optionsPanel: nextOptionsPanel,
+		}),
+	};
 
 	const isBrowsePath =
 		path === ROUTES.templates || path.startsWith(`${ROUTES.templates}?`);
@@ -163,9 +162,7 @@ export function navigateToPatternsTemplatePartArea(area: PartAreaId): void {
 	pushSiteEditorQuery({
 		p: ROUTES.patterns,
 		...pathQuery,
-		[TEMPLATES_FILTER_QUERY]: undefined,
-		[TEMPLATES_PARTS_AREA_QUERY]: undefined,
-		[TEMPLATES_OPTIONS_PANEL_QUERY]: undefined,
+		[TEMPLATES_BUILDER_QUERY]: undefined,
 		[TEMPLATES_ACTIVE_VIEW_QUERY]: undefined,
 		canvas: undefined,
 	});

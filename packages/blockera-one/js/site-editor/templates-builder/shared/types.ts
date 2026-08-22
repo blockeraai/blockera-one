@@ -491,7 +491,7 @@ export type TemplateOptionsConfig = {
 	filters: string[];
 	/**
 	 * Templates purpose-nav part areas this config applies to
-	 * (e.g. `sidebar`). Matched via `partsArea`, not `boFilter`.
+	 * (e.g. `sidebar`). Matched via `partsAreas` on the config, not purpose filter.
 	 */
 	partsAreas?: string[];
 	/** Entity post type to edit. Defaults to `wp_template`. */

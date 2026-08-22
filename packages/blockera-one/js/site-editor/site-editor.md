@@ -70,7 +70,8 @@ PHP array key `'404'` is coerced to int `404`. Keep the `(string)` cast in `Cata
 | `index.ts` | Public exports for route wiring |
 | `filter-ids.ts` | Pure `FILTER_IDS` + children-filter helpers (TB kernel import) |
 | `constants.ts` | Barrel: filter ids + URL helpers + SPA navigate |
-| `templates-url.ts` | `boFilter` / `partsArea` / `boBuilder` parse |
+| `templates-url.ts` | `blockera-builder` parse (purpose / parts hub / nested stack) |
+| `use-templates-builder-stack.ts` | Prefix-aware nested panel stack on `blockera-builder` |
 | `navigate-templates.ts` | SPA navigate (scroll, pending direction, panel stack) |
 | `templates-nav-config.ts` | Static purpose-nav IA (homepage shell filled at runtime) |
 | `templates-homepage-resolve.ts` | Barrel: homepage status + nav builders |
@@ -107,7 +108,7 @@ Registered from `packages/blockera-one/js/index.js` via `blockera.after.bootstra
 
 1. **Do not** import `@wordpress/edit-site/build-module/*`.
 2. Always `UNREGISTER_ROUTE` before registering Blockera overrides.
-3. Templates purpose-filter state uses URL query keys `boFilter` and `partsArea`.
+3. Templates purpose-filter state uses the URL query key `blockera-builder` (slash path: purpose or parts hub, then nested panels).
 4. Hard-refresh after changing route registration (`didRegister` module flag).
 
 ## E2E (CI category: `site-editor`)

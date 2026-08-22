@@ -8,20 +8,16 @@ import { addQueryArgs, getQueryArg } from '@wordpress/url';
  * Internal dependencies
  */
 import { ROUTES } from '../constants';
-import { readPanelStack } from '../nested-panels';
 import { FILTER_IDS, isChildrenFilter, type FilterId } from './filter-ids';
 
 /** Core Templates DataViews tab query key (`active` / `user` / author_text). */
 export const TEMPLATES_ACTIVE_VIEW_QUERY = 'activeView';
 
-/** URL query key for purpose / source filter. */
-export const TEMPLATES_FILTER_QUERY = 'boFilter';
-
-/** URL query key for General Area Hub (header / footer / sidebar). */
-export const TEMPLATES_PARTS_AREA_QUERY = 'partsArea';
-
-/** URL query key for Templates Builder nested options panel stack. */
-export const TEMPLATES_OPTIONS_PANEL_QUERY = 'boBuilder';
+/**
+ * Combined purpose / parts-hub / nested-panel path.
+ * Example: `archive/posts-loop/post-title` or `sidebar`.
+ */
+export const TEMPLATES_BUILDER_QUERY = 'blockera-builder';
 
 export const TEMPLATE_POST_TYPE = 'wp_template';
 export const TEMPLATE_PART_POST_TYPE = 'wp_template_part';
@@ -32,9 +28,7 @@ export const PART_AREA_IDS = ['header', 'footer', 'sidebar'] as const;
 export type PartAreaId = (typeof PART_AREA_IDS)[number];
 
 export const TEMPLATES_QUERY_KEYS_TO_SCRUB = [
-	TEMPLATES_FILTER_QUERY,
-	TEMPLATES_PARTS_AREA_QUERY,
-	TEMPLATES_OPTIONS_PANEL_QUERY,
+	TEMPLATES_BUILDER_QUERY,
 	TEMPLATES_ACTIVE_VIEW_QUERY,
 	'canvas',
 ] as const;
@@ -42,10 +36,86 @@ export const TEMPLATES_QUERY_KEYS_TO_SCRUB = [
 export type TemplatesUrlState = {
 	filter: FilterId;
 	partsArea: PartAreaId | null;
-	/** Nested options panel stack (e.g. `['sidebar']`). */
+	/** Nested options panel stack (e.g. `['posts-loop']`). */
 	optionsPanel: string[];
 	path: string;
 };
+
+export type BlockeraBuilderState = Omit<TemplatesUrlState, 'path'>;
+
+function splitBuilderSegments(raw: string): string[] {
+	return raw
+		.split('/')
+		.map((s) => s.trim())
+		.filter(Boolean);
+}
+
+function isPartAreaId(value: string): value is PartAreaId {
+	return (PART_AREA_IDS as readonly string[]).includes(value);
+}
+
+/**
+ * Parse `blockera-builder` into purpose / parts-hub / nested stack.
+ */
+export function parseBlockeraBuilder(
+	href: string = typeof window !== 'undefined' ? window.location.href : ''
+): BlockeraBuilderState {
+	const empty: BlockeraBuilderState = {
+		filter: FILTER_IDS.all,
+		partsArea: null,
+		optionsPanel: [],
+	};
+
+	const raw = getQueryArg(href, TEMPLATES_BUILDER_QUERY);
+	if (typeof raw !== 'string' || !raw.length) {
+		return empty;
+	}
+
+	const segments = splitBuilderSegments(raw);
+	if (!segments.length) {
+		return empty;
+	}
+
+	const [first, ...rest] = segments;
+	if (isPartAreaId(first)) {
+		return {
+			filter: FILTER_IDS.all,
+			partsArea: first,
+			optionsPanel: rest,
+		};
+	}
+
+	return {
+		filter: first,
+		partsArea: null,
+		optionsPanel: rest,
+	};
+}
+
+/**
+ * Serialize purpose / parts-hub / nested stack to a `blockera-builder` value.
+ * Empty All-templates state → `undefined` (scrub).
+ */
+export function serializeBlockeraBuilder(state: {
+	filter?: FilterId | null;
+	partsArea?: PartAreaId | null;
+	optionsPanel?: string[] | null;
+}): string | undefined {
+	const stack = (state.optionsPanel || [])
+		.map((s) => s.trim())
+		.filter(Boolean);
+
+	if (state.partsArea) {
+		return [state.partsArea, ...stack].join('/');
+	}
+
+	const filter = state.filter;
+	if (filter && filter !== FILTER_IDS.all) {
+		return [String(filter), ...stack].join('/');
+	}
+
+	return undefined;
+}
 
 /**
  * Read purpose-nav state from the current Site Editor URL.
@@ -59,30 +129,7 @@ export function getTemplatesUrlState(
 			? p.split('?')[0] || ROUTES.templates
 			: ROUTES.templates;
 
-	let filter: FilterId = FILTER_IDS.all;
-	const fromQuery = getQueryArg(href, TEMPLATES_FILTER_QUERY);
-	if (typeof fromQuery === 'string' && fromQuery.length > 0) {
-		filter = fromQuery;
-	} else if (typeof p === 'string' && p.includes('?')) {
-		const embedded = getQueryArg(
-			`https://x.local${p}`,
-			TEMPLATES_FILTER_QUERY
-		);
-		if (typeof embedded === 'string' && embedded.length > 0) {
-			filter = embedded;
-		}
-	}
-
-	let partsArea: PartAreaId | null = null;
-	const area = getQueryArg(href, TEMPLATES_PARTS_AREA_QUERY);
-	if (
-		typeof area === 'string' &&
-		(PART_AREA_IDS as readonly string[]).includes(area)
-	) {
-		partsArea = area as PartAreaId;
-	}
-
-	const optionsPanel = readPanelStack(TEMPLATES_OPTIONS_PANEL_QUERY, href);
+	const { filter, partsArea, optionsPanel } = parseBlockeraBuilder(href);
 
 	return { filter, partsArea, optionsPanel, path };
 }
