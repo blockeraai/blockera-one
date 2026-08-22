@@ -2,7 +2,7 @@
  * Icon / prefix / suffix parts on a Post Meta item wrapper.
  */
 
-import { getMetaName, getStamp, withStamp } from '../../metadata';
+import { getStamp, withStamp } from '../../metadata';
 import { findStampById, type StampLookupOptions } from '../../stamp-lookup';
 import { findByStampWithin, replaceAtPath, type WalkMatch } from '../../tree';
 import { withBlockeraCompatibility } from '../../blockera-attribute';
@@ -19,6 +19,11 @@ import {
 	type ParkedParts,
 } from './constants';
 import { isMetaRowId, isSpaceFillerId } from './ids';
+import {
+	getMetaItemListName,
+	META_PART_LIST_NAMES,
+	SPACE_FILLER_LIST_NAME,
+} from './names';
 
 export function ensureSpaceFiller(
 	blocks: BlockNode[],
@@ -37,6 +42,10 @@ export function ensureSpaceFiller(
 		blockeraFlexChildSizing: { value: 'grow' },
 		blockeraWidth: { value: 'stretch' },
 		content: SPACE_FILLER_TEXT,
+		metadata: {
+			...(metadataRecord(match.block) || {}),
+			name: SPACE_FILLER_LIST_NAME,
+		},
 	});
 	return replaceWrapper(blocks, match, {
 		...match.block,
@@ -57,12 +66,18 @@ export function findWithin(
 	);
 }
 
-export function getParked(block: BlockNode): ParkedParts {
-	const metadata = block.attributes?.metadata;
+function metadataRecord(
+	block: BlockNode | null | undefined
+): Record<string, unknown> | null {
+	const metadata = block?.attributes?.metadata;
 	if (!metadata || typeof metadata !== 'object') {
-		return {};
+		return null;
 	}
-	const parked = (metadata as Record<string, unknown>)[PARKED_META_KEY];
+	return metadata as Record<string, unknown>;
+}
+
+export function getParked(block: BlockNode): ParkedParts {
+	const parked = metadataRecord(block)?.[PARKED_META_KEY];
 	if (!parked || typeof parked !== 'object' || Array.isArray(parked)) {
 		return {};
 	}
@@ -70,17 +85,12 @@ export function getParked(block: BlockNode): ParkedParts {
 }
 
 export function withParked(block: BlockNode, parked: ParkedParts): BlockNode {
-	const prevMeta =
-		block.attributes?.metadata &&
-		typeof block.attributes.metadata === 'object'
-			? (block.attributes.metadata as Record<string, unknown>)
-			: {};
 	return {
 		...block,
 		attributes: {
 			...(block.attributes || {}),
 			metadata: {
-				...prevMeta,
+				...(metadataRecord(block) || {}),
 				[PARKED_META_KEY]: parked,
 			},
 		},
@@ -161,7 +171,10 @@ export function createParagraph(
 	return withStamp(
 		{
 			name: 'core/paragraph',
-			attributes: { content: text },
+			attributes: {
+				content: text,
+				metadata: { name: META_PART_LIST_NAMES[part] },
+			},
 			innerBlocks: [],
 			originalContent,
 		} as BlockNode,
@@ -186,6 +199,7 @@ function createIconBlock(iconValue: Record<string, unknown>): BlockNode {
 		style: {
 			dimensions: { width: '1em' },
 		},
+		metadata: { name: META_PART_LIST_NAMES.icon },
 	};
 	if (library === 'wp' && icon) {
 		attributes.icon = icon.startsWith('core/') ? icon : `core/${icon}`;
@@ -247,6 +261,41 @@ function hasMetaItemBlock(block: BlockNode): boolean {
 	return false;
 }
 
+function stripListName(block: BlockNode): BlockNode {
+	const prevMeta = metadataRecord(block);
+	if (!prevMeta || !('name' in prevMeta)) {
+		return block;
+	}
+	const rest = { ...prevMeta };
+	delete rest.name;
+	return {
+		...block,
+		attributes: {
+			...(block.attributes || {}),
+			metadata: rest,
+		},
+		innerBlocks: block.innerBlocks ? [...block.innerBlocks] : [],
+	};
+}
+
+function withItemListName(block: BlockNode, sectionId: string): BlockNode {
+	const name = getMetaItemListName(sectionId);
+	if (!name) {
+		return block;
+	}
+	return {
+		...block,
+		attributes: {
+			...(block.attributes || {}),
+			metadata: {
+				...(metadataRecord(block) || {}),
+				name,
+			},
+		},
+		innerBlocks: block.innerBlocks ? [...block.innerBlocks] : [],
+	};
+}
+
 /**
  * Listing patterns still stamp `section/post-meta-*` on the void meta block
  * itself. Prefix/icon/suffix must live on a Row wrapper — serialize drops
@@ -254,7 +303,7 @@ function hasMetaItemBlock(block: BlockNode): boolean {
  */
 function ensureMetaItemWrapper(block: BlockNode, sectionId: string): BlockNode {
 	if (block.name === 'core/group' && hasMetaItemBlock(block)) {
-		return block;
+		return withItemListName(block, sectionId);
 	}
 	if (block.name === 'core/group') {
 		const inner = [...(block.innerBlocks || [])];
@@ -262,24 +311,30 @@ function ensureMetaItemWrapper(block: BlockNode, sectionId: string): BlockNode {
 			inner.length === 1 &&
 			getStamp(inner[0])?.id !== META_ITEM_PART_IDS.block
 		) {
-			inner[0] = withStamp(
-				inner[0],
-				'container',
-				META_ITEM_PART_IDS.block,
-				'default'
+			inner[0] = stripListName(
+				withStamp(
+					inner[0],
+					'container',
+					META_ITEM_PART_IDS.block,
+					'default'
+				)
 			);
-			return { ...block, innerBlocks: inner };
+			return withItemListName(
+				{ ...block, innerBlocks: inner },
+				sectionId
+			);
 		}
-		return block;
+		return withItemListName(block, sectionId);
 	}
 	const stamp = getStamp(block);
-	const inner = withStamp(
-		block,
-		'container',
-		META_ITEM_PART_IDS.block,
-		stamp?.variant || 'default'
+	const inner = stripListName(
+		withStamp(
+			block,
+			'container',
+			META_ITEM_PART_IDS.block,
+			stamp?.variant || 'default'
+		)
 	);
-	const prevName = getMetaName(block);
 	return withStamp(
 		{
 			name: 'core/group',
@@ -290,7 +345,7 @@ function ensureMetaItemWrapper(block: BlockNode, sectionId: string): BlockNode {
 					verticalAlignment: 'center',
 				},
 				style: { spacing: { blockGap: '0.35em' } },
-				metadata: prevName ? { name: prevName } : {},
+				metadata: { name: getMetaItemListName(sectionId) },
 			},
 			innerBlocks: [inner],
 		},

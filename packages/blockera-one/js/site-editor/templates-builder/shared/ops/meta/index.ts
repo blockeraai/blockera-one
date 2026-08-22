@@ -23,6 +23,14 @@ export {
 	isMetaRowId,
 	isSpaceFillerId,
 } from './ids';
+export {
+	getMetaItemListName,
+	META_ITEM_LABELS,
+	META_PART_LIST_NAMES,
+	META_ROW_LIST_NAME,
+	META_SEPARATOR_LIST_NAME,
+	SPACE_FILLER_LIST_NAME,
+} from './names';
 export { getMetaItemsDesign, resolveMetaItemsForTree } from './payload';
 export {
 	ensureSpaceFiller,
