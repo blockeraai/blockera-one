@@ -327,6 +327,30 @@ describe('pagination elements and requireAtLeastOneOf', () => {
 		expect(findStamp(result.blocks, 'pagination-numbers')).not.toBeNull();
 	});
 
+	it('allows turning off a non-required sibling when one required remains', () => {
+		const filler = {
+			id: 'space-filler',
+			type: 'toggle',
+			label: 'Space Filler',
+			target: { kind: 'section', id: 'space-filler' },
+			operation: 'toggleSection',
+			requireAtLeastOneOf: CONTROLS.paginationNumbers.requireAtLeastOneOf,
+		};
+		const blocks = paginationTree([
+			stamped(
+				'core/query-pagination-numbers',
+				'section/pagination-numbers:default'
+			),
+			stamped('core/group', 'section/space-filler:default'),
+		]);
+		const result = apply(filler, false, {
+			blocks,
+			config: elementsConfig(),
+		});
+		expect(findStamp(result.blocks, 'space-filler')).toBeNull();
+		expect(findStamp(result.blocks, 'pagination-numbers')).not.toBeNull();
+	});
+
 	it('inserts previous independently of next', () => {
 		const blocks = paginationTree([
 			stamped(

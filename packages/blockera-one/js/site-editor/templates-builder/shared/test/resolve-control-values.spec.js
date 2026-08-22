@@ -824,6 +824,37 @@ describe('requireAtLeastOneOf and alsoToggle', () => {
 		expect(byId(onlyNumbers, 'pagination-next').disabled).toBe(false);
 	});
 
+	it('does not lock an optional on item that shares requireAtLeastOneOf', () => {
+		const filler = {
+			id: 'space-filler',
+			type: 'toggle',
+			label: 'Space Filler',
+			target: { kind: 'section', id: 'space-filler' },
+			operation: 'toggleSection',
+			requireAtLeastOneOf: required,
+		};
+		const states = resolve(
+			[
+				stamped(
+					'core/query-pagination',
+					'section/pagination:standard',
+					{},
+					[
+						stamped(
+							'core/query-pagination-numbers',
+							'section/pagination-numbers:default'
+						),
+						stamped('core/group', 'section/space-filler:default'),
+					]
+				),
+			],
+			makeConfig([previous, numbers, next, filler])
+		);
+		expect(byId(states, 'pagination-numbers').disabled).toBe(true);
+		expect(byId(states, 'space-filler').value).toBe(true);
+		expect(byId(states, 'space-filler').disabled).toBe(false);
+	});
+
 	it('treats an alsoToggle companion as on when only the extra stamp is present', () => {
 		const paired = {
 			id: 'pagination-prev-next',
