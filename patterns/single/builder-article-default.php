@@ -20,7 +20,7 @@
 	</div>
 	<!-- /wp:group -->
 
-	<!-- wp:group {"metadata":{"name":"Content Blocks","blockeraOne":"container/body","blockeraOneInnerOrder":["post-featured-image","post-title","post-excerpt","post-content","post-read-more","post-meta","post-meta-2"]},"layout":{"type":"constrained"}} -->
+	<!-- wp:group {"metadata":{"name":"Content Blocks","blockeraOne":"container/body"},"layout":{"type":"constrained"}} -->
 	<div class="wp-block-group">
 		<!-- wp:post-content {"align":"full","layout":{"type":"constrained"},"metadata":{"blockeraOne":"section/post-content:default"}} /-->
 

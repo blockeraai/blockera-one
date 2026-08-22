@@ -10,7 +10,7 @@
  */
 
 ?>
-<!-- wp:group {"metadata":{"blockeraOne":"layout/site-sidebar:default","blockeraOneInnerOrder":["sidebar-search","sidebar-categories","sidebar-latest-posts","sidebar-archives","sidebar-tag-cloud"]},"layout":{"type":"default"}} -->
+<!-- wp:group {"metadata":{"blockeraOne":"layout/site-sidebar:default"},"layout":{"type":"default"}} -->
 <div class="wp-block-group">
 	<!-- wp:search {"label":"<?php echo esc_html_x( 'Search', 'Search form label.', 'blockera-one' ); ?>","showLabel":false,"buttonText":"<?php echo esc_attr_x( 'Search', 'Button text. Verb.', 'blockera-one' ); ?>","metadata":{"blockeraOne":"section/sidebar-search:default"}} /-->
 
