@@ -12,7 +12,7 @@
  */
 
 ?>
-<!-- wp:paragraph {"metadata":{"blockeraOne":"section/not-found-description:default"}} -->
+<!-- wp:paragraph {"metadata":{"blockeraOne":{"stamp":"section/not-found-description:default"}}} -->
 <p><?php echo esc_html_x( 'The page you are looking for doesn\'t exist, or it has been moved. Please try searching using the form below.', '404 error message', 'blockera-one' ); ?></p>
 <!-- /wp:paragraph -->
 

@@ -12,7 +12,7 @@
  */
 
 ?>
-<!-- wp:comment-template {"metadata":{"blockeraOne":"section/comment-template:default"}} -->
+<!-- wp:comment-template {"metadata":{"blockeraOne":{"stamp":"section/comment-template:default"}}} -->
 	<!-- wp:group {"style":{"spacing":{"margin":{"top":"0","bottom":"var:preset|spacing|50"}}}} -->
 	<div class="wp-block-group" style="margin-top:0;margin-bottom:var(--wp--preset--spacing--50)">
 		<!-- wp:group {"layout":{"type":"flex","flexWrap":"nowrap","verticalAlignment":"top"}} -->

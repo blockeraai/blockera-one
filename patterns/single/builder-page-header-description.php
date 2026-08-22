@@ -12,4 +12,4 @@
  */
 
 ?>
-<!-- wp:post-excerpt {"metadata":{"blockeraOne":"section/page-header-description:default"}} /-->
+<!-- wp:post-excerpt {"metadata":{"blockeraOne":{"stamp":"section/page-header-description:default"}}} /-->

@@ -12,4 +12,4 @@
  */
 
 ?>
-<!-- wp:post-title {"isLink":true,"metadata":{"blockeraOne":"section/post-title:default"}} /-->
+<!-- wp:post-title {"isLink":true,"metadata":{"blockeraOne":{"stamp":"section/post-title:default"}}} /-->

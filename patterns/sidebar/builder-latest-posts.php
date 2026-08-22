@@ -12,4 +12,4 @@
  */
 
 ?>
-<!-- wp:latest-posts {"postsToShow":5,"displayPostDate":true,"metadata":{"blockeraOne":"section/sidebar-latest-posts:default"}} /-->
+<!-- wp:latest-posts {"postsToShow":5,"displayPostDate":true,"metadata":{"blockeraOne":{"stamp":"section/sidebar-latest-posts:default"}}} /-->

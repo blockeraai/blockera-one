@@ -11,4 +11,4 @@
  */
 
 ?>
-<!-- wp:query-pagination-numbers {"metadata":{"blockeraOne":"section/pagination-numbers:default"}} /-->
+<!-- wp:query-pagination-numbers {"metadata":{"blockeraOne":{"stamp":"section/pagination-numbers:default"}}} /-->

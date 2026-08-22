@@ -12,4 +12,4 @@
  */
 
 ?>
-<!-- wp:archives {"showPostCounts":true,"metadata":{"blockeraOne":"section/sidebar-archives:default"}} /-->
+<!-- wp:archives {"showPostCounts":true,"metadata":{"blockeraOne":{"stamp":"section/sidebar-archives:default"}}} /-->

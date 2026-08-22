@@ -12,4 +12,4 @@
  */
 
 ?>
-<!-- wp:search {"label":"<?php esc_html_e( 'Search', 'blockera-one' ); ?>","showLabel":false,"buttonText":"<?php esc_html_e( 'Search', 'blockera-one' ); ?>","metadata":{"blockeraOne":"section/page-header-search-form:default"}} /-->
+<!-- wp:search {"label":"<?php esc_html_e( 'Search', 'blockera-one' ); ?>","showLabel":false,"buttonText":"<?php esc_html_e( 'Search', 'blockera-one' ); ?>","metadata":{"blockeraOne":{"stamp":"section/page-header-search-form:default"}}} /-->

@@ -12,15 +12,15 @@
  */
 
 ?>
-<!-- wp:group {"tagName":"article","metadata":{"name":"Page","blockeraOne":"section/article:default"},"layout":{"type":"constrained"}} -->
+<!-- wp:group {"tagName":"article","metadata":{"name":"Page","blockeraOne":{"stamp":"section/article:default"}},"layout":{"type":"constrained"}} -->
 <article class="wp-block-group">
-	<!-- wp:group {"metadata":{"name":"Content Blocks","blockeraOne":"container/body"},"layout":{"type":"constrained"}} -->
+	<!-- wp:group {"metadata":{"name":"Content Blocks","blockeraOne":{"stamp":"container/body"}},"layout":{"type":"constrained"}} -->
 	<div class="wp-block-group">
-		<!-- wp:post-content {"align":"full","layout":{"type":"constrained"},"metadata":{"blockeraOne":"section/post-content:default"}} /-->
+		<!-- wp:post-content {"align":"full","layout":{"type":"constrained"},"metadata":{"blockeraOne":{"stamp":"section/post-content:default"}}} /-->
 	</div>
 	<!-- /wp:group -->
 
-	<!-- wp:group {"metadata":{"name":"Comments","blockeraOne":"container/comments"},"layout":{"type":"constrained"}} -->
+	<!-- wp:group {"metadata":{"name":"Comments","blockeraOne":{"stamp":"container/comments"}},"layout":{"type":"constrained"}} -->
 	<div class="wp-block-group"></div>
 	<!-- /wp:group -->
 </article>

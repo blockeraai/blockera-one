@@ -12,4 +12,4 @@
  */
 
 ?>
-<!-- wp:post-featured-image {"isLink":true,"aspectRatio":"3/2","metadata":{"blockeraOne":"section/post-featured-image:default"}} /-->
+<!-- wp:post-featured-image {"isLink":true,"aspectRatio":"3/2","metadata":{"blockeraOne":{"stamp":"section/post-featured-image:default"}}} /-->

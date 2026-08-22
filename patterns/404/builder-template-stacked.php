@@ -12,14 +12,14 @@
  */
 
 ?>
-<!-- wp:group {"metadata":{"name":"Not Found","blockeraOne":"section/not-found:stacked"},"layout":{"type":"constrained"}} -->
+<!-- wp:group {"metadata":{"name":"Not Found","blockeraOne":{"stamp":"section/not-found:stacked"}},"layout":{"type":"constrained"}} -->
 <div class="wp-block-group">
-	<!-- wp:heading {"level":1,"metadata":{"blockeraOne":"section/not-found-title:default"}} -->
+	<!-- wp:heading {"level":1,"metadata":{"blockeraOne":{"stamp":"section/not-found-title:default"}}} -->
 	<h1 class="wp-block-heading"><?php echo esc_html_x( 'Page not found', '404 error message', 'blockera-one' ); ?></h1>
 	<!-- /wp:heading -->
-	<!-- wp:paragraph {"metadata":{"blockeraOne":"section/not-found-description:default"}} -->
+	<!-- wp:paragraph {"metadata":{"blockeraOne":{"stamp":"section/not-found-description:default"}}} -->
 	<p><?php echo esc_html_x( 'The page you are looking for doesn\'t exist, or it has been moved. Please try searching using the form below.', '404 error message', 'blockera-one' ); ?></p>
 	<!-- /wp:paragraph -->
-	<!-- wp:search {"label":"<?php echo esc_html_x( 'Search', 'Search form label.', 'blockera-one' ); ?>","showLabel":false,"placeholder":"<?php echo esc_attr_x( 'Type here...', 'Search input field placeholder text.', 'blockera-one' ); ?>","buttonText":"<?php echo esc_attr_x( 'Search', 'Button text. Verb.', 'blockera-one' ); ?>","metadata":{"blockeraOne":"section/not-found-search:default"}} /-->
+	<!-- wp:search {"label":"<?php echo esc_html_x( 'Search', 'Search form label.', 'blockera-one' ); ?>","showLabel":false,"placeholder":"<?php echo esc_attr_x( 'Type here...', 'Search input field placeholder text.', 'blockera-one' ); ?>","buttonText":"<?php echo esc_attr_x( 'Search', 'Button text. Verb.', 'blockera-one' ); ?>","metadata":{"blockeraOne":{"stamp":"section/not-found-search:default"}}} /-->
 </div>
 <!-- /wp:group -->
