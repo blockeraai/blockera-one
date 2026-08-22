@@ -216,6 +216,77 @@ describe('toggleSection', () => {
 			'core/term-description',
 		]);
 	});
+
+	it('uses frozen orderBuckets so toggle-on inserts at the visual slot', () => {
+		__setMarkup('page-header-title', [
+			stamped('core/query-title', 'section/page-header-title:default'),
+		]);
+		const innerOrder = {
+			parentId: 'page-header',
+			ids: [
+				'page-header-title',
+				'page-header-description',
+				'page-header-breadcrumbs',
+			],
+		};
+		const blocks = [
+			stamped(
+				'core/group',
+				'section/page-header:default',
+				{
+					metadata: {
+						blockeraOne: 'section/page-header:default',
+						[INNER_ORDER_META_KEY]: [
+							'page-header-title',
+							'page-header-description',
+							'page-header-breadcrumbs',
+						],
+					},
+				},
+				[
+					stamped(
+						'core/term-description',
+						'section/page-header-description:default'
+					),
+					stamped(
+						'core/breadcrumbs',
+						'section/page-header-breadcrumbs:default'
+					),
+				]
+			),
+		];
+		const control = {
+			id: 'page-header-title',
+			type: 'toggle',
+			label: 'Title',
+			target: { kind: 'section', id: 'page-header-title' },
+			operation: 'toggleSection',
+			variants: [
+				{ id: 'default', label: 'Title', html: 'page-header-title' },
+			],
+			insert: { relativeTo: 'page-header', position: 'inside-start' },
+			innerOrder,
+		};
+
+		const result = apply(control, true, {
+			blocks,
+			orderBuckets: [
+				{
+					parentId: 'page-header',
+					ids: [
+						'page-header-description',
+						'page-header-breadcrumbs',
+						'page-header-title',
+					],
+				},
+			],
+		});
+		expect(result.blocks[0].innerBlocks.map((b) => b.name)).toEqual([
+			'core/term-description',
+			'core/breadcrumbs',
+			'core/query-title',
+		]);
+	});
 });
 describe('pagination elements and requireAtLeastOneOf', () => {
 	it('removes previous without touching next', () => {

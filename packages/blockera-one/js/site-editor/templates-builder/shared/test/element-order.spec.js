@@ -10,8 +10,11 @@ import {
 	getGroupInnerOrder,
 	isSortableElementControl,
 	normalizeElementOrder,
+	overlayFrozenBuckets,
+	partitionOffIdsToEnd,
 	persistElementOrder,
 	resolveBucketInsertParent,
+	resolveDisplayBuckets,
 	resolveElementBuckets,
 	resolveElementOrder,
 	resolveParentStampName,
@@ -365,6 +368,108 @@ describe('resolveParentStampName', () => {
 			]),
 		];
 		expect(resolveParentStampName(grid, 'body')).toBe('Body');
+	});
+});
+
+describe('partitionOffIdsToEnd / overlayFrozenBuckets', () => {
+	const isOn = (id) => id === 'post-content' || id === 'post-meta';
+
+	it('keeps on/off relative order and moves off items to the end', () => {
+		expect(
+			partitionOffIdsToEnd(
+				[
+					'post-title',
+					'post-excerpt',
+					'post-content',
+					'post-read-more',
+					'post-meta',
+					'post-meta-2',
+				],
+				isOn
+			)
+		).toEqual([
+			'post-content',
+			'post-meta',
+			'post-title',
+			'post-excerpt',
+			'post-read-more',
+			'post-meta-2',
+		]);
+	});
+
+	it('partitions each bucket without moving ids across parents', () => {
+		const resolved = [
+			{ parentId: 'media', ids: ['post-featured-image'] },
+			{
+				parentId: 'body',
+				ids: [
+					'post-title',
+					'post-excerpt',
+					'post-content',
+					'post-read-more',
+					'post-meta',
+					'post-meta-2',
+				],
+			},
+		];
+		const { buckets, seeded } = resolveDisplayBuckets(
+			resolved,
+			undefined,
+			isOn
+		);
+		expect(seeded).toBe(true);
+		expect(buckets).toEqual([
+			{ parentId: 'media', ids: ['post-featured-image'] },
+			{
+				parentId: 'body',
+				ids: [
+					'post-content',
+					'post-meta',
+					'post-title',
+					'post-excerpt',
+					'post-read-more',
+					'post-meta-2',
+				],
+			},
+		]);
+	});
+
+	it('keeps a frozen mixed order and appends new ids on-then-off', () => {
+		const frozen = [
+			{
+				parentId: 'body',
+				ids: ['post-title', 'post-content', 'post-excerpt'],
+			},
+		];
+		expect(
+			overlayFrozenBuckets(
+				[
+					{
+						parentId: 'body',
+						ids: [
+							'post-content',
+							'post-title',
+							'post-excerpt',
+							'post-meta',
+							'post-meta-2',
+						],
+					},
+				],
+				frozen,
+				isOn
+			)
+		).toEqual([
+			{
+				parentId: 'body',
+				ids: [
+					'post-title',
+					'post-content',
+					'post-excerpt',
+					'post-meta',
+					'post-meta-2',
+				],
+			},
+		]);
 	});
 });
 
