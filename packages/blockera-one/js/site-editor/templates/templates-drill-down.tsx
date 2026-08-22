@@ -31,6 +31,7 @@ import {
 	TemplateOptionsPanel,
 	TemplateOptionsTitleActions,
 } from '../templates-builder';
+import { SortableOrderFreezeProvider } from '../templates-builder/shared/sortable-order-freeze-context';
 import {
 	buildTemplatePartItemPath,
 	navigateTemplates,
@@ -189,37 +190,47 @@ export default function TemplatesDrillDown() {
 			})),
 		];
 
+		const visitKey = `${
+			partsBuilderConfig ? builderConfig.type : String(urlState.filter)
+		}:${resolved.id ?? ''}`;
+
 		return (
-			<DrillDownScreen
-				key={screenKey}
-				title={isNested ? nestedNav.title : purposeLabel}
-				breadcrumb={breadcrumb}
-				onBack={isNested ? pop : onBackToTemplatesNav}
-				actions={
-					<TemplateOptionsTitleActions
-						templateId={resolved.id}
-						postType={builderConfig.entityPostType}
-					/>
-				}
+			<SortableOrderFreezeProvider
+				key={visitKey}
+				groups={builderConfig.groups}
+				stack={nestedNav.stack}
 			>
-				<div
-					ref={panelRef}
-					className="blockera-site-editor-templates-panel"
-					data-test="blockera-site-editor-templates-builder-shell"
+				<DrillDownScreen
+					key={screenKey}
+					title={isNested ? nestedNav.title : purposeLabel}
+					breadcrumb={breadcrumb}
+					onBack={isNested ? pop : onBackToTemplatesNav}
+					actions={
+						<TemplateOptionsTitleActions
+							templateId={resolved.id}
+							postType={builderConfig.entityPostType}
+						/>
+					}
 				>
-					<TemplateOptionsPanel
-						config={builderConfig}
-						groups={optionsResolution.groups}
-						filterId={
-							partsBuilderConfig
-								? builderConfig.type
-								: String(urlState.filter)
-						}
-						templateId={resolved.id}
-						onOpenNested={push}
-					/>
-				</div>
-			</DrillDownScreen>
+					<div
+						ref={panelRef}
+						className="blockera-site-editor-templates-panel"
+						data-test="blockera-site-editor-templates-builder-shell"
+					>
+						<TemplateOptionsPanel
+							config={builderConfig}
+							groups={optionsResolution.groups}
+							filterId={
+								partsBuilderConfig
+									? builderConfig.type
+									: String(urlState.filter)
+							}
+							templateId={resolved.id}
+							onOpenNested={push}
+						/>
+					</div>
+				</DrillDownScreen>
+			</SortableOrderFreezeProvider>
 		);
 	}
 

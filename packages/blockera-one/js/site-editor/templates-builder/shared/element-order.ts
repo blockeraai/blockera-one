@@ -222,6 +222,107 @@ export type ElementBucket = {
 	ids: string[];
 };
 
+/**
+ * Stable partition: on items keep their relative order, then off items
+ * keep theirs. Used to show disabled rows at the end of a sortable list.
+ */
+export function partitionOffIdsToEnd(
+	ids: string[],
+	isOn: (id: string) => boolean
+): string[] {
+	const on: string[] = [];
+	const off: string[] = [];
+	for (let i = 0; i < ids.length; i++) {
+		const id = ids[i];
+		if (isOn(id)) {
+			on.push(id);
+		} else {
+			off.push(id);
+		}
+	}
+	return on.concat(off);
+}
+
+export function partitionElementBucketsOffToEnd(
+	buckets: ElementBucket[],
+	isOn: (id: string) => boolean
+): ElementBucket[] {
+	return buckets.map((bucket) => ({
+		parentId: bucket.parentId,
+		ids: partitionOffIdsToEnd(bucket.ids, isOn),
+	}));
+}
+
+/**
+ * Keep a frozen id order, drop unknown ids, then append newly appeared
+ * ids (on then off) so a list can grow without re-sorting the freeze.
+ */
+export function overlayFrozenIds(
+	resolvedIds: string[],
+	frozenIds: string[],
+	isOn: (id: string) => boolean
+): string[] {
+	const known: Record<string, true> = {};
+	for (let i = 0; i < resolvedIds.length; i++) {
+		known[resolvedIds[i]] = true;
+	}
+	const result: string[] = [];
+	const seen: Record<string, true> = {};
+	for (let i = 0; i < frozenIds.length; i++) {
+		const id = frozenIds[i];
+		if (!known[id] || seen[id]) {
+			continue;
+		}
+		seen[id] = true;
+		result.push(id);
+	}
+	const missing: string[] = [];
+	for (let i = 0; i < resolvedIds.length; i++) {
+		const id = resolvedIds[i];
+		if (!seen[id]) {
+			missing.push(id);
+		}
+	}
+	return result.concat(partitionOffIdsToEnd(missing, isOn));
+}
+
+export function overlayFrozenBuckets(
+	resolved: ElementBucket[],
+	frozen: ElementBucket[],
+	isOn: (id: string) => boolean
+): ElementBucket[] {
+	const frozenByParent: Record<string, string[]> = {};
+	for (let i = 0; i < frozen.length; i++) {
+		frozenByParent[frozen[i].parentId] = frozen[i].ids;
+	}
+	return resolved.map((bucket) => ({
+		parentId: bucket.parentId,
+		ids: overlayFrozenIds(
+			bucket.ids,
+			frozenByParent[bucket.parentId] || [],
+			isOn
+		),
+	}));
+}
+
+/** Display buckets: freeze overlay, or partition on first view. */
+export function resolveDisplayBuckets(
+	resolved: ElementBucket[],
+	frozen: ElementBucket[] | undefined,
+	isOn: (id: string) => boolean
+): { buckets: ElementBucket[]; seeded: boolean } {
+	if (frozen) {
+		return {
+			buckets: overlayFrozenBuckets(resolved, frozen, isOn),
+			seeded: false,
+		};
+	}
+	return {
+		buckets: partitionElementBucketsOffToEnd(resolved, isOn),
+		seeded: true,
+	};
+}
+
 /** Live Gutenberg `metadata.name` on a stamped parent, or empty. */
 export function resolveParentStampName(
 	blocks: BlockNode[],

@@ -3,6 +3,7 @@
  */
 
 import type { TemplateSettingsRecord } from '../constants';
+import type { ElementBucket } from '../element-order';
 import type {
 	BlockNode,
 	BroadcastId,
@@ -20,6 +21,8 @@ export type ApplyOperationArgs = {
 	settingBucket: string;
 	needsConfirm: boolean;
 	selectedClientId?: string | null;
+	/** Frozen display order for sortable toggles (off-at-end visit freeze). */
+	orderBuckets?: ElementBucket[];
 };
 
 export type OperationResult =

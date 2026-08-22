@@ -25,6 +25,8 @@ import {
 } from './constants';
 import { applyOperation } from './ops/apply-operation';
 import { runBroadcast } from './ops/broadcast';
+import { useSortableOrderFreeze } from './sortable-order-freeze-context';
+import { innerOrderFreezeKey } from './sortable-order-freeze';
 import {
 	isPresenceToggle,
 	resolveEnableScrollTarget,
@@ -96,6 +98,7 @@ export default function useTemplateOptions(
 	const [pendingAction, setPendingAction] = useState<null | (() => void)>(
 		null
 	);
+	const freeze = useSortableOrderFreeze();
 
 	const { record, settings, isDirty, sitePostsPerPage } = useSelect(
 		(select) => {
@@ -324,6 +327,11 @@ export default function useTemplateOptions(
 					settingBucket,
 					needsConfirm,
 					selectedClientId,
+					orderBuckets: resolvedControl.innerOrder
+						? freeze.get(
+								innerOrderFreezeKey(resolvedControl.innerOrder)
+							)
+						: undefined,
 				});
 				if (!result) {
 					return;
@@ -365,6 +373,7 @@ export default function useTemplateOptions(
 			settingBucket,
 			settings,
 			selectedClientId,
+			freeze,
 		]
 	);
 

@@ -3,18 +3,20 @@
  * across parent re-renders (SortableElementList memos ids from getId).
  */
 
-import { useCallback, useMemo } from '@wordpress/element';
+import { useCallback, useLayoutEffect, useMemo } from '@wordpress/element';
 
 /**
  * Internal dependencies
  */
 import { GatewayRow } from '../../../nested-panels';
 import {
+	resolveDisplayBuckets,
 	resolveElementBuckets,
 	resolveParentStampName,
 } from '../element-order';
 import { lookupFromInnerOrder } from '../stamp-lookup';
 import { hasUnresolvedVariants } from '../resolve/resolve-variant-html';
+import { innerOrderFreezeKey } from '../sortable-order-freeze';
 import SortableElementList, {
 	type BucketReorderPayload,
 	type SortableElementRenderProps,
@@ -28,6 +30,7 @@ import type {
 	ReorderElementsPayload,
 } from '../types';
 import { buildGatewayRowProps } from './gateway-row-props';
+import { useSortableOrderFreeze } from '../sortable-order-freeze-context';
 
 function getSortableItemId(item: ControlViewState): string {
 	return item.control.target.id;
@@ -57,37 +60,75 @@ export function SortableElementGroup({
 	onChangeControl,
 	onOpenNested,
 }: SortableElementGroupProps) {
+	const freeze = useSortableOrderFreeze();
+	const freezeKey = innerOrderFreezeKey(orderRule);
+	const useBuckets = !!orderRule.bucketParents?.length;
+	const showParentNames = !!orderRule.showParentNames;
+
+	const byId = useMemo(() => {
+		const map: Record<string, ControlViewState> = {};
+		for (let i = 0; i < items.length; i++) {
+			map[items[i].control.target.id] = items[i];
+		}
+		return map;
+	}, [items]);
+
+	const isOn = useCallback((id: string) => !!byId[id]?.value, [byId]);
+
+	const resolvedBuckets = useMemo(
+		() => resolveElementBuckets(blocks, orderRule),
+		[blocks, orderRule]
+	);
+
+	const frozenForList = freeze.get(freezeKey);
+
+	const { buckets: displayBuckets, seeded } = useMemo(
+		() => resolveDisplayBuckets(resolvedBuckets, frozenForList, isOn),
+		[frozenForList, isOn, resolvedBuckets]
+	);
+
+	useLayoutEffect(() => {
+		if (seeded) {
+			freeze.ensure(freezeKey, displayBuckets);
+		}
+	}, [displayBuckets, freeze, freezeKey, seeded]);
+
 	const onReorder = useCallback(
 		(orderedIds: string[]) => {
+			freeze.set(freezeKey, [
+				{ parentId: orderRule.parentId, ids: orderedIds },
+			]);
 			onReorderElements(orderRule, orderedIds);
 		},
-		[onReorderElements, orderRule]
+		[freeze, freezeKey, onReorderElements, orderRule]
 	);
 	const onReorderBuckets = useCallback(
 		(payload: BucketReorderPayload) => {
+			freeze.set(freezeKey, payload.buckets);
 			onReorderElements(orderRule, payload);
 		},
-		[onReorderElements, orderRule]
+		[freeze, freezeKey, onReorderElements, orderRule]
 	);
-	const useBuckets = !!orderRule.bucketParents?.length;
-	const showParentNames = !!orderRule.showParentNames;
-	const buckets = useMemo(() => {
+
+	const listBuckets = useMemo(() => {
 		if (!useBuckets) {
 			return undefined;
 		}
-		const byId: Record<string, ControlViewState> = {};
-		for (let i = 0; i < items.length; i++) {
-			byId[items[i].control.target.id] = items[i];
-		}
 		const lookup = lookupFromInnerOrder(orderRule);
-		return resolveElementBuckets(blocks, orderRule).map((bucket) => ({
+		return displayBuckets.map((bucket) => ({
 			parentId: bucket.parentId,
 			items: bucket.ids.map((id) => byId[id]).filter(Boolean),
 			label: showParentNames
 				? resolveParentStampName(blocks, bucket.parentId, lookup)
 				: undefined,
 		}));
-	}, [blocks, items, orderRule, showParentNames, useBuckets]);
+	}, [blocks, byId, displayBuckets, orderRule, showParentNames, useBuckets]);
+
+	const orderedItems = useMemo(() => {
+		const ids = displayBuckets.flatMap((bucket) => bucket.ids);
+		return ids.map((id) => byId[id]).filter(Boolean);
+	}, [byId, displayBuckets]);
+
 	const listLabel = useMemo(() => {
 		if (useBuckets || !showParentNames) {
 			return undefined;
@@ -132,12 +173,12 @@ export function SortableElementGroup({
 
 	return (
 		<SortableElementList
-			items={items}
+			items={orderedItems}
 			getId={getSortableItemId}
 			disabled={disabled}
 			data-test={`blockera-templates-builder-sortable-${groupId}`}
 			onReorder={onReorder}
-			buckets={buckets}
+			buckets={listBuckets}
 			onReorderBuckets={useBuckets ? onReorderBuckets : undefined}
 			listLabel={listLabel}
 			renderItem={renderItem}

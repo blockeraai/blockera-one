@@ -10,6 +10,7 @@ import {
 	persistElementOrder,
 	resolveBucketInsertParent,
 	resolveElementBuckets,
+	type ElementBucket,
 } from '../../element-order';
 import { resolveCompoundToggleEnabled } from '../../resolve/resolve-state';
 import { lookupFromControl, type StampLookupOptions } from '../../stamp-lookup';
@@ -29,7 +30,7 @@ function applyBucketedInnerOrder(
 	sectionId: string,
 	homeParent: string,
 	persistOrder: boolean,
-	capturedBuckets?: ReturnType<typeof resolveElementBuckets>,
+	capturedBuckets?: ElementBucket[],
 	lookup?: StampLookupOptions
 ): BlockNode[] {
 	const resolved = capturedBuckets || resolveElementBuckets(tree, rule);
@@ -100,15 +101,32 @@ export function applyToggleControl(
 	orderSource: BlockNode[],
 	layoutId: string,
 	persistOrder = true,
-	selectedClientId?: string | null
+	selectedClientId?: string | null,
+	orderBuckets?: ElementBucket[]
 ): BlockNode[] {
 	const lookup = lookupFromControl(control, selectedClientId);
 	const ctx = { ...defaultOpsContext, lookup };
 	const rule = control.innerOrder;
 	const bucketParents = rule?.bucketParents;
 	let homeParent: string | null = null;
-	let capturedBuckets: ReturnType<typeof resolveElementBuckets> | null = null;
-	if (bucketParents?.length && rule) {
+	let capturedBuckets: ElementBucket[] | null = null;
+	if (rule && orderBuckets?.length) {
+		capturedBuckets = orderBuckets.map((bucket) => ({
+			parentId: bucket.parentId,
+			ids: bucket.ids.slice(),
+		}));
+		homeParent =
+			findLiveParentStampId(blocks, control.target.id, lookup) ||
+			(bucketParents?.length
+				? resolveBucketInsertParent(
+						blocks,
+						control.target.id,
+						bucketParents,
+						rule.parentId,
+						lookup
+					)
+				: rule.parentId);
+	} else if (bucketParents?.length && rule) {
 		// Capture order while the section is still in the tree so a
 		// toggle-off does not append the id to the end of the list.
 		capturedBuckets = resolveElementBuckets(blocks, rule);
@@ -160,7 +178,7 @@ export function applyToggleControl(
 	}
 
 	if (capturedBuckets && rule) {
-		return applyBucketedInnerOrder(
+		tree = applyBucketedInnerOrder(
 			tree,
 			rule,
 			control.target.id,
@@ -169,6 +187,7 @@ export function applyToggleControl(
 			capturedBuckets,
 			lookup
 		);
+		return applyMetaToggleSideEffects(tree, control, enabled);
 	}
 
 	tree = applyInnerOrder(tree, control, orderSource, selectedClientId);
@@ -194,6 +213,7 @@ export const handleToggleSection: OperationHandler = ({
 	nextValue,
 	config,
 	selectedClientId,
+	orderBuckets,
 }) => {
 	const enabled = control.invertPresence ? !nextValue : !!nextValue;
 	if (!enabled && wouldLeaveZeroRequired(blocks, control, config)) {
@@ -208,7 +228,8 @@ export const handleToggleSection: OperationHandler = ({
 			blocks,
 			config.layoutId,
 			true,
-			selectedClientId
+			selectedClientId,
+			orderBuckets
 		),
 	};
 };
