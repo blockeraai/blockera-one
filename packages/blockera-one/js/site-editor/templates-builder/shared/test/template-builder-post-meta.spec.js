@@ -5,7 +5,12 @@
 import fs from 'fs';
 import path from 'path';
 
-import { isMetaRowId } from '../ops/meta/ids';
+import {
+	getMetaRowIdForSection,
+	isMetaRowId,
+	isSpaceFillerId,
+} from '../ops/meta/ids';
+import { META_ITEM_PART_IDS, META_SEPARATOR_ID } from '../ops/meta/constants';
 import {
 	getMetaItemListName,
 	META_PART_LIST_NAMES,
@@ -39,6 +44,132 @@ function isPostMetaSectionStamp(stamp) {
 	}
 	const id = match[2];
 	return id === 'post-meta' || id.startsWith('post-meta-');
+}
+
+function isPostMetaItemId(id) {
+	return (
+		!!getMetaRowIdForSection(id) && !isMetaRowId(id) && !isSpaceFillerId(id)
+	);
+}
+
+function stampFromCommentBody(body) {
+	const match = body.match(/"blockeraOne"\s*:\s*"([^"]*)"/);
+	if (!match) {
+		return null;
+	}
+	const parsed = match[1].match(STAMP_SHAPE);
+	if (!parsed) {
+		return null;
+	}
+	return parsed[2];
+}
+
+/**
+ * Nest Gutenberg serializer comments so row/item checks can see children.
+ * Attribute JSON is not fully parsed — PHP-in-attrs comments still nest.
+ *
+ * @param {string} source Pattern PHP/HTML.
+ * @return {Object[]} Root serialized nodes `{ id, children }`.
+ */
+function parseSerializedBlocks(source) {
+	const root = { id: '', children: [] };
+	const stack = [root];
+	let cursor = 0;
+
+	while (cursor < source.length) {
+		const start = source.indexOf('<!--', cursor);
+		if (start === -1) {
+			break;
+		}
+		const end = source.indexOf('-->', start + 4);
+		if (end === -1) {
+			break;
+		}
+		const body = source.slice(start + 4, end).trim();
+		cursor = end + 3;
+
+		if (body.startsWith('/wp:')) {
+			if (stack.length > 1) {
+				const node = stack.pop();
+				node.inner = source.slice(node.innerStart, start);
+			}
+			continue;
+		}
+		if (!body.startsWith('wp:')) {
+			continue;
+		}
+		const selfClosing = /\/$/.test(body);
+		const stampId = stampFromCommentBody(body);
+		const node = {
+			id: stampId || '',
+			children: [],
+			innerStart: cursor,
+			inner: '',
+		};
+		stack[stack.length - 1].children.push(node);
+		if (!selfClosing) {
+			stack.push(node);
+		}
+	}
+
+	return root.children;
+}
+
+function walkSerialized(nodes, visit) {
+	for (const node of nodes) {
+		visit(node);
+		if (node.children.length > 0) {
+			walkSerialized(node.children, visit);
+		}
+	}
+}
+
+function descendantHasId(node, id) {
+	for (const child of node.children) {
+		if (child.id === id || descendantHasId(child, id)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+function descendantHasItem(node) {
+	for (const child of node.children) {
+		if (isPostMetaItemId(child.id) || descendantHasItem(child)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * Visible separator glyph. PHP `esc_html_e( '•' )` counts; empty string,
+ * whitespace, and `&nbsp;` do not (Gutenberg drops whitespace-only paragraphs).
+ *
+ * @param {string} inner Markup between the paragraph comments.
+ * @return {boolean} True when the separator has a real character.
+ */
+function separatorHasText(inner) {
+	if (!inner) {
+		return false;
+	}
+	const translated = inner.match(
+		/esc_html_e\s*\(\s*(['"])((?:\\.|[^\\])*?)\1/
+	);
+	if (translated) {
+		return translated[2].replace(/\\./g, '.').trim().length > 0;
+	}
+	const paragraph = inner.match(/<p\b[^>]*>([\s\S]*?)<\/p>/i);
+	if (!paragraph) {
+		return false;
+	}
+	const text = paragraph[1]
+		.replace(/<\?php[\s\S]*?\?>/g, '')
+		.replace(/<[^>]+>/g, '')
+		.replace(/&nbsp;/gi, '')
+		.replace(/\u00a0/g, '')
+		.trim();
+	return text.length > 0;
 }
 
 describe('templates-builder post-meta patterns lint', () => {
@@ -169,6 +300,130 @@ describe('templates-builder post-meta patterns lint', () => {
 				}
 			}
 
+			expect(offenders).toEqual([]);
+		});
+	});
+
+	describePatterns('structure', () => {
+		function phpEntriesWithSource() {
+			const out = [];
+			for (const entry of stampedEntries) {
+				if (!entry.file.endsWith('.php')) {
+					continue;
+				}
+				out.push({
+					file: entry.file,
+					tree: parseSerializedBlocks(
+						fs.readFileSync(
+							path.join(themeRoot, entry.file),
+							'utf8'
+						)
+					),
+				});
+			}
+			return out;
+		}
+
+		it('every Post Meta row contains at least one post-meta item', () => {
+			const offenders = [];
+			let rows = 0;
+			for (const entry of phpEntriesWithSource()) {
+				walkSerialized(entry.tree, (node) => {
+					if (!isMetaRowId(node.id)) {
+						return;
+					}
+					rows += 1;
+					if (!descendantHasItem(node)) {
+						offenders.push(
+							`${entry.file}: ${node.id} has no post-meta item`
+						);
+					}
+				});
+			}
+			expect(rows).toBeGreaterThan(0);
+			expect(offenders).toEqual([]);
+		});
+
+		it('every post-meta item contains its main meta-item-block', () => {
+			const offenders = [];
+			let items = 0;
+			for (const entry of phpEntriesWithSource()) {
+				walkSerialized(entry.tree, (node) => {
+					if (!isPostMetaItemId(node.id)) {
+						return;
+					}
+					items += 1;
+					if (!descendantHasId(node, META_ITEM_PART_IDS.block)) {
+						offenders.push(
+							`${entry.file}: ${node.id} is missing container/meta-item-block`
+						);
+					}
+				});
+			}
+			expect(items).toBeGreaterThan(0);
+			expect(offenders).toEqual([]);
+		});
+
+		it('does not put a separator beside a space filler', () => {
+			const offenders = [];
+			for (const entry of phpEntriesWithSource()) {
+				walkSerialized(entry.tree, (node) => {
+					if (!isMetaRowId(node.id)) {
+						return;
+					}
+					const kids = node.children;
+					let hasSeparator = false;
+					let hasFiller = false;
+					for (let i = 0; i < kids.length; i++) {
+						if (kids[i].id === META_SEPARATOR_ID) {
+							hasSeparator = true;
+						}
+						if (isSpaceFillerId(kids[i].id)) {
+							hasFiller = true;
+						}
+					}
+					if (!hasSeparator || !hasFiller) {
+						return;
+					}
+					for (let i = 0; i < kids.length; i++) {
+						if (!isSpaceFillerId(kids[i].id)) {
+							continue;
+						}
+						const prev = i > 0 ? kids[i - 1] : null;
+						const next = i < kids.length - 1 ? kids[i + 1] : null;
+						if (prev && prev.id === META_SEPARATOR_ID) {
+							offenders.push(
+								`${entry.file}: ${node.id} has a separator before ${kids[i].id}`
+							);
+						}
+						if (next && next.id === META_SEPARATOR_ID) {
+							offenders.push(
+								`${entry.file}: ${node.id} has a separator after ${kids[i].id}`
+							);
+						}
+					}
+				});
+			}
+			expect(offenders).toEqual([]);
+		});
+
+		it('does not leave a separator with empty text', () => {
+			const offenders = [];
+			let separators = 0;
+			for (const entry of phpEntriesWithSource()) {
+				walkSerialized(entry.tree, (node) => {
+					if (node.id !== META_SEPARATOR_ID) {
+						return;
+					}
+					separators += 1;
+					if (!separatorHasText(node.inner)) {
+						offenders.push(
+							`${entry.file}: meta-separator has empty text`
+						);
+					}
+				});
+			}
+			expect(separators).toBeGreaterThan(0);
 			expect(offenders).toEqual([]);
 		});
 	});
