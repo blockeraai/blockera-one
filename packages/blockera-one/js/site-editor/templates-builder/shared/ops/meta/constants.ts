@@ -93,9 +93,6 @@ export const PART_ORDER: Array<'icon' | 'prefix' | 'block' | 'suffix'> = [
 	'suffix',
 ];
 
-export const PARKED_META_KEY = 'blockeraOneMetaParts';
-export const SEPARATOR_META_KEY = 'blockeraOneMetaSeparator';
-
 export type ParkedParts = {
 	icon?: Record<string, unknown>;
 	prefix?: string;

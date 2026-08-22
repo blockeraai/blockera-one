@@ -1,5 +1,5 @@
 /**
- * Stamp format: `metadata.blockeraOne` holds a single string `role/id` or
+ * Stamp format: `metadata.blockeraOne.stamp` is a string `role/id` or
  * `role/id:variant` (e.g. "section/posts-listing:list", "area/content").
  * The role is part of the stamp itself so theme markup is self-describing —
  * no runtime role registry. Ids must still be globally unique across all

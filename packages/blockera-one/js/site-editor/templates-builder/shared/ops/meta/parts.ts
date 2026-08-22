@@ -2,7 +2,12 @@
  * Icon / prefix / suffix parts on a Post Meta item wrapper.
  */
 
-import { getStamp, withStamp } from '../../metadata';
+import {
+	getBlockeraOneMeta,
+	getStamp,
+	withBlockeraOneMeta,
+	withStamp,
+} from '../../metadata';
 import { findStampById, type StampLookupOptions } from '../../stamp-lookup';
 import { findByStampWithin, replaceAtPath, type WalkMatch } from '../../tree';
 import { withBlockeraCompatibility } from '../../blockera-attribute';
@@ -11,7 +16,6 @@ import {
 	EMPTY_ICON_VALUE,
 	META_ITEM_PART_IDS,
 	META_SEPARATOR_ID,
-	PARKED_META_KEY,
 	PART_ORDER,
 	SPACE_FILLER_HTML,
 	SPACE_FILLER_TEXT,
@@ -77,7 +81,7 @@ function metadataRecord(
 }
 
 export function getParked(block: BlockNode): ParkedParts {
-	const parked = metadataRecord(block)?.[PARKED_META_KEY];
+	const parked = getBlockeraOneMeta(block)?.metaParts;
 	if (!parked || typeof parked !== 'object' || Array.isArray(parked)) {
 		return {};
 	}
@@ -85,17 +89,10 @@ export function getParked(block: BlockNode): ParkedParts {
 }
 
 export function withParked(block: BlockNode, parked: ParkedParts): BlockNode {
-	return {
-		...block,
-		attributes: {
-			...(block.attributes || {}),
-			metadata: {
-				...(metadataRecord(block) || {}),
-				[PARKED_META_KEY]: parked,
-			},
-		},
-		innerBlocks: block.innerBlocks ? [...block.innerBlocks] : [],
-	};
+	const empty = Object.keys(parked).length === 0;
+	return withBlockeraOneMeta(block, {
+		metaParts: empty ? undefined : parked,
+	});
 }
 
 export function paragraphContent(block: BlockNode | null | undefined): string {

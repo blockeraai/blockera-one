@@ -293,7 +293,8 @@ export function mergeUserAttributes(
 ): Record<string, unknown> {
 	const user = pickUserAttributes(sourceAttrs);
 	const merged = { ...targetAttrs, ...user };
-	// Merge metadata shallowly; the target's stamp string wins when present.
+	// Merge metadata shallowly; deep-merge `blockeraOne` so the target stamp
+	// wins while source `metaParts` / `metaSeparator` / extra keys survive.
 	const targetMeta =
 		targetAttrs.metadata && typeof targetAttrs.metadata === 'object'
 			? (targetAttrs.metadata as Record<string, unknown>)
@@ -302,9 +303,25 @@ export function mergeUserAttributes(
 		sourceAttrs.metadata && typeof sourceAttrs.metadata === 'object'
 			? (sourceAttrs.metadata as Record<string, unknown>)
 			: {};
-	merged.metadata = {
+	const metadata: Record<string, unknown> = {
 		...sourceMeta,
 		...targetMeta,
 	};
+	const sourceOne = asMetaObject(sourceMeta.blockeraOne);
+	const targetOne = asMetaObject(targetMeta.blockeraOne);
+	if (sourceOne || targetOne) {
+		metadata.blockeraOne = {
+			...(sourceOne || {}),
+			...(targetOne || {}),
+		};
+	}
+	merged.metadata = metadata;
 	return merged;
+}
+
+function asMetaObject(value: unknown): Record<string, unknown> | null {
+	if (!value || typeof value !== 'object' || Array.isArray(value)) {
+		return null;
+	}
+	return value as Record<string, unknown>;
 }

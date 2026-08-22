@@ -32,7 +32,9 @@ export function buildTemplatePartHtml(
 		attributes.tagName = variant.tagName;
 	}
 	attributes.metadata = {
-		blockeraOne: formatStamp('section', sectionId, variant.id),
+		blockeraOne: {
+			stamp: formatStamp('section', sectionId, variant.id),
+		},
 	};
 
 	return `<!-- wp:template-part ${JSON.stringify(attributes)} /-->`;

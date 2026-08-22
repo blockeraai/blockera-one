@@ -2,13 +2,16 @@
  * Separator paragraphs between Post Meta row items.
  */
 
-import { getStamp } from '../../metadata';
+import {
+	getBlockeraOneMeta,
+	getStamp,
+	withBlockeraOneMeta,
+} from '../../metadata';
 import { findStampById, type StampLookupOptions } from '../../stamp-lookup';
 import type { BlockNode } from '../../types';
 import {
 	META_SEPARATOR_ID,
 	META_SEPARATOR_OPTIONS,
-	SEPARATOR_META_KEY,
 	type MetaSeparatorOption,
 } from './constants';
 import { isSpaceFillerId } from './ids';
@@ -59,11 +62,7 @@ function optionFromChar(text: string): MetaSeparatorOption | null {
 }
 
 function readStoredSeparator(row: BlockNode): MetaSeparatorOption | null {
-	const metadata = row.attributes?.metadata;
-	if (!metadata || typeof metadata !== 'object') {
-		return null;
-	}
-	const stored = (metadata as Record<string, unknown>)[SEPARATOR_META_KEY];
+	const stored = getBlockeraOneMeta(row)?.metaSeparator;
 	return isSeparatorOption(stored) ? stored : null;
 }
 
@@ -71,21 +70,7 @@ function withStoredSeparator(
 	row: BlockNode,
 	option: MetaSeparatorOption
 ): BlockNode {
-	const prevMeta =
-		row.attributes?.metadata && typeof row.attributes.metadata === 'object'
-			? (row.attributes.metadata as Record<string, unknown>)
-			: {};
-	return {
-		...row,
-		attributes: {
-			...(row.attributes || {}),
-			metadata: {
-				...prevMeta,
-				[SEPARATOR_META_KEY]: option,
-			},
-		},
-		innerBlocks: row.innerBlocks ? [...row.innerBlocks] : [],
-	};
+	return withBlockeraOneMeta(row, { metaSeparator: option });
 }
 
 export function readMetaSeparatorOption(
