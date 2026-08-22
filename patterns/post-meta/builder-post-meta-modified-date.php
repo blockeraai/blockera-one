@@ -12,7 +12,7 @@
  */
 
 ?>
-<!-- wp:group {"metadata":{"name":"Modified Date","blockeraOne":"section/post-meta-modified-date:default"},"style":{"spacing":{"blockGap":"0.35em"}},"layout":{"type":"flex","flexWrap":"nowrap","verticalAlignment":"center"}} -->
+<!-- wp:group {"metadata":{"name":"Modified Date Meta","blockeraOne":"section/post-meta-modified-date:default"},"style":{"spacing":{"blockGap":"0.35em"}},"layout":{"type":"flex","flexWrap":"nowrap","verticalAlignment":"center"}} -->
 <div class="wp-block-group">
 	<!-- wp:post-date {"className":"wp-block-post-date__modified-date","metadata":{"bindings":{"datetime":{"source":"core/post-data","args":{"field":"modified"}}},"blockeraOne":"container/meta-item-block:default"}} /-->
 </div>

@@ -12,7 +12,7 @@
  */
 
 ?>
-<!-- wp:group {"metadata":{"name":"Time to Read","blockeraOne":"section/post-meta-time-to-read:default"},"style":{"spacing":{"blockGap":"0.35em"}},"layout":{"type":"flex","flexWrap":"nowrap","verticalAlignment":"center"}} -->
+<!-- wp:group {"metadata":{"name":"Time to Read Meta","blockeraOne":"section/post-meta-time-to-read:default"},"style":{"spacing":{"blockGap":"0.35em"}},"layout":{"type":"flex","flexWrap":"nowrap","verticalAlignment":"center"}} -->
 <div class="wp-block-group">
 	<!-- wp:post-time-to-read {"displayMode":"time","metadata":{"blockeraOne":"container/meta-item-block:default"}} /-->
 </div>

@@ -12,7 +12,7 @@
  */
 
 ?>
-<!-- wp:group {"metadata":{"name":"Word Count","blockeraOne":"section/post-meta-2-word-count:default"},"style":{"spacing":{"blockGap":"0.35em"}},"layout":{"type":"flex","flexWrap":"nowrap","verticalAlignment":"center"}} -->
+<!-- wp:group {"metadata":{"name":"Word Count Meta","blockeraOne":"section/post-meta-2-word-count:default"},"style":{"spacing":{"blockGap":"0.35em"}},"layout":{"type":"flex","flexWrap":"nowrap","verticalAlignment":"center"}} -->
 <div class="wp-block-group">
 	<!-- wp:post-time-to-read {"displayMode":"words","metadata":{"blockeraOne":"container/meta-item-block:default"}} /-->
 </div>

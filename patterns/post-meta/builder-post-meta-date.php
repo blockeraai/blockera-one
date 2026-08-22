@@ -12,7 +12,7 @@
  */
 
 ?>
-<!-- wp:group {"metadata":{"name":"Date","blockeraOne":"section/post-meta-date:default"},"style":{"spacing":{"blockGap":"0.35em"}},"layout":{"type":"flex","flexWrap":"nowrap","verticalAlignment":"center"}} -->
+<!-- wp:group {"metadata":{"name":"Date Meta","blockeraOne":"section/post-meta-date:default"},"style":{"spacing":{"blockGap":"0.35em"}},"layout":{"type":"flex","flexWrap":"nowrap","verticalAlignment":"center"}} -->
 <div class="wp-block-group">
 	<!-- wp:post-date {"metadata":{"blockeraOne":"container/meta-item-block:default"}} /-->
 </div>
