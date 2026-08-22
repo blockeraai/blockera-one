@@ -23,7 +23,7 @@
 	</div>
 	<!-- /wp:group -->
 	<!-- wp:paragraph {"metadata":{"name":"Separator","blockeraOne":"container/meta-separator:default"}} -->
-	<p><?php esc_html_e( '•', 'blockera-one' ); ?></p>
+	<p>•</p>
 	<!-- /wp:paragraph -->
 	<!-- wp:group {"metadata":{"name":"Published Date Meta","blockeraOne":"section/post-meta-post-date:default"},"style":{"spacing":{"blockGap":"0.35em"}},"layout":{"type":"flex","flexWrap":"nowrap","verticalAlignment":"center"}} -->
 	<div class="wp-block-group">
