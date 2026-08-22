@@ -284,14 +284,6 @@
 				"patternSlug": "blockera-one/builder-post-meta-comments-link"
 			}
 		],
-		"post-meta-date": [
-			{
-				"id": "default",
-				"label": "Date",
-				"kind": "pattern",
-				"patternSlug": "blockera-one/builder-post-meta-date"
-			}
-		],
 		"post-meta-post-date": [
 			{
 				"id": "default",
@@ -362,14 +354,6 @@
 				"label": "Comments Link",
 				"kind": "pattern",
 				"patternSlug": "blockera-one/builder-post-meta-2-comments-link"
-			}
-		],
-		"post-meta-2-date": [
-			{
-				"id": "default",
-				"label": "Date",
-				"kind": "pattern",
-				"patternSlug": "blockera-one/builder-post-meta-2-date"
 			}
 		],
 		"post-meta-2-post-date": [
@@ -820,14 +804,6 @@
 				"patternSlug": "blockera-one/builder-post-meta-comments-link"
 			}
 		],
-		"post-meta-date": [
-			{
-				"id": "default",
-				"label": "Date",
-				"kind": "pattern",
-				"patternSlug": "blockera-one/builder-post-meta-date"
-			}
-		],
 		"post-meta-post-date": [
 			{
 				"id": "default",
@@ -898,14 +874,6 @@
 				"label": "Comments Link",
 				"kind": "pattern",
 				"patternSlug": "blockera-one/builder-post-meta-2-comments-link"
-			}
-		],
-		"post-meta-2-date": [
-			{
-				"id": "default",
-				"label": "Date",
-				"kind": "pattern",
-				"patternSlug": "blockera-one/builder-post-meta-2-date"
 			}
 		],
 		"post-meta-2-post-date": [
