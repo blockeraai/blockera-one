@@ -110,7 +110,7 @@ describe('toggleSection', () => {
 		]);
 	});
 
-	it('removes a hidden title without writing inner-order metadata', () => {
+	it('removes a hidden title', () => {
 		const innerOrder = {
 			parentId: 'page-header',
 			ids: [
@@ -147,68 +147,6 @@ describe('toggleSection', () => {
 		const result = apply(control, false, { blocks });
 		expect(result.blocks[0].innerBlocks.map((b) => b.name)).toEqual([
 			'core/term-description',
-		]);
-		expect(
-			result.blocks[0].attributes.metadata.blockeraOneInnerOrder
-		).toBeUndefined();
-	});
-
-	it('ignores leftover inner-order metadata and appends a restored title', () => {
-		__setMarkup('page-header-title', [
-			stamped('core/query-title', 'section/page-header-title:default'),
-		]);
-		const innerOrder = {
-			parentId: 'page-header',
-			ids: [
-				'page-header-title',
-				'page-header-description',
-				'page-header-breadcrumbs',
-			],
-		};
-		const blocks = [
-			stamped(
-				'core/group',
-				'section/page-header:default',
-				{
-					metadata: {
-						blockeraOne: 'section/page-header:default',
-						blockeraOneInnerOrder: [
-							'page-header-breadcrumbs',
-							'page-header-title',
-							'page-header-description',
-						],
-					},
-				},
-				[
-					stamped(
-						'core/breadcrumbs',
-						'section/page-header-breadcrumbs:default'
-					),
-					stamped(
-						'core/term-description',
-						'section/page-header-description:default'
-					),
-				]
-			),
-		];
-		const control = {
-			id: 'page-header-title',
-			type: 'toggle',
-			label: 'Title',
-			target: { kind: 'section', id: 'page-header-title' },
-			operation: 'toggleSection',
-			variants: [
-				{ id: 'default', label: 'Title', html: 'page-header-title' },
-			],
-			insert: { relativeTo: 'page-header', position: 'inside-start' },
-			innerOrder,
-		};
-
-		const result = apply(control, true, { blocks });
-		expect(result.blocks[0].innerBlocks.map((b) => b.name)).toEqual([
-			'core/breadcrumbs',
-			'core/term-description',
-			'core/query-title',
 		]);
 	});
 

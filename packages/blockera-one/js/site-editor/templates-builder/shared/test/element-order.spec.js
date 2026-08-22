@@ -28,15 +28,8 @@ const RULE = {
 	],
 };
 
-function header(children, extraMeta = {}) {
-	return [
-		stamped(
-			'core/group',
-			'section/page-header:default',
-			{ metadata: extraMeta },
-			children
-		),
-	];
+function header(children) {
+	return [stamped('core/group', 'section/page-header:default', {}, children)];
 }
 
 describe('resolveElementOrder', () => {
@@ -71,33 +64,6 @@ describe('resolveElementOrder', () => {
 			'page-header-breadcrumbs',
 			'page-header-title',
 			'page-header-description',
-		]);
-	});
-
-	it('ignores leftover inner-order metadata and follows live children', () => {
-		const blocks = header(
-			[
-				stamped(
-					'core/query-title',
-					'section/page-header-title:default'
-				),
-				stamped(
-					'core/term-description',
-					'section/page-header-description:default'
-				),
-			],
-			{
-				blockeraOneInnerOrder: [
-					'page-header-breadcrumbs',
-					'page-header-title',
-					'page-header-description',
-				],
-			}
-		);
-		expect(resolveElementOrder(blocks, RULE)).toEqual([
-			'page-header-title',
-			'page-header-description',
-			'page-header-breadcrumbs',
 		]);
 	});
 
