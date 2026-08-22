@@ -143,8 +143,8 @@ function descendantHasItem(node) {
 }
 
 /**
- * Visible separator glyph. PHP `esc_html_e( '•' )` counts; empty string,
- * whitespace, and `&nbsp;` do not (Gutenberg drops whitespace-only paragraphs).
+ * Visible separator glyph. Literal HTML or a non-empty i18n string argument
+ * counts; whitespace-only and `&nbsp;` do not.
  *
  * @param {string} inner Markup between the paragraph comments.
  * @return {boolean} True when the separator has a real character.
@@ -154,7 +154,7 @@ function separatorHasText(inner) {
 		return false;
 	}
 	const translated = inner.match(
-		/esc_html_e\s*\(\s*(['"])((?:\\.|[^\\])*?)\1/
+		/(?:esc_html_e|esc_html__|esc_attr_e|esc_attr__|_e|__)\s*\(\s*(['"])((?:\\.|[^\\])*?)\1/
 	);
 	if (translated) {
 		return translated[2].replace(/\\./g, '.').trim().length > 0;
@@ -170,6 +170,16 @@ function separatorHasText(inner) {
 		.replace(/\u00a0/g, '')
 		.trim();
 	return text.length > 0;
+}
+
+/**
+ * @param {string} inner Markup between the paragraph comments.
+ * @return {boolean} True when separator copy is wrapped for translation.
+ */
+function separatorUsesI18n(inner) {
+	return /(?:esc_html_e|esc_html__|esc_attr_e|esc_attr__|_e|__)\s*\(/.test(
+		inner || ''
+	);
 }
 
 describe('templates-builder post-meta patterns lint', () => {
@@ -419,6 +429,26 @@ describe('templates-builder post-meta patterns lint', () => {
 					if (!separatorHasText(node.inner)) {
 						offenders.push(
 							`${entry.file}: meta-separator has empty text`
+						);
+					}
+				});
+			}
+			expect(separators).toBeGreaterThan(0);
+			expect(offenders).toEqual([]);
+		});
+
+		it('does not wrap separator text in PHP i18n', () => {
+			const offenders = [];
+			let separators = 0;
+			for (const entry of phpEntriesWithSource()) {
+				walkSerialized(entry.tree, (node) => {
+					if (node.id !== META_SEPARATOR_ID) {
+						return;
+					}
+					separators += 1;
+					if (separatorUsesI18n(node.inner)) {
+						offenders.push(
+							`${entry.file}: meta-separator text must not be translatable`
 						);
 					}
 				});
