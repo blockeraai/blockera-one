@@ -10,6 +10,7 @@ import {
 import { findStampById, type StampLookupOptions } from '../../stamp-lookup';
 import type { BlockNode } from '../../types';
 import {
+	isMetaSeparatorOption,
 	META_SEPARATOR_ID,
 	META_SEPARATOR_OPTIONS,
 	type MetaSeparatorOption,
@@ -37,15 +38,6 @@ export function rowItemChildren(row: BlockNode): BlockNode[] {
 	return items;
 }
 
-function isSeparatorOption(value: unknown): value is MetaSeparatorOption {
-	return (
-		value === 'none' ||
-		value === 'slash' ||
-		value === 'dash' ||
-		value === 'bullet'
-	);
-}
-
 function optionFromChar(text: string): MetaSeparatorOption | null {
 	if (!text) {
 		return 'none';
@@ -63,7 +55,7 @@ function optionFromChar(text: string): MetaSeparatorOption | null {
 
 function readStoredSeparator(row: BlockNode): MetaSeparatorOption | null {
 	const stored = getBlockeraOneMeta(row)?.metaSeparator;
-	return isSeparatorOption(stored) ? stored : null;
+	return isMetaSeparatorOption(stored) ? stored : null;
 }
 
 function withStoredSeparator(
@@ -125,7 +117,7 @@ export function syncMetaSeparators(
 	}
 	const items = rowItemChildren(row.block);
 	let nextRow = row.block;
-	if (isSeparatorOption(preferred)) {
+	if (isMetaSeparatorOption(preferred)) {
 		nextRow = withStoredSeparator(nextRow, preferred);
 	}
 	if (!char || items.length < 2) {

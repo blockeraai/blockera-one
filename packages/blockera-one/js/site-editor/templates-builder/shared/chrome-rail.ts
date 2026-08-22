@@ -95,7 +95,7 @@ export function unwrapChromeRail(
  * empty `rail-body-area`) — this op only injects the live layout into the
  * body area. Footer and other top-level siblings stay outside the rail.
  */
-function wrapVerticalRail(
+export function wrapVerticalRail(
 	blocks: BlockNode[],
 	params: {
 		layoutId: string;

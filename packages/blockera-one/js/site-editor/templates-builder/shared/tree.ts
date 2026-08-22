@@ -294,7 +294,7 @@ export function mergeUserAttributes(
 	const user = pickUserAttributes(sourceAttrs);
 	const merged = { ...targetAttrs, ...user };
 	// Merge metadata shallowly; deep-merge `blockeraOne` so the target stamp
-	// wins while source `metaParts` / `metaSeparator` / extra keys survive.
+	// wins while source `metaSeparator` / extra keys survive.
 	const targetMeta =
 		targetAttrs.metadata && typeof targetAttrs.metadata === 'object'
 			? (targetAttrs.metadata as Record<string, unknown>)
@@ -310,10 +310,12 @@ export function mergeUserAttributes(
 	const sourceOne = asMetaObject(sourceMeta.blockeraOne);
 	const targetOne = asMetaObject(targetMeta.blockeraOne);
 	if (sourceOne || targetOne) {
-		metadata.blockeraOne = {
+		const one = {
 			...(sourceOne || {}),
 			...(targetOne || {}),
 		};
+		delete one.metaParts;
+		metadata.blockeraOne = one;
 	}
 	merged.metadata = metadata;
 	return merged;

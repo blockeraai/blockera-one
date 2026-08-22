@@ -22,6 +22,17 @@ export const META_SEPARATOR_OPTIONS = {
 
 export type MetaSeparatorOption = keyof typeof META_SEPARATOR_OPTIONS;
 
+export function isMetaSeparatorOption(
+	value: unknown
+): value is MetaSeparatorOption {
+	return (
+		value === 'none' ||
+		value === 'slash' ||
+		value === 'dash' ||
+		value === 'bullet'
+	);
+}
+
 export const META_ITEMS_PRESETS = ['simple', 'labels', 'icons'] as const;
 export type MetaItemsPreset = (typeof META_ITEMS_PRESETS)[number];
 

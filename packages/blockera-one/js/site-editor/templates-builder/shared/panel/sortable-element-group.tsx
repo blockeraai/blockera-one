@@ -13,10 +13,11 @@ import {
 	resolveDisplayBuckets,
 	resolveElementBuckets,
 	resolveParentStampName,
+	type ElementBucket,
 } from '../element-order';
 import { lookupFromInnerOrder } from '../stamp-lookup';
 import { hasUnresolvedVariants } from '../resolve/resolve-variant-html';
-import { innerOrderFreezeKey } from '../sortable-order-freeze';
+import { sessionOrderKeyForRule, useEditorSession } from '../../../session';
 import SortableElementList, {
 	type BucketReorderPayload,
 	type SortableElementRenderProps,
@@ -30,7 +31,6 @@ import type {
 	ReorderElementsPayload,
 } from '../types';
 import { buildGatewayRowProps } from './gateway-row-props';
-import { useSortableOrderFreeze } from '../sortable-order-freeze-context';
 
 function getSortableItemId(item: ControlViewState): string {
 	return item.control.target.id;
@@ -48,6 +48,7 @@ type SortableElementGroupProps = {
 	) => void;
 	onChangeControl: (control: ControlDef, next: ControlValue) => void;
 	onOpenNested?: (panelId: string) => void;
+	entityKey: string;
 };
 
 export function SortableElementGroup({
@@ -59,9 +60,10 @@ export function SortableElementGroup({
 	onReorderElements,
 	onChangeControl,
 	onOpenNested,
+	entityKey,
 }: SortableElementGroupProps) {
-	const freeze = useSortableOrderFreeze();
-	const freezeKey = innerOrderFreezeKey(orderRule);
+	const session = useEditorSession();
+	const freezeKey = sessionOrderKeyForRule(entityKey, orderRule);
 	const useBuckets = !!orderRule.bucketParents?.length;
 	const showParentNames = !!orderRule.showParentNames;
 
@@ -80,7 +82,10 @@ export function SortableElementGroup({
 		[blocks, orderRule]
 	);
 
-	const frozenForList = freeze.get(freezeKey);
+	const frozenForList = useMemo(
+		() => session.get<ElementBucket[]>(freezeKey),
+		[freezeKey, session]
+	);
 
 	const { buckets: displayBuckets, seeded } = useMemo(
 		() => resolveDisplayBuckets(resolvedBuckets, frozenForList, isOn),
@@ -89,25 +94,25 @@ export function SortableElementGroup({
 
 	useLayoutEffect(() => {
 		if (seeded) {
-			freeze.ensure(freezeKey, displayBuckets);
+			session.ensure(freezeKey, displayBuckets);
 		}
-	}, [displayBuckets, freeze, freezeKey, seeded]);
+	}, [displayBuckets, session, freezeKey, seeded]);
 
 	const onReorder = useCallback(
 		(orderedIds: string[]) => {
-			freeze.set(freezeKey, [
+			session.set(freezeKey, [
 				{ parentId: orderRule.parentId, ids: orderedIds },
 			]);
 			onReorderElements(orderRule, orderedIds);
 		},
-		[freeze, freezeKey, onReorderElements, orderRule]
+		[session, freezeKey, onReorderElements, orderRule]
 	);
 	const onReorderBuckets = useCallback(
 		(payload: BucketReorderPayload) => {
-			freeze.set(freezeKey, payload.buckets);
+			session.set(freezeKey, payload.buckets);
 			onReorderElements(orderRule, payload);
 		},
-		[freeze, freezeKey, onReorderElements, orderRule]
+		[session, freezeKey, onReorderElements, orderRule]
 	);
 
 	const listBuckets = useMemo(() => {

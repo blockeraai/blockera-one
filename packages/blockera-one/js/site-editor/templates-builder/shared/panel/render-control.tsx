@@ -31,11 +31,23 @@ import ToggleSelectRow from '../controls/toggle-select';
 import { getBlockeraAttributeId } from '../blockera-attribute';
 import { hasUnresolvedVariants } from '../resolve/resolve-variant-html';
 import type {
+	BlockNode,
 	ControlDef,
 	ControlType,
 	ControlValue,
 	ResolvedOptionState,
 } from '../types';
+import { defaultOpsContext } from '../blocks-adapter';
+import { cloneTree, getAtPath } from '../tree';
+import {
+	sessionSwapKey,
+	sessionSwapPartKey,
+	readSwapCleanCurrent,
+	swapCleanCurrentMatches,
+	swapSnapshotIsSessionEdited,
+	treesMatchIgnoringVolatileIds,
+	type EditorSessionApi,
+} from '../../../session';
 import { asControlListItem } from './as-control-list-item';
 import { buildGatewayRowProps } from './gateway-row-props';
 
@@ -75,6 +87,10 @@ export type ControlRendererProps = {
 	blockeraAttributeId?: string;
 	onChangeControl: (control: ControlDef, next: ControlValue) => void;
 	onOpenNested?: (panelId: string) => void;
+	session?: EditorSessionApi;
+	entityKey?: string;
+	blocks?: BlockNode[];
+	entityDirty?: boolean;
 };
 
 export type ControlRenderer = (
@@ -90,23 +106,134 @@ export type RenderControlArgs = {
 	commonDisabled: boolean;
 	onChangeControl: (control: ControlDef, next: ControlValue) => void;
 	onOpenNested?: (panelId: string) => void;
+	session?: EditorSessionApi;
+	entityKey?: string;
+	blocks?: BlockNode[];
+	entityDirty?: boolean;
 };
+
+const EMPTY_EDITED_VARIANT_IDS: string[] = [];
+
+function currentLayoutIsEdited(
+	control: ControlDef,
+	currentId: string | null,
+	state: ResolvedOptionState,
+	blocks?: BlockNode[],
+	entityDirty?: boolean,
+	session?: EditorSessionApi,
+	entityKey?: string
+): boolean {
+	if (!currentId || !blocks?.length || !state.path) {
+		return false;
+	}
+	const variant = control.variants?.find((item) => item.id === currentId);
+	if (!variant?.html) {
+		return false;
+	}
+	const node = getAtPath(blocks, state.path);
+	if (!node) {
+		return false;
+	}
+	const catalog = cloneTree(defaultOpsContext.parse(variant.html));
+	if (!catalog.length) {
+		return false;
+	}
+	const ignoreStampIds = control.swapHints?.reapplyControls;
+	const matchesCatalog = treesMatchIgnoringVolatileIds([node], catalog, {
+		ignoreStampIds,
+	});
+	return (
+		!!entityDirty &&
+		!matchesCatalog &&
+		!swapCleanCurrentMatches(
+			readSwapCleanCurrent(session, entityKey),
+			control.target.id,
+			currentId
+		)
+	);
+}
+
+function editedVariantIds(
+	control: ControlDef,
+	currentId: string | null,
+	state: ResolvedOptionState,
+	session?: EditorSessionApi,
+	entityKey?: string,
+	blocks?: BlockNode[],
+	entityDirty?: boolean
+): string[] {
+	if (!control.variants?.length) {
+		return EMPTY_EDITED_VARIANT_IDS;
+	}
+	const within = control.innerOrder?.within || '';
+	const ids: string[] = [];
+	for (let i = 0; i < control.variants.length; i++) {
+		const variantId = control.variants[i].id;
+		if (currentId && variantId === currentId) {
+			if (
+				currentLayoutIsEdited(
+					control,
+					currentId,
+					state,
+					blocks,
+					entityDirty,
+					session,
+					entityKey
+				)
+			) {
+				ids.push(variantId);
+			}
+			continue;
+		}
+		if (!session || !entityKey) {
+			continue;
+		}
+		const key =
+			control.operation === 'swapTemplatePart'
+				? sessionSwapPartKey(entityKey, control.target.id, variantId)
+				: sessionSwapKey(
+						entityKey,
+						within,
+						control.target.id,
+						variantId
+					);
+		if (swapSnapshotIsSessionEdited(session.get(key))) {
+			ids.push(variantId);
+		}
+	}
+	return ids.length ? ids : EMPTY_EDITED_VARIANT_IDS;
+}
 
 function renderLayoutPicker({
 	control,
 	value,
+	state,
 	missing,
 	controlDisabled,
 	onChangeControl,
+	session,
+	entityKey,
+	blocks,
+	entityDirty,
 }: ControlRendererProps): ReactElement {
+	const current = typeof value === 'string' ? value : null;
 	return (
 		<LayoutPicker
 			label={control.label}
-			value={typeof value === 'string' ? value : null}
+			value={current}
 			variants={control.variants || []}
 			disabled={controlDisabled}
 			columns={control.columns}
 			missing={missing}
+			editedVariantIds={editedVariantIds(
+				control,
+				current,
+				state,
+				session,
+				entityKey,
+				blocks,
+				entityDirty
+			)}
 			onAddBack={() =>
 				onChangeControl(control, control.variants?.[0]?.id || 'default')
 			}
@@ -546,6 +673,10 @@ export function renderControl({
 	commonDisabled,
 	onChangeControl,
 	onOpenNested,
+	session,
+	entityKey,
+	blocks,
+	entityDirty,
 }: RenderControlArgs): ReactElement | null {
 	const missing = state.kind === 'missing';
 	// Pattern content not resolved yet (or slug unregistered) — keep the
@@ -571,6 +702,10 @@ export function renderControl({
 		blockeraAttributeId,
 		onChangeControl,
 		onOpenNested,
+		session,
+		entityKey,
+		blocks,
+		entityDirty,
 	});
 	if (!controlNode) {
 		return null;

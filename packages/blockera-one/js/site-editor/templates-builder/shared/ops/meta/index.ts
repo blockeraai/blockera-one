@@ -4,6 +4,7 @@
 
 export {
 	EMPTY_ICON_VALUE,
+	isMetaSeparatorOption,
 	META_ITEM_DEFAULTS,
 	META_ITEM_PART_IDS,
 	META_ITEMS_PRESETS,
@@ -21,6 +22,7 @@ export {
 	getMetaItemSuffix,
 	getMetaRowIdForSection,
 	isMetaRowId,
+	isPostMetaItemId,
 	isSpaceFillerId,
 } from './ids';
 export {
@@ -35,8 +37,10 @@ export { getMetaItemsDesign, resolveMetaItemsForTree } from './payload';
 export {
 	ensureSpaceFiller,
 	isEmptyIconValue,
+	parkLiveItem,
 	readMetaItemPart,
 	setMetaItemPart,
+	type MetaParkOverlay,
 } from './parts';
 export { readMetaSeparatorOption, syncMetaSeparators } from './separators';
 export {

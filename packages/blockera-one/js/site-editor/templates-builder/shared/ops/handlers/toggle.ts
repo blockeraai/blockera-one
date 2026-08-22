@@ -12,11 +12,20 @@ import {
 	type ElementBucket,
 } from '../../element-order';
 import { resolveCompoundToggleEnabled } from '../../resolve/resolve-state';
-import { lookupFromControl, type StampLookupOptions } from '../../stamp-lookup';
 import { flattenPanelControls } from '../../resolve/resolve-options-panel';
+import {
+	findStampById,
+	lookupFromControl,
+	type StampLookupOptions,
+} from '../../stamp-lookup';
 import type { BlockNode, ControlDef, TemplateOptionsConfig } from '../../types';
-import { applyMetaToggleSideEffects } from '../meta';
 import { applyInnerOrder } from '../handler-helpers';
+import { applyMetaToggleSideEffects } from '../meta';
+import { parkLiveItem, type MetaParkOverlay } from '../meta/parts';
+import {
+	loadMetaParkOverlay,
+	saveMetaParkOverlay,
+} from '../meta/session-overlay';
 import type { OperationHandler } from '../types';
 
 function findBucketParentId(
@@ -140,10 +149,17 @@ export function applyToggleControl(
 	orderSource: BlockNode[],
 	layoutId: string,
 	selectedClientId?: string | null,
-	orderBuckets?: ElementBucket[]
+	orderBuckets?: ElementBucket[],
+	overlay?: MetaParkOverlay
 ): BlockNode[] {
 	const lookup = lookupFromControl(control, selectedClientId);
 	const ctx = { ...defaultOpsContext, lookup };
+	if (!enabled && overlay) {
+		const match = findStampById(blocks, control.target.id, lookup);
+		if (match) {
+			parkLiveItem(overlay, control.target.id, match.block);
+		}
+	}
 	const rule = control.innerOrder;
 	let homeParent: string | null = null;
 	let capturedBuckets: ElementBucket[] | null = null;
@@ -208,11 +224,11 @@ export function applyToggleControl(
 			capturedBuckets,
 			lookup
 		);
-		return applyMetaToggleSideEffects(tree, control, enabled);
+		return applyMetaToggleSideEffects(tree, control, enabled, overlay);
 	}
 
 	tree = applyInnerOrder(tree, control, orderSource, selectedClientId);
-	return applyMetaToggleSideEffects(tree, control, enabled);
+	return applyMetaToggleSideEffects(tree, control, enabled, overlay);
 }
 
 export const handleToggleSection: OperationHandler = ({
@@ -222,21 +238,27 @@ export const handleToggleSection: OperationHandler = ({
 	config,
 	selectedClientId,
 	orderBuckets,
+	session,
+	entityKey,
 }) => {
 	const enabled = control.invertPresence ? !nextValue : !!nextValue;
 	if (!enabled && wouldLeaveZeroRequired(blocks, control, config)) {
 		return { kind: 'blocks', blocks };
 	}
+	const park = loadMetaParkOverlay(session, entityKey, control);
+	const nextBlocks = applyToggleControl(
+		blocks,
+		control,
+		enabled,
+		blocks,
+		config.layoutId,
+		selectedClientId,
+		orderBuckets,
+		park.overlay
+	);
+	saveMetaParkOverlay(session, park.key, park.overlay);
 	return {
 		kind: 'blocks',
-		blocks: applyToggleControl(
-			blocks,
-			control,
-			enabled,
-			blocks,
-			config.layoutId,
-			selectedClientId,
-			orderBuckets
-		),
+		blocks: nextBlocks,
 	};
 };

@@ -8,7 +8,7 @@ import { __ } from '@wordpress/i18n';
  * Blockera dependencies
  */
 import { classNames } from '@blockera/classnames';
-import { BaseControl } from '@blockera/controls';
+import { BaseControl, ChangeIndicator, Tooltip } from '@blockera/controls';
 
 /**
  * Internal dependencies
@@ -27,7 +27,10 @@ type LayoutPickerProps = {
 	missing?: boolean;
 	onAddBack?: () => void;
 	className?: string;
+	editedVariantIds?: string[];
 };
+
+const EMPTY_EDITED_VARIANT_IDS: string[] = [];
 
 export default function LayoutPicker({
 	label,
@@ -39,6 +42,7 @@ export default function LayoutPicker({
 	missing,
 	onAddBack,
 	className,
+	editedVariantIds = EMPTY_EDITED_VARIANT_IDS,
 }: LayoutPickerProps) {
 	return (
 		<BaseControl
@@ -76,6 +80,8 @@ export default function LayoutPicker({
 					{variants.map((variant) => {
 						const isActive = value === variant.id;
 						const tileDisabled = disabled || !!variant.disabled;
+						const hasEdits =
+							editedVariantIds.indexOf(variant.id) !== -1;
 						return (
 							<div
 								key={variant.id}
@@ -88,6 +94,7 @@ export default function LayoutPicker({
 										'is-selected': isActive,
 										'is-coming-soon': !!variant.disabled,
 										'is-disabled': tileDisabled,
+										'has-session-edits': hasEdits,
 									}
 								)}
 								aria-pressed={isActive}
@@ -97,13 +104,16 @@ export default function LayoutPicker({
 										: variant.label
 								}
 								data-test={`blockera-templates-builder-layout-${variant.id}`}
+								data-session-edits={
+									hasEdits ? 'true' : undefined
+								}
 								onClick={() => {
-									if (!tileDisabled) {
+									if (!tileDisabled && !isActive) {
 										onChange(variant.id);
 									}
 								}}
 								onKeyDown={(event) => {
-									if (tileDisabled) {
+									if (tileDisabled || isActive) {
 										return;
 									}
 
@@ -131,6 +141,30 @@ export default function LayoutPicker({
 										<span className="blockera-templates-builder-layout-picker__badge">
 											{variant.badge}
 										</span>
+									) : null}
+									{hasEdits ? (
+										<Tooltip
+											text={__(
+												'You edited this design during current session.',
+												'blockera'
+											)}
+											delay={200}
+											hideOnClick={false}
+											placement="top"
+										>
+											<span className="blockera-templates-builder-layout-picker__edits">
+												<ChangeIndicator
+													isChanged
+													isAnimated={false}
+													data-test={`blockera-templates-builder-layout-edits-${variant.id}`}
+													size={6}
+													primaryColor={
+														'var(--blockera-controls-primary-color, var(--wp-components-color-accent, var(--wp-admin-theme-color, #3858e9)))'
+													}
+													outlineSize={2}
+												/>
+											</span>
+										</Tooltip>
 									) : null}
 								</span>
 								{/* Visible name; option aria-label already exposes it. */}

@@ -1,18 +1,22 @@
 /**
  * Read / write `metadata.blockeraOne` on block nodes.
  *
- * The value is an object: `{ stamp, metaParts?, metaSeparator?, ... }`.
- * Stamp grammar (`role/id` / `role/id:variant`) lives in `stamp.ts`.
+ * The value is an object: `{ stamp, metaSeparator?, ... }`.
+ * Post Meta rows always store `metaSeparator`. Space fillers never store it.
+ * Stamp grammar lives in `stamp.ts`.
  */
 
 import { formatStamp, parseStamp, type Stamp, type StampRole } from './stamp';
 import { withBlockeraCompatibility } from './blockera-attribute';
 import type { BlockNode } from './types';
-import type { MetaSeparatorOption, ParkedParts } from './ops/meta/constants';
+import {
+	isMetaSeparatorOption,
+	type MetaSeparatorOption,
+} from './ops/meta/constants';
+import { isMetaRowId, isSpaceFillerId } from './ops/meta/ids';
 
 export type BlockeraOneMeta = {
 	stamp?: string;
-	metaParts?: ParkedParts;
 	metaSeparator?: MetaSeparatorOption;
 	[key: string]: unknown;
 };
@@ -29,10 +33,6 @@ function metadataRecord(
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
 	return !!value && typeof value === 'object' && !Array.isArray(value);
-}
-
-function isEmptyParked(parts: unknown): boolean {
-	return !isPlainObject(parts) || Object.keys(parts).length === 0;
 }
 
 /** `metadata.blockeraOne` object, or null when missing / not an object. */
@@ -61,18 +61,27 @@ function compactBlockeraOneMeta(
 			next[key] = meta[key];
 		}
 	}
-	if (!isEmptyParked(meta.metaParts)) {
-		next.metaParts = meta.metaParts as ParkedParts;
+
+	const id = parseStamp(next.stamp || '')?.id || '';
+	if (isSpaceFillerId(id)) {
+		return next;
 	}
-	if (meta.metaSeparator !== undefined) {
-		next.metaSeparator = meta.metaSeparator as MetaSeparatorOption;
+	if (isMetaRowId(id)) {
+		next.metaSeparator = isMetaSeparatorOption(meta.metaSeparator)
+			? meta.metaSeparator
+			: 'none';
+		return next;
+	}
+	if (isMetaSeparatorOption(meta.metaSeparator)) {
+		next.metaSeparator = meta.metaSeparator;
 	}
 	return next;
 }
 
 /**
  * Shallow-merge a patch into `metadata.blockeraOne`.
- * `undefined` patch values delete that key. Empty `metaParts` is omitted.
+ * `undefined` patch values delete that key. Post Meta rows always keep
+ * `metaSeparator`. `metaParts` is never stored.
  */
 export function withBlockeraOneMeta(
 	block: BlockNode,
@@ -81,8 +90,9 @@ export function withBlockeraOneMeta(
 	const prevMeta = metadataRecord(block) || {};
 	const prev = getBlockeraOneMeta(block) || {};
 	const merged: Record<string, unknown> = { ...prev };
+	delete merged.metaParts;
 	for (const key of Object.keys(patch)) {
-		if (patch[key] === undefined) {
+		if (key === 'metaParts' || patch[key] === undefined) {
 			delete merged[key];
 		} else {
 			merged[key] = patch[key];

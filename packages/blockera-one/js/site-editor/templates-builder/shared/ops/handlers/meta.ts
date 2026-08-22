@@ -11,6 +11,10 @@ import {
 	type MetaItemsPreset,
 	type MetaSeparatorOption,
 } from '../meta';
+import {
+	loadMetaParkOverlay,
+	saveMetaParkOverlay,
+} from '../meta/session-overlay';
 import type { OperationHandler } from '../types';
 
 export const handleSetMetaItemPart: OperationHandler = ({
@@ -18,6 +22,8 @@ export const handleSetMetaItemPart: OperationHandler = ({
 	control,
 	nextValue,
 	selectedClientId,
+	session,
+	entityKey,
 }) => {
 	if (!control.attributePath) {
 		return null;
@@ -26,14 +32,18 @@ export const handleSetMetaItemPart: OperationHandler = ({
 	if (part !== 'icon' && part !== 'prefix' && part !== 'suffix') {
 		return null;
 	}
+	const park = loadMetaParkOverlay(session, entityKey, control);
+	const next = setMetaItemPart(blocks, {
+		sectionId: control.target.id,
+		part,
+		value: nextValue,
+		lookup: lookupFromControl(control, selectedClientId),
+		overlay: park.overlay,
+	});
+	saveMetaParkOverlay(session, park.key, park.overlay);
 	return {
 		kind: 'blocks',
-		blocks: setMetaItemPart(blocks, {
-			sectionId: control.target.id,
-			part,
-			value: nextValue,
-			lookup: lookupFromControl(control, selectedClientId),
-		}),
+		blocks: next,
 	};
 };
 
@@ -60,19 +70,25 @@ export const handleSetMetaItemsDesign: OperationHandler = ({
 	control,
 	nextValue,
 	selectedClientId,
+	session,
+	entityKey,
 }) => {
 	const design = String(nextValue || 'simple') as MetaItemsPreset;
 	if (design !== 'simple' && design !== 'labels' && design !== 'icons') {
 		return null;
 	}
+	const park = loadMetaParkOverlay(session, entityKey, control);
+	const next = setMetaItemsDesign(
+		blocks,
+		control.target.id,
+		design,
+		undefined,
+		lookupFromControl(control, selectedClientId),
+		park.overlay
+	);
+	saveMetaParkOverlay(session, park.key, park.overlay);
 	return {
 		kind: 'blocks',
-		blocks: setMetaItemsDesign(
-			blocks,
-			control.target.id,
-			design,
-			undefined,
-			lookupFromControl(control, selectedClientId)
-		),
+		blocks: next,
 	};
 };

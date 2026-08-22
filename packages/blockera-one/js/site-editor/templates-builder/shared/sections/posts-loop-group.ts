@@ -47,6 +47,11 @@ const POSTS_TEMPLATE: ControlDef = {
 		],
 	},
 	catalogPool: 'posts-listing',
+	innerOrder: {
+		parentId: 'posts-listing',
+		ids: [],
+		within: 'posts-listing',
+	},
 };
 
 const POSTS_PER_PAGE: ControlDef = {

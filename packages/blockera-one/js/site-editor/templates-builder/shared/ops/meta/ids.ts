@@ -26,6 +26,13 @@ export function isSpaceFillerId(id: string): boolean {
 	return id.includes('space-filler');
 }
 
+/** Item wrapper (not the row, not a space filler). */
+export function isPostMetaItemId(id: string): boolean {
+	return (
+		!!getMetaRowIdForSection(id) && !isMetaRowId(id) && !isSpaceFillerId(id)
+	);
+}
+
 export function getMetaItemSuffix(sectionId: string): string {
 	const meta2Prefix = `${STAMP_IDS.postMeta2}-`;
 	const metaPrefix = `${STAMP_IDS.postMeta}-`;

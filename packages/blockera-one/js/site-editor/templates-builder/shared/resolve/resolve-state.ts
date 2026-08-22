@@ -20,6 +20,23 @@ export type { StampLookupOptions } from '../stamp-lookup';
  */
 export const LAYOUT_ROOT_CONTAINER_KEY = 'main';
 
+function pathHasSectionAncestor(
+	layoutBlock: BlockNode,
+	relativePath: number[]
+): boolean {
+	let node: BlockNode | undefined = layoutBlock;
+	for (let i = 1; i < relativePath.length - 1; i++) {
+		node = (node.innerBlocks || [])[relativePath[i]];
+		if (!node) {
+			return false;
+		}
+		if (getStamp(node)?.role === 'section') {
+			return true;
+		}
+	}
+	return false;
+}
+
 function buildAreaAndContainerMaps(
 	layoutBlock: BlockNode,
 	layoutPath: number[]
@@ -47,6 +64,11 @@ function buildAreaAndContainerMaps(
 					innerBlocks: [...(block.innerBlocks || [])],
 				};
 			} else if (role === 'container') {
+				// Inner slots (page-header / listing `body`) share stamp ids.
+				// Carry-over is only for the layout frame, not those copies.
+				if (pathHasSectionAncestor(layoutBlock, relativePath)) {
+					return;
+				}
 				containerMap[stamp.id] = {
 					path: absolutePath,
 					attributes: { ...(block.attributes || {}) },

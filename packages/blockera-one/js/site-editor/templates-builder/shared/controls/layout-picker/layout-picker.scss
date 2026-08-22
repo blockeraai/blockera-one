@@ -1,5 +1,4 @@
 .blockera-templates-builder-layout-picker {
-	$block: &;
 	transition: var(--blockera-controls-transition);
 
 	&__grid {
@@ -28,50 +27,46 @@
 		&.is-coming-soon {
 			opacity: 1;
 		}
+	}
 
-		&.is-selected {
-			#{$block}__preview {
-				background-color: var(
+	&__option.is-selected &__preview {
+		background-color: var(
+			--blockera-controls-primary-color,
+			var(
+				--wp-components-color-accent,
+				var(--wp-admin-theme-color, #3858e9)
+			)
+		);
+	}
+
+	&__option.is-selected &__caption {
+		color: var(
+			--blockera-controls-primary-color,
+			var(
+				--wp-components-color-accent,
+				var(--wp-admin-theme-color, #3858e9)
+			)
+		);
+		opacity: 1;
+	}
+
+	&__option:hover:not(.is-disabled, .is-selected) &__preview {
+		background-color: color-mix(
+			in srgb,
+			var(
 					--blockera-controls-primary-color,
 					var(
 						--wp-components-color-accent,
 						var(--wp-admin-theme-color, #3858e9)
 					)
-				);
-			}
+				)
+				60%,
+			#ffffff
+		);
+	}
 
-			#{$block}__caption {
-				color: var(
-					--blockera-controls-primary-color,
-					var(
-						--wp-components-color-accent,
-						var(--wp-admin-theme-color, #3858e9)
-					)
-				);
-				opacity: 1;
-			}
-		}
-
-		&:hover:not(.is-disabled, .is-selected) {
-			#{$block}__preview {
-				background-color: color-mix(
-					in srgb,
-					var(
-							--blockera-controls-primary-color,
-							var(
-								--wp-components-color-accent,
-								var(--wp-admin-theme-color, #3858e9)
-							)
-						)
-						60%,
-					#ffffff
-				);
-			}
-
-			#{$block}__caption {
-				opacity: 1;
-			}
-		}
+	&__option:hover:not(.is-disabled, .is-selected) &__caption {
+		opacity: 1;
 	}
 
 	&__preview {
@@ -128,6 +123,15 @@
 		line-height: 1.2;
 		text-align: center;
 		pointer-events: none;
+	}
+
+	&__edits {
+		position: absolute;
+		top: -3px;
+		right: -3px;
+		z-index: 1;
+		line-height: 0;
+		pointer-events: auto;
 	}
 
 	&__fallback {

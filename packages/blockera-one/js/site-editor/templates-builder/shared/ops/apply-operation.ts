@@ -24,6 +24,7 @@ import { handleSetTemplateSetting } from './handlers/settings';
 import { handleSwapSection, handleSwapTemplatePart } from './handlers/swap';
 import { handleToggleSection } from './handlers/toggle';
 import { handleTransplantLayout } from './handlers/transplant';
+import { clearSwapCleanCurrent } from '../../../session';
 
 const OPERATION_HANDLERS = {
 	transplantLayout: handleTransplantLayout,
@@ -52,6 +53,15 @@ export type { OperationResult, ApplyOperationArgs } from './types';
  *                          structure was customized/unrecognized.
  */
 export function applyOperation(args: ApplyOperationArgs): OperationResult {
-	const handler = OPERATION_HANDLERS[args.control.operation];
+	const operation = args.control.operation;
+	if (
+		args.session &&
+		args.entityKey &&
+		operation !== 'swapSection' &&
+		operation !== 'swapTemplatePart'
+	) {
+		clearSwapCleanCurrent(args.session, args.entityKey);
+	}
+	const handler = OPERATION_HANDLERS[operation];
 	return handler ? handler(args) : null;
 }

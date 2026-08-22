@@ -30,6 +30,11 @@ const PAGE_HEADER_DESIGN: ControlDef = {
 	operation: 'swapSection',
 	conditions: [{ controlId: 'page-header', equals: true }],
 	catalogPool: 'page-header',
+	innerOrder: {
+		parentId: 'page-header',
+		ids: [],
+		within: 'page-header',
+	},
 	swapHints: {
 		// Title/description/breadcrumb settings survive the design swap.
 		// Gap, alignment, padding, and width stay with the new pattern:

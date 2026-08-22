@@ -2,12 +2,7 @@
  * Icon / prefix / suffix parts on a Post Meta item wrapper.
  */
 
-import {
-	getBlockeraOneMeta,
-	getStamp,
-	withBlockeraOneMeta,
-	withStamp,
-} from '../../metadata';
+import { getStamp, withStamp } from '../../metadata';
 import { findStampById, type StampLookupOptions } from '../../stamp-lookup';
 import { findByStampWithin, replaceAtPath, type WalkMatch } from '../../tree';
 import { withBlockeraCompatibility } from '../../blockera-attribute';
@@ -80,19 +75,81 @@ function metadataRecord(
 	return metadata as Record<string, unknown>;
 }
 
-export function getParked(block: BlockNode): ParkedParts {
-	const parked = getBlockeraOneMeta(block)?.metaParts;
+export type MetaParkOverlay = Record<string, ParkedParts>;
+
+export function overlayParts(
+	overlay: MetaParkOverlay | undefined,
+	itemId: string
+): ParkedParts {
+	const parked = overlay?.[itemId];
 	if (!parked || typeof parked !== 'object' || Array.isArray(parked)) {
 		return {};
 	}
-	return parked as ParkedParts;
+	return { ...parked };
 }
 
-export function withParked(block: BlockNode, parked: ParkedParts): BlockNode {
-	const empty = Object.keys(parked).length === 0;
-	return withBlockeraOneMeta(block, {
-		metaParts: empty ? undefined : parked,
-	});
+function isEmptyParked(parts: ParkedParts): boolean {
+	return !parts.icon && !parts.prefix && !parts.suffix;
+}
+
+export function writeOverlayParts(
+	overlay: MetaParkOverlay | undefined,
+	itemId: string,
+	parts: ParkedParts
+): void {
+	if (!overlay) {
+		return;
+	}
+	if (isEmptyParked(parts)) {
+		delete overlay[itemId];
+		return;
+	}
+	overlay[itemId] = parts;
+}
+
+export function dropOverlayPart(
+	overlay: MetaParkOverlay | undefined,
+	itemId: string,
+	part: MetaItemPart
+): void {
+	if (!overlay?.[itemId]) {
+		return;
+	}
+	const next = { ...overlay[itemId] };
+	delete next[part];
+	writeOverlayParts(overlay, itemId, next);
+}
+
+export function getParked(
+	overlay: MetaParkOverlay | undefined,
+	itemId: string
+): ParkedParts {
+	return overlayParts(overlay, itemId);
+}
+
+function parkFromLive(block: BlockNode): ParkedParts {
+	const parked: ParkedParts = {};
+	const inner = block.innerBlocks || [];
+	for (let i = 0; i < inner.length; i++) {
+		const id = getStamp(inner[i])?.id;
+		if (id === META_ITEM_PART_IDS.icon) {
+			const icon = readIconValue(inner[i]);
+			if (icon && !isEmptyIconValue(icon)) {
+				parked.icon = icon;
+			}
+		} else if (id === META_ITEM_PART_IDS.prefix) {
+			const text = paragraphContent(inner[i]);
+			if (text) {
+				parked.prefix = text;
+			}
+		} else if (id === META_ITEM_PART_IDS.suffix) {
+			const text = paragraphContent(inner[i]);
+			if (text) {
+				parked.suffix = text;
+			}
+		}
+	}
+	return parked;
 }
 
 export function paragraphContent(block: BlockNode | null | undefined): string {
@@ -300,7 +357,7 @@ function withItemListName(block: BlockNode, sectionId: string): BlockNode {
  */
 function ensureMetaItemWrapper(block: BlockNode, sectionId: string): BlockNode {
 	if (block.name === 'core/group' && hasMetaItemBlock(block)) {
-		return withItemListName(block, sectionId);
+		return finishItemWrapper(block, sectionId);
 	}
 	if (block.name === 'core/group') {
 		const inner = [...(block.innerBlocks || [])];
@@ -316,12 +373,12 @@ function ensureMetaItemWrapper(block: BlockNode, sectionId: string): BlockNode {
 					'default'
 				)
 			);
-			return withItemListName(
+			return finishItemWrapper(
 				{ ...block, innerBlocks: inner },
 				sectionId
 			);
 		}
-		return withItemListName(block, sectionId);
+		return finishItemWrapper(block, sectionId);
 	}
 	const stamp = getStamp(block);
 	const inner = stripListName(
@@ -332,41 +389,63 @@ function ensureMetaItemWrapper(block: BlockNode, sectionId: string): BlockNode {
 			stamp?.variant || 'default'
 		)
 	);
-	return withStamp(
-		{
-			name: 'core/group',
-			attributes: {
-				layout: {
-					type: 'flex',
-					flexWrap: 'nowrap',
-					verticalAlignment: 'center',
+	return finishItemWrapper(
+		withStamp(
+			{
+				name: 'core/group',
+				attributes: {
+					layout: {
+						type: 'flex',
+						flexWrap: 'nowrap',
+						verticalAlignment: 'center',
+					},
+					style: { spacing: { blockGap: '0.35em' } },
+					metadata: { name: getMetaItemListName(sectionId) },
 				},
-				style: { spacing: { blockGap: '0.35em' } },
-				metadata: { name: getMetaItemListName(sectionId) },
+				innerBlocks: [inner],
 			},
-			innerBlocks: [inner],
-		},
-		'section',
-		sectionId,
-		stamp?.variant || 'default'
+			'section',
+			sectionId,
+			stamp?.variant || 'default'
+		),
+		sectionId
 	);
+}
+
+function finishItemWrapper(block: BlockNode, sectionId: string): BlockNode {
+	return withItemListName(block, sectionId);
+}
+
+export function parkLiveItem(
+	overlay: MetaParkOverlay | undefined,
+	itemId: string,
+	block: BlockNode
+): void {
+	if (!overlay) {
+		return;
+	}
+	const live = parkFromLive(block);
+	const parked = { ...overlayParts(overlay, itemId), ...live };
+	writeOverlayParts(overlay, itemId, parked);
 }
 
 export function setPartOnWrapper(
 	wrapperBlock: BlockNode,
 	part: MetaItemPart,
-	value: ControlValue
+	value: ControlValue,
+	overlay?: MetaParkOverlay,
+	itemId?: string
 ): BlockNode {
 	const sectionId = getStamp(wrapperBlock)?.id || '';
 	if (sectionId && !isSpaceFillerId(sectionId) && !isMetaRowId(sectionId)) {
 		wrapperBlock = ensureMetaItemWrapper(wrapperBlock, sectionId);
 	}
+	const parkId = itemId || sectionId;
 	const children = [...(wrapperBlock.innerBlocks || [])];
 	const partId = META_ITEM_PART_IDS[part];
 	const nextChildren = children.filter(
 		(child) => getStamp(child)?.id !== partId
 	);
-	const parked = { ...getParked(wrapperBlock) };
 	const empty =
 		part === 'icon'
 			? isEmptyIconValue(value)
@@ -374,7 +453,8 @@ export function setPartOnWrapper(
 
 	if (empty) {
 		const live = children.find((child) => getStamp(child)?.id === partId);
-		if (live) {
+		if (live && overlay && parkId) {
+			const parked = overlayParts(overlay, parkId);
 			if (part === 'icon') {
 				const icon = readIconValue(live);
 				if (icon && !isEmptyIconValue(icon)) {
@@ -386,14 +466,12 @@ export function setPartOnWrapper(
 					parked[part] = text;
 				}
 			}
+			writeOverlayParts(overlay, parkId, parked);
 		}
-		return withParked(
-			{
-				...wrapperBlock,
-				innerBlocks: canonicalInnerBlocks(nextChildren),
-			},
-			parked
-		);
+		return {
+			...wrapperBlock,
+			innerBlocks: canonicalInnerBlocks(nextChildren),
+		};
 	}
 
 	let partBlock: BlockNode;
@@ -403,20 +481,17 @@ export function setPartOnWrapper(
 				? (value as Record<string, unknown>)
 				: EMPTY_ICON_VALUE;
 		partBlock = createIconBlock(iconValue);
-		parked.icon = iconValue;
 	} else {
-		const text = String(value);
-		partBlock = createParagraph(part, text);
-		parked[part] = text;
+		partBlock = createParagraph(part, String(value));
+	}
+	if (overlay && parkId) {
+		dropOverlayPart(overlay, parkId, part);
 	}
 	nextChildren.push(partBlock);
-	return withParked(
-		{
-			...wrapperBlock,
-			innerBlocks: canonicalInnerBlocks(nextChildren),
-		},
-		parked
-	);
+	return {
+		...wrapperBlock,
+		innerBlocks: canonicalInnerBlocks(nextChildren),
+	};
 }
 
 export function setMetaItemPart(
@@ -426,6 +501,7 @@ export function setMetaItemPart(
 		part: MetaItemPart;
 		value: ControlValue;
 		lookup?: StampLookupOptions;
+		overlay?: MetaParkOverlay;
 	}
 ): BlockNode[] {
 	const wrapper = findStampById(blocks, params.sectionId, params.lookup);
@@ -435,7 +511,13 @@ export function setMetaItemPart(
 	return replaceWrapper(
 		blocks,
 		wrapper,
-		setPartOnWrapper(wrapper.block, params.part, params.value)
+		setPartOnWrapper(
+			wrapper.block,
+			params.part,
+			params.value,
+			params.overlay,
+			params.sectionId
+		)
 	);
 }
 

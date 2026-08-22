@@ -30,6 +30,7 @@ import {
 	readIconValue,
 	replaceWrapper,
 	setPartOnWrapper,
+	type MetaParkOverlay,
 } from './parts';
 import { rowItemChildren } from './separators';
 
@@ -136,11 +137,12 @@ function applyDesignToWrapper(
 	wrapper: BlockNode,
 	design: MetaItemsPreset,
 	sectionId: string,
-	items: Record<string, MetaItemDesignConfig>
+	items: Record<string, MetaItemDesignConfig>,
+	overlay?: MetaParkOverlay
 ): BlockNode {
 	const suffix = getMetaItemSuffix(sectionId);
 	const config = items[suffix]?.[design] || EMPTY_PARTS;
-	const parked = getParked(wrapper);
+	const parked = getParked(overlay, sectionId);
 	let next = wrapper;
 
 	const liveIcon = readIconValue(
@@ -148,7 +150,7 @@ function applyDesignToWrapper(
 	);
 	const iconConfig = normalizeIconConfig(config.icon);
 	if (!iconConfig) {
-		next = setPartOnWrapper(next, 'icon', null);
+		next = setPartOnWrapper(next, 'icon', null, overlay, sectionId);
 	} else {
 		const icon =
 			(liveIcon && !isEmptyIconValue(liveIcon) ? liveIcon : null) ||
@@ -156,12 +158,12 @@ function applyDesignToWrapper(
 				? parked.icon
 				: null) ||
 			iconConfig;
-		next = setPartOnWrapper(next, 'icon', icon);
+		next = setPartOnWrapper(next, 'icon', icon, overlay, sectionId);
 	}
 
 	const prefixConfig = configText(config.prefix);
 	if (!prefixConfig) {
-		next = setPartOnWrapper(next, 'prefix', '');
+		next = setPartOnWrapper(next, 'prefix', '', overlay, sectionId);
 	} else {
 		const livePrefix = paragraphContent(
 			livePartBlock(wrapper, META_ITEM_PART_IDS.prefix)
@@ -171,13 +173,15 @@ function applyDesignToWrapper(
 			'prefix',
 			livePrefix ||
 				(typeof parked.prefix === 'string' && parked.prefix) ||
-				prefixConfig
+				prefixConfig,
+			overlay,
+			sectionId
 		);
 	}
 
 	const suffixConfig = configText(config.suffix);
 	if (!suffixConfig) {
-		next = setPartOnWrapper(next, 'suffix', '');
+		next = setPartOnWrapper(next, 'suffix', '', overlay, sectionId);
 	} else {
 		const liveSuffix = paragraphContent(
 			livePartBlock(wrapper, META_ITEM_PART_IDS.suffix)
@@ -187,7 +191,9 @@ function applyDesignToWrapper(
 			'suffix',
 			liveSuffix ||
 				(typeof parked.suffix === 'string' && parked.suffix) ||
-				suffixConfig
+				suffixConfig,
+			overlay,
+			sectionId
 		);
 	}
 
@@ -199,7 +205,8 @@ export function applyMetaItemsDesignToSection(
 	sectionId: string,
 	design: MetaItemsPreset,
 	items?: Record<string, MetaItemDesignConfig>,
-	lookup?: StampLookupOptions
+	lookup?: StampLookupOptions,
+	overlay?: MetaParkOverlay
 ): BlockNode[] {
 	if (isSpaceFillerId(sectionId)) {
 		return blocks;
@@ -212,7 +219,13 @@ export function applyMetaItemsDesignToSection(
 	return replaceWrapper(
 		blocks,
 		wrapper,
-		applyDesignToWrapper(wrapper.block, design, sectionId, itemsMap)
+		applyDesignToWrapper(
+			wrapper.block,
+			design,
+			sectionId,
+			itemsMap,
+			overlay
+		)
 	);
 }
 
@@ -221,7 +234,8 @@ export function setMetaItemsDesign(
 	rowId: string,
 	design: MetaItemsPreset,
 	items?: Record<string, MetaItemDesignConfig>,
-	lookup?: StampLookupOptions
+	lookup?: StampLookupOptions,
+	overlay?: MetaParkOverlay
 ): BlockNode[] {
 	const row = findStampById(blocks, rowId, lookup);
 	if (!row) {
@@ -238,7 +252,7 @@ export function setMetaItemsDesign(
 		) {
 			return child;
 		}
-		return applyDesignToWrapper(child, design, stamp.id, itemsMap);
+		return applyDesignToWrapper(child, design, stamp.id, itemsMap, overlay);
 	});
 	return replaceWrapper(blocks, row, {
 		...row.block,
@@ -268,7 +282,8 @@ export function applyListingMetaItemsPreset(blocks: BlockNode[]): BlockNode[] {
 export function adoptMetaItemDesign(
 	blocks: BlockNode[],
 	sectionId: string,
-	lookup?: StampLookupOptions
+	lookup?: StampLookupOptions,
+	overlay?: MetaParkOverlay
 ): BlockNode[] {
 	const rowId = getMetaRowIdForSection(sectionId);
 	if (!rowId || isSpaceFillerId(sectionId) || isMetaRowId(sectionId)) {
@@ -290,6 +305,7 @@ export function adoptMetaItemDesign(
 		sectionId,
 		design,
 		itemsMap,
-		lookup
+		lookup,
+		overlay
 	);
 }

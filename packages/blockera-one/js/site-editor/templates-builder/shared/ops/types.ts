@@ -11,6 +11,7 @@ import type {
 	ControlValue,
 	TemplateOptionsConfig,
 } from '../types';
+import type { EditorSessionApi } from '../../../session';
 
 export type ApplyOperationArgs = {
 	blocks: BlockNode[];
@@ -23,6 +24,9 @@ export type ApplyOperationArgs = {
 	selectedClientId?: string | null;
 	/** Frozen display order for sortable toggles (off-at-end visit freeze). */
 	orderBuckets?: ElementBucket[];
+	session?: EditorSessionApi;
+	entityKey?: string;
+	entityDirty?: boolean;
 };
 
 export type OperationResult =

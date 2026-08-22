@@ -21,6 +21,7 @@ import usePortalHost from './hooks/use-portal-host';
 import MainNavigation from './main-navigation';
 import MainPanelHeader from './main-panel-header';
 import SiteEditorMainPanelRoutes from './routes';
+import { EditorSessionProvider } from './session';
 import { getSiteEditorPath, isDesignRootPath, isSiteEditorUrl } from './utils';
 import './admin-ui-card.scss';
 import './style.scss';
@@ -147,10 +148,10 @@ export default function SiteEditorMainPanel(): ReactNode {
 	}
 
 	return (
-		<>
+		<EditorSessionProvider>
 			<SiteEditorMainPanelRoutes />
 			<MainPanelHeaderInjector />
 			<SiteEditorMainPanelNavigationInjector />
-		</>
+		</EditorSessionProvider>
 	);
 }

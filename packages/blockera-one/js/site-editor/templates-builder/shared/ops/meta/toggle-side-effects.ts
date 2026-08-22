@@ -6,13 +6,14 @@ import { lookupFromControl } from '../../stamp-lookup';
 import type { BlockNode, ControlDef } from '../../types';
 import { adoptMetaItemDesign } from './design';
 import { getMetaRowIdForSection, isMetaRowId, isSpaceFillerId } from './ids';
-import { ensureSpaceFiller } from './parts';
+import { ensureSpaceFiller, type MetaParkOverlay } from './parts';
 import { syncMetaSeparators } from './separators';
 
 export function applyMetaToggleSideEffects(
 	tree: BlockNode[],
 	control: ControlDef,
-	enabled: boolean
+	enabled: boolean,
+	overlay?: MetaParkOverlay
 ): BlockNode[] {
 	// The meta row toggle restores a full pattern (seps already correct).
 	// Child toggles must adopt design and rebuild seps after inner-order
@@ -27,7 +28,7 @@ export function applyMetaToggleSideEffects(
 	const lookup = lookupFromControl(control);
 	let next = tree;
 	if (enabled) {
-		next = adoptMetaItemDesign(next, control.target.id, lookup);
+		next = adoptMetaItemDesign(next, control.target.id, lookup, overlay);
 		if (isSpaceFillerId(control.target.id)) {
 			next = ensureSpaceFiller(next, control.target.id, lookup);
 		}

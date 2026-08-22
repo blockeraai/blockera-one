@@ -36,6 +36,7 @@ import type {
 	TemplateOptionsConfig,
 } from '../types';
 import useTemplateOptions from '../use-template-options';
+import type { EditorSessionApi } from '../../../session';
 import { buildGatewayRowProps } from './gateway-row-props';
 import { renderControl } from './render-control';
 import { SortableElementGroup } from './sortable-element-group';
@@ -66,6 +67,9 @@ type PanelGroupShellProps = {
 		payload: ReorderElementsPayload
 	) => void;
 	onOpenNested?: (panelId: string) => void;
+	entityKey: string;
+	session: EditorSessionApi;
+	entityDirty: boolean;
 };
 
 function PanelGroupShell({
@@ -76,6 +80,9 @@ function PanelGroupShell({
 	onChangeControl,
 	onReorderElements,
 	onOpenNested,
+	entityKey,
+	session,
+	entityDirty,
 }: PanelGroupShellProps) {
 	const headerToggleDef = group.headerToggle;
 	const commonDisabled = !templateId;
@@ -229,6 +236,7 @@ function PanelGroupShell({
 					onReorderElements={onReorderElements}
 					onChangeControl={onChangeControl}
 					onOpenNested={onOpenNested}
+					entityKey={entityKey}
 				/>
 			)}
 			{staticControls.map(
@@ -248,6 +256,10 @@ function PanelGroupShell({
 						commonDisabled,
 						onChangeControl,
 						onOpenNested,
+						session,
+						entityKey,
+						blocks,
+						entityDirty,
 					})
 			)}
 			{gatewayRow}
@@ -339,6 +351,8 @@ export default function TemplateOptionsPanel({
 		confirmMessage,
 		confirmPending,
 		cancelPending,
+		entityKey,
+		session,
 	} = useTemplateOptions(templateId, config, filterId);
 
 	const screenGroups = groupsProp || config.groups;
@@ -361,6 +375,9 @@ export default function TemplateOptionsPanel({
 			onChangeControl={onChangeControl}
 			onReorderElements={onReorderElements}
 			onOpenNested={nestedOpen}
+			entityKey={entityKey}
+			session={session}
+			entityDirty={isDirty}
 		/>
 	));
 

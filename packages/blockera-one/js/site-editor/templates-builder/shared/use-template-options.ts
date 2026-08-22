@@ -25,8 +25,11 @@ import {
 } from './constants';
 import { applyOperation } from './ops/apply-operation';
 import { runBroadcast } from './ops/broadcast';
-import { useSortableOrderFreeze } from './sortable-order-freeze-context';
-import { innerOrderFreezeKey } from './sortable-order-freeze';
+import {
+	sessionEntityKey,
+	sessionOrderKeyForRule,
+	useEditorSession,
+} from '../../session';
 import {
 	isPresenceToggle,
 	resolveEnableScrollTarget,
@@ -98,7 +101,7 @@ export default function useTemplateOptions(
 	const [pendingAction, setPendingAction] = useState<null | (() => void)>(
 		null
 	);
-	const freeze = useSortableOrderFreeze();
+	const session = useEditorSession();
 
 	const { record, settings, isDirty, sitePostsPerPage } = useSelect(
 		(select) => {
@@ -200,6 +203,11 @@ export default function useTemplateOptions(
 	};
 
 	const blocks = useMemo(() => getBlocksFromRecord(record), [record]);
+	const entityKey = sessionEntityKey(
+		entityPostType,
+		templateId,
+		record?.slug
+	);
 
 	const applyBlocks = useCallback(
 		(next: BlockNode[]) => {
@@ -328,10 +336,16 @@ export default function useTemplateOptions(
 					needsConfirm,
 					selectedClientId,
 					orderBuckets: resolvedControl.innerOrder
-						? freeze.get(
-								innerOrderFreezeKey(resolvedControl.innerOrder)
+						? session.get(
+								sessionOrderKeyForRule(
+									entityKey,
+									resolvedControl.innerOrder
+								)
 							)
 						: undefined,
+					session,
+					entityKey,
+					entityDirty: isDirty,
 				});
 				if (!result) {
 					return;
@@ -373,7 +387,9 @@ export default function useTemplateOptions(
 			settingBucket,
 			settings,
 			selectedClientId,
-			freeze,
+			session,
+			entityKey,
+			isDirty,
 		]
 	);
 
@@ -394,6 +410,8 @@ export default function useTemplateOptions(
 				settingBucket,
 				needsConfirm: false,
 				selectedClientId,
+				session,
+				entityKey,
 			});
 			if (result?.kind === 'blocks') {
 				applyBlocks(result.blocks);
@@ -411,6 +429,8 @@ export default function useTemplateOptions(
 			settingBucket,
 			settings,
 			selectedClientId,
+			session,
+			entityKey,
 		]
 	);
 
@@ -424,5 +444,7 @@ export default function useTemplateOptions(
 		confirmPending,
 		cancelPending,
 		templateSlug: record?.slug || '',
+		entityKey,
+		session,
 	};
 }
