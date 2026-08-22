@@ -51,7 +51,7 @@ function openArchiveTemplate() {
 	cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavArchive).click();
 	cy.location('search').should((search) => {
 		const decoded = decodeURIComponent(search);
-		expect(decoded).to.include('boFilter=archive');
+		expect(decoded).to.include('blockera-builder=archive');
 	});
 	assertTemplatesBuilderShell();
 }
@@ -103,7 +103,9 @@ describe('Blockera One → Templates Builder panel smoke', () => {
 		openTemplatesPurposeNav();
 		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavSinglePost).click();
 		cy.location('search').should((search) => {
-			expect(decodeURIComponent(search)).to.include('boFilter=single');
+			expect(decodeURIComponent(search)).to.include(
+				'blockera-builder=single'
+			);
 		});
 		assertTemplatesBuilderShell();
 		cy.getByDataTest(PANEL_TEST_ID, { timeout: 20000 }).should(
@@ -134,7 +136,9 @@ describe('Blockera One → Templates Builder panel smoke', () => {
 		openTemplatesPurposeNav();
 		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavSinglePage).click();
 		cy.location('search').should((search) => {
-			expect(decodeURIComponent(search)).to.include('boFilter=page');
+			expect(decodeURIComponent(search)).to.include(
+				'blockera-builder=page'
+			);
 		});
 		assertTemplatesBuilderShell();
 		cy.getByDataTest(PANEL_TEST_ID, { timeout: 20000 }).should(
@@ -165,7 +169,9 @@ describe('Blockera One → Templates Builder panel smoke', () => {
 		openTemplatesPurposeNav();
 		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavNotFound).click();
 		cy.location('search').should((search) => {
-			expect(decodeURIComponent(search)).to.include('boFilter=404');
+			expect(decodeURIComponent(search)).to.include(
+				'blockera-builder=404'
+			);
 		});
 		assertTemplatesBuilderShell();
 		cy.getByDataTest(PANEL_TEST_ID, { timeout: 20000 }).should(

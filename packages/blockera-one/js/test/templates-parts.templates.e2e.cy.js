@@ -151,9 +151,9 @@ describe('Blockera One → Templates parts Area Hub', () => {
 
 			cy.location('search', { timeout: 20000 }).should((search) => {
 				const decoded = decodeURIComponent(String(search));
-				expect(decoded).to.include('partsArea=header');
+				expect(decoded).to.include('blockera-builder=header');
 				expect(decoded).to.include('wp_template_part');
-				expect(decoded).to.not.include('p=%2Fpattern');
+				expect(decoded).to.not.include('p=/pattern');
 				expect(decoded).to.not.include('/pattern');
 			});
 			assertTemplatesAreaHub({ area: 'header', mode: 'preview' });
@@ -207,7 +207,7 @@ describe('Blockera One → Templates parts Area Hub', () => {
 			assertPartsBuilder({ area: 'footer' });
 		});
 
-		it('All templates clears Area Hub / partsArea', () => {
+		it('All templates clears Area Hub / blockera-builder', () => {
 			openFreshSiteEditor();
 			openTemplatesPurposeNav();
 			openTemplatesPartArea('header');
@@ -218,9 +218,9 @@ describe('Blockera One → Templates parts Area Hub', () => {
 
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavAll).click();
 			cy.location('search')
-				.should('include', 'p=%2Ftemplate')
+				.should('include', 'p=/template')
 				.and('not.include', 'wp_template_part')
-				.and('not.include', 'partsArea=');
+				.and('not.include', 'blockera-builder=');
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesAreaHub).should(
 				'not.exist'
 			);

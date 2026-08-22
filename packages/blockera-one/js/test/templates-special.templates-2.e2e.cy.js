@@ -126,7 +126,7 @@ describe('Blockera One → Templates Special Templates purpose-nav', () => {
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
 				expect(decoded).to.include('index');
-				expect(decoded).to.include('boFilter=index');
+				expect(decoded).to.include('blockera-builder=index');
 			});
 			assertTemplatesBuilderShell();
 
@@ -142,7 +142,7 @@ describe('Blockera One → Templates Special Templates purpose-nav', () => {
 			cy.location('search', { timeout: 30000 }).should((search) => {
 				const decoded = decodeURIComponent(search);
 				expect(decoded).to.include('canvas=edit');
-				expect(decoded).to.include('boFilter=search');
+				expect(decoded).to.include('blockera-builder=search');
 				expect(decoded).to.include('wp_template');
 			});
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesMissing).should(
@@ -191,7 +191,7 @@ describe('Blockera One → Templates Special Templates purpose-nav', () => {
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
 				expect(decoded).to.include('index');
-				expect(decoded).to.include('boFilter=index');
+				expect(decoded).to.include('blockera-builder=index');
 			});
 			assertTemplatesBuilderShell();
 
@@ -207,7 +207,7 @@ describe('Blockera One → Templates Special Templates purpose-nav', () => {
 			cy.location('search', { timeout: 30000 }).should((search) => {
 				const decoded = decodeURIComponent(search);
 				expect(decoded).to.include('canvas=edit');
-				expect(decoded).to.include('boFilter=404');
+				expect(decoded).to.include('blockera-builder=404');
 				expect(decoded).to.include('wp_template');
 			});
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesMissing).should(

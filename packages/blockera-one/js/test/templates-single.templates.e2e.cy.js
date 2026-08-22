@@ -175,7 +175,7 @@ describe('Blockera One → Templates Single Templates purpose-nav', () => {
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
 				expect(decoded).to.include('singular');
-				expect(decoded).to.include('boFilter=singular');
+				expect(decoded).to.include('blockera-builder=singular');
 			});
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should('exist');
 		});
@@ -212,7 +212,7 @@ describe('Blockera One → Templates Single Templates purpose-nav', () => {
 			).click();
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
-				expect(decoded).to.include('boFilter=single');
+				expect(decoded).to.include('blockera-builder=single');
 			});
 
 			installSingleTemplatesFixture('single-post-e2e');
@@ -241,7 +241,7 @@ describe('Blockera One → Templates Single Templates purpose-nav', () => {
 			).click();
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
-				expect(decoded).to.include('boFilter=children:single');
+				expect(decoded).to.include('blockera-builder=children:single');
 			});
 		});
 	});
@@ -256,7 +256,7 @@ describe('Blockera One → Templates Single Templates purpose-nav', () => {
 			).click();
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
-				expect(decoded).to.include('boFilter=page');
+				expect(decoded).to.include('blockera-builder=page');
 			});
 			assertTemplatesBuilderShell();
 
@@ -269,7 +269,7 @@ describe('Blockera One → Templates Single Templates purpose-nav', () => {
 				.click();
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
-				expect(decoded).to.include('boFilter=children:page');
+				expect(decoded).to.include('blockera-builder=children:page');
 			});
 		});
 	});
@@ -292,7 +292,7 @@ describe('Blockera One → Templates Single Templates purpose-nav', () => {
 			).click();
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
-				expect(decoded).to.include('boFilter=attachment');
+				expect(decoded).to.include('blockera-builder=attachment');
 			});
 
 			ensureNoAttachmentTemplate();
@@ -347,7 +347,9 @@ describe('Blockera One → Templates Single Templates purpose-nav', () => {
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavCptBook).click();
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
-				expect(decoded).to.include('boFilter=cpt-single:bo_book');
+				expect(decoded).to.include(
+					'blockera-builder=cpt-single:bo_book'
+				);
 			});
 
 			installSingleTemplatesFixture('single-bo_book-e2e');
@@ -373,7 +375,7 @@ describe('Blockera One → Templates Single Templates purpose-nav', () => {
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
 				expect(decoded).to.include(
-					'boFilter=children:cpt-single:bo_book'
+					'blockera-builder=children:cpt-single:bo_book'
 				);
 			});
 

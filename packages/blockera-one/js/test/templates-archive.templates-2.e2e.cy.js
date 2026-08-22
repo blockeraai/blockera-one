@@ -172,7 +172,7 @@ describe('Blockera One → Templates Archive Templates purpose-nav', () => {
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
 				expect(decoded).to.include('archive');
-				expect(decoded).to.include('boFilter=archive');
+				expect(decoded).to.include('blockera-builder=archive');
 			});
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesBuilderShell).should(
 				'exist'
@@ -212,7 +212,7 @@ describe('Blockera One → Templates Archive Templates purpose-nav', () => {
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavCategory).click();
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
-				expect(decoded).to.include('boFilter=category');
+				expect(decoded).to.include('blockera-builder=category');
 			});
 
 			installArchiveTemplatesFixture('category-e2e');
@@ -234,7 +234,9 @@ describe('Blockera One → Templates Archive Templates purpose-nav', () => {
 			).click();
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
-				expect(decoded).to.include('boFilter=children:category');
+				expect(decoded).to.include(
+					'blockera-builder=children:category'
+				);
 			});
 		});
 	});
@@ -264,7 +266,7 @@ describe('Blockera One → Templates Archive Templates purpose-nav', () => {
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavTag).click();
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
-				expect(decoded).to.include('boFilter=tag');
+				expect(decoded).to.include('blockera-builder=tag');
 			});
 
 			installArchiveTemplatesFixture('tag-e2e');
@@ -287,7 +289,7 @@ describe('Blockera One → Templates Archive Templates purpose-nav', () => {
 			).click();
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
-				expect(decoded).to.include('boFilter=children:tag');
+				expect(decoded).to.include('blockera-builder=children:tag');
 			});
 
 			ensureNoThemeTemplate('tag');
@@ -328,7 +330,7 @@ describe('Blockera One → Templates Archive Templates purpose-nav', () => {
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavAuthor).click();
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
-				expect(decoded).to.include('boFilter=author');
+				expect(decoded).to.include('blockera-builder=author');
 			});
 
 			installArchiveTemplatesFixture('author-e2e');
@@ -351,7 +353,7 @@ describe('Blockera One → Templates Archive Templates purpose-nav', () => {
 			).click();
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
-				expect(decoded).to.include('boFilter=children:author');
+				expect(decoded).to.include('blockera-builder=children:author');
 			});
 
 			ensureNoThemeTemplate('author');
@@ -389,7 +391,7 @@ describe('Blockera One → Templates Archive Templates purpose-nav', () => {
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavDate).click();
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
-				expect(decoded).to.include('boFilter=date');
+				expect(decoded).to.include('blockera-builder=date');
 			});
 
 			ensureNoThemeTemplate('date');
@@ -427,7 +429,7 @@ describe('Blockera One → Templates Archive Templates purpose-nav', () => {
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavTaxonomy).click();
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
-				expect(decoded).to.include('boFilter=taxonomy');
+				expect(decoded).to.include('blockera-builder=taxonomy');
 			});
 
 			installArchiveTemplatesFixture('taxonomy-e2e');
@@ -450,7 +452,9 @@ describe('Blockera One → Templates Archive Templates purpose-nav', () => {
 			).click();
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
-				expect(decoded).to.include('boFilter=children:taxonomy');
+				expect(decoded).to.include(
+					'blockera-builder=children:taxonomy'
+				);
 			});
 
 			ensureNoThemeTemplate('taxonomy');
@@ -501,7 +505,9 @@ describe('Blockera One → Templates Archive Templates purpose-nav', () => {
 			).click();
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
-				expect(decoded).to.include('boFilter=cpt-archive:bo_book');
+				expect(decoded).to.include(
+					'blockera-builder=cpt-archive:bo_book'
+				);
 			});
 
 			ensureNoThemeTemplate('archive-bo_book');

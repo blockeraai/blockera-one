@@ -146,7 +146,7 @@ describe('Blockera One → Templates Homepage purpose-nav', () => {
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
 				expect(decoded).to.include('front-page');
-				expect(decoded).to.include('boFilter=front-page');
+				expect(decoded).to.include('blockera-builder=front-page');
 			});
 		});
 
@@ -248,7 +248,9 @@ describe('Blockera One → Templates Homepage purpose-nav', () => {
 					cy.location('search').should((search) => {
 						const decoded = decodeURIComponent(search);
 						expect(decoded).to.include(`/page/${homeId}`);
-						expect(decoded).to.include('boFilter=homepage-root');
+						expect(decoded).to.include(
+							'blockera-builder=homepage-root'
+						);
 					});
 					cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should(
 						'exist'
@@ -260,7 +262,9 @@ describe('Blockera One → Templates Homepage purpose-nav', () => {
 					cy.location('search').should((search) => {
 						const decoded = decodeURIComponent(search);
 						expect(decoded).to.include(`/page/${postsId}`);
-						expect(decoded).to.include('boFilter=blog-posts');
+						expect(decoded).to.include(
+							'blockera-builder=blog-posts'
+						);
 					});
 					cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should(
 						'exist'
@@ -314,7 +318,9 @@ describe('Blockera One → Templates Homepage purpose-nav', () => {
 					cy.location('search').should((search) => {
 						const decoded = decodeURIComponent(search);
 						expect(decoded).to.include('front-page');
-						expect(decoded).to.include('boFilter=front-page');
+						expect(decoded).to.include(
+							'blockera-builder=front-page'
+						);
 						expect(decoded).to.not.match(/\/page\/\d+/);
 					});
 
