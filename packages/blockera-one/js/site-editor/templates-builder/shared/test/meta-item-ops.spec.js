@@ -3,22 +3,25 @@
  * Items Design presets. Pure tree ops — no WP, no React.
  */
 
-import { getStamp } from '../metadata';
+import { getMetaName, getStamp } from '../metadata';
 import {
-	META_ITEM_DEFAULTS,
 	adoptMetaItemDesign,
 	applyListingMetaItemsPreset,
 	deriveMetaItemsDesign,
 	ensureSpaceFiller,
+	getMetaItemListName,
 	getMetaItemSuffix,
 	getMetaRowIdForSection,
 	isEmptyIconValue,
 	isMetaRowId,
 	isSpaceFillerId,
+	META_ITEM_DEFAULTS,
+	META_PART_LIST_NAMES,
 	readMetaItemPart,
 	readMetaSeparatorOption,
 	setMetaItemPart,
 	setMetaItemsDesign,
+	SPACE_FILLER_LIST_NAME,
 	syncMetaSeparators,
 } from '../ops/meta';
 import {
@@ -136,6 +139,10 @@ describe('setMetaItemPart', () => {
 		expect(inner[0].attributes.blockeraIcon.value.icon).toBe('user');
 		expect(inner[1].attributes.content).toBe('By');
 		expect(inner[3].attributes.content).toBe('end');
+		expect(getMetaName(inner[0])).toBe(META_PART_LIST_NAMES.icon);
+		expect(getMetaName(inner[1])).toBe(META_PART_LIST_NAMES.prefix);
+		expect(getMetaName(inner[2])).toBe('');
+		expect(getMetaName(inner[3])).toBe(META_PART_LIST_NAMES.suffix);
 		expect(readMetaItemPart(tree, AUTHOR, 'prefix')).toBe('By');
 		expect(readMetaItemPart(tree, AUTHOR, 'suffix')).toBe('end');
 		expect(readMetaItemPart(tree, AUTHOR, 'icon')).toMatchObject({
@@ -193,6 +200,7 @@ describe('syncMetaSeparators', () => {
 		]);
 		expect(inner[1].attributes.content).toBe(char);
 		expect(inner[1].originalContent).toBe(`<p>${char}</p>`);
+		expect(getMetaName(inner[1])).toBe(META_PART_LIST_NAMES.separator);
 		expect(readMetaSeparatorOption(tree, 'post-meta')).toBe(option);
 	});
 
@@ -336,6 +344,7 @@ describe('syncMetaSeparators', () => {
 		});
 		expect(block.attributes.blockeraWidth).toEqual({ value: 'stretch' });
 		expect(block.attributes.content).toBe('\u00a0');
+		expect(getMetaName(block)).toBe(SPACE_FILLER_LIST_NAME);
 		expect(block.originalContent).toBe('<p>&nbsp;</p>');
 		expect(block.attributes.blockeraPropsId).toBeTruthy();
 		expect(block.attributes.blockeraCompatId).toBeTruthy();
@@ -883,6 +892,11 @@ describe('separator edge cases', () => {
 		expect(idsOf(item)).toEqual(['meta-item-prefix', 'meta-item-block']);
 		expect(item.innerBlocks[1].name).toBe('core/post-date');
 		expect(getStamp(item.innerBlocks[1]).id).toBe('meta-item-block');
+		expect(getMetaName(item)).toBe('Published Date Meta');
+		expect(getMetaName(item.innerBlocks[1])).toBe('');
+		expect(getMetaName(item.innerBlocks[0])).toBe(
+			META_PART_LIST_NAMES.prefix
+		);
 		expect(readMetaItemPart(tree, DATE, 'prefix')).toBe(
 			META_ITEM_DEFAULTS['post-date'].labels.prefix
 		);
@@ -908,6 +922,25 @@ describe('separator edge cases', () => {
 		expect(readMetaItemPart(tree, DATE, 'icon')).toMatchObject(
 			META_ITEM_DEFAULTS['post-date'].icons.icon
 		);
+	});
+});
+
+describe('getMetaItemListName', () => {
+	it('maps item suffixes and space fillers; unknown ids are empty', () => {
+		expect(getMetaItemListName('post-meta-author-name')).toBe(
+			'Author Name Meta'
+		);
+		expect(getMetaItemListName('post-meta-2-post-date')).toBe(
+			'Published Date Meta'
+		);
+		expect(getMetaItemListName('post-meta-space-filler')).toBe(
+			SPACE_FILLER_LIST_NAME
+		);
+		expect(getMetaItemListName('post-meta-2-space-filler-2')).toBe(
+			SPACE_FILLER_LIST_NAME
+		);
+		expect(getMetaItemListName('post-meta')).toBe('');
+		expect(getMetaItemListName('unknown')).toBe('');
 	});
 });
 
