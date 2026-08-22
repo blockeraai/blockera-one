@@ -373,6 +373,7 @@ export type ControlDef = {
 	/**
 	 * Sibling toggle ids that must keep at least one on. When this control
 	 * is the last remaining on member, the UI locks its off switch.
+	 * Copying the list onto a non-member (e.g. a space filler) does not lock it.
 	 */
 	requireAtLeastOneOf?: string[];
 	/** BorderControl writes this side of `blockeraBorder` (`type: custom`). */

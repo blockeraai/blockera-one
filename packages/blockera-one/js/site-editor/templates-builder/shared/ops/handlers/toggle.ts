@@ -71,7 +71,7 @@ function wouldLeaveZeroRequired(
 	config: TemplateOptionsConfig
 ): boolean {
 	const ids = control.requireAtLeastOneOf;
-	if (!ids?.length) {
+	if (!ids?.length || ids.indexOf(control.id) === -1) {
 		return false;
 	}
 	const all = flattenPanelControls(config.groups);

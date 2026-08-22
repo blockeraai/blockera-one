@@ -70,7 +70,11 @@ function isLastRequiredOn(
 	values: Record<string, ControlValue>
 ): boolean {
 	const ids = control.requireAtLeastOneOf;
-	if (!ids?.length || values[control.id] !== true) {
+	if (
+		!ids?.length ||
+		values[control.id] !== true ||
+		ids.indexOf(control.id) === -1
+	) {
 		return false;
 	}
 	let onCount = 0;
