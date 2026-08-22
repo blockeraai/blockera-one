@@ -21,8 +21,20 @@ role/id
 role/id:variant
 ```
 
-Optional keys on the same object: `metaParts`, `metaSeparator`. Extra keys
-are allowed. Empty optional keys are omitted.
+Optional keys on the same object: extra keys are allowed.
+
+Post Meta contracts (linted in `template-builder-post-meta.spec.js`):
+
+- Item wrappers never store parked chrome on the block. Icon / prefix /
+  suffix live in inner blocks while visible, and in the Site Editor session
+  bag while not live.
+- Row parents (`section/post-meta`, `section/post-meta-2`) **require**
+  `metaSeparator`: `none | slash | dash | bullet`. `none` means no
+  inner `container/meta-separator` children.
+- Space fillers must **not** store `metaSeparator`.
+- `metaParts` is forbidden on every stamp.
+
+Empty optional keys on other stamps are omitted.
 
 - `role` is the closed enum `layout | section | area | container`.
 - `id` and `variant` are kebab-case (`[a-z0-9-]+`).
@@ -282,8 +294,8 @@ the same change as the dictionary entry.
 | `section/sidebar-latest-posts` | Sidebar part Latest Posts widget. |
 | `section/sidebar-archives` | Sidebar part Archives widget. |
 | `section/sidebar-tag-cloud` | Sidebar part Tag Cloud widget. |
-| `section/post-meta` | First meta row on a post or page. Flex-child grow and width stretch so inner space fillers can expand. |
-| `section/post-meta-2` | Second meta row on a post or page. Same flex-child grow and width stretch as the first row. |
+| `section/post-meta` | First meta row on a post or page. Flex-child grow and width stretch so inner space fillers can expand. Always stores `metaSeparator`. |
+| `section/post-meta-2` | Second meta row on a post or page. Same flex-child grow and width stretch as the first row. Always stores `metaSeparator`. |
 | `section/post-meta-author-name` | Author name in the first meta row. |
 | `section/post-meta-comments-count` | Comments count in the first meta row. |
 | `section/post-meta-comments-link` | Comments link in the first meta row. |
