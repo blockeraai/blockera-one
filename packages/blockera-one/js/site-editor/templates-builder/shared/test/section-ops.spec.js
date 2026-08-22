@@ -80,9 +80,9 @@ describe('swapSection', () => {
 		);
 
 		const swapped = next[0];
-		expect(swapped.attributes.metadata.blockeraOne).toBe(
-			`section/${SECTION_ID}:grid-2`
-		);
+		expect(swapped.attributes.metadata.blockeraOne).toEqual({
+			stamp: `section/${SECTION_ID}:grid-2`,
+		});
 		// Default: previous blockera* attrs must not overlay the new pattern.
 		expect(swapped.attributes.blockeraFontColor).toBeUndefined();
 		// Previous design look (WP native) must not carry either.
@@ -203,8 +203,10 @@ describe('swapSection', () => {
 		);
 
 		expect(next).toHaveLength(1);
-		expect(getAtPath(next, [0, 0]).attributes.metadata.blockeraOne).toBe(
-			'section/page-header:simple'
+		expect(getAtPath(next, [0, 0]).attributes.metadata.blockeraOne).toEqual(
+			{
+				stamp: 'section/page-header:simple',
+			}
 		);
 	});
 
@@ -329,9 +331,9 @@ describe('toggleSection', () => {
 			ctx
 		);
 		expect(viaPlacement[1].name).toBe('core/query');
-		expect(viaPlacement[1].attributes.metadata.blockeraOne).toBe(
-			`section/${SECTION_ID}:grid-2`
-		);
+		expect(viaPlacement[1].attributes.metadata.blockeraOne).toEqual({
+			stamp: `section/${SECTION_ID}:grid-2`,
+		});
 
 		const viaInsertRule = toggleSection(
 			base(),

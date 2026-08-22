@@ -53,7 +53,11 @@ function isPostMetaItemId(id) {
 }
 
 function stampFromCommentBody(body) {
-	const match = body.match(/"blockeraOne"\s*:\s*"([^"]*)"/);
+	const start = body.search(/"blockeraOne"\s*:\s*\{/);
+	if (start === -1) {
+		return null;
+	}
+	const match = body.slice(start).match(/"stamp"\s*:\s*"([^"]*)"/);
 	if (!match) {
 		return null;
 	}
@@ -217,11 +221,11 @@ describe('templates-builder post-meta patterns lint', () => {
 					'utf8'
 				);
 				const expected = stamps.filter((stamp) =>
-					source.includes(`"blockeraOne":"${stamp}"`)
+					source.includes(`"stamp":"${stamp}"`)
 				);
 				expect(expected.length).toBeGreaterThan(0);
 				for (const stamp of expected) {
-					const idx = source.indexOf(`"blockeraOne":"${stamp}"`);
+					const idx = source.indexOf(`"stamp":"${stamp}"`);
 					expect(idx).toBeGreaterThan(-1);
 					const window = source.slice(idx, idx + 500);
 					expect(window).toContain(
@@ -250,8 +254,8 @@ describe('templates-builder post-meta patterns lint', () => {
 				const metas = extractMetadataObjects(source);
 				for (const meta of metas) {
 					const stamp =
-						typeof meta.blockeraOne === 'string'
-							? meta.blockeraOne
+						typeof meta.blockeraOne?.stamp === 'string'
+							? meta.blockeraOne.stamp
 							: '';
 					if (!stamp) {
 						continue;

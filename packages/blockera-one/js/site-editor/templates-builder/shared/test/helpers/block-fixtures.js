@@ -14,11 +14,24 @@ export function stamped(name, stampValue, attributes = {}, innerBlocks = []) {
 		attributes = {};
 	}
 	const { metadata, clientId, ...rest } = attributes;
+	const prevOne =
+		metadata &&
+		metadata.blockeraOne &&
+		typeof metadata.blockeraOne === 'object' &&
+		!Array.isArray(metadata.blockeraOne)
+			? metadata.blockeraOne
+			: {};
 	const node = block(
 		name,
 		{
 			...rest,
-			metadata: { ...(metadata || {}), blockeraOne: stampValue },
+			metadata: {
+				...(metadata || {}),
+				blockeraOne: {
+					...prevOne,
+					stamp: stampValue,
+				},
+			},
 		},
 		innerBlocks
 	);

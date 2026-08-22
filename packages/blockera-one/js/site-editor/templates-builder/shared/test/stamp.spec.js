@@ -1,10 +1,16 @@
 /**
  * stamp.ts + metadata.ts: `role/id:variant` stamp grammar and the
- * metadata.blockeraOne read/write helpers.
+ * metadata.blockeraOne.stamp read/write helpers.
  */
 
 import { formatStamp, parseStamp, stampDictionaryToMap } from '../stamp';
-import { getMetaName, getStamp, withStamp } from '../metadata';
+import {
+	getBlockeraOneMeta,
+	getMetaName,
+	getStamp,
+	withBlockeraOneMeta,
+	withStamp,
+} from '../metadata';
 
 describe('parseStamp', () => {
 	it('parses role/id and role/id:variant stamps', () => {
@@ -93,13 +99,13 @@ describe('stampDictionaryToMap', () => {
 });
 
 describe('getStamp', () => {
-	it('reads a valid stamp from metadata.blockeraOne', () => {
+	it('reads a valid stamp from metadata.blockeraOne.stamp', () => {
 		expect(
 			getStamp({
 				name: 'core/group',
 				attributes: {
 					metadata: {
-						blockeraOne: 'layout/main:no-sidebar',
+						blockeraOne: { stamp: 'layout/main:no-sidebar' },
 					},
 				},
 			})
@@ -123,6 +129,14 @@ describe('getStamp', () => {
 				attributes: { metadata: { blockeraOne: 'NOT VALID' } },
 			})
 		).toBeNull();
+		expect(
+			getStamp({
+				name: 'core/group',
+				attributes: {
+					metadata: { blockeraOne: { stamp: 'NOT VALID' } },
+				},
+			})
+		).toBeNull();
 	});
 });
 
@@ -142,7 +156,9 @@ describe('getMetaName', () => {
 		expect(
 			getMetaName({
 				name: 'core/group',
-				attributes: { metadata: { blockeraOne: 'container/x' } },
+				attributes: {
+					metadata: { blockeraOne: { stamp: 'container/x' } },
+				},
 			})
 		).toBe('');
 		expect(
@@ -161,7 +177,7 @@ describe('withStamp', () => {
 			className: 'keep',
 			metadata: {
 				name: 'Custom label',
-				blockeraOne: 'section/old:stamp',
+				blockeraOne: { stamp: 'section/old:stamp' },
 			},
 		},
 		innerBlocks: [
@@ -172,16 +188,18 @@ describe('withStamp', () => {
 	it('re-stamps while preserving other attributes and metadata keys', () => {
 		const stamped = withStamp(original, 'area', 'content');
 
-		expect(stamped.attributes.metadata.blockeraOne).toBe('area/content');
+		expect(stamped.attributes.metadata.blockeraOne).toEqual({
+			stamp: 'area/content',
+		});
 		expect(stamped.attributes.metadata.name).toBe('Custom label');
 		expect(stamped.attributes.className).toContain('keep');
 		expect(stamped.attributes.className).toContain('blockera-block');
 		expect(stamped.attributes.blockeraPropsId).toBeTruthy();
 		expect(stamped.attributes.blockeraCompatId).toBeTruthy();
 		// Input stays untouched.
-		expect(original.attributes.metadata.blockeraOne).toBe(
-			'section/old:stamp'
-		);
+		expect(original.attributes.metadata.blockeraOne).toEqual({
+			stamp: 'section/old:stamp',
+		});
 	});
 
 	it('formats role/id:variant and normalizes innerBlocks to a new array', () => {
@@ -192,16 +210,64 @@ describe('withStamp', () => {
 			'grid-3'
 		);
 
-		expect(stamped.attributes.metadata.blockeraOne).toBe(
-			'section/posts-listing:grid-3'
-		);
+		expect(stamped.attributes.metadata.blockeraOne).toEqual({
+			stamp: 'section/posts-listing:grid-3',
+		});
 		expect(stamped.innerBlocks).not.toBe(original.innerBlocks);
 		expect(stamped.innerBlocks).toEqual(original.innerBlocks);
 
 		const bare = withStamp({ name: 'core/spacer' }, 'section', 'x');
 		expect(bare.innerBlocks).toEqual([]);
 		expect(bare.attributes.metadata).toEqual({
-			blockeraOne: 'section/x',
+			blockeraOne: { stamp: 'section/x' },
+		});
+	});
+
+	it('keeps metaParts and extra keys when restamping', () => {
+		const block = {
+			name: 'core/group',
+			attributes: {
+				metadata: {
+					blockeraOne: {
+						stamp: 'section/old:stamp',
+						metaParts: { prefix: 'By' },
+						future: 1,
+					},
+				},
+			},
+			innerBlocks: [],
+		};
+		const stamped = withStamp(block, 'section', 'post-meta-author-name');
+		expect(stamped.attributes.metadata.blockeraOne).toEqual({
+			stamp: 'section/post-meta-author-name',
+			future: 1,
+			metaParts: { prefix: 'By' },
+		});
+	});
+});
+
+describe('withBlockeraOneMeta', () => {
+	const block = {
+		name: 'core/group',
+		attributes: {
+			metadata: {
+				blockeraOne: {
+					stamp: 'section/post-meta:default',
+					metaParts: { prefix: 'By' },
+					metaSeparator: 'bullet',
+				},
+			},
+		},
+		innerBlocks: [],
+	};
+
+	it('omits empty metaParts and drops keys patched to undefined', () => {
+		const cleared = withBlockeraOneMeta(block, {
+			metaParts: {},
+			metaSeparator: undefined,
+		});
+		expect(getBlockeraOneMeta(cleared)).toEqual({
+			stamp: 'section/post-meta:default',
 		});
 	});
 });

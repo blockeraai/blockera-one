@@ -10,7 +10,7 @@
  *   so markup validation can never drift from the reference data.
  * - Stamps are validated in every `.block-markup.config.js`
  *   `patternsDirs` and `templatesDirs` folder (all ship
- *   `metadata.blockeraOne` anchors). Unset dirs mean this product has
+ *   `metadata.blockeraOne.stamp` anchors). Unset dirs mean this product has
  *   no patterns / templates — no implicit fallback.
  * - Catalog pattern slugs come from the shared PHP fixture
  *   (`php/tests/fixtures/template-builder-catalog.json`, asserted equal to
@@ -48,6 +48,7 @@ import {
 	describeMarkup,
 	describePatterns,
 	describeTemplates,
+	extractMetadataObjects,
 	fixtureSlugs,
 	layoutPatterns,
 	patternsDirs,
@@ -452,14 +453,15 @@ describe('templates-builder patterns lint', () => {
 
 		function extractLoopParentNames(source) {
 			const names = {};
-			const metaRe = /"metadata"\s*:\s*\{([^}]*)\}/g;
-			let match;
-			while ((match = metaRe.exec(source))) {
-				const body = match[1];
-				const name = body.match(/"name"\s*:\s*"([^"]*)"/);
-				const stamp = body.match(/"blockeraOne"\s*:\s*"([^"]*)"/);
-				if (name && stamp && LOOP_PARENT_STAMPS.has(stamp[1])) {
-					names[stamp[1]] = name[1];
+			const metas = extractMetadataObjects(source);
+			for (const meta of metas) {
+				const stamp = meta?.blockeraOne?.stamp;
+				if (
+					typeof stamp === 'string' &&
+					LOOP_PARENT_STAMPS.has(stamp) &&
+					typeof meta.name === 'string'
+				) {
+					names[stamp] = meta.name;
 				}
 			}
 			return names;

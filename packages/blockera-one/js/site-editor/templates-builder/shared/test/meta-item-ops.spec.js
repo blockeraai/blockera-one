@@ -168,7 +168,7 @@ describe('setMetaItemPart', () => {
 		expect(readMetaItemPart(tree, AUTHOR, 'prefix')).toBe('');
 		expect(idsOf(find(tree, AUTHOR).block)).toEqual(['meta-item-block']);
 		expect(
-			find(tree, AUTHOR).block.attributes.metadata.blockeraOneMetaParts
+			find(tree, AUTHOR).block.attributes.metadata.blockeraOne.metaParts
 				.prefix
 		).toBe('Written by');
 	});
@@ -799,7 +799,7 @@ describe('meta item id helpers and no-ops', () => {
 			META_ITEM_DEFAULTS['author-name'].labels.prefix
 		);
 		expect(
-			find(tree, AUTHOR).block.attributes.metadata.blockeraOneMetaParts
+			find(tree, AUTHOR).block.attributes.metadata.blockeraOne.metaParts
 				.suffix
 		).toBe('says');
 	});

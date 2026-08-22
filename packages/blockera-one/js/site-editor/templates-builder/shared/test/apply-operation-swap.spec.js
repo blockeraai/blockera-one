@@ -62,8 +62,9 @@ describe('swapSection', () => {
 	it('skips the re-apply when the dependent already uses its default', () => {
 		const blocks = makeBlocks();
 		const listing = findStamp(blocks, 'posts-listing');
-		listing.block.innerBlocks[0].attributes.metadata.blockeraOne =
-			'section/pagination:standard';
+		listing.block.innerBlocks[0].attributes.metadata.blockeraOne = {
+			stamp: 'section/pagination:standard',
+		};
 
 		const result = apply(CONTROLS.postsTemplate, 'grid-2', { blocks });
 		const pagination = findStamp(result.blocks, 'pagination');

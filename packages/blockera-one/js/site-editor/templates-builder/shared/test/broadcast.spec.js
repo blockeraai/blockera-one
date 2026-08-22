@@ -128,7 +128,7 @@ describe('applyOperation broadcastSetting', () => {
 function collectWidths(blocks) {
 	const walk = (nodes, found = {}) => {
 		for (const node of nodes || []) {
-			const stamp = node.attributes?.metadata?.blockeraOne || '';
+			const stamp = node.attributes?.metadata?.blockeraOne?.stamp || '';
 			if (stamp.includes('sidebar-column')) {
 				found.sidebar = node.attributes.width;
 			}

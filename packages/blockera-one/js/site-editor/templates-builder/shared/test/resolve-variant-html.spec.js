@@ -14,12 +14,12 @@ const PATTERNS = [
 	{
 		name: 'blockera-one/builder-archive-listing-list',
 		content:
-			'<!-- wp:query {"metadata":{"blockeraOne":"section/posts-listing:list"}} --><!-- /wp:query -->',
+			'<!-- wp:query {"metadata":{"blockeraOne":{"stamp":"section/posts-listing:list"}}} --><!-- /wp:query -->',
 	},
 	{
 		name: 'blockera-one/builder-archive-pagination-standard',
 		content:
-			'<!-- wp:query-pagination {"metadata":{"blockeraOne":"section/pagination:standard"}} /-->',
+			'<!-- wp:query-pagination {"metadata":{"blockeraOne":{"stamp":"section/pagination:standard"}}} /-->',
 	},
 ];
 
@@ -42,7 +42,7 @@ const headerVariant = {
 describe('buildTemplatePartHtml', () => {
 	it('builds the stamped self-closing comment (attribute order stable)', () => {
 		expect(buildTemplatePartHtml(headerVariant, 'header')).toBe(
-			'<!-- wp:template-part {"slug":"header","area":"header","tagName":"header","metadata":{"blockeraOne":"section/header:header"}} /-->'
+			'<!-- wp:template-part {"slug":"header","area":"header","tagName":"header","metadata":{"blockeraOne":{"stamp":"section/header:header"}}} /-->'
 		);
 	});
 
@@ -50,7 +50,7 @@ describe('buildTemplatePartHtml', () => {
 		expect(
 			buildTemplatePartHtml({ id: 'x', label: 'X', slug: 'x-part' }, 's')
 		).toBe(
-			'<!-- wp:template-part {"slug":"x-part","metadata":{"blockeraOne":"section/s:x"}} /-->'
+			'<!-- wp:template-part {"slug":"x-part","metadata":{"blockeraOne":{"stamp":"section/s:x"}}} /-->'
 		);
 		expect(buildTemplatePartHtml({ id: 'x', label: 'X' }, 's')).toBeNull();
 	});

@@ -168,7 +168,9 @@ describe('toggleSection', () => {
 				'section/page-header:default',
 				{
 					metadata: {
-						blockeraOne: 'section/page-header:default',
+						blockeraOne: {
+							stamp: 'section/page-header:default',
+						},
 					},
 				},
 				[

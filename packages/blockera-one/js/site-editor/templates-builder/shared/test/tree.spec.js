@@ -374,19 +374,29 @@ describe('mergeUserAttributes', () => {
 		expect(merged.content).toBeUndefined();
 	});
 
-	it('merges metadata shallowly with the target stamp winning', () => {
+	it('deep-merges blockeraOne with the target stamp winning', () => {
 		const merged = mergeUserAttributes(
-			{ metadata: { blockeraOne: 'section/target-stamp' } },
 			{
 				metadata: {
-					blockeraOne: 'section/source-stamp',
+					blockeraOne: { stamp: 'section/target-stamp' },
+				},
+			},
+			{
+				metadata: {
+					blockeraOne: {
+						stamp: 'section/source-stamp',
+						metaParts: { prefix: 'By' },
+					},
 					name: 'Custom name',
 				},
 			}
 		);
 
 		expect(merged.metadata).toEqual({
-			blockeraOne: 'section/target-stamp',
+			blockeraOne: {
+				stamp: 'section/target-stamp',
+				metaParts: { prefix: 'By' },
+			},
 			name: 'Custom name',
 		});
 	});
@@ -460,9 +470,9 @@ describe('replaceSectionAtPath', () => {
 		);
 
 		expect(result).toHaveLength(1);
-		expect(getAtPath(result, [0, 0]).attributes.metadata.blockeraOne).toBe(
-			'section/page-header:simple'
-		);
+		expect(
+			getAtPath(result, [0, 0]).attributes.metadata.blockeraOne
+		).toEqual({ stamp: 'section/page-header:simple' });
 	});
 
 	it('replaces in place when the placement anchor is missing', () => {
@@ -474,15 +484,15 @@ describe('replaceSectionAtPath', () => {
 		);
 
 		expect(result).toHaveLength(2);
-		expect(result[1].attributes.metadata.blockeraOne).toBe(
-			'section/page-header:simple'
-		);
+		expect(result[1].attributes.metadata.blockeraOne).toEqual({
+			stamp: 'section/page-header:simple',
+		});
 	});
 
 	it('replaces in place without a placement', () => {
 		const result = replaceSectionAtPath(tree, [1], undefined, replacement);
-		expect(result[1].attributes.metadata.blockeraOne).toBe(
-			'section/page-header:simple'
-		);
+		expect(result[1].attributes.metadata.blockeraOne).toEqual({
+			stamp: 'section/page-header:simple',
+		});
 	});
 });

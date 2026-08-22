@@ -252,7 +252,7 @@ describe('resolveElementBuckets', () => {
 		const content = blocks[0].innerBlocks[0].innerBlocks[0].innerBlocks[1];
 		content.innerBlocks = content.innerBlocks.filter(
 			(child) =>
-				child.attributes.metadata.blockeraOne !==
+				child.attributes.metadata.blockeraOne.stamp !==
 				'section/post-excerpt:default'
 		);
 		const buckets = resolveElementBuckets(blocks, LOOP_RULE);

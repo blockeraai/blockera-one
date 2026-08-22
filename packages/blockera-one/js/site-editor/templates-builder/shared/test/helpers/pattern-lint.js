@@ -65,17 +65,6 @@ export function collectFiles(dir, matches) {
 	return out;
 }
 
-/** Extract every raw `metadata.blockeraOne` stamp string from a source. */
-export function extractStamps(source) {
-	const stamps = [];
-	const stampRe = /"blockeraOne"\s*:\s*"([^"]*)"/g;
-	let match;
-	while ((match = stampRe.exec(source))) {
-		stamps.push(match[1]);
-	}
-	return stamps;
-}
-
 /**
  * Parse balanced `{...}` JSON starting at `openIdx`.
  *
@@ -130,6 +119,19 @@ export function extractMetadataObjects(source) {
 		cursor = end;
 	}
 	return entries;
+}
+
+/** Extract every `metadata.blockeraOne.stamp` string from a source. */
+export function extractStamps(source) {
+	const stamps = [];
+	const metas = extractMetadataObjects(source);
+	for (let i = 0; i < metas.length; i++) {
+		const stamp = metas[i]?.blockeraOne?.stamp;
+		if (typeof stamp === 'string' && stamp) {
+			stamps.push(stamp);
+		}
+	}
+	return stamps;
 }
 
 /**
