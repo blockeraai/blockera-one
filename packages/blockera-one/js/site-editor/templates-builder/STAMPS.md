@@ -52,6 +52,17 @@ content to the user. Inner-region containers especially: name
 `container/media` **Media Blocks** / **Media Column** — not `Start` or
 `Media`. Do not invent a stamp id to match the label.
 
+Post Meta List View names (ops and patterns share this contract):
+
+- Item wrappers (`section/post-meta-*` / `section/post-meta-2-*`, not
+  the row and not space fillers): **`%s Meta`** from the item suffix,
+  e.g. `Time to Read Meta`, `Published Date Meta`.
+- Prefix / icon / suffix: **Meta Prefix**, **Meta Icon**, **Meta Suffix**.
+- Separator (`container/meta-separator`): **Separator**.
+- Space filler: **Space Filler**.
+- Row parents (`section/post-meta`, `section/post-meta-2`): **Post Meta**.
+- Inner `container/meta-item-block` stays unnamed.
+
 ## Uniqueness
 
 Ids are **globally unique across every dictionary**, including shared.
@@ -324,11 +335,11 @@ the same change as the dictionary entry.
 | `container/body` | Text/content region of a listing card, article, or page-header band. Not the page+sidebar `content-column`. |
 | `container/end` | Trailing inner region (e.g. author band, page-header extra). |
 | `container/comments` | Comments region on a single post. Not `section/post-meta-comments-count` / `comments-link`. |
-| `container/meta-item-icon` | Optional icon inside a post-meta item wrapper. Repeatable under each item parent. |
-| `container/meta-item-prefix` | Optional prefix paragraph inside a post-meta item wrapper. Repeatable under each item parent. |
-| `container/meta-item-block` | The core meta block inside a post-meta item wrapper. Repeatable under each item parent. |
-| `container/meta-item-suffix` | Optional suffix paragraph inside a post-meta item wrapper. Repeatable under each item parent. |
-| `container/meta-separator` | Builder-managed separator paragraph between post-meta items. Repeatable under the meta row. |
+| `container/meta-item-icon` | Optional icon inside a post-meta item wrapper. Repeatable under each item parent. List View: **Meta Icon**. |
+| `container/meta-item-prefix` | Optional prefix paragraph inside a post-meta item wrapper. Repeatable under each item parent. List View: **Meta Prefix**. |
+| `container/meta-item-block` | The core meta block inside a post-meta item wrapper. Repeatable under each item parent. No List View name. |
+| `container/meta-item-suffix` | Optional suffix paragraph inside a post-meta item wrapper. Repeatable under each item parent. List View: **Meta Suffix**. |
+| `container/meta-separator` | Builder-managed separator paragraph between post-meta items. Repeatable under the meta row. List View: **Separator**. |
 
 ## Type catalogs
 
