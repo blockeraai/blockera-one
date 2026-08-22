@@ -12,9 +12,9 @@
  */
 
 ?>
-<!-- wp:group {"metadata":{"name":"Page Header","blockeraOne":"section/page-header:no-title"},"align":"wide","layout":{"type":"flex","orientation":"vertical"}} -->
+<!-- wp:group {"metadata":{"name":"Page Header","blockeraOne":{"stamp":"section/page-header:no-title"}},"align":"wide","layout":{"type":"flex","orientation":"vertical"}} -->
 <div class="wp-block-group alignwide">
-	<!-- wp:group {"metadata":{"name":"Content Blocks","blockeraOne":"container/body"},"layout":{"type":"flex","orientation":"vertical"}} -->
+	<!-- wp:group {"metadata":{"name":"Content Blocks","blockeraOne":{"stamp":"container/body"}},"layout":{"type":"flex","orientation":"vertical"}} -->
 	<div class="wp-block-group"></div>
 	<!-- /wp:group -->
 </div>

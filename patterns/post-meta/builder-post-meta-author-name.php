@@ -12,8 +12,8 @@
  */
 
 ?>
-<!-- wp:group {"metadata":{"name":"Author Name Meta","blockeraOne":"section/post-meta-author-name:default"},"style":{"spacing":{"blockGap":"0.35em"}},"layout":{"type":"flex","flexWrap":"nowrap","verticalAlignment":"center"}} -->
+<!-- wp:group {"metadata":{"name":"Author Name Meta","blockeraOne":{"stamp":"section/post-meta-author-name:default"}},"style":{"spacing":{"blockGap":"0.35em"}},"layout":{"type":"flex","flexWrap":"nowrap","verticalAlignment":"center"}} -->
 <div class="wp-block-group">
-	<!-- wp:post-author-name {"metadata":{"blockeraOne":"container/meta-item-block:default"}} /-->
+	<!-- wp:post-author-name {"metadata":{"blockeraOne":{"stamp":"container/meta-item-block:default"}}} /-->
 </div>
 <!-- /wp:group -->

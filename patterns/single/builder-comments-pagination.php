@@ -12,7 +12,7 @@
  */
 
 ?>
-<!-- wp:comments-pagination {"metadata":{"blockeraOne":"section/comments-pagination:default"},"layout":{"type":"flex","justifyContent":"space-between"}} -->
+<!-- wp:comments-pagination {"metadata":{"blockeraOne":{"stamp":"section/comments-pagination:default"}},"layout":{"type":"flex","justifyContent":"space-between"}} -->
 	<!-- wp:comments-pagination-previous /-->
 	<!-- wp:comments-pagination-next /-->
 <!-- /wp:comments-pagination -->

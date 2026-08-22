@@ -27,10 +27,10 @@
 			<!-- wp:spacer {"height":"var:preset|spacing|50"} -->
 			<div style="height:var(--wp--preset--spacing--50)" aria-hidden="true" class="wp-block-spacer"></div>
 			<!-- /wp:spacer -->
-			<!-- wp:group {"metadata":{"blockeraOne":"section/page-header:default"},"style":{"spacing":{"blockGap":"var:preset|spacing|20"}},"layout":{"type":"constrained"}} -->
+			<!-- wp:group {"metadata":{"blockeraOne":{"stamp":"section/page-header:default"}},"style":{"spacing":{"blockGap":"var:preset|spacing|20"}},"layout":{"type":"constrained"}} -->
 			<div class="wp-block-group">
-				<!-- wp:query-title {"type":"archive","fontSize":"large","metadata":{"blockeraOne":"section/page-header-title:default"}} /-->
-				<!-- wp:term-description {"metadata":{"blockeraOne":"section/page-header-description:default"}} /-->
+				<!-- wp:query-title {"type":"archive","fontSize":"large","metadata":{"blockeraOne":{"stamp":"section/page-header-title:default"}}} /-->
+				<!-- wp:term-description {"metadata":{"blockeraOne":{"stamp":"section/page-header-description:default"}}} /-->
 			</div>
 			<!-- /wp:group -->
 			<!-- wp:spacer {"height":"var:preset|spacing|50"} -->

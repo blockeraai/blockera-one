@@ -12,7 +12,7 @@
  */
 
 ?>
-<!-- wp:heading {"level":1,"metadata":{"blockeraOne":"section/not-found-title:default"}} -->
+<!-- wp:heading {"level":1,"metadata":{"blockeraOne":{"stamp":"section/not-found-title:default"}}} -->
 <h1 class="wp-block-heading"><?php echo esc_html_x( 'Page not found', '404 error message', 'blockera-one' ); ?></h1>
 <!-- /wp:heading -->
 

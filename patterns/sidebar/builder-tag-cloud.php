@@ -12,4 +12,4 @@
  */
 
 ?>
-<!-- wp:tag-cloud {"metadata":{"blockeraOne":"section/sidebar-tag-cloud:default"}} /-->
+<!-- wp:tag-cloud {"metadata":{"blockeraOne":{"stamp":"section/sidebar-tag-cloud:default"}}} /-->

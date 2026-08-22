@@ -12,10 +12,10 @@
  */
 
 ?>
-<!-- wp:comments {"className":"wp-block-comments-query-loop","metadata":{"blockeraOne":"section/post-comments:default"},"style":{"spacing":{"margin":{"top":"var:preset|spacing|70","bottom":"var:preset|spacing|70"}}}} -->
+<!-- wp:comments {"className":"wp-block-comments-query-loop","metadata":{"blockeraOne":{"stamp":"section/post-comments:default"}},"style":{"spacing":{"margin":{"top":"var:preset|spacing|70","bottom":"var:preset|spacing|70"}}}} -->
 <div class="wp-block-comments wp-block-comments-query-loop" style="margin-top:var(--wp--preset--spacing--70);margin-bottom:var(--wp--preset--spacing--70)">
-	<!-- wp:comments-title {"level":3,"fontSize":"large","metadata":{"blockeraOne":"section/comments-title:default"}} /-->
-	<!-- wp:comment-template {"metadata":{"blockeraOne":"section/comment-template:default"}} -->
+	<!-- wp:comments-title {"level":3,"fontSize":"large","metadata":{"blockeraOne":{"stamp":"section/comments-title:default"}}} /-->
+	<!-- wp:comment-template {"metadata":{"blockeraOne":{"stamp":"section/comment-template:default"}}} -->
 		<!-- wp:group {"style":{"spacing":{"margin":{"top":"0","bottom":"var:preset|spacing|50"}}}} -->
 		<div class="wp-block-group" style="margin-top:0;margin-bottom:var(--wp--preset--spacing--50)">
 			<!-- wp:group {"layout":{"type":"flex","flexWrap":"nowrap","verticalAlignment":"top"}} -->
@@ -39,10 +39,10 @@
 		</div>
 		<!-- /wp:group -->
 	<!-- /wp:comment-template -->
-	<!-- wp:comments-pagination {"metadata":{"blockeraOne":"section/comments-pagination:default"},"layout":{"type":"flex","justifyContent":"space-between"}} -->
+	<!-- wp:comments-pagination {"metadata":{"blockeraOne":{"stamp":"section/comments-pagination:default"}},"layout":{"type":"flex","justifyContent":"space-between"}} -->
 		<!-- wp:comments-pagination-previous /-->
 		<!-- wp:comments-pagination-next /-->
 	<!-- /wp:comments-pagination -->
-	<!-- wp:post-comments-form {"metadata":{"blockeraOne":"section/comments-form:default"}} /-->
+	<!-- wp:post-comments-form {"metadata":{"blockeraOne":{"stamp":"section/comments-form:default"}}} /-->
 </div>
 <!-- /wp:comments -->
