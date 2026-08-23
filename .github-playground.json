@@ -5,7 +5,7 @@
 		"description": "Install and activate the Blockera One theme from a zip file stored in a GitHub artifact.",
 		"categories": ["themes"]
 	},
-	"landingPage": "/wp-admin/admin.php?page=blockera-settings-dashboard",
+	"landingPage": "/wp-admin/site-editor.php?p=/",
 	"preferredVersions": {
 		"wp": "beta",
 		"php": "8.0"
