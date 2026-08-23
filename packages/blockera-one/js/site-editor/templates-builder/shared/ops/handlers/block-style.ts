@@ -5,6 +5,7 @@
 import { lookupFromControl } from '../../stamp-lookup';
 import { setSectionBlockStyle } from '../../section-ops';
 import type { BlockNode, ControlDef } from '../../types';
+import { localAttributeUpdates } from '../local-replace';
 import type { OperationHandler } from '../types';
 
 export function applyBlockStyle(
@@ -38,13 +39,14 @@ export const handleSetBlockStyle: OperationHandler = ({
 	nextValue,
 	selectedClientId,
 }) => {
-	return {
-		kind: 'blocks',
-		blocks: applyBlockStyle(
-			blocks,
-			control,
-			String(nextValue || 'default'),
-			selectedClientId
-		),
-	};
+	const tree = applyBlockStyle(
+		blocks,
+		control,
+		String(nextValue || 'default'),
+		selectedClientId
+	);
+	const localReplace = localAttributeUpdates(blocks, tree);
+	return localReplace
+		? { kind: 'blocks', blocks: tree, localReplace }
+		: { kind: 'blocks', blocks: tree };
 };

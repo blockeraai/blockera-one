@@ -42,10 +42,27 @@ import type {
 	VariantDef,
 } from '../../types';
 import { opsContextFor } from '../handler-helpers';
+import { localReplaceForSection } from '../local-replace';
 import { applyListingMetaItemsPreset } from '../meta';
 import { controlWithin } from '../meta/session-overlay';
 import type { OperationHandler, OperationResult } from '../types';
 import { reapplyAfterSwap } from './swap-reapply';
+
+function blocksResult(
+	prev: BlockNode[],
+	next: BlockNode[],
+	sectionId: string,
+	selectedClientId?: string | null,
+	control?: ControlDef
+): OperationResult {
+	const lookup = control
+		? lookupFromControl(control, selectedClientId)
+		: undefined;
+	const localReplace = localReplaceForSection(prev, next, sectionId, lookup);
+	return localReplace
+		? { kind: 'blocks', blocks: next, localReplace }
+		: { kind: 'blocks', blocks: next };
+}
 
 function catalogTree(variant: VariantDef | undefined): BlockNode[] {
 	if (!variant?.html) {
@@ -275,10 +292,13 @@ function applySwapSection(
 			variant.id,
 			swapSnapshotIsSessionEdited(rawStored)
 		);
-		return {
-			kind: 'blocks',
-			blocks: ensurePaginationNavLabels(restored),
-		};
+		return blocksResult(
+			blocks,
+			ensurePaginationNavLabels(restored),
+			sectionId,
+			selectedClientId,
+			control
+		);
 	}
 
 	clearSwapCleanCurrent(session, entityKey);
@@ -299,10 +319,13 @@ function applySwapSection(
 	if (sectionId === STAMP_IDS.postsListing) {
 		next = applyListingMetaItemsPreset(next);
 	}
-	return {
-		kind: 'blocks',
-		blocks: ensurePaginationNavLabels(next),
-	};
+	return blocksResult(
+		blocks,
+		ensurePaginationNavLabels(next),
+		sectionId,
+		selectedClientId,
+		control
+	);
 }
 
 export const handleSwapSection: OperationHandler = ({
@@ -386,14 +409,14 @@ export const handleSwapTemplatePart: OperationHandler = ({
 			variant.id,
 			swapSnapshotIsSessionEdited(rawStored)
 		);
-		return { kind: 'blocks', blocks: restored };
+		return blocksResult(blocks, restored, area, selectedClientId, control);
 	}
 
 	clearSwapCleanCurrent(session, entityKey);
 
-	return {
-		kind: 'blocks',
-		blocks: swapTemplatePart(
+	return blocksResult(
+		blocks,
+		swapTemplatePart(
 			blocks,
 			{
 				sectionId: area,
@@ -403,5 +426,8 @@ export const handleSwapTemplatePart: OperationHandler = ({
 			},
 			opsContextFor(control, selectedClientId)
 		),
-	};
+		area,
+		selectedClientId,
+		control
+	);
 };

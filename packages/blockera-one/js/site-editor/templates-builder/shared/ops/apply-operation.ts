@@ -24,6 +24,7 @@ import { handleSetTemplateSetting } from './handlers/settings';
 import { handleSwapSection, handleSwapTemplatePart } from './handlers/swap';
 import { handleToggleSection } from './handlers/toggle';
 import { handleTransplantLayout } from './handlers/transplant';
+import { localAttributeUpdates, localInnerPatches } from './local-replace';
 import { clearSwapCleanCurrent } from '../../../session';
 
 const OPERATION_HANDLERS = {
@@ -63,5 +64,14 @@ export function applyOperation(args: ApplyOperationArgs): OperationResult {
 		clearSwapCleanCurrent(args.session, args.entityKey);
 	}
 	const handler = OPERATION_HANDLERS[operation];
-	return handler ? handler(args) : null;
+	const result = handler ? handler(args) : null;
+	if (result?.kind === 'blocks' && !result.localReplace) {
+		const localReplace =
+			localInnerPatches(args.blocks, result.blocks) ||
+			localAttributeUpdates(args.blocks, result.blocks);
+		if (localReplace) {
+			return { ...result, localReplace };
+		}
+	}
+	return result;
 }

@@ -11,7 +11,8 @@ import type {
 	ReorderElementsPayload,
 } from '../../types';
 import { isMetaRowId, syncMetaSeparators } from '../meta';
-import type { OperationHandler } from '../types';
+import { localInnerPatches, localReorderForParent } from '../local-replace';
+import type { OperationHandler, OperationResult } from '../types';
 
 function isBucketReorderPayload(
 	value: ControlValue
@@ -28,6 +29,23 @@ function syncMetaRowIfNeeded(tree: BlockNode[], parentId: string): BlockNode[] {
 	return isMetaRowId(parentId) ? syncMetaSeparators(tree, parentId) : tree;
 }
 
+function finishReorder(
+	prev: BlockNode[],
+	next: BlockNode[],
+	parentId: string,
+	lookup: ReturnType<typeof lookupFromControl>
+): OperationResult {
+	if (next === prev) {
+		return null;
+	}
+	const localReplace =
+		localReorderForParent(prev, next, parentId, lookup) ||
+		localInnerPatches(prev, next);
+	return localReplace
+		? { kind: 'blocks', blocks: next, localReplace }
+		: { kind: 'blocks', blocks: next };
+}
+
 export const handleReorderInnerSections: OperationHandler = ({
 	blocks,
 	control,
@@ -38,9 +56,9 @@ export const handleReorderInnerSections: OperationHandler = ({
 	if (!rule?.parentId) {
 		return null;
 	}
+	const lookup = lookupFromControl(control, selectedClientId);
 	if (isBucketReorderPayload(nextValue)) {
 		let tree = blocks;
-		const lookup = lookupFromControl(control, selectedClientId);
 		if (nextValue.move) {
 			tree = moveInnerSection(
 				tree,
@@ -59,19 +77,22 @@ export const handleReorderInnerSections: OperationHandler = ({
 				lookup
 			);
 		}
-		return {
-			kind: 'blocks',
-			blocks: syncMetaRowIfNeeded(tree, rule.parentId),
-		};
+		return finishReorder(
+			blocks,
+			syncMetaRowIfNeeded(tree, rule.parentId),
+			rule.parentId,
+			lookup
+		);
 	}
 	const ordered = normalizeElementOrder(nextValue, rule.ids);
 	if (!ordered.length) {
 		return null;
 	}
-	const lookup = lookupFromControl(control, selectedClientId);
 	const tree = orderInnerSections(blocks, rule.parentId, ordered, lookup);
-	return {
-		kind: 'blocks',
-		blocks: syncMetaRowIfNeeded(tree, rule.parentId),
-	};
+	return finishReorder(
+		blocks,
+		syncMetaRowIfNeeded(tree, rule.parentId),
+		rule.parentId,
+		lookup
+	);
 };

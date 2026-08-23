@@ -7,7 +7,7 @@
 
 import { store as blockEditorStore } from '@wordpress/block-editor';
 import { store as coreStore } from '@wordpress/core-data';
-import { useDispatch, useSelect } from '@wordpress/data';
+import { useDispatch, useRegistry, useSelect } from '@wordpress/data';
 import {
 	useCallback,
 	useEffect,
@@ -24,6 +24,7 @@ import {
 	type TemplateSettingsRecord,
 } from './constants';
 import { applyOperation } from './ops/apply-operation';
+import type { LocalReplace } from './ops/local-replace';
 import { runBroadcast } from './ops/broadcast';
 import {
 	sessionEntityKey,
@@ -89,6 +90,44 @@ function getBlocksFromRecord(record: TemplateRecord | undefined): BlockNode[] {
 	}
 	const raw = getContentRaw(record);
 	return raw ? parseBlocks(raw) : [];
+}
+
+function runRegistryBatch<T>(
+	registry: { batch?: (callback: () => void) => void },
+	run: () => T
+): T {
+	let result: T;
+	if (typeof registry.batch === 'function') {
+		registry.batch(() => {
+			result = run();
+		});
+	} else {
+		result = run();
+	}
+	return result!;
+}
+
+function hydrateInnerFromStore(
+	getBlock: (clientId: string) => unknown,
+	nextChildren: BlockNode[]
+): BlockNode[] | null {
+	const out: BlockNode[] = [];
+	for (let i = 0; i < nextChildren.length; i++) {
+		const child = nextChildren[i];
+		const liveChild = child.clientId
+			? (getBlock(child.clientId) as BlockNode | undefined)
+			: undefined;
+		if (liveChild) {
+			out.push(liveChild);
+			continue;
+		}
+		const parsed = toEntityEdits([child]).blocks;
+		if (!parsed.length) {
+			return null;
+		}
+		out.push(parsed[0]);
+	}
+	return out;
 }
 
 export default function useTemplateOptions(
@@ -183,14 +222,20 @@ export default function useTemplateOptions(
 		};
 	}, []);
 
-	const selectedClientId = useSelect((select) => {
+	const registry = useRegistry();
+
+	const { selectedClientId, canvasBlocks } = useSelect((select) => {
 		const editor = select(blockEditorStore) as unknown as {
 			getSelectedBlockClientId?: () => string | null;
+			getBlocks?: (rootClientId?: string | null) => BlockNode[];
 		};
-		if (typeof editor.getSelectedBlockClientId !== 'function') {
-			return null;
-		}
-		return editor.getSelectedBlockClientId() || null;
+		return {
+			selectedClientId: editor.getSelectedBlockClientId?.() || null,
+			canvasBlocks:
+				typeof editor.getBlocks === 'function'
+					? editor.getBlocks() || []
+					: [],
+		};
 	}, []);
 
 	const { editEntityRecord } = useDispatch(coreStore) as unknown as {
@@ -202,7 +247,10 @@ export default function useTemplateOptions(
 		) => void;
 	};
 
-	const blocks = useMemo(() => getBlocksFromRecord(record), [record]);
+	const entityBlocks = useMemo(() => getBlocksFromRecord(record), [record]);
+	// Clean load has template `content` only. `parse()` mints new clientIds that
+	// are not in the canvas store, so local replace/reorder would reset the tree.
+	const blocks = canvasBlocks.length > 0 ? canvasBlocks : entityBlocks;
 	const entityKey = sessionEntityKey(
 		entityPostType,
 		templateId,
@@ -222,6 +270,320 @@ export default function useTemplateOptions(
 			});
 		},
 		[editEntityRecord, entityPostType, templateId]
+	);
+
+	const applyLocalReplace = useCallback(
+		(localReplace: LocalReplace | undefined): boolean => {
+			const isRemoveOnly =
+				!!localReplace?.clientId &&
+				(localReplace.blocks?.length || 0) === 0;
+			const isReorderOnly =
+				typeof localReplace?.reorderParentClientId === 'string';
+			const isAttributePatch =
+				(localReplace?.attributeUpdates?.length || 0) > 0;
+			const isInnerPatch = (localReplace?.innerPatches?.length || 0) > 0;
+			const isInsertOnly =
+				!!localReplace &&
+				!isReorderOnly &&
+				!isAttributePatch &&
+				!isInnerPatch &&
+				!localReplace.clientId &&
+				(localReplace.blocks?.length || 0) > 0;
+			const isSwapOrMove =
+				!!localReplace?.clientId &&
+				(localReplace.blocks?.length || 0) > 0;
+			if (
+				!localReplace ||
+				(!isRemoveOnly &&
+					!isInsertOnly &&
+					!isSwapOrMove &&
+					!isReorderOnly &&
+					!isAttributePatch &&
+					!isInnerPatch)
+			) {
+				return false;
+			}
+			const editor = registry.select(blockEditorStore) as unknown as {
+				getBlock?: (clientId: string) => unknown;
+				getBlockRootClientId?: (clientId: string) => string | null;
+				getBlocks?: (rootClientId?: string | null) => BlockNode[];
+			};
+			if (typeof editor.getBlock !== 'function') {
+				return false;
+			}
+			if (isInnerPatch) {
+				const patches = localReplace.innerPatches || [];
+				for (let i = 0; i < patches.length; i++) {
+					if (!editor.getBlock(patches[i].clientId)) {
+						return false;
+					}
+				}
+				const dispatchEditor = registry.dispatch(
+					blockEditorStore
+				) as unknown as {
+					updateBlockAttributes?: (
+						clientId: string | string[],
+						attributes: Record<string, unknown>
+					) => void;
+					replaceInnerBlocks?: (
+						rootClientId: string,
+						blocks: BlockNode[],
+						updateSelection?: boolean
+					) => void;
+				};
+				if (
+					typeof dispatchEditor.replaceInnerBlocks !== 'function' &&
+					patches.some((item) => item.innerBlocks)
+				) {
+					return false;
+				}
+				const planned: Array<{
+					clientId: string;
+					innerBlocks?: BlockNode[];
+					attributes?: Record<string, unknown>;
+				}> = [];
+				for (let i = 0; i < patches.length; i++) {
+					const patch = patches[i];
+					if (!patch.innerBlocks) {
+						planned.push(patch);
+						continue;
+					}
+					const hydrated = hydrateInnerFromStore(
+						editor.getBlock,
+						patch.innerBlocks
+					);
+					if (!hydrated) {
+						return false;
+					}
+					planned.push({
+						clientId: patch.clientId,
+						innerBlocks: hydrated,
+						attributes: patch.attributes,
+					});
+				}
+				runRegistryBatch(registry, () => {
+					for (let i = 0; i < planned.length; i++) {
+						const patch = planned[i];
+						if (
+							patch.attributes &&
+							typeof dispatchEditor.updateBlockAttributes ===
+								'function'
+						) {
+							dispatchEditor.updateBlockAttributes(
+								patch.clientId,
+								patch.attributes
+							);
+						}
+						if (!patch.innerBlocks) {
+							continue;
+						}
+						dispatchEditor.replaceInnerBlocks(
+							patch.clientId,
+							patch.innerBlocks,
+							false
+						);
+					}
+				});
+				return true;
+			}
+			if (isAttributePatch) {
+				const updates = localReplace.attributeUpdates || [];
+				for (let i = 0; i < updates.length; i++) {
+					if (!editor.getBlock(updates[i].clientId)) {
+						return false;
+					}
+				}
+				const dispatchEditor = registry.dispatch(
+					blockEditorStore
+				) as unknown as {
+					updateBlockAttributes?: (
+						clientId: string | string[],
+						attributes: Record<string, unknown>
+					) => void;
+				};
+				if (
+					typeof dispatchEditor.updateBlockAttributes !== 'function'
+				) {
+					return false;
+				}
+				runRegistryBatch(registry, () => {
+					for (let i = 0; i < updates.length; i++) {
+						dispatchEditor.updateBlockAttributes(
+							updates[i].clientId,
+							updates[i].attributes
+						);
+					}
+				});
+				return true;
+			}
+			if (
+				isReorderOnly &&
+				localReplace.reorderParentClientId &&
+				!editor.getBlock(localReplace.reorderParentClientId)
+			) {
+				return false;
+			}
+			if (
+				!isInsertOnly &&
+				!isReorderOnly &&
+				!editor.getBlock(localReplace.clientId || '')
+			) {
+				return false;
+			}
+			let fresh: BlockNode[] = [];
+			if (!isRemoveOnly && !isReorderOnly) {
+				const parsed = toEntityEdits(localReplace.blocks);
+				fresh = parsed.blocks;
+				if (!fresh.length) {
+					return false;
+				}
+			}
+			let fromParentClientId = '';
+			if (
+				!isInsertOnly &&
+				typeof editor.getBlockRootClientId === 'function'
+			) {
+				fromParentClientId =
+					editor.getBlockRootClientId(localReplace.clientId || '') ||
+					'';
+			}
+			const destParentClientId =
+				typeof localReplace.destParentClientId === 'string'
+					? localReplace.destParentClientId
+					: fromParentClientId;
+			const destIndex =
+				typeof localReplace.destIndex === 'number'
+					? localReplace.destIndex
+					: null;
+			const isRelocate = destParentClientId !== fromParentClientId;
+			if (typeof editor.getBlocks !== 'function') {
+				return false;
+			}
+			if (
+				(isInsertOnly || isRelocate) &&
+				destParentClientId &&
+				!editor.getBlock(destParentClientId)
+			) {
+				return false;
+			}
+			const dispatchEditor = registry.dispatch(
+				blockEditorStore
+			) as unknown as {
+				replaceInnerBlocks?: (
+					rootClientId: string,
+					blocks: BlockNode[],
+					updateSelection?: boolean
+				) => void;
+			};
+			if (typeof dispatchEditor.replaceInnerBlocks !== 'function') {
+				return false;
+			}
+			const run = () => {
+				if (isReorderOnly) {
+					const parentId = localReplace.reorderParentClientId || '';
+					const live = editor.getBlocks(parentId) || [];
+					const byId = new Map<string, BlockNode>();
+					for (let i = 0; i < live.length; i++) {
+						const id = live[i].clientId;
+						if (id) {
+							byId.set(id, live[i]);
+						}
+					}
+					const ordered: BlockNode[] = [];
+					for (let i = 0; i < localReplace.blocks.length; i++) {
+						const id = localReplace.blocks[i].clientId;
+						const liveBlock = id ? byId.get(id) : undefined;
+						if (!liveBlock) {
+							return false;
+						}
+						ordered.push(liveBlock);
+					}
+					if (ordered.length !== live.length) {
+						return false;
+					}
+					dispatchEditor.replaceInnerBlocks(parentId, ordered, false);
+					return true;
+				}
+				if (isInsertOnly) {
+					const destSiblings =
+						editor.getBlocks(destParentClientId) || [];
+					const insertAt = Math.max(
+						0,
+						Math.min(
+							destIndex ?? destSiblings.length,
+							destSiblings.length
+						)
+					);
+					dispatchEditor.replaceInnerBlocks(
+						destParentClientId,
+						[
+							...destSiblings.slice(0, insertAt),
+							...fresh,
+							...destSiblings.slice(insertAt),
+						],
+						false
+					);
+					return true;
+				}
+				const fromSiblings = editor.getBlocks(fromParentClientId) || [];
+				const fromIndex = fromSiblings.findIndex(
+					(block) => block.clientId === localReplace.clientId
+				);
+				if (fromIndex < 0) {
+					return false;
+				}
+				if (isRemoveOnly) {
+					dispatchEditor.replaceInnerBlocks(
+						fromParentClientId,
+						[
+							...fromSiblings.slice(0, fromIndex),
+							...fromSiblings.slice(fromIndex + 1),
+						],
+						false
+					);
+					return true;
+				}
+				if (!isRelocate) {
+					dispatchEditor.replaceInnerBlocks(
+						fromParentClientId,
+						[
+							...fromSiblings.slice(0, fromIndex),
+							...fresh,
+							...fromSiblings.slice(fromIndex + 1),
+						],
+						false
+					);
+					return true;
+				}
+				dispatchEditor.replaceInnerBlocks(
+					fromParentClientId,
+					fromSiblings.filter(
+						(block) => block.clientId !== localReplace.clientId
+					),
+					false
+				);
+				const destSiblings = editor.getBlocks(destParentClientId) || [];
+				const insertAt = Math.max(
+					0,
+					Math.min(
+						destIndex ?? destSiblings.length,
+						destSiblings.length
+					)
+				);
+				dispatchEditor.replaceInnerBlocks(
+					destParentClientId,
+					[
+						...destSiblings.slice(0, insertAt),
+						...fresh,
+						...destSiblings.slice(insertAt),
+					],
+					false
+				);
+				return true;
+			};
+			return runRegistryBatch(registry, run);
+		},
+		[registry]
 	);
 
 	const didEnsureNavLabels = useRef(false);
@@ -354,7 +716,7 @@ export default function useTemplateOptions(
 					editEntityRecord('root', 'site', undefined, result.edits);
 				} else if (result.kind === 'broadcast') {
 					runBroadcast(result);
-				} else {
+				} else if (!applyLocalReplace(result.localReplace)) {
 					applyBlocks(result.blocks);
 				}
 				const revealId = resolveEnableScrollTarget(
@@ -379,6 +741,7 @@ export default function useTemplateOptions(
 		},
 		[
 			applyBlocks,
+			applyLocalReplace,
 			blocks,
 			resolvedConfig,
 			controlStates,
@@ -414,7 +777,13 @@ export default function useTemplateOptions(
 				entityKey,
 			});
 			if (result?.kind === 'blocks') {
-				applyBlocks(result.blocks);
+				if (result.localReplace) {
+					if (!applyLocalReplace(result.localReplace)) {
+						applyBlocks(result.blocks);
+					}
+				} else {
+					applyBlocks(result.blocks);
+				}
 				const revealId =
 					!Array.isArray(payload) && payload.move
 						? payload.move.toParentId
@@ -424,6 +793,7 @@ export default function useTemplateOptions(
 		},
 		[
 			applyBlocks,
+			applyLocalReplace,
 			blocks,
 			resolvedConfig,
 			settingBucket,

@@ -12,6 +12,7 @@ import type {
 	TemplateOptionsConfig,
 } from '../types';
 import type { EditorSessionApi } from '../../../session';
+import type { LocalReplace } from './local-replace';
 
 export type ApplyOperationArgs = {
 	blocks: BlockNode[];
@@ -30,7 +31,7 @@ export type ApplyOperationArgs = {
 };
 
 export type OperationResult =
-	| { kind: 'blocks'; blocks: BlockNode[] }
+	| { kind: 'blocks'; blocks: BlockNode[]; localReplace?: LocalReplace }
 	| { kind: 'site-edits'; edits: Record<string, unknown> }
 	| {
 			kind: 'broadcast';

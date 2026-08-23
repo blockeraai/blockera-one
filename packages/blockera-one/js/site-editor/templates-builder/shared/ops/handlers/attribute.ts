@@ -17,6 +17,7 @@ import { lookupFromControl, type StampLookupOptions } from '../../stamp-lookup';
 import { setSectionAttribute } from '../../section-ops';
 import { getAtPath } from '../../tree';
 import type { BlockNode, ControlDef, TemplateOptionsConfig } from '../../types';
+import { localAttributeUpdates } from '../local-replace';
 import type { OperationHandler } from '../types';
 
 /**
@@ -212,5 +213,8 @@ export const handleSetSectionAttribute: OperationHandler = ({
 		selectedClientId
 	);
 	tree = applyMirrorMergeWhen(tree, control, config, selectedClientId);
-	return { kind: 'blocks', blocks: tree };
+	const localReplace = localAttributeUpdates(blocks, tree);
+	return localReplace
+		? { kind: 'blocks', blocks: tree, localReplace }
+		: { kind: 'blocks', blocks: tree };
 };

@@ -3,6 +3,7 @@
  */
 
 import { lookupFromControl } from '../../stamp-lookup';
+import type { BlockNode } from '../../types';
 import {
 	setMetaItemPart,
 	setMetaItemsDesign,
@@ -15,7 +16,15 @@ import {
 	loadMetaParkOverlay,
 	saveMetaParkOverlay,
 } from '../meta/session-overlay';
-import type { OperationHandler } from '../types';
+import { localInnerPatches } from '../local-replace';
+import type { OperationHandler, OperationResult } from '../types';
+
+function finishMeta(prev: BlockNode[], next: BlockNode[]): OperationResult {
+	const localReplace = localInnerPatches(prev, next);
+	return localReplace
+		? { kind: 'blocks', blocks: next, localReplace }
+		: { kind: 'blocks', blocks: next };
+}
 
 export const handleSetMetaItemPart: OperationHandler = ({
 	blocks,
@@ -41,10 +50,7 @@ export const handleSetMetaItemPart: OperationHandler = ({
 		overlay: park.overlay,
 	});
 	saveMetaParkOverlay(session, park.key, park.overlay);
-	return {
-		kind: 'blocks',
-		blocks: next,
-	};
+	return finishMeta(blocks, next);
 };
 
 export const handleSetMetaSeparator: OperationHandler = ({
@@ -54,15 +60,13 @@ export const handleSetMetaSeparator: OperationHandler = ({
 	selectedClientId,
 }) => {
 	const option = String(nextValue || 'none') as MetaSeparatorOption;
-	return {
-		kind: 'blocks',
-		blocks: syncMetaSeparators(
-			blocks,
-			control.target.id,
-			option,
-			lookupFromControl(control, selectedClientId)
-		),
-	};
+	const next = syncMetaSeparators(
+		blocks,
+		control.target.id,
+		option,
+		lookupFromControl(control, selectedClientId)
+	);
+	return finishMeta(blocks, next);
 };
 
 export const handleSetMetaItemsDesign: OperationHandler = ({
@@ -87,8 +91,5 @@ export const handleSetMetaItemsDesign: OperationHandler = ({
 		park.overlay
 	);
 	saveMetaParkOverlay(session, park.key, park.overlay);
-	return {
-		kind: 'blocks',
-		blocks: next,
-	};
+	return finishMeta(blocks, next);
 };

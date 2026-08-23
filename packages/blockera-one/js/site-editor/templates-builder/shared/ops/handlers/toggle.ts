@@ -21,6 +21,7 @@ import {
 import type { BlockNode, ControlDef, TemplateOptionsConfig } from '../../types';
 import { applyInnerOrder } from '../handler-helpers';
 import { applyMetaToggleSideEffects } from '../meta';
+import { localInnerPatches, localToggleForSection } from '../local-replace';
 import { parkLiveItem, type MetaParkOverlay } from '../meta/parts';
 import {
 	loadMetaParkOverlay,
@@ -257,8 +258,14 @@ export const handleToggleSection: OperationHandler = ({
 		park.overlay
 	);
 	saveMetaParkOverlay(session, park.key, park.overlay);
-	return {
-		kind: 'blocks',
-		blocks: nextBlocks,
-	};
+	const localReplace =
+		localToggleForSection(
+			blocks,
+			nextBlocks,
+			control.target.id,
+			lookupFromControl(control, selectedClientId)
+		) || localInnerPatches(blocks, nextBlocks);
+	return localReplace
+		? { kind: 'blocks', blocks: nextBlocks, localReplace }
+		: { kind: 'blocks', blocks: nextBlocks };
 };

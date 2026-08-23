@@ -92,9 +92,17 @@ export function orderInnerSections(
 		}
 	}
 
+	const nextInner = [...ordered, ...rest];
+	const unchanged =
+		nextInner.length === children.length &&
+		nextInner.every((child, i) => child === children[i]);
+	if (unchanged) {
+		return blocks;
+	}
+
 	return replaceAtPath(blocks, parent.path, {
 		...node,
-		innerBlocks: [...ordered, ...rest],
+		innerBlocks: nextInner,
 	});
 }
 
