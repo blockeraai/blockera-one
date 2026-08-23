@@ -147,7 +147,7 @@ describe('post meta wrapped items', () => {
 					stamped(
 						'core/paragraph',
 						'container/meta-item-prefix:default',
-						{ content: 'Published:' }
+						{ content: 'Published' }
 					),
 				]),
 			]),

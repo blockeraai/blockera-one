@@ -388,7 +388,7 @@ describe('setMetaItemsDesign', () => {
 					metaBlock('core/post-author-name'),
 				]),
 				separator('\u2022'),
-				wrapper(DATE, [prefix('Published:'), metaBlock()]),
+				wrapper(DATE, [prefix('Published'), metaBlock()]),
 			]),
 		];
 	}
@@ -740,13 +740,13 @@ describe('meta item id helpers and no-ops', () => {
 					stamped(
 						'core/paragraph',
 						'container/meta-item-prefix:default',
-						{ content: { text: 'Published:' } }
+						{ content: { text: 'Published' } }
 					),
 					metaBlock(),
 				]),
 			]),
 		];
-		expect(readMetaItemPart(tree, DATE, 'prefix')).toBe('Published:');
+		expect(readMetaItemPart(tree, DATE, 'prefix')).toBe('Published');
 		expect(deriveMetaItemsDesign(tree, 'post-meta')).toBe('labels');
 	});
 
