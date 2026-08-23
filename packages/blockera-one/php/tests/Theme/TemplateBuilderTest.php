@@ -384,6 +384,17 @@ class TemplateBuilderTest extends TestCase {
 			),
 			$payload['default']['items']['author-name']['icons']['icon']
 		);
+		$this->assertSame( 'Published', $payload['default']['items']['post-date']['labels']['prefix'] );
+		$this->assertSame( 'calendar', $payload['default']['items']['modified-date']['icons']['icon']['icon'] );
+		$this->assertSame( 'archive', $payload['default']['items']['categories']['icons']['icon']['icon'] );
+		$this->assertSame( '', $payload['default']['items']['comments-count']['labels']['prefix'] );
+		$this->assertSame( 'Comments', $payload['default']['items']['comments-count']['labels']['suffix'] );
+		$this->assertSame( 'comment', $payload['default']['items']['comments-count']['icons']['icon']['icon'] );
+		$this->assertSame( '', $payload['default']['items']['comments-link']['labels']['prefix'] );
+		$this->assertSame( 'comment', $payload['default']['items']['comments-link']['icons']['icon']['icon'] );
+		$this->assertSame( 'time-to-read', $payload['default']['items']['time-to-read']['icons']['icon']['icon'] );
+		$this->assertSame( '', $payload['default']['items']['word-count']['labels']['prefix'] );
+		$this->assertSame( 'pencil', $payload['default']['items']['word-count']['icons']['icon']['icon'] );
 		$this->assertSame(
 			'icons',
 			$payload['listings']['section/posts-listing:full-width']['preset']
