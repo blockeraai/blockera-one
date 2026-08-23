@@ -85,7 +85,7 @@ class MetaItemsDesign {
 				),
 				'labels' => array(
 					'icon'   => '',
-					'prefix' => __( 'Published:', 'blockera-one' ),
+					'prefix' => __( 'Published', 'blockera-one' ),
 					'suffix' => '',
 				),
 				'icons'  => array(
@@ -110,7 +110,7 @@ class MetaItemsDesign {
 				),
 				'icons'  => array(
 					'icon'   => array(
-						'icon'    => 'update',
+						'icon'    => 'calendar',
 						'library' => 'wp',
 					),
 					'prefix' => '',
@@ -130,7 +130,7 @@ class MetaItemsDesign {
 				),
 				'icons'  => array(
 					'icon'   => array(
-						'icon'    => 'category',
+						'icon'    => 'archive',
 						'library' => 'wp',
 					),
 					'prefix' => '',
@@ -165,12 +165,12 @@ class MetaItemsDesign {
 				),
 				'labels' => array(
 					'icon'   => '',
-					'prefix' => __( 'Comments', 'blockera-one' ),
-					'suffix' => '',
+					'prefix' => '',
+					'suffix' => __( 'Comments', 'blockera-one' ),
 				),
 				'icons'  => array(
 					'icon'   => array(
-						'icon'    => 'admin-comments',
+						'icon'    => 'comment',
 						'library' => 'wp',
 					),
 					'prefix' => '',
@@ -185,12 +185,12 @@ class MetaItemsDesign {
 				),
 				'labels' => array(
 					'icon'   => '',
-					'prefix' => __( 'Comments', 'blockera-one' ),
+					'prefix' => '',
 					'suffix' => '',
 				),
 				'icons'  => array(
 					'icon'   => array(
-						'icon'    => 'admin-comments',
+						'icon'    => 'comment',
 						'library' => 'wp',
 					),
 					'prefix' => '',
@@ -210,7 +210,7 @@ class MetaItemsDesign {
 				),
 				'icons'  => array(
 					'icon'   => array(
-						'icon'    => 'clock',
+						'icon'    => 'time-to-read',
 						'library' => 'wp',
 					),
 					'prefix' => '',
@@ -225,12 +225,12 @@ class MetaItemsDesign {
 				),
 				'labels' => array(
 					'icon'   => '',
-					'prefix' => __( 'Words', 'blockera-one' ),
+					'prefix' => '',
 					'suffix' => '',
 				),
 				'icons'  => array(
 					'icon'   => array(
-						'icon'    => 'media-text',
+						'icon'    => 'pencil',
 						'library' => 'wp',
 					),
 					'prefix' => '',
