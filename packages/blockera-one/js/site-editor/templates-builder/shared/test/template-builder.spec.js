@@ -430,6 +430,51 @@ describe('templates-builder patterns lint', () => {
 		});
 	});
 
+	describeMarkup('query loop perPage', () => {
+		it('does not store query.perPage on section/posts-listing:<variant> Query Loops', () => {
+			const offenders = [];
+			let listings = 0;
+			const queryOpen = /<!--\s+wp:(?:core\/)?query(?!-)(?:\s|\{)/g;
+
+			for (const entry of stampedEntries) {
+				const source = fs.readFileSync(
+					path.join(themeRoot, entry.file),
+					'utf8'
+				);
+				let match;
+				queryOpen.lastIndex = 0;
+				while ((match = queryOpen.exec(source))) {
+					const end = source.indexOf('-->', match.index);
+					if (end === -1) {
+						break;
+					}
+					const comment = source.slice(match.index, end);
+					const stampMatch = comment.match(/"stamp"\s*:\s*"([^"]+)"/);
+					const parsed = stampMatch
+						? stampMatch[1].match(STAMP_SHAPE)
+						: null;
+					if (
+						!parsed ||
+						'section' !== parsed[1] ||
+						'posts-listing' !== parsed[2] ||
+						!parsed[3]
+					) {
+						continue;
+					}
+					listings += 1;
+					if (/"perPage"\s*:/.test(comment)) {
+						offenders.push(
+							`${entry.file}: ${stampMatch[1]} still has query.perPage`
+						);
+					}
+				}
+			}
+
+			expect(listings).toBeGreaterThan(0);
+			expect(offenders).toEqual([]);
+		});
+	});
+
 	describeMarkup('posts-listing metadata.name', () => {
 		it('requires a List View name on every section/posts-listing stamp', () => {
 			const offenders = [];
