@@ -25,6 +25,10 @@ describe('Blockera One → Site Editor main panel chrome', () => {
 	it('shows Blockera branding in the view-mode sidebar', () => {
 		assertSiteEditorChrome();
 		assertSiteEditorMainNav();
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.navTemplates).should(
+			'contain.text',
+			'Template Builder'
+		);
 	});
 
 	it('keeps branding when drilling into Pages (nav unmounts)', () => {
