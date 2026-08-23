@@ -34,6 +34,19 @@ describe('setSectionAttribute', () => {
 		expect(listing.block.attributes.query.perPage).toBe(24);
 	});
 
+	it('attaches attributeUpdates when the listing has a clientId', () => {
+		const blocks = makeBlocks();
+		findStamp(blocks, 'posts-listing').block.clientId = 'listing-live';
+		const result = apply(CONTROLS.queryPerPage, 24, { blocks });
+		expect(result.localReplace.attributeUpdates).toEqual([
+			{
+				clientId: 'listing-live',
+				attributes: findStamp(result.blocks, 'posts-listing').block
+					.attributes,
+			},
+		]);
+	});
+
 	it('writes object values onto the nested attribute path', () => {
 		const gapValue = {
 			lock: true,
@@ -374,6 +387,39 @@ describe('setSectionAttribute', () => {
 		).toEqual(layout);
 	});
 
+	it('attaches attributeUpdates for page-header and alsoSetOn body', () => {
+		const layout = {
+			direction: 'column',
+			alignItems: 'center',
+			justifyContent: 'flex-end',
+		};
+		const blocks = [
+			stamped(
+				'core/group',
+				'section/page-header:simple',
+				{ clientId: 'ph-live' },
+				[
+					stamped('core/group', 'container/body', {
+						clientId: 'body-live',
+					}),
+				]
+			),
+		];
+		const control = {
+			id: 'page-header-align',
+			type: 'layout-matrix',
+			label: 'Items alignment',
+			target: { kind: 'section', id: 'page-header' },
+			alsoSetOn: ['body'],
+			operation: 'setSectionAttribute',
+			attributePath: 'blockeraFlexLayout.value',
+		};
+		const result = apply(control, layout, { blocks });
+		expect(
+			result.localReplace.attributeUpdates.map((item) => item.clientId)
+		).toEqual(['ph-live', 'body-live']);
+	});
+
 	it('writes banner items alignment only onto the body container', () => {
 		const layout = {
 			direction: 'column',
@@ -621,6 +667,34 @@ describe('setBlockStyle', () => {
 		expect(
 			findStamp(result.blocks, 'page-header-breadcrumbs').block.attributes
 				.className
+		).toBe('blockera-block blockera-block-z3 is-style-underline');
+	});
+
+	it('attaches attributeUpdates when the styled block has a clientId', () => {
+		const blocks = [
+			stamped(
+				'core/breadcrumbs',
+				'section/page-header-breadcrumbs:default',
+				{
+					clientId: 'crumbs-live',
+					className: 'blockera-block blockera-block-z3',
+				}
+			),
+		];
+		const control = {
+			id: 'breadcrumbs-style',
+			type: 'select',
+			label: 'Style variation',
+			target: { kind: 'section', id: 'page-header-breadcrumbs' },
+			operation: 'setBlockStyle',
+			defaultValue: 'default',
+		};
+		const result = apply(control, 'underline', { blocks });
+		expect(result.localReplace.attributeUpdates[0].clientId).toBe(
+			'crumbs-live'
+		);
+		expect(
+			result.localReplace.attributeUpdates[0].attributes.className
 		).toBe('blockera-block blockera-block-z3 is-style-underline');
 	});
 });

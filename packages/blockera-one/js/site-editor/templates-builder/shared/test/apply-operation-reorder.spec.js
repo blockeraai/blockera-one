@@ -23,7 +23,7 @@ import {
 	fullWidthListing,
 } from './helpers/apply-operation-setup';
 import { getStamp } from '../metadata';
-import { findStamp, stamped } from './helpers/block-fixtures';
+import { block, findStamp, stamped } from './helpers/block-fixtures';
 
 describe('reorderInnerSections', () => {
 	it('reorders present children', () => {
@@ -69,6 +69,46 @@ describe('reorderInnerSections', () => {
 			'core/term-description',
 			'core/query-title',
 		]);
+	});
+
+	it('returns null when the managed order is already correct', () => {
+		const innerOrder = {
+			parentId: 'page-header',
+			ids: [
+				'page-header-title',
+				'page-header-description',
+				'page-header-breadcrumbs',
+			],
+		};
+		const blocks = [
+			stamped('core/group', 'section/page-header:default', {}, [
+				stamped(
+					'core/query-title',
+					'section/page-header-title:default'
+				),
+				stamped(
+					'core/term-description',
+					'section/page-header-description:default'
+				),
+			]),
+		];
+		const result = apply(
+			{
+				id: 'reorder-page-header',
+				type: 'button',
+				label: '',
+				target: { kind: 'section', id: 'page-header' },
+				operation: 'reorderInnerSections',
+				innerOrder,
+			},
+			[
+				'page-header-title',
+				'page-header-description',
+				'page-header-breadcrumbs',
+			],
+			{ blocks }
+		);
+		expect(result).toBeNull();
 	});
 
 	it('reorders page-header body via synthetic reorder-body, not the listing', () => {
@@ -126,8 +166,122 @@ describe('reorderInnerSections', () => {
 			listingBody.block.innerBlocks.map((b) => getStamp(b)?.id)
 		).not.toContain('page-header-description');
 	});
+
+	it('attaches a reorder payload when page-header body children have clientIds', () => {
+		const title = stamped(
+			'core/query-title',
+			'section/page-header-title:default',
+			{ clientId: 'title-live' }
+		);
+		const desc = stamped(
+			'core/term-description',
+			'section/page-header-description:default',
+			{ clientId: 'desc-live' }
+		);
+		const blocks = [
+			stamped('core/group', 'section/page-header:simple', {}, [
+				stamped(
+					'core/group',
+					'container/body',
+					{ clientId: 'body-live' },
+					[title, desc]
+				),
+			]),
+		];
+		const result = apply(
+			{
+				id: 'reorder-body',
+				type: 'button',
+				label: '',
+				target: { kind: 'section', id: 'body' },
+				operation: 'reorderInnerSections',
+				innerOrder: {
+					parentId: 'body',
+					within: 'page-header',
+					ids: [
+						'page-header-title',
+						'page-header-description',
+						'page-header-breadcrumbs',
+					],
+				},
+			},
+			['page-header-description', 'page-header-title'],
+			{ blocks }
+		);
+		expect(result.localReplace).toEqual({
+			reorderParentClientId: 'body-live',
+			blocks: [desc, title],
+		});
+	});
 });
 describe('reorderInnerSections buckets', () => {
+	it('attaches innerPatches when a loop-item moves across media and body', () => {
+		const image = stamped(
+			'core/post-featured-image',
+			'section/post-featured-image:default',
+			{ clientId: 'image-live' }
+		);
+		const title = stamped('core/post-title', 'section/post-title:default', {
+			clientId: 'title-live',
+		});
+		const media = stamped(
+			'core/column',
+			'container/media',
+			{
+				clientId: 'media-live',
+			},
+			[image]
+		);
+		const body = stamped(
+			'core/column',
+			'container/body',
+			{
+				clientId: 'body-live',
+			},
+			[title]
+		);
+		const columns = block('core/columns', {}, [media, body]);
+		columns.clientId = 'cols-live';
+		const template = block('core/post-template', {}, [columns]);
+		template.clientId = 'tpl-live';
+		const blocks = [
+			stamped(
+				'core/query',
+				'section/posts-listing:full-width',
+				{ clientId: 'listing-live' },
+				[template]
+			),
+		];
+		const result = apply(
+			{
+				id: 'reorder-body',
+				type: 'button',
+				label: '',
+				target: { kind: 'section', id: 'body' },
+				operation: 'reorderInnerSections',
+				innerOrder: LOOP_BLOCK_ORDER,
+			},
+			{
+				move: {
+					sectionId: 'post-featured-image',
+					toParentId: 'body',
+					index: 0,
+				},
+				buckets: [
+					{ parentId: 'media', ids: [] },
+					{
+						parentId: 'body',
+						ids: ['post-featured-image', 'post-title'],
+					},
+				],
+			},
+			{ blocks }
+		);
+		expect(
+			result.localReplace.innerPatches.map((item) => item.clientId).sort()
+		).toEqual(['body-live', 'media-live']);
+	});
+
 	it('moves a loop-item across parents', () => {
 		const result = apply(
 			{

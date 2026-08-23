@@ -195,6 +195,62 @@ describe('post meta wrapped items', () => {
 		).toBe('Tagged');
 	});
 
+	it('attaches innerPatches when toggling a meta child rebuilds separators', () => {
+		__setMarkup('meta-tags', [
+			metaWrapper('post-meta-tags', 'core/post-terms'),
+		]);
+		const author = metaWrapper(
+			'post-meta-author-name',
+			'core/post-author-name'
+		);
+		author.clientId = 'author-live';
+		const date = metaWrapper('post-meta-post-date', 'core/post-date');
+		date.clientId = 'date-live';
+		const blocks = [
+			stamped(
+				'core/group',
+				'section/post-meta:default',
+				{ clientId: 'row-live' },
+				[
+					author,
+					stamped(
+						'core/paragraph',
+						'container/meta-separator:default',
+						{
+							content: '\u2022',
+						}
+					),
+					date,
+				]
+			),
+		];
+		const result = apply(
+			{
+				id: 'post-meta-tags',
+				type: 'toggle',
+				label: 'Tags',
+				target: { kind: 'section', id: 'post-meta-tags' },
+				operation: 'toggleSection',
+				variants: [{ id: 'default', label: 'Tags', html: 'meta-tags' }],
+				insert: {
+					relativeTo: 'post-meta',
+					position: 'inside-end',
+				},
+				innerOrder: {
+					parentId: 'post-meta',
+					ids: [
+						'post-meta-author-name',
+						'post-meta-post-date',
+						'post-meta-tags',
+					],
+				},
+			},
+			true,
+			{ blocks }
+		);
+		expect(result.localReplace.innerPatches[0].clientId).toBe('row-live');
+	});
+
 	it('re-syncs separators after reordering meta children', () => {
 		const blocks = [
 			stamped('core/group', 'section/post-meta:default', {}, [
@@ -316,6 +372,80 @@ describe('post meta wrapped items', () => {
 				(child) => getStamp(child)?.id === 'meta-item-prefix'
 			).attributes.content
 		).toBe('By');
+	});
+
+	it('attaches innerPatches when changing the separator', () => {
+		const author = metaWrapper(
+			'post-meta-author-name',
+			'core/post-author-name'
+		);
+		author.clientId = 'author-live';
+		const date = metaWrapper('post-meta-post-date', 'core/post-date');
+		date.clientId = 'date-live';
+		const blocks = [
+			stamped(
+				'core/group',
+				'section/post-meta:default',
+				{ clientId: 'row-live' },
+				[author, date]
+			),
+		];
+		const result = apply(
+			{
+				id: 'post-meta-separator',
+				type: 'toggle-select',
+				label: 'Separator',
+				target: { kind: 'section', id: 'post-meta' },
+				operation: 'setMetaSeparator',
+				defaultValue: 'bullet',
+			},
+			'slash',
+			{ blocks }
+		);
+		expect(result.localReplace.innerPatches).toHaveLength(1);
+		expect(result.localReplace.innerPatches[0].clientId).toBe('row-live');
+		expect(
+			result.localReplace.innerPatches[0].innerBlocks.map(
+				(block) => getStamp(block)?.id
+			)
+		).toEqual([
+			'post-meta-author-name',
+			'meta-separator',
+			'post-meta-post-date',
+		]);
+	});
+
+	it('attaches innerPatches when changing items design', () => {
+		const author = metaWrapper(
+			'post-meta-author-name',
+			'core/post-author-name'
+		);
+		author.clientId = 'author-live';
+		const date = metaWrapper('post-meta-post-date', 'core/post-date');
+		date.clientId = 'date-live';
+		const blocks = [
+			stamped(
+				'core/group',
+				'section/post-meta:default',
+				{ clientId: 'row-live' },
+				[author, date]
+			),
+		];
+		const result = apply(
+			{
+				id: 'post-meta-items-design',
+				type: 'toggle-select',
+				label: 'Items Design',
+				target: { kind: 'section', id: 'post-meta' },
+				operation: 'setMetaItemsDesign',
+				defaultValue: 'labels',
+			},
+			'labels',
+			{ blocks }
+		);
+		expect(
+			result.localReplace.innerPatches.map((item) => item.clientId).sort()
+		).toEqual(['author-live', 'date-live']);
 	});
 
 	it('dispatches setMetaItemPart for prefix and empty icon', () => {

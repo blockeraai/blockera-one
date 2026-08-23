@@ -618,6 +618,23 @@ describe('orderInnerSections', () => {
 			'core/paragraph',
 		]);
 	});
+
+	it('returns the same tree when the managed order is already correct', () => {
+		const title = stamped(
+			'core/query-title',
+			`section/${PAGE_HEADER_INNER.title}:default`
+		);
+		const desc = stamped(
+			'core/term-description',
+			`section/${PAGE_HEADER_INNER.description}:default`
+		);
+		const tree = pageHeader([title, desc]);
+		const next = orderInnerSections(tree, 'page-header', [
+			PAGE_HEADER_INNER.title,
+			PAGE_HEADER_INNER.description,
+		]);
+		expect(next).toBe(tree);
+	});
 });
 
 describe('toggleSection inner insert + banner align', () => {

@@ -80,6 +80,17 @@ describe('swapSection', () => {
 		expect(apply(CONTROLS.postsTemplate, 'nope')).toBeNull();
 	});
 
+	it('attaches a localReplace payload when the listing has a clientId', () => {
+		const blocks = makeBlocks();
+		const listing = findStamp(blocks, 'posts-listing');
+		listing.block.clientId = 'listing-live';
+		const layout = findStamp(blocks, 'main');
+		layout.block.clientId = 'layout-live';
+		const result = apply(CONTROLS.postsTemplate, 'grid-2', { blocks });
+		expect(result.localReplace.clientId).toBe('listing-live');
+		expect(getStamp(result.localReplace.blocks[0]).variant).toBe('grid-2');
+	});
+
 	it('does not carry previous blockera* attrs onto the new pattern by default', () => {
 		__setMarkup('page-header-banner', [
 			stamped('core/group', 'section/page-header:banner', {

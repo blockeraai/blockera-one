@@ -24,6 +24,7 @@ import {
 	LOOP_BLOCK_ORDER,
 	elementsConfig,
 	fullWidthListing,
+	makeBlocks,
 	paginationTree,
 } from './helpers/apply-operation-setup';
 import { __setMarkup } from '../blocks-adapter';
@@ -216,6 +217,37 @@ describe('toggleSection', () => {
 			'core/breadcrumbs',
 			'core/query-title',
 		]);
+	});
+});
+
+describe('pagination localReplace', () => {
+	it('attaches a remove payload when toggling pagination off', () => {
+		const blocks = makeBlocks();
+		findStamp(blocks, 'posts-listing').block.clientId = 'listing-live';
+		findStamp(blocks, 'pagination').block.clientId = 'pag-live';
+
+		const result = apply(CONTROLS.pagination, false, { blocks });
+
+		expect(findStamp(result.blocks, 'pagination')).toBeNull();
+		expect(result.localReplace).toEqual({
+			clientId: 'pag-live',
+			blocks: [],
+		});
+	});
+
+	it('attaches an insert payload when toggling pagination on', () => {
+		const blocks = makeBlocks();
+		const listing = findStamp(blocks, 'posts-listing').block;
+		listing.clientId = 'listing-live';
+		listing.innerBlocks = [];
+
+		const result = apply(CONTROLS.pagination, true, { blocks });
+
+		expect(result.localReplace.destParentClientId).toBe('listing-live');
+		expect(result.localReplace.destIndex).toBe(0);
+		expect(result.localReplace.clientId).toBeUndefined();
+		expect(result.localReplace.blocks).toHaveLength(1);
+		expect(getStamp(result.localReplace.blocks[0]).id).toBe('pagination');
 	});
 });
 
