@@ -77,14 +77,14 @@ function wpIcon(icon: string): Record<string, unknown> {
 /** JS fallback when PHP has not printed `window.blockeraOneTemplateBuilder`. */
 export const META_ITEM_DEFAULTS: Record<string, MetaItemDesignConfig> = {
 	'author-name': itemDefaults('By', wpIcon('comment-author-avatar')),
-	'post-date': itemDefaults('Published:', wpIcon('calendar')),
-	'modified-date': itemDefaults('Updated on', wpIcon('update')),
-	categories: itemDefaults('In', wpIcon('category')),
+	'post-date': itemDefaults('Published', wpIcon('calendar')),
+	'modified-date': itemDefaults('Updated on', wpIcon('calendar')),
+	categories: itemDefaults('In', wpIcon('archive')),
 	tags: itemDefaults('Tagged', wpIcon('tag')),
-	'comments-count': itemDefaults('Comments', wpIcon('admin-comments')),
-	'comments-link': itemDefaults('Comments', wpIcon('admin-comments')),
-	'time-to-read': itemDefaults('Read in', wpIcon('clock')),
-	'word-count': itemDefaults('Words', wpIcon('media-text')),
+	'comments-count': itemDefaults('', wpIcon('comment'), 'Comments'),
+	'comments-link': itemDefaults('', wpIcon('comment')),
+	'time-to-read': itemDefaults('Read in', wpIcon('time-to-read')),
+	'word-count': itemDefaults('', wpIcon('pencil')),
 };
 
 export type ListingMetaItemsDesign = {
