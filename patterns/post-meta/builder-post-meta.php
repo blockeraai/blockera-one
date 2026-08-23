@@ -28,7 +28,7 @@
 	<!-- wp:group {"metadata":{"name":"Published Date Meta","blockeraOne":{"stamp":"section/post-meta-post-date:default"}},"style":{"spacing":{"blockGap":"0.35em"}},"layout":{"type":"flex","flexWrap":"nowrap","verticalAlignment":"center"}} -->
 	<div class="wp-block-group">
 		<!-- wp:paragraph {"metadata":{"name":"Meta Prefix","blockeraOne":{"stamp":"container/meta-item-prefix:default"}}} -->
-		<p><?php esc_html_e( 'Published:', 'blockera-one' ); ?></p>
+		<p><?php esc_html_e( 'Published', 'blockera-one' ); ?></p>
 		<!-- /wp:paragraph -->
 		<!-- wp:post-date {"isLink":true,"metadata":{"bindings":{"datetime":{"source":"core/post-data","args":{"field":"date"}}},"blockeraOne":{"stamp":"container/meta-item-block:default"}}} /-->
 	</div>
