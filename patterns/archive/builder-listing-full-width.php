@@ -11,7 +11,7 @@
  */
 
 ?>
-<!-- wp:query {"query":{"perPage":10,"pages":0,"offset":0,"postType":"post","order":"desc","orderBy":"date","author":"","search":"","exclude":[],"sticky":"","inherit":true,"taxQuery":null,"parents":[],"excludeCurrent":null},"metadata":{"blockeraOne":{"stamp":"section/posts-listing:full-width"},"name":"Posts Query Loop"},"align":"full","className":"blockera-block blockera-block-72115552171","layout":{"type":"default"}} -->
+<!-- wp:query {"query":{"pages":0,"offset":0,"postType":"post","order":"desc","orderBy":"date","author":"","search":"","exclude":[],"sticky":"","inherit":true,"taxQuery":null,"parents":[],"excludeCurrent":null},"metadata":{"blockeraOne":{"stamp":"section/posts-listing:full-width"},"name":"Posts Query Loop"},"align":"full","className":"blockera-block blockera-block-72115552171","layout":{"type":"default"}} -->
 <div class="wp-block-query alignfull blockera-block blockera-block-72115552171">
 	<!-- wp:post-template {"align":"full","layout":{"type":"default"}} -->
 		<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"var:preset|spacing|50","bottom":"var:preset|spacing|50"}}},"layout":{"type":"constrained"}} -->
