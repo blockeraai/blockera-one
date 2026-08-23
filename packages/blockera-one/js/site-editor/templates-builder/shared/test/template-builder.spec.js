@@ -430,6 +430,50 @@ describe('templates-builder patterns lint', () => {
 		});
 	});
 
+	describeMarkup('posts-listing metadata.name', () => {
+		it('requires a List View name on every section/posts-listing stamp', () => {
+			const offenders = [];
+			let listings = 0;
+
+			for (const entry of stampedEntries) {
+				const source = fs.readFileSync(
+					path.join(themeRoot, entry.file),
+					'utf8'
+				);
+				const metas = extractMetadataObjects(source);
+				for (const meta of metas) {
+					const stamp =
+						typeof meta.blockeraOne?.stamp === 'string'
+							? meta.blockeraOne.stamp
+							: '';
+					if (!stamp) {
+						continue;
+					}
+					const match = stamp.match(STAMP_SHAPE);
+					if (
+						!match ||
+						'section' !== match[1] ||
+						'posts-listing' !== match[2]
+					) {
+						continue;
+					}
+
+					listings += 1;
+					const name =
+						typeof meta.name === 'string' ? meta.name.trim() : '';
+					if (!name) {
+						offenders.push(
+							`${entry.file}: stamp ${stamp} is missing metadata.name (default "Posts Query Loop")`
+						);
+					}
+				}
+			}
+
+			expect(listings).toBeGreaterThan(0);
+			expect(offenders).toEqual([]);
+		});
+	});
+
 	describePatterns('loop-item parent metadata.name', () => {
 		const LOOP_PARENT_STAMPS = new Set([
 			'container/media',
