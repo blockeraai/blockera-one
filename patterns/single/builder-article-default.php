@@ -22,7 +22,7 @@
 
 	<!-- wp:group {"metadata":{"name":"Content Blocks","blockeraOne":{"stamp":"container/body"}},"layout":{"type":"constrained"}} -->
 	<div class="wp-block-group">
-		<!-- wp:post-content {"align":"full","layout":{"type":"constrained"},"metadata":{"blockeraOne":{"stamp":"section/post-content:default"}}} /-->
+		<!-- wp:post-content {"metadata":{"blockeraOne":{"stamp":"section/post-content:default"}},"align":"full","layout":{"type":"default"}} /-->
 
 		<!-- wp:group {"metadata":{"name":"Post Meta","blockeraOne":{"stamp":"section/post-meta:default","metaSeparator":"none"}},"blockeraPropsId":"820192000016","blockeraCompatId":"820192000016","blockeraFlexChildSizing":{"value":"grow"},"blockeraWidth":{"value":"stretch"},"className":"blockera-block blockera-block-820192000016","layout":{"type":"flex","flexWrap":"nowrap"}} -->
 		<div class="wp-block-group blockera-block blockera-block-820192000016">
