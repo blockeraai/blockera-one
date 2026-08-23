@@ -82,10 +82,9 @@ export function SortableElementGroup({
 		[blocks, orderRule]
 	);
 
-	const frozenForList = useMemo(
-		() => session.get<ElementBucket[]>(freezeKey),
-		[freezeKey, session]
-	);
+	// Read every render. Memoizing on `session` keeps the first empty get()
+	// when ensure() writes without a notify (listener not subscribed yet).
+	const frozenForList = session.get<ElementBucket[]>(freezeKey);
 
 	const { buckets: displayBuckets, seeded } = useMemo(
 		() => resolveDisplayBuckets(resolvedBuckets, frozenForList, isOn),

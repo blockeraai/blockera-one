@@ -5,7 +5,12 @@
  */
 
 import type { ReactNode } from 'react';
-import { useEffect, useMemo, useState } from '@wordpress/element';
+import {
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useState,
+} from '@wordpress/element';
 
 import type { EditorSessionApi } from './bag';
 import {
@@ -29,7 +34,11 @@ export function EditorSessionProvider({ children }: ProviderProps) {
 
 export function useEditorSession(): EditorSessionApi {
 	const [version, setVersion] = useState(0);
-	useEffect(() => {
+	// Subscribe in layout so session.ensure() in a child's layout effect
+	// can notify this hook before paint. useEffect is too late: the first
+	// ensure fires with 0 listeners, later ensures no-op, and freeze memos
+	// keep the empty get() from the first render.
+	useLayoutEffect(() => {
 		return subscribeVisitSession(() => {
 			setVersion((n) => n + 1);
 		});
