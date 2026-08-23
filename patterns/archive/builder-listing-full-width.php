@@ -15,44 +15,43 @@
 <div class="wp-block-query alignfull blockera-block blockera-block-72115552171">
 	<!-- wp:post-template {"align":"full","layout":{"type":"default"}} -->
 		<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"var:preset|spacing|50","bottom":"var:preset|spacing|50"}}},"layout":{"type":"constrained"}} -->
-	<div class="wp-block-group alignfull" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--50)">
+		<div class="wp-block-group alignfull" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--50)">
 			<!-- wp:columns {"align":"wide","style":{"spacing":{"blockGap":{"left":"var:preset|spacing|50"}}}} -->
-		<div class="wp-block-columns alignwide">
+			<div class="wp-block-columns alignwide">
 				<!-- wp:column {"width":"40%","metadata":{"name":"Media Column","blockeraOne":{"stamp":"container/media"}}} -->
-			<div class="wp-block-column" style="flex-basis:40%">
+				<div class="wp-block-column" style="flex-basis:40%">
 					<!-- wp:post-featured-image {"isLink":true,"aspectRatio":"4/3","metadata":{"blockeraOne":{"stamp":"section/post-featured-image:default"}}} /-->
-			</div>
+				</div>
 				<!-- /wp:column -->
 
 				<!-- wp:column {"verticalAlignment":"center","width":"60%","metadata":{"name":"Content Column","blockeraOne":{"stamp":"container/body"}}} -->
-			<div class="wp-block-column is-vertically-aligned-center" style="flex-basis:60%">
+				<div class="wp-block-column is-vertically-aligned-center" style="flex-basis:60%">
 					<!-- wp:post-title {"isLink":true,"metadata":{"blockeraOne":{"stamp":"section/post-title:default"}},"fontSize":"x-large"} /-->
 
-					<!-- wp:post-excerpt {"metadata":{"blockeraOne":{"stamp":"section/post-excerpt:default"}},"fontSize":"medium"} /-->
+					<!-- wp:post-excerpt {"showMoreOnNewLine":false,"metadata":{"blockeraOne":{"stamp":"section/post-excerpt:default"}},"fontSize":"medium"} /-->
 
-					<!-- wp:group {"metadata":{"name":"Post Meta","blockeraOne":{"stamp":"section/post-meta:default","metaSeparator":"none"}},"blockeraPropsId":"820192000014","blockeraCompatId":"820192000014","blockeraFlexChildSizing":{"value":"grow"},"blockeraWidth":{"value":"stretch"},"className":"blockera-block blockera-block-820192000014","layout":{"type":"flex","flexWrap":"nowrap"}} -->
-				<div class="wp-block-group blockera-block blockera-block-820192000014">
+					<!-- wp:group {"metadata":{"name":"Post Meta","blockeraOne":{"stamp":"section/post-meta:default","metaSeparator":"none"}},"blockeraPropsId":"820192000014","blockeraCompatId":"820192000014","blockeraFlexChildSizing":{"value":"grow"},"blockeraDisplay":{"value":"flex"},"blockeraFlexWrap":{"value":{"val":"nowrap","reverse":false}},"blockeraWidth":{"value":"stretch"},"blockeraFontSize":{"value":{"settings":{"id":"medium","name":"Medium","type":"font-size","reference":{"type":"theme","theme":"Blockera One"},"value":"1rem","var":"--wp--preset--font-size--medium","fluid":{"max":"1.125rem","min":"1rem"}},"name":"Medium","isValueAddon":true,"valueType":"variable"}},"className":"blockera-block blockera-block-820192000014","style":{"typography":{}},"fontSize":"medium","layout":{"type":"flex","flexWrap":"nowrap"}} -->
+					<div class="wp-block-group blockera-block blockera-block-820192000014 has-medium-font-size">
 						<!-- wp:group {"metadata":{"name":"Published Date Meta","blockeraOne":{"stamp":"section/post-meta-post-date:default"}},"style":{"spacing":{"blockGap":"0.35em"}},"layout":{"type":"flex","flexWrap":"nowrap","verticalAlignment":"center"}} -->
-					<div class="wp-block-group">
-							<!-- wp:icon {"icon":"core/calendar","metadata":{"name":"Meta Icon","blockeraOne":{"stamp":"container/meta-item-icon:default"}},"blockeraPropsId":"72115552176","blockeraCompatId":"72115552176","blockeraIcon":{"value":{"icon":"calendar","library":"wp","uploadSVG":"","svgString":"","renderedIcon":""}},"className":"wp-block-icon-blockera blockera-block blockera-block-72115552176","style":{"dimensions":{"width":"1em"}}} /-->
+						<div class="wp-block-group">
+							<!-- wp:icon {"icon":"core/calendar","metadata":{"name":"Meta Icon","blockeraOne":{"stamp":"container/meta-item-icon:default"}},"blockeraPropsId":"723185919335","blockeraCompatId":"723185919335","blockeraIcon":{"value":{"icon":"calendar","library":"wp","uploadSVG":"","svgString":"","renderedIcon":""}},"className":"wp-block-icon-blockera blockera-block blockera-block-723185919335","style":{"dimensions":{"width":"1em"}}} /-->
 
 							<!-- wp:post-date {"isLink":true,"metadata":{"bindings":{"datetime":{"source":"core/post-data","args":{"field":"date"}}},"blockeraOne":{"stamp":"container/meta-item-block:default"}},"fontSize":"small"} /-->
-					</div>
+						</div>
 						<!-- /wp:group -->
-				</div>
+					</div>
 					<!-- /wp:group -->
-			</div>
+				</div>
 				<!-- /wp:column -->
-		</div>
+			</div>
 			<!-- /wp:columns -->
-	</div>
+		</div>
 		<!-- /wp:group -->
 	<!-- /wp:post-template -->
 
 	<!-- wp:query-no-results -->
 		<!-- wp:paragraph -->
-	<p><?php esc_html_e( 'Sorry, but nothing was found. Please try a search with different
-		keywords.', 'blockera-one' ); ?></p>
+		<p><?php esc_html_e( 'Sorry, but nothing was found. Please try a search with different keywords.', 'blockera-one' ); ?></p>
 		<!-- /wp:paragraph -->
 	<!-- /wp:query-no-results -->
 
