@@ -67,6 +67,11 @@ content to the user. Inner-region containers especially: name
 `container/media` **Media Blocks** / **Media Column** — not `Start` or
 `Media`. Do not invent a stamp id to match the label.
 
+`section/posts-listing` List View names (linted in
+`template-builder.spec.js`): every listing stamp **requires** a
+non-empty `metadata.name`. The default is **Posts Query Loop**; other
+labels are allowed.
+
 Post Meta List View names (ops and patterns share this contract):
 
 - Item wrappers (`section/post-meta-*` / `section/post-meta-2-*`, not
@@ -152,8 +157,9 @@ catalog tables below list every id.
   `container/body`. `container/start` is a leading sibling region, not
   that stack.
 - **Listings** — `section/posts-listing` for any posts query loop
-  (archive, search, homepage, related, …). Use the pagination family
-  when the listing paginates.
+  (archive, search, homepage, related, …). Always set `metadata.name`
+  (default **Posts Query Loop**). Use the pagination family when the
+  listing paginates.
 - **Post/page pieces** — `section/post-*` on loop items **and** on
   single post / single page. Do not invent `loop-item-*` twins.
 - **Inner regions** — opt-in `container/start`, `container/media`,
