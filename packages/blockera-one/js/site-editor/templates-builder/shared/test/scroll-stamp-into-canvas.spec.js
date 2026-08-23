@@ -37,8 +37,8 @@ describe('shouldScrollStamp', () => {
 		expect(shouldScrollStamp(-40, -10, PORT_TOP, PORT_BOTTOM)).toBe(true);
 	});
 
-	it('scrolls when the top is in view but the bottom is clipped', () => {
-		expect(shouldScrollStamp(780, 830, PORT_TOP, PORT_BOTTOM)).toBe(true);
+	it('does not scroll when the top is in view, even if the bottom is clipped', () => {
+		expect(shouldScrollStamp(780, 830, PORT_TOP, PORT_BOTTOM)).toBe(false);
 	});
 
 	it('does not scroll when the whole stamp is inside the canvas', () => {
@@ -48,6 +48,10 @@ describe('shouldScrollStamp', () => {
 		expect(shouldScrollStamp(650, 680, PORT_TOP, PORT_BOTTOM)).toBe(false);
 		expect(shouldScrollStamp(770, 800, PORT_TOP, PORT_BOTTOM)).toBe(false);
 		expect(shouldScrollStamp(990, 1020, 0, 1265)).toBe(false);
+	});
+
+	it('does not scroll a tall stamp when its top is already in the canvas', () => {
+		expect(shouldScrollStamp(319, 6170, 0, 1265)).toBe(false);
 	});
 });
 
@@ -79,6 +83,10 @@ describe('resolveRevealNextTop', () => {
 
 	it('does not move when the whole stamp is already in the canvas', () => {
 		expect(resolveRevealNextTop(50, 80, 0, 800, 200, 350)).toBe(200);
+	});
+
+	it('does not move a tall stamp when its top is already in the canvas', () => {
+		expect(resolveRevealNextTop(319, 6170, 0, 1265, 0, 319)).toBe(0);
 	});
 
 	it('pins a stamp taller than the canvas at the canvas inset from the top', () => {
