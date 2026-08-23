@@ -120,7 +120,7 @@ export default function TemplatesDrillDown() {
 		? builderConfig?.title ||
 			findNavItemLabel(sections, urlState.filter) ||
 			__('Template Options', 'blockera')
-		: __('Templates', 'blockera');
+		: __('Template Builder', 'blockera');
 
 	const optionsResolution = useMemo(() => {
 		if (!builderConfig) {
@@ -175,7 +175,7 @@ export default function TemplatesDrillDown() {
 	if (showBuilder && builderConfig && optionsResolution && nestedNav) {
 		const isNested = nestedNav.stack.length > 0;
 		const screenKey = nestedNav.stack.join('/') || 'root';
-		const templatesLabel = __('Templates', 'blockera');
+		const templatesLabel = __('Template Builder', 'blockera');
 		const breadcrumb = [
 			{
 				label: templatesLabel,
@@ -222,7 +222,7 @@ export default function TemplatesDrillDown() {
 	}
 
 	return (
-		<DrillDownScreen title={__('Templates', 'blockera')} flush>
+		<DrillDownScreen title={__('Template Builder', 'blockera')} flush>
 			<div
 				ref={panelRef}
 				className="blockera-site-editor-templates-panel"

@@ -97,7 +97,7 @@ export const MAIN_NAV_ITEMS: MainNavItemConfig[] = [
 	{
 		category: 'design',
 		key: 'templates',
-		label: __('Templates', 'blockera'),
+		label: __('Template Builder', 'blockera'),
 		icon: { library: 'ui', icon: 'template' },
 		navigate: 'coreUid',
 		coreUid: 'templates',
