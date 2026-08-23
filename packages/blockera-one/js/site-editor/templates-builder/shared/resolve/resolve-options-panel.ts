@@ -153,9 +153,8 @@ function stampIdForControl(control: ControlDef): string | null {
 
 /**
  * Stamp id to reveal after any control change. Presence-off (section
- * removed) and `scrollIntoView: false` return null. In-viewport skip
- * happens later in scrollStampIntoCanvas, except presence-on which
- * force-lands (inserted stamps are often already in the lower canvas).
+ * removed) and `scrollIntoView: false` return null. Skip when the stamp
+ * is already fully in the canvas happens later in scrollStampIntoCanvas.
  */
 export function resolveEnableScrollTarget(
 	control: ControlDef,
