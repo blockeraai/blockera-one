@@ -18,9 +18,8 @@ if (! defined('ABSPATH')) {
  * @return string
  */
 ob_start();
-include BLOCKERA_SB_PATH . 'assets/menu-logo.base64.svg';
-global $blockera_logo;
-$blockera_logo = ob_get_clean();
+require BLOCKERA_SB_PATH . 'assets/menu-logo.base64.svg';
+$blockera_logo = 'data:image/svg+xml;base64,' . ob_get_clean();
 
 return apply_filters(
     'blockera.config.menu',
