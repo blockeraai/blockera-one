@@ -3,6 +3,7 @@
  * container attributes and full-width sibling sections.
  */
 
+import { prepareInsertedBlocks } from './blockera-attribute';
 import { getStamp, withStamp } from './metadata';
 import { insertAtPlacement, type OpsContext } from './op-context';
 import {
@@ -148,7 +149,7 @@ export function transplantLayout(
 	}
 
 	// Instantiate target layout.
-	let nextLayout = cloneTree(ctx.parse(html));
+	let nextLayout = prepareInsertedBlocks(cloneTree(ctx.parse(html)));
 	if (nextLayout.length === 0) {
 		return blocks;
 	}

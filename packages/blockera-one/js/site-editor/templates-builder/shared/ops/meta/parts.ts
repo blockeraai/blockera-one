@@ -36,16 +36,19 @@ export function ensureSpaceFiller(
 	if (!match) {
 		return blocks;
 	}
-	const attrs: Record<string, unknown> = withBlockeraCompatibility({
-		...(match.block.attributes || {}),
-		blockeraFlexChildSizing: { value: 'grow' },
-		blockeraWidth: { value: 'stretch' },
-		content: SPACE_FILLER_TEXT,
-		metadata: {
-			...(metadataRecord(match.block) || {}),
-			name: SPACE_FILLER_LIST_NAME,
+	const attrs: Record<string, unknown> = withBlockeraCompatibility(
+		{
+			...(match.block.attributes || {}),
+			blockeraFlexChildSizing: { value: 'grow' },
+			blockeraWidth: { value: 'stretch' },
+			content: SPACE_FILLER_TEXT,
+			metadata: {
+				...(metadataRecord(match.block) || {}),
+				name: SPACE_FILLER_LIST_NAME,
+			},
 		},
-	});
+		match.block.name
+	);
 	return replaceWrapper(blocks, match, {
 		...match.block,
 		attributes: attrs,

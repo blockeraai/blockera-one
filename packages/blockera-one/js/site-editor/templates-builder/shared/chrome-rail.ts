@@ -3,6 +3,7 @@
  * template-part design swaps.
  */
 
+import { prepareInsertedBlocks } from './blockera-attribute';
 import { withStamp } from './metadata';
 import {
 	insertAtPlacement,
@@ -175,7 +176,7 @@ export function swapTemplatePart(
 		return blocks;
 	}
 
-	const replacement = cloneTree(ctx.parse(html));
+	const replacement = prepareInsertedBlocks(cloneTree(ctx.parse(html)));
 	if (replacement.length === 0) {
 		return blocks;
 	}

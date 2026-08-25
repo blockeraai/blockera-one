@@ -1,106 +1,153 @@
 /**
  * Apply a Blockera extension attribute the same way the block inspector does:
- * assign blockeraPropsId / blockeraCompatId, persist `blockera-block` class
- * names (style-engine selectors), write `{ value }`, then run
- * `blockera.blockEdit.setAttributes` for WP compatibility when the block
- * supports it (e.g. group gap → style.spacing.blockGap).
+ * assign blockeraId, persist `blockera-block` class names (style-engine
+ * selectors), write `{ value }`, then run `blockera.blockEdit.setAttributes`
+ * for WP compatibility when the block supports it (e.g. group gap →
+ * style.spacing.blockGap).
  */
 
 import { getBlockType } from '@wordpress/blocks';
 import { applyFilters } from '@wordpress/hooks';
+import {
+	getAttributesWithIds,
+	withBlockeraBlockClassFromId,
+	isBlockeraBlockModeBasic,
+	normalizeBlockeraIds,
+} from '@blockera/utils';
 
 import type { BlockNode } from './types';
 
 /**
- * Same identifier scheme as `getAttributesWithIds` in
- * `@blockera/editor` `hooks/use-attributes`.
- */
-function withBlockeraId(
-	attributes: Record<string, unknown>,
-	key: 'blockeraPropsId' | 'blockeraCompatId'
-): Record<string, unknown> {
-	if (attributes[key]) {
-		return attributes;
-	}
-	const d = new Date();
-	return {
-		...attributes,
-		[key]:
-			'' +
-			d.getMonth() +
-			d.getDate() +
-			d.getHours() +
-			d.getMinutes() +
-			d.getSeconds() +
-			d.getMilliseconds(),
-	};
-}
-
-/** Matches `@blockera/editor` `BLOCKERA_BLOCK_REGEX` unique class tokens. */
-const BLOCKERA_UNIQUE_CLASS = /^blockera-block-[\w-]+$/i;
-
-/**
- * Style-engine CSS targets `.blockera-block-{id}`. The inspector adds this
- * via BlockEdit; templates-builder writes must persist it on attributes or
- * generated styles never attach (WP also skips native blockGap on blocks
- * like `core/breadcrumbs`).
+ * Style-engine CSS targets `.blockera-block-{blockeraId}`. The inspector
+ * adds this via BlockEdit; templates-builder writes must persist the same
+ * token or generated styles never attach.
  */
 function withBlockeraBlockClassName(
 	attributes: Record<string, unknown>
 ): Record<string, unknown> {
-	const id = String(
-		attributes.blockeraCompatId || attributes.blockeraPropsId || ''
-	);
-	if (!id) {
-		return attributes;
+	return withBlockeraBlockClassFromId(attributes) as Record<string, unknown>;
+}
+
+const BLOCKERA_ID_KEYS: Record<string, true> = {
+	blockeraId: true,
+	blockeraPropsId: true,
+	blockeraCompatId: true,
+	blockeraBlockMode: true,
+};
+
+function valuesEqual(left: unknown, right: unknown): boolean {
+	if (left === right) {
+		return true;
 	}
-	const unique = `blockera-block-${id}`;
-	const current =
-		typeof attributes.className === 'string' ? attributes.className : '';
-	const tokens = current.split(/\s+/).filter(Boolean);
-	if (tokens.indexOf('blockera-block') === -1) {
-		tokens.push('blockera-block');
+	if (
+		left === undefined ||
+		right === undefined ||
+		left === null ||
+		right === null ||
+		typeof left !== 'object' ||
+		typeof right !== 'object'
+	) {
+		return false;
 	}
-	let hasUnique = false;
-	for (let i = 0; i < tokens.length; i++) {
-		if (
-			BLOCKERA_UNIQUE_CLASS.test(tokens[i]) &&
-			tokens[i] !== 'blockera-block'
-		) {
-			hasUnique = true;
-			break;
-		}
+	try {
+		return JSON.stringify(left) === JSON.stringify(right);
+	} catch (_err) {
+		return false;
 	}
-	if (!hasUnique) {
-		tokens.push(unique);
+}
+
+function schemaDefault(blockName: string | undefined, key: string): unknown {
+	if (!blockName || typeof getBlockType !== 'function') {
+		return undefined;
 	}
-	return {
-		...attributes,
-		className: tokens.join(' '),
-	};
+	const blockType = getBlockType(blockName);
+	const attribute = (
+		blockType?.attributes as
+			Record<string, { default?: unknown }> | undefined
+	)?.[key];
+	if (!attribute || typeof attribute !== 'object') {
+		return undefined;
+	}
+	return attribute.default;
 }
 
 /**
- * Blockera style-engine selectors need `blockeraPropsId` / `blockeraCompatId`
- * plus `blockera-block` / `blockera-block-{id}` class tokens. Inspector writes
- * get this via `applyBlockeraInspectorAttribute`; inserted builder blocks must
- * too or generated CSS never attaches.
+ * True when the block stores a real Blockera extension value (not just
+ * stamp metadata, empty id keys, or Gutenberg-filled schema defaults).
  */
-export function withBlockeraCompatibility(
+export function hasBlockeraExtensionAttributes(
+	attributes: Record<string, unknown> | undefined,
+	blockName?: string
+): boolean {
+	if (!attributes) {
+		return false;
+	}
+	for (const key in attributes) {
+		if (!key.startsWith('blockera') || BLOCKERA_ID_KEYS[key]) {
+			continue;
+		}
+		const value = attributes[key];
+		if (value === undefined || value === null || value === '') {
+			continue;
+		}
+		const fallback = schemaDefault(blockName, key);
+		if (fallback !== undefined && valuesEqual(value, fallback)) {
+			continue;
+		}
+		return true;
+	}
+	return false;
+}
+
+function omitOrphanBlockeraIds(
 	attributes: Record<string, unknown>
 ): Record<string, unknown> {
-	let next = { ...attributes };
-	next = withBlockeraId(next, 'blockeraPropsId');
-	next = withBlockeraId(next, 'blockeraCompatId');
+	if (
+		attributes.blockeraId === undefined &&
+		attributes.blockeraPropsId === undefined &&
+		attributes.blockeraCompatId === undefined
+	) {
+		return attributes;
+	}
+	const next = { ...attributes };
+	delete next.blockeraId;
+	delete next.blockeraPropsId;
+	delete next.blockeraCompatId;
+	return next;
+}
+
+/**
+ * Blockera style-engine selectors need `blockeraId`
+ * plus `blockera-block` / `blockera-block-{id}` class tokens — but only when
+ * the block actually has extension attributes. Inspector writes get this via
+ * `applyBlockeraInspectorAttribute`; inserted builder blocks must too or
+ * generated CSS never attaches. Stamps / WP layout alone must not persist ids.
+ */
+export function withBlockeraCompatibility(
+	attributes: Record<string, unknown>,
+	blockName?: string
+): Record<string, unknown> {
+	let next = normalizeBlockeraIds({ ...attributes });
+	if (
+		!hasBlockeraExtensionAttributes(next, blockName) ||
+		isBlockeraBlockModeBasic(next)
+	) {
+		return omitOrphanBlockeraIds(next);
+	}
+	next = getAttributesWithIds(next, 'blockeraId') as Record<string, unknown>;
 	return withBlockeraBlockClassName(next);
 }
 
-/** Walk an inserted restore tree and stamp Blockera ids/classes on every node. */
+/**
+ * Walk an inserted tree: stamp ids/classes on nodes with Blockera extension
+ * attributes, and drop orphan id keys WordPress parse fills as empty defaults.
+ */
 export function prepareInsertedBlocks(blocks: BlockNode[]): BlockNode[] {
 	return blocks.map((block) => ({
 		...block,
 		attributes: withBlockeraCompatibility(
-			(block.attributes || {}) as Record<string, unknown>
+			(block.attributes || {}) as Record<string, unknown>,
+			block.name
 		),
 		innerBlocks: prepareInsertedBlocks(block.innerBlocks || []),
 	}));
@@ -108,7 +155,15 @@ export function prepareInsertedBlocks(blocks: BlockNode[]): BlockNode[] {
 
 function inspectorAttributeId(attributePath: string): string | null {
 	const [id] = attributePath.split('.');
-	if (!id || !id.startsWith('blockera') || id === 'blockeraOne') {
+	if (
+		!id ||
+		!id.startsWith('blockera') ||
+		id === 'blockeraOne' ||
+		id === 'blockeraId' ||
+		id === 'blockeraPropsId' ||
+		id === 'blockeraCompatId' ||
+		id === 'blockeraBlockMode'
+	) {
 		return null;
 	}
 	return id;
@@ -141,10 +196,15 @@ export function applyBlockeraInspectorAttribute(
 		return attributes;
 	}
 
-	const next: Record<string, unknown> = withBlockeraCompatibility(attributes);
-
-	// Inspector reducer: blockera* keys are stored as `{ value: newValue }`.
-	next[attributeId] = { value: newValue };
+	// Write the extension value first so compatibility ids attach (ids are
+	// only persisted when a real Blockera attribute is present).
+	const next: Record<string, unknown> = withBlockeraCompatibility(
+		{
+			...attributes,
+			[attributeId]: { value: newValue },
+		},
+		blockName
+	);
 
 	const blockType =
 		typeof getBlockType === 'function'

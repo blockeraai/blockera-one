@@ -8,6 +8,7 @@
 
 import * as blocksPackage from '@wordpress/blocks';
 
+import { prepareInsertedBlocks } from './blockera-attribute';
 import type { BlockNode } from './types';
 import type { OpsContext } from './op-context';
 
@@ -43,8 +44,8 @@ export function toEntityEdits(blocks: BlockNode[]): {
 	blocks: BlockNode[];
 	content: string;
 } {
-	const content = serializeAndClean(blocks);
-	const parsed = wpParse(content) as BlockNode[];
+	const content = serializeAndClean(prepareInsertedBlocks(blocks));
+	const parsed = prepareInsertedBlocks(wpParse(content) as BlockNode[]);
 	return {
 		blocks: parsed,
 		content,

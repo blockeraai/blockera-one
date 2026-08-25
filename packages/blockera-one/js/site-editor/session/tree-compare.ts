@@ -6,6 +6,7 @@ import { getStamp } from '../templates-builder/shared/metadata';
 import type { BlockNode } from '../templates-builder/shared/types';
 
 const IGNORE_KEYS: Record<string, boolean> = {
+	blockeraId: true,
 	blockeraPropsId: true,
 	blockeraCompatId: true,
 	// Pattern / list-view bookkeeping — not a user design edit.

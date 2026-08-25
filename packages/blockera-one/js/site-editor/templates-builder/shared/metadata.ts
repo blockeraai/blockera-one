@@ -134,8 +134,11 @@ export function withStamp(
 	});
 	return {
 		...next,
-		attributes: withBlockeraCompatibility({
-			...(next.attributes || {}),
-		}),
+		attributes: withBlockeraCompatibility(
+			{
+				...(next.attributes || {}),
+			},
+			next.name
+		),
 	};
 }

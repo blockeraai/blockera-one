@@ -2,6 +2,7 @@
  * Fresh editor ids when restoring a parked subtree into the live document.
  */
 
+import { hasBlockeraExtensionAttributes } from '../templates-builder/shared/blockera-attribute';
 import type { BlockNode } from '../templates-builder/shared/types';
 
 const BLOCKERA_UNIQUE_CLASS = /^blockera-block-[\w-]+$/i;
@@ -50,11 +51,18 @@ export function remapVolatileIds(blocks: BlockNode[]): BlockNode[] {
 function remapNode(block: BlockNode): BlockNode {
 	const nextId = newSessionBlockId();
 	const attributes = { ...(block.attributes || {}) };
-	if (attributes.blockeraPropsId !== undefined) {
-		attributes.blockeraPropsId = nextId;
-	}
-	if (attributes.blockeraCompatId !== undefined) {
-		attributes.blockeraCompatId = nextId;
+	const hasExtensions = hasBlockeraExtensionAttributes(
+		attributes,
+		block.name
+	);
+	if (hasExtensions) {
+		attributes.blockeraId = nextId;
+		delete attributes.blockeraPropsId;
+		delete attributes.blockeraCompatId;
+	} else {
+		delete attributes.blockeraId;
+		delete attributes.blockeraPropsId;
+		delete attributes.blockeraCompatId;
 	}
 	if (attributes.className !== undefined) {
 		attributes.className = remapClassName(attributes.className, nextId);
