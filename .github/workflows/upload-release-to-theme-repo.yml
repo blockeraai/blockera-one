@@ -1,15 +1,36 @@
-name: Update Changelog and upload Blockera One theme to WordPress.org theme repo
+name: Upload Blockera One theme to WordPress.org theme repo
 
 on:
     release:
         types: [published]
 
 jobs:
+    pr-workflow-gate:
+        name: PR workflow filter
+        runs-on: ubuntu-latest
+        outputs:
+            run: ${{ steps.gate.outputs.run }}
+        env:
+            BLOCKERA_GLOBAL_PACKAGES_TOKEN: ${{ secrets.BLOCKERABOT_PAT }}
+        steps:
+            - uses: actions/checkout@v5
+              with:
+                  token: ${{ secrets.BLOCKERABOT_PAT }}
+
+            - name: Ensure global-packages submodule
+              uses: ./.github/actions/ensure-global-packages
+
+            - id: gate
+              uses: ./packages/global-packages/packages/dev-tools/github/actions/pr-workflow-gate
+              with:
+                  workflow-file: upload-release-to-theme-repo.yml
+
     get-release-branch:
         name: Get release branch name
+        needs: pr-workflow-gate
+        if: ${{ needs.pr-workflow-gate.outputs.run == 'true' }}
         runs-on: ubuntu-latest
-        timeout-minutes: 30
-        if: github.repository == 'blockeraai/blockera-one'
+        timeout-minutes: 60
         outputs:
             release_branch: ${{ steps.get_release_branch.outputs.release_branch }}
         env:
@@ -28,15 +49,16 @@ jobs:
               run: bash packages/global-packages/packages/dev-tools/github/scripts/jobs/upload-release-to-plugin-repo/compute-release-branch.sh
 
     upload:
-        name: Publish as trunk (and tag)
+        name: Publish version to theme SVN
+        needs: [pr-workflow-gate, get-release-branch]
+        if: ${{ needs.pr-workflow-gate.outputs.run == 'true' && github.repository == 'blockeraai/blockera-one' && !github.event.release.prerelease && github.event.release.assets[0] }}
         runs-on: ubuntu-latest
-        timeout-minutes: 30
+        timeout-minutes: 60
         environment: wp.org theme
-        needs: [get-release-branch]
-        if: ${{ github.repository == 'blockeraai/blockera-one' && !github.event.release.prerelease && github.event.release.assets[0] }}
         env:
             BLOCKERA_GLOBAL_PACKAGES_TOKEN: ${{ secrets.BLOCKERABOT_PAT }}
-            BLOCKERA_UPLOAD_PLUGIN_REPO_URL: 'https://themes.svn.wordpress.org/blockera-one'
+            BLOCKERA_UPLOAD_SVN_LAYOUT: theme
+            BLOCKERA_UPLOAD_SVN_REPO_URL: 'https://themes.svn.wordpress.org/blockera-one'
             BLOCKERA_UPLOAD_ZIP_NAME: blockera-one.zip
             SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
             SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
