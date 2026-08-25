@@ -303,6 +303,6 @@ CI coverage:
   `php/tests/fixtures/template-builder-catalog.json` (also asserted equal to
   the real PHP output by PHPUnit)
 - Jest `shared/test/template-builder.spec.js` — area consistency, stamp
-  validation, `builder-*` header contract, unique `blockeraCompatId` per
+  validation, `builder-*` header contract, unique `blockeraId` per
   builder pattern file, every catalog `patternSlug` maps to a pattern file
   `Slug:` header (and no orphan builder patterns)

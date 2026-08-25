@@ -18,8 +18,8 @@
 	<div class="wp-block-columns alignwide">
 		<!-- wp:column {"width":"66.66%","metadata":{"blockeraOne":{"stamp":"container/content-column"}}} -->
 		<div class="wp-block-column" style="flex-basis:66.66%">
-			<!-- wp:group {"metadata":{"blockeraOne":{"stamp":"area/content"}},"blockeraPropsId":"71514747603","blockeraCompatId":"71514747603","blockeraGap":{"value":{"lock":true,"gap":"0px","columns":"","rows":""}},"className":"blockera-block blockera-block-2ow8og52","style":{"spacing":{"blockGap":"0px"}},"layout":{"type":"constrained"}} -->
-			<div class="wp-block-group blockera-block blockera-block-2ow8og52"></div>
+			<!-- wp:group {"metadata":{"blockeraOne":{"stamp":"area/content"}},"blockeraId":"5uv2km","blockeraGap":{"value":{"lock":true,"gap":"0px","columns":"","rows":""}},"className":"blockera-block blockera-block-5uv2km","style":{"spacing":{"blockGap":"0px"}},"layout":{"type":"constrained"}} -->
+			<div class="wp-block-group blockera-block blockera-block-5uv2km"></div>
 			<!-- /wp:group -->
 		</div>
 		<!-- /wp:column -->

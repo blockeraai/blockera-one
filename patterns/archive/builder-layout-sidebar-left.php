@@ -28,8 +28,8 @@
 
 		<!-- wp:column {"width":"66.66%","metadata":{"blockeraOne":{"stamp":"container/content-column"}}} -->
 		<div class="wp-block-column" style="flex-basis:66.66%">
-			<!-- wp:group {"metadata":{"blockeraOne":{"stamp":"area/content"}},"blockeraPropsId":"715141033738","blockeraCompatId":"715141033738","blockeraGap":{"value":{"lock":true,"gap":"0px","columns":"","rows":""}},"className":"blockera-block blockera-block-fem0s2","style":{"spacing":{"blockGap":"0px"}},"layout":{"type":"constrained"}} -->
-			<div class="wp-block-group blockera-block blockera-block-fem0s2"></div>
+			<!-- wp:group {"metadata":{"blockeraOne":{"stamp":"area/content"}},"blockeraId":"3mekg7","blockeraGap":{"value":{"lock":true,"gap":"0px","columns":"","rows":""}},"className":"blockera-block blockera-block-3mekg7","style":{"spacing":{"blockGap":"0px"}},"layout":{"type":"constrained"}} -->
+			<div class="wp-block-group blockera-block blockera-block-3mekg7"></div>
 			<!-- /wp:group -->
 		</div>
 		<!-- /wp:column -->
