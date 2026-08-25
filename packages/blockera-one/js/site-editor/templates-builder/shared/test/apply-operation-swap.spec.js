@@ -753,7 +753,7 @@ describe('swapSection session snapshots', () => {
 			'section/page-header:banner',
 			{
 				clientId: 'old-banner',
-				blockeraPropsId: 'old-banner',
+				blockeraId: 'old-banner',
 				customTitle: 'Edited',
 			}
 		);

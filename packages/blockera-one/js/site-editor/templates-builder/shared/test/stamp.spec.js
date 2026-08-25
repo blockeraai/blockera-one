@@ -192,10 +192,9 @@ describe('withStamp', () => {
 			stamp: 'area/content',
 		});
 		expect(stamped.attributes.metadata.name).toBe('Custom label');
-		expect(stamped.attributes.className).toContain('keep');
-		expect(stamped.attributes.className).toContain('blockera-block');
-		expect(stamped.attributes.blockeraPropsId).toBeTruthy();
-		expect(stamped.attributes.blockeraCompatId).toBeTruthy();
+		expect(stamped.attributes.className).toBe('keep');
+		expect(stamped.attributes.blockeraId).toBeUndefined();
+		expect(stamped.attributes.blockeraId).toBeUndefined();
 		// Input stays untouched.
 		expect(original.attributes.metadata.blockeraOne).toEqual({
 			stamp: 'section/old:stamp',
@@ -215,6 +214,23 @@ describe('withStamp', () => {
 		});
 		expect(stamped.innerBlocks).not.toBe(original.innerBlocks);
 		expect(stamped.innerBlocks).toEqual(original.innerBlocks);
+
+		const withExtension = withStamp(
+			{
+				name: 'core/group',
+				attributes: { blockeraDisplay: { value: 'flex' } },
+				innerBlocks: [],
+			},
+			'section',
+			'x'
+		);
+		expect(withExtension.attributes.blockeraId).toBeTruthy();
+		expect(withExtension.attributes.blockeraId).toBe(
+			withExtension.attributes.blockeraId
+		);
+		expect(withExtension.attributes.className).toContain(
+			`blockera-block-${withExtension.attributes.blockeraId}`
+		);
 
 		const bare = withStamp({ name: 'core/spacer' }, 'section', 'x');
 		expect(bare.innerBlocks).toEqual([]);

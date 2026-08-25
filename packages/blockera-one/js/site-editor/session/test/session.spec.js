@@ -83,8 +83,8 @@ describe('treesMatchIgnoringVolatileIds', () => {
 				name: 'core/group',
 				clientId: 'a',
 				attributes: {
-					blockeraPropsId: '1',
-					blockeraCompatId: '1',
+					blockeraId: '1',
+					blockeraId: '1',
 					className: 'blockera-block blockera-block-1 wp-block-group',
 					layout: { type: 'flex' },
 				},
@@ -96,8 +96,8 @@ describe('treesMatchIgnoringVolatileIds', () => {
 				name: 'core/group',
 				clientId: 'b',
 				attributes: {
-					blockeraPropsId: '2',
-					blockeraCompatId: '2',
+					blockeraId: '2',
+					blockeraId: '2',
 					className: 'wp-block-group',
 					layout: { type: 'flex' },
 				},
@@ -252,8 +252,8 @@ describe('remapVolatileIds', () => {
 				name: 'core/group',
 				clientId: 'old',
 				attributes: {
-					blockeraPropsId: 'old',
-					blockeraCompatId: 'old',
+					blockeraId: 'old',
+					blockeraDisplay: { value: 'flex' },
 					className: 'blockera-block blockera-block-old',
 				},
 				innerBlocks: [
@@ -268,9 +268,38 @@ describe('remapVolatileIds', () => {
 		];
 		const next = remapVolatileIds(tree);
 		expect(next[0].clientId).not.toBe('old');
-		expect(next[0].attributes.blockeraPropsId).not.toBe('old');
+		expect(next[0].attributes.blockeraId).not.toBe('old');
 		expect(next[0].innerBlocks[0].clientId).not.toBe('child');
 		expect(next[0].clientId).not.toBe(next[0].innerBlocks[0].clientId);
+	});
+
+	it('does not invent Blockera ids on blocks without extension attributes', () => {
+		const tree = [
+			{
+				name: 'core/group',
+				clientId: 'old',
+				attributes: {
+					blockeraId: '',
+					blockeraId: '',
+				},
+				innerBlocks: [
+					{
+						name: 'core/paragraph',
+						clientId: 'child',
+						attributes: {
+							blockeraId: '',
+							blockeraId: '',
+						},
+						innerBlocks: [],
+					},
+				],
+			},
+		];
+		const next = remapVolatileIds(tree);
+		expect(next[0].attributes.blockeraId).toBeUndefined();
+		expect(next[0].attributes.blockeraId).toBeUndefined();
+		expect(next[0].innerBlocks[0].attributes.blockeraId).toBeUndefined();
+		expect(next[0].innerBlocks[0].attributes.blockeraId).toBeUndefined();
 	});
 });
 

@@ -131,10 +131,12 @@ describe('setMetaItemPart', () => {
 			'wp-block-icon-blockera'
 		);
 		expect(inner[0].attributes.className).toContain('blockera-block');
-		expect(inner[0].attributes.blockeraPropsId).toBeTruthy();
-		expect(inner[0].attributes.blockeraCompatId).toBeTruthy();
-		expect(inner[1].attributes.className).toContain('blockera-block');
-		expect(inner[1].attributes.blockeraPropsId).toBeTruthy();
+		expect(inner[0].attributes.blockeraId).toBeTruthy();
+		expect(inner[0].attributes.blockeraId).toBeTruthy();
+		expect(inner[1].attributes.className || '').not.toContain(
+			'blockera-block'
+		);
+		expect(inner[1].attributes.blockeraId).toBeUndefined();
 		expect(inner[0].attributes.style.dimensions.width).toBe('1em');
 		expect(inner[0].attributes.blockeraIcon.value.icon).toBe('user');
 		expect(inner[1].attributes.content).toBe('By');
@@ -348,11 +350,11 @@ describe('syncMetaSeparators', () => {
 		expect(block.attributes.content).toBe('\u00a0');
 		expect(getMetaName(block)).toBe(SPACE_FILLER_LIST_NAME);
 		expect(block.originalContent).toBe('<p>&nbsp;</p>');
-		expect(block.attributes.blockeraPropsId).toBeTruthy();
-		expect(block.attributes.blockeraCompatId).toBeTruthy();
+		expect(block.attributes.blockeraId).toBeTruthy();
+		expect(block.attributes.blockeraId).toBeTruthy();
 		expect(block.attributes.className).toContain('blockera-block');
 		expect(block.attributes.className).toContain(
-			`blockera-block-${block.attributes.blockeraCompatId}`
+			`blockera-block-${block.attributes.blockeraId}`
 		);
 	});
 

@@ -48,6 +48,7 @@ import {
 	describeMarkup,
 	describePatterns,
 	describeTemplates,
+	extractBlockCommentAttrs,
 	extractMetadataObjects,
 	fixtureSlugs,
 	layoutPatterns,
@@ -59,6 +60,12 @@ import {
 	templatesDirs,
 	themeRoot,
 } from './helpers/pattern-lint';
+
+const {
+	isCanonicalBlockeraIdentity,
+} = require('../../../../../../global-packages/packages/dev-tools/js/block-markup/sanitize-blockera-identity');
+
+const CANONICAL_BLOCKERA_ID = /^[0-9a-z]{6}$/;
 
 const layoutIds = new Set();
 const areaIds = new Set();
@@ -403,7 +410,7 @@ describe('templates-builder patterns lint', () => {
 		});
 	});
 
-	describePatterns('blockeraCompatId uniqueness', () => {
+	describePatterns('blockera identity', () => {
 		it('is unique within each builder pattern file', () => {
 			const offenders = [];
 			for (const entry of builderPatterns) {
@@ -412,7 +419,7 @@ describe('templates-builder patterns lint', () => {
 					'utf8'
 				);
 				const counts = new Map();
-				const idRe = /"blockeraCompatId"\s*:\s*"([^"]+)"/g;
+				const idRe = /"blockeraId"\s*:\s*"([^"]+)"/g;
 				let match;
 				while ((match = idRe.exec(source))) {
 					const id = match[1];
@@ -423,6 +430,73 @@ describe('templates-builder patterns lint', () => {
 						offenders.push(
 							`${entry.file}: "${id}" appears ${count} times`
 						);
+					}
+				}
+			}
+			expect(offenders).toEqual([]);
+		});
+
+		it('does not ship leftover propsId, compatId, or block mode', () => {
+			const offenders = [];
+			for (const entry of builderPatterns) {
+				const source = fs.readFileSync(
+					path.join(themeRoot, entry.file),
+					'utf8'
+				);
+				if (source.includes('blockeraPropsId')) {
+					offenders.push(`${entry.file}: blockeraPropsId`);
+				}
+				if (source.includes('blockeraCompatId')) {
+					offenders.push(`${entry.file}: blockeraCompatId`);
+				}
+				if (source.includes('blockeraBlockMode')) {
+					offenders.push(`${entry.file}: blockeraBlockMode`);
+				}
+				if (source.includes('blockera-block--')) {
+					offenders.push(`${entry.file}: legacy blockera-block--`);
+				}
+			}
+			expect(offenders).toEqual([]);
+		});
+
+		it('uses canonical blockeraId and matching unique class when features exist', () => {
+			const offenders = [];
+			for (const entry of builderPatterns) {
+				const source = fs.readFileSync(
+					path.join(themeRoot, entry.file),
+					'utf8'
+				);
+				const attrsList = extractBlockCommentAttrs(source);
+				for (let i = 0; i < attrsList.length; i++) {
+					const attrs = attrsList[i];
+					if (isCanonicalBlockeraIdentity(attrs)) {
+						continue;
+					}
+					offenders.push(
+						`${entry.file}: non-canonical identity ${JSON.stringify(
+							{
+								blockeraId: attrs.blockeraId,
+								className: attrs.className,
+							}
+						)}`
+					);
+				}
+			}
+			expect(offenders).toEqual([]);
+		});
+
+		it('uses 6-character lowercase blockeraId values', () => {
+			const offenders = [];
+			for (const entry of builderPatterns) {
+				const source = fs.readFileSync(
+					path.join(themeRoot, entry.file),
+					'utf8'
+				);
+				const idRe = /"blockeraId"\s*:\s*"([^"]+)"/g;
+				let match;
+				while ((match = idRe.exec(source))) {
+					if (!CANONICAL_BLOCKERA_ID.test(match[1])) {
+						offenders.push(`${entry.file}: "${match[1]}"`);
 					}
 				}
 			}

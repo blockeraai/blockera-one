@@ -512,13 +512,11 @@ describe('setSectionAttribute', () => {
 		const attrs = findStamp(result.blocks, 'page-header-breadcrumbs').block
 			.attributes;
 		expect(attrs.blockeraGap.value).toEqual(gapValue);
-		expect(attrs.blockeraPropsId).toBeTruthy();
-		expect(attrs.blockeraCompatId).toBeTruthy();
+		expect(attrs.blockeraId).toBeTruthy();
+		expect(attrs.blockeraId).toBe(attrs.blockeraId);
 		expect(attrs.className).toContain('is-style-underline');
 		expect(attrs.className).toContain('blockera-block');
-		expect(attrs.className).toContain(
-			`blockera-block-${attrs.blockeraCompatId}`
-		);
+		expect(attrs.className).toContain(`blockera-block-${attrs.blockeraId}`);
 	});
 
 	it('writes Blockera color and font-size values through the inspector path', () => {

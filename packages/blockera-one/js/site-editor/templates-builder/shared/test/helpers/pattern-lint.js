@@ -121,6 +121,43 @@ export function extractMetadataObjects(source) {
 	return entries;
 }
 
+/**
+ * Parsed Gutenberg block-comment JSON objects (attrs).
+ *
+ * @param {string} source File contents.
+ * @return {Object[]} Attr objects.
+ */
+export function extractBlockCommentAttrs(source) {
+	const entries = [];
+	let cursor = 0;
+
+	while (cursor < source.length) {
+		const start = source.indexOf('<!--', cursor);
+		if (start === -1) {
+			break;
+		}
+		const end = source.indexOf('-->', start + 4);
+		if (end === -1) {
+			break;
+		}
+
+		const body = source.slice(start + 4, end);
+		cursor = end + 3;
+
+		const brace = body.indexOf('{');
+		if (brace === -1) {
+			continue;
+		}
+
+		const { json } = readJsonObject(body, brace);
+		if (json && typeof json === 'object') {
+			entries.push(json);
+		}
+	}
+
+	return entries;
+}
+
 /** Extract every `metadata.blockeraOne.stamp` string from a source. */
 export function extractStamps(source) {
 	const stamps = [];

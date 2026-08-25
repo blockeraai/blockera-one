@@ -23,14 +23,28 @@ const SECTION_ID = 'posts-listing';
 /** html key → fixture tree; mirrors the injected-parse test convention. */
 const MARKUP = {
 	'listing-grid': [
-		stamped('core/query', `section/${SECTION_ID}:grid-2`, {
-			query: {
-				inherit: true,
-				perPage: 12,
-				order: 'desc',
-				orderBy: 'date',
+		stamped(
+			'core/query',
+			`section/${SECTION_ID}:grid-2`,
+			{
+				query: {
+					inherit: true,
+					perPage: 12,
+					order: 'desc',
+					orderBy: 'date',
+				},
 			},
-		}),
+			[
+				{
+					name: 'core/post-title',
+					attributes: {
+						blockeraId: '',
+						blockeraId: '',
+					},
+					innerBlocks: [],
+				},
+			]
+		),
 	],
 	'title-simple': [stamped('core/group', 'section/page-header:simple')],
 	'title-banner': [
@@ -86,9 +100,12 @@ describe('swapSection', () => {
 		// Default: previous blockera* attrs must not overlay the new pattern.
 		expect(swapped.attributes.blockeraFontColor).toBeUndefined();
 		// Previous design look (WP native) must not carry either.
-		expect(swapped.attributes.className).not.toContain('user-class');
-		expect(swapped.attributes.className).toContain('blockera-block');
+		expect(swapped.attributes.className).toBeUndefined();
 		expect(swapped.attributes.style).toBeUndefined();
+		expect(swapped.attributes.blockeraId).toBeUndefined();
+		expect(swapped.attributes.blockeraId).toBeUndefined();
+		expect(swapped.innerBlocks[0].attributes.blockeraId).toBeUndefined();
+		expect(swapped.innerBlocks[0].attributes.blockeraId).toBeUndefined();
 	});
 
 	it('does not overlay previous flex layout onto the target pattern', () => {
@@ -385,9 +402,8 @@ describe('toggleSection', () => {
 			ctx
 		);
 		const child = getAtPath(next, [0, 0]).innerBlocks[0];
-		expect(child.attributes.className).toContain('blockera-block');
-		expect(child.attributes.blockeraPropsId).toBeTruthy();
-		expect(child.attributes.blockeraCompatId).toBeTruthy();
+		expect(child.attributes.blockeraId).toBeUndefined();
+		expect(child.attributes.blockeraId).toBeUndefined();
 	});
 
 	it('is a no-op when enabling without usable default markup', () => {
