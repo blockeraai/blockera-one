@@ -2,7 +2,7 @@
 /**
  * Title: Link in bio with tight margins
  * Slug: blockera-one/page-link-in-bio-with-tight-margins
- * Categories: blockera_one_page, banner
+ * Categories: blockera-one/page, banner
  * Keywords: starter
  * Block Types: core/post-content
  * Post Types: page, wp_template

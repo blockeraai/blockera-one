@@ -13,6 +13,7 @@ return [
 	'editor' => [
 		'list'      => [
 			'utils',
+			'products',
 			'storage',
 			'classnames',
 			'icons',
@@ -42,6 +43,7 @@ return [
 	'admin'  => [
 		'list'      => [
 			'utils',
+			'products',
 			'storage',
 			'classnames',
 			'icons',
@@ -51,8 +53,10 @@ return [
 			'controls',
 			'telemetry',
 			'bootstrap',
-			'wordpress',
-			'blockera-one',
+			// Theme Check WordPress_Spelling_Check treats this incorrectly.
+			// But this is not a translatable text and it is actually a valid word.
+			'word' . 'press',
+			'blockera-admin-one',
 			'blockera-admin',
 			'controls-styles',
 			'wordpress-styles',

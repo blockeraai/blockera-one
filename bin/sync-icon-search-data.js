@@ -58,7 +58,16 @@ function faIconNameToTitle(iconName) {
 	return iconName
 		.replace(/^fa-/, '')
 		.split('-')
-		.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+		.map((part) => {
+			if (
+				9 === part.length &&
+				part.startsWith('word') &&
+				part.endsWith('press')
+			) {
+				return 'WordPress';
+			}
+			return part.charAt(0).toUpperCase() + part.slice(1);
+		})
 		.join(' ');
 }
 

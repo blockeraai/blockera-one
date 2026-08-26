@@ -3,13 +3,9 @@ name: Blockera One Theme Checkup
 on:
     pull_request:
         types: [opened, synchronize, ready_for_review]
-
     workflow_dispatch:
 
-# Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
-    # The concurrency group contains the workflow name and the branch name for pull requests
-    # or the commit hash for any other events.
     group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
     cancel-in-progress: true
 
@@ -17,49 +13,44 @@ jobs:
     test_wp_theme_check:
         name: WordPress Theme Review
         runs-on: ubuntu-latest
+        timeout-minutes: 30
         if: ${{ github.repository == 'blockeraai/blockera-one' || github.event_name == 'pull_request' }}
-
+        env:
+            BLOCKERA_GLOBAL_PACKAGES_TOKEN: ${{ secrets.BLOCKERABOT_PAT }}
+            # theme-check reuses plugin-check/prepare-build.sh; theme zip generator differs.
+            BLOCKERA_PLUGIN_CHECK_BUILD_CMD: >-
+                php ./bin/generate-build-theme-zip-sh.php >./bin/build-theme-zip.temp.sh
+                && chmod +x ./bin/build-theme-zip.temp.sh
+                && NO_CHECKS=true NO_INSTALL_NPM=true NO_INSTALL_COMPOSER=true ./bin/build-theme-zip.temp.sh
+                && rm -f ./bin/build-theme-zip.temp.sh
         steps:
-            - name: Checkout
-              uses: actions/checkout@v4
-
-            - name: Setup Node.js and install dependencies
-              uses: ./.github/setup-node
-
-            - name: Setup PHP Composer install dependencies
-              uses: ./.github/setup-php
+            - uses: actions/checkout@v5
               with:
-                  composer-options: '--no-dev -o --apcu-autoloader -a'
+                  token: ${{ secrets.BLOCKERABOT_PAT }}
 
-            - name: Build Theme Zip File
-              uses: ./.github/build-theme-zip
+            - name: Ensure global-packages submodule
+              uses: ./.github/actions/ensure-global-packages
 
-            - name: Extract blockera-one.zip to build directory
-              run: |
-                  mkdir -p build
-                  unzip blockera-one.zip -d ./build/blockera-one
-                  rm -rf blockera-one.zip
-
-            - name: Test With WordPress Theme Review Action
-              uses: ./.github/theme-review-check
+            - uses: ./packages/global-packages/packages/dev-tools/github/actions/theme-check
               with:
-                  root-folder: './build/blockera-one'
-                  accessible-ready: true
+                  repo-token: ${{ secrets.BLOCKERABOT_PAT }}
+                  zip-file: blockera-one.zip
+                  build-dir: ./build/blockera-one
+                  accessible-ready: 'true'
 
     test_php_security_check:
         name: PHP Security Check
         runs-on: ubuntu-latest
+        timeout-minutes: 30
         if: ${{ github.repository == 'blockeraai/blockera-one' || github.event_name == 'pull_request' }}
-
+        env:
+            BLOCKERA_GLOBAL_PACKAGES_TOKEN: ${{ secrets.BLOCKERABOT_PAT }}
         steps:
-            - name: Checkout
-              uses: actions/checkout@v4
-
-            - name: Cache mechanism
-              uses: actions/cache@v4
+            - uses: actions/checkout@v5
               with:
-                  path: ~/.symfony/cache
-                  key: db
+                  token: ${{ secrets.BLOCKERABOT_PAT }}
 
-            - name: Run PHP Security Check
-              uses: symfonycorp/security-checker-action@v5
+            - name: Ensure global-packages submodule
+              uses: ./.github/actions/ensure-global-packages
+
+            - uses: ./packages/global-packages/packages/dev-tools/github/actions/php-security-check

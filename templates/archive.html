@@ -1,11 +1,14 @@
-<!-- wp:template-part {"slug":"header"} /-->
+<!-- wp:template-part {"slug":"header","area":"header","tagName":"header","metadata":{"blockeraOne":{"stamp":"section/header"}}} /-->
 
-<!-- wp:group {"tagName":"main","style":{"spacing":{"margin":{"top":"var:preset|spacing|60"}}},"layout":{"type":"constrained"}} -->
-<main class="wp-block-group" style="margin-top:var(--wp--preset--spacing--60)">
-	<!-- wp:query-title {"type":"archive"} /-->
-	 <!-- wp:term-description /-->
-	<!-- wp:pattern {"slug":"blockera-one/template-query-loop"} /-->
+<!-- wp:group {"tagName":"main","metadata":{"blockeraOne":{"stamp":"layout/main:no-sidebar"}},"style":{"spacing":{"margin":{"top":"var:preset|spacing|60","bottom":"var:preset|spacing|60"}}},"layout":{"type":"constrained"}} -->
+<main class="wp-block-group" style="margin-top:var(--wp--preset--spacing--60);margin-bottom:var(--wp--preset--spacing--60)">
+	<!-- wp:group {"metadata":{"blockeraOne":{"stamp":"area/content"}},"layout":{"type":"constrained"}} -->
+	<div class="wp-block-group">
+		<!-- wp:pattern {"slug":"blockera-one/builder-archive-page-header-simple"} /-->
+		<!-- wp:pattern {"slug":"blockera-one/builder-archive-listing-list"} /-->
+	</div>
+	<!-- /wp:group -->
 </main>
 <!-- /wp:group -->
 
-<!-- wp:template-part {"slug":"footer"} /-->
+<!-- wp:template-part {"slug":"footer","area":"footer","tagName":"footer","metadata":{"blockeraOne":{"stamp":"section/footer"}}} /-->

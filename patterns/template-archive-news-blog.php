@@ -21,8 +21,12 @@
 		<!-- wp:spacer {"height":"var:preset|spacing|80"} -->
 		<div style="height:var(--wp--preset--spacing--80)" aria-hidden="true" class="wp-block-spacer"></div>
 		<!-- /wp:spacer -->
-		<!-- wp:query-title {"type":"archive"} /-->
-		<!-- wp:term-description /-->
+		<!-- wp:group {"metadata":{"blockeraOne":{"stamp":"section/page-header:default"}},"style":{"spacing":{"blockGap":"var:preset|spacing|20"}},"layout":{"type":"constrained"}} -->
+		<div class="wp-block-group">
+			<!-- wp:query-title {"type":"archive","metadata":{"blockeraOne":{"stamp":"section/page-header-title:default"}}} /-->
+			<!-- wp:term-description {"metadata":{"blockeraOne":{"stamp":"section/page-header-description:default"}}} /-->
+		</div>
+		<!-- /wp:group -->
 		<!-- wp:spacer {"height":"var:preset|spacing|40"} -->
 		<div style="height:var(--wp--preset--spacing--40)" aria-hidden="true" class="wp-block-spacer"></div>
 		<!-- /wp:spacer -->

@@ -4,7 +4,7 @@ Theme URI: https://blockera.ai/products/one/
 Author: the Blockera team
 Author URI: https://blockera.ai
 Description: Blockera One is a theme for the Blockera Site Builder.
-Requires at least: 6.7
+Requires at least: 7.0
 Tested up to: 7.0
 Requires PHP: 7.2
 Version: 0.1.0
@@ -34,6 +34,62 @@ a {
 :where(.wp-site-blocks *:focus) {
 	outline-width: 2px;
 	outline-style: solid;
+}
+
+/*
+ * Skip link visibility on keyboard focus.
+ * https://make.wordpress.org/themes/handbook/review/accessibility/required/#skip-links
+ */
+.skip-link.screen-reader-text {
+	border: 0;
+	clip: rect(1px, 1px, 1px, 1px);
+	clip-path: inset(50%);
+	height: 1px;
+	margin: -1px;
+	overflow: hidden;
+	padding: 0;
+	position: absolute;
+	width: 1px;
+	word-wrap: normal !important;
+}
+
+.skip-link.screen-reader-text:focus {
+	background-color: #eeeeee;
+	clip: auto !important;
+	clip-path: none;
+	color: #444444;
+	display: block;
+	font-size: 1em;
+	height: auto;
+	left: 5px;
+	line-height: normal;
+	padding: 15px 23px 14px;
+	text-decoration: none;
+	top: 5px;
+	width: auto;
+	z-index: 100000;
+}
+
+/*
+ * Keep keyboard tab order aligned with visible navigation when overlay menus are closed.
+ */
+.wp-block-navigation__responsive-container:not(.is-menu-open) {
+	display: none !important;
+}
+
+/*
+ * Submenu visibility for keyboard and pointer users (mirrors core block styles).
+ */
+@media (min-width: 1px) {
+	.wp-block-navigation .has-child:not(.open-on-click):hover > .wp-block-navigation__submenu-container,
+	.wp-block-navigation .has-child:not(.open-on-click):not(.open-on-hover-click):focus-within > .wp-block-navigation__submenu-container,
+	.wp-block-navigation .has-child .wp-block-navigation-submenu__toggle[aria-expanded="true"] ~ .wp-block-navigation__submenu-container {
+		visibility: visible;
+		opacity: 1;
+		height: auto;
+		min-width: 200px;
+		overflow: visible;
+	}
 }
 
 /* Increase the bottom margin on submenus, so that the outline is visible. */

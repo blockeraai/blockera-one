@@ -2,7 +2,7 @@
 /**
  * Title: Landing page for podcast
  * Slug: blockera-one/page-landing-podcast
- * Categories: blockera_one_page, featured
+ * Categories: blockera-one/page, featured
  * Keywords: starter
  * Block Types: core/post-content
  * Post Types: page, wp_template
@@ -15,7 +15,6 @@
  */
 
 ?>
-
 <!-- wp:pattern {"slug":"blockera-one/hero-podcast"} /-->
 <!-- wp:pattern {"slug":"blockera-one/heading-and-paragraph-with-image"} /-->
 <!-- wp:pattern {"slug":"blockera-one/logos"} /-->
