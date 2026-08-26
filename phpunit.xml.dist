@@ -1,6 +1,10 @@
-<!--@see: https://github.com/wp-phpunit/docs to configuration project for wp phpunit testing-->
+<!--
+	Theme-specific PHPUnit config (suites / __BLOCKERA_DIR__).
+	Shared plugin suite lives in dev-tools/php/phpunit.plugin.xml.dist — do not replace this file with it.
+	@see https://github.com/wp-phpunit/docs
+-->
 <phpunit
-        bootstrap="./packages/dev-phpunit/php/bootstrap.php"
+        bootstrap="./packages/global-packages/packages/dev-phpunit/php/bootstrap.php"
         backupGlobals="false"
         colors="true"
         convertErrorsToExceptions="true"
@@ -10,29 +14,42 @@
         failOnEmptyTestSuite="false"
 >
     <coverage>
+        <include>
+            <directory suffix=".php">./packages/blockera-one/php</directory>
+        </include>
+        <exclude>
+            <directory suffix=".php">./packages/blockera-one/php/tests</directory>
+            <directory suffix=".php">./packages/blockera-one/php/test-support</directory>
+            <file>./packages/blockera-one/php/index.php</file>
+        </exclude>
         <report>
             <html outputDirectory="php-coverage" />
+            <text outputFile="php://stdout" showOnlySummary="true"/>
         </report>
     </coverage>
 
     <testsuites>
         <!--
-            Unit tests: theme packages ending with -one / blockera-one-* only
-            (same convention as blockera-pro). Synced core packages are out of scope.
-            Directories are discovered at runtime by list-phpunit-one-test-dirs.js and
-            passed as CLI args from npm run test:unit:php:base.
+            Unit tests: theme packages ending with -one / blockera-one-* only.
+            CI skip-if-empty uses list-phpunit-package-test-dirs.js with
+            BLOCKERA_PHPUNIT_PACKAGE_SUFFIX=-one and _PREFIX=blockera-one-.
         -->
         <testsuite name="units">
-            <directory suffix=".php">./packages/dev-phpunit/php/</directory>
+            <directory suffix=".php">./packages/global-packages/packages/dev-phpunit/php/</directory>
+            <directory suffix=".php">./packages/blockera-one/php/tests/</directory>
+            <directory suffix=".php">./packages/global-packages/packages/products/php/tests/</directory>
             <exclude>./node_modules/</exclude>
             <exclude>./dist/</exclude>
+            <exclude>./packages/global-packages/packages/products/php/tests/TestCase.php</exclude>
+            <exclude>./packages/blockera-one/php/tests/TestCase.php</exclude>
+            <exclude>./packages/blockera-one/php/test-support/</exclude>
         </testsuite>
         <testsuite name="snapshots">
-            <directory suffix=".php">./packages/dev-phpunit/php/</directory>
+            <directory suffix=".php">./packages/global-packages/packages/dev-phpunit/php/</directory>
             <directory suffix=".php">./tests/phpunit/main/</directory>
             <exclude>./node_modules/</exclude>
             <exclude>./dist/</exclude>
-            <exclude>./packages/editor/php/Tests/StyleDefinitionTestCase.php</exclude>
+            <exclude>./packages/global-packages/packages/editor/php/Tests/StyleDefinitionTestCase.php</exclude>
         </testsuite>
     </testsuites>
 
@@ -40,8 +57,8 @@
         <env name="VERSION" value="1.0-beta" />
         <const name="PHPUNIT_PLUGIN_TEST" value="true"/>
         <env name="__BLOCKERA_DIR__" value="themes/blockera-one" />
-        <env name="WP_PHPUNIT__TESTS_CONFIG" value="./packages/dev-phpunit/php/config.php" />
-        <env name="WP_TESTS_CONFIG_FILE_PATH" value="./packages/dev-phpunit/php/config.php" />
+        <env name="WP_PHPUNIT__TESTS_CONFIG" value="./packages/global-packages/packages/dev-phpunit/php/config.php" />
+        <env name="WP_TESTS_CONFIG_FILE_PATH" value="./packages/global-packages/packages/dev-phpunit/php/config.php" />
     </php>
 
 </phpunit>

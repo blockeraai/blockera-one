@@ -10,33 +10,22 @@
  */
 
 ?>
-<!-- wp:heading {"style":{"typography":{"fontStyle":"normal","fontWeight":"600","textTransform":"uppercase","letterSpacing":"1.6px"}},"fontSize":"small"} -->
-<h2 class="wp-block-heading has-small-font-size" style="font-style:normal;font-weight:600;letter-spacing:1.6px;text-transform:uppercase"><?php esc_html_e( 'Other Posts', 'blockera-one' ); ?></h2>
-<!-- /wp:heading -->
+<!-- wp:group {"metadata":{"blockeraOne":{"stamp":"layout/site-sidebar:default"}},"layout":{"type":"default"}} -->
+<div class="wp-block-group">
+	<!-- wp:search {"label":"<?php echo esc_html_x( 'Search', 'Search form label.', 'blockera-one' ); ?>","showLabel":false,"buttonText":"<?php echo esc_attr_x( 'Search', 'Button text. Verb.', 'blockera-one' ); ?>","metadata":{"blockeraOne":{"stamp":"section/sidebar-search:default"}}} /-->
 
-<!-- wp:spacer {"height":"var:preset|spacing|40"} -->
-<div style="height:var(--wp--preset--spacing--40)" aria-hidden="true" class="wp-block-spacer"></div>
-<!-- /wp:spacer -->
+	<!-- wp:heading {"style":{"typography":{"fontStyle":"normal","fontWeight":"600","textTransform":"uppercase","letterSpacing":"1.6px"}},"fontSize":"small"} -->
+	<h2 class="wp-block-heading has-small-font-size" style="font-style:normal;font-weight:600;letter-spacing:1.6px;text-transform:uppercase"><?php esc_html_e( 'Categories', 'blockera-one' ); ?></h2>
+	<!-- /wp:heading -->
+	<!-- wp:categories {"showPostCounts":true,"metadata":{"blockeraOne":{"stamp":"section/sidebar-categories:default"}}} /-->
 
-<!-- wp:query {"query":{"perPage":4,"pages":0,"offset":0,"postType":"post","order":"desc","orderBy":"date","author":"","search":"","exclude":[],"sticky":"","inherit":false,"taxQuery":null,"parents":[]}} -->
-<div class="wp-block-query">
-	<!-- wp:post-template -->
-		<!-- wp:group {"style":{"spacing":{"blockGap":"var:preset|spacing|20"}},"layout":{"type":"flex","orientation":"vertical"}} -->
-		<div class="wp-block-group">
-			<!-- wp:post-title {"isLink":true,"fontSize":"medium"} /-->
-			<!-- wp:post-date {"fontSize":"small","isLink":true} /-->
-		</div>
-		<!-- /wp:group -->
+	<!-- wp:spacer {"height":"var:preset|spacing|40"} -->
+	<div style="height:var(--wp--preset--spacing--40)" aria-hidden="true" class="wp-block-spacer"></div>
+	<!-- /wp:spacer -->
 
-		<!-- wp:spacer {"height":"var:preset|spacing|20"} -->
-		<div style="height:var(--wp--preset--spacing--20)" aria-hidden="true" class="wp-block-spacer"></div>
-		<!-- /wp:spacer -->
-	<!-- /wp:post-template -->
-
-	<!-- wp:query-no-results -->
-		<!-- wp:paragraph {"placeholder":"<?php esc_attr_e( 'Add text or blocks that will display when a query returns no results.', 'blockera-one' ); ?>","fontSize":"medium"} -->
-		<p class="has-medium-font-size"><?php echo esc_html_x( 'Sorry, but nothing was found. Please try a search with different keywords.', 'Message explaining that there are no results returned from a search.', 'blockera-one' ); ?></p>
-		<!-- /wp:paragraph -->
-	<!-- /wp:query-no-results -->
+	<!-- wp:heading {"style":{"typography":{"fontStyle":"normal","fontWeight":"600","textTransform":"uppercase","letterSpacing":"1.6px"}},"fontSize":"small"} -->
+	<h2 class="wp-block-heading has-small-font-size" style="font-style:normal;font-weight:600;letter-spacing:1.6px;text-transform:uppercase"><?php esc_html_e( 'Latest Posts', 'blockera-one' ); ?></h2>
+	<!-- /wp:heading -->
+	<!-- wp:latest-posts {"postsToShow":5,"displayPostDate":true,"metadata":{"blockeraOne":{"stamp":"section/sidebar-latest-posts:default"}}} /-->
 </div>
-<!-- /wp:query -->
+<!-- /wp:group -->

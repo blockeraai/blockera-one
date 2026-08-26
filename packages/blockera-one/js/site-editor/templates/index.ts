@@ -8,8 +8,7 @@ export { default as TemplatesFilteredBrowse } from './templates-filtered-browse'
 export { default as TemplatesAreaHub } from './templates-area-hub';
 export {
 	FILTER_IDS,
-	TEMPLATES_FILTER_QUERY,
-	TEMPLATES_PARTS_AREA_QUERY,
+	TEMPLATES_BUILDER_QUERY,
 	TEMPLATES_ACTIVE_VIEW_QUERY,
 	CHILDREN_FILTER_PREFIX,
 	buildChildrenFilter,

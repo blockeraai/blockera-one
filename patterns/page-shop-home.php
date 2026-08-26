@@ -2,7 +2,7 @@
 /**
  * Title: Shop homepage
  * Slug: blockera-one/page-shop-home
- * Categories: blockera_one_page
+ * Categories: blockera-one/page
  * Keywords: starter
  * Block Types: core/post-content
  * Post Types: page, wp_template
@@ -15,7 +15,6 @@
  */
 
 ?>
-
 <!-- wp:pattern {"slug":"blockera-one/banner-intro-image"} /-->
 <!-- wp:pattern {"slug":"blockera-one/grid-with-categories"} /-->
 <!-- wp:pattern {"slug":"blockera-one/media-instagram-grid"} /-->

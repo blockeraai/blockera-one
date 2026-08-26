@@ -32,7 +32,10 @@ import {
 	getTemplateTitle,
 	type TemplateLike,
 } from './templates-matchers';
-import type { TemplatesNavSectionConfig } from './templates-nav-config';
+import {
+	findNavItemLabel,
+	type TemplatesNavSectionConfig,
+} from './templates-nav-config';
 import TemplatesAddNewButton from './templates-add-new-button';
 import useTemplatesData from './use-templates-data';
 import './templates-filtered-browse.scss';
@@ -51,23 +54,6 @@ type TemplatesFilteredBrowseProps = {
 	dataTest?: string;
 };
 
-function findNavLabel(
-	sections: TemplatesNavSectionConfig[],
-	filterId: FilterId
-): string | undefined {
-	for (const section of sections) {
-		for (const item of section.items) {
-			if (
-				item.filter === filterId ||
-				String(item.id) === String(filterId)
-			) {
-				return item.label;
-			}
-		}
-	}
-	return undefined;
-}
-
 /**
  * Page heading that describes the filtered list the user is browsing.
  */
@@ -82,7 +68,7 @@ export function getFilteredBrowseTitle(
 	if (isChildrenFilter(filter)) {
 		const parentFilter = getParentFilterFromChildrenFilter(filter);
 		const parentLabel =
-			(parentFilter && findNavLabel(sections, parentFilter)) ||
+			(parentFilter && findNavItemLabel(sections, parentFilter)) ||
 			parentFilter ||
 			__('Templates', 'blockera');
 		return sprintf(
@@ -92,7 +78,7 @@ export function getFilteredBrowseTitle(
 		);
 	}
 
-	return findNavLabel(sections, filter) || __('Templates', 'blockera');
+	return findNavItemLabel(sections, filter) || __('Templates', 'blockera');
 }
 
 /** Same preference key as `@wordpress/views` for templates browse. */
@@ -143,30 +129,29 @@ function PreviewField({ item }: { item: TemplateRecord }) {
 function useSyncedTemplatesView() {
 	const persistedView = useSelect((select) => {
 		return (
-			select(preferencesStore) as {
+			select(preferencesStore) as unknown as {
 				get: (scope: string, name: string) => View | undefined;
 			}
 		).get('core/views', TEMPLATES_VIEW_PREFERENCE_KEY);
 	}, []);
 
-	const { set } = useDispatch(preferencesStore) as {
+	const { set } = useDispatch(preferencesStore) as unknown as {
 		set: (scope: string, name: string, value: View | undefined) => void;
 	};
 
 	const baseView = persistedView ?? DEFAULT_VIEW;
-	const layoutDefaults =
-		defaultLayouts[baseView.type as keyof typeof defaultLayouts];
-	const layoutTypeDefaults =
-		!layoutDefaults || layoutDefaults === true ? {} : layoutDefaults;
 
-	const view = useMemo(
-		() =>
-			({
-				...baseView,
-				...layoutTypeDefaults,
-			}) as View,
-		[baseView, layoutTypeDefaults]
-	);
+	const view = useMemo(() => {
+		const layoutTypeDefaults =
+			baseView.type in defaultLayouts
+				? defaultLayouts[baseView.type as keyof typeof defaultLayouts]
+				: {};
+
+		return {
+			...baseView,
+			...layoutTypeDefaults,
+		} as View;
+	}, [baseView]);
 
 	const isModified = !!persistedView;
 

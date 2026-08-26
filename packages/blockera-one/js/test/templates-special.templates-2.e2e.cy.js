@@ -13,6 +13,7 @@ import {
 	openTemplatesNavItem,
 	assertTemplatesSpecialSection,
 	assertTemplatesMissingBase,
+	assertTemplatesBuilderShell,
 	hideSpecialThemeTemplate,
 	restoreSpecialThemeTemplate,
 } from '@blockera/dev-cypress/js/helpers';
@@ -73,13 +74,13 @@ describe('Blockera One → Templates Special Templates purpose-nav', () => {
 
 			// Search is the first row; 404 is the second.
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav)
-				.find('.blockera-site-editor-templates-nav__section')
+				.find('.blockera-site-editor-nav__section')
 				.contains(
-					'.blockera-site-editor-templates-nav__section-title',
+					'.blockera-site-editor-nav__section-title',
 					'Special Templates'
 				)
-				.parents('.blockera-site-editor-templates-nav__section')
-				.find('.blockera-site-editor-templates-nav__items [data-test]')
+				.parents('.blockera-site-editor-nav__section')
+				.find('.blockera-site-editor-nav__items [data-test]')
 				.then(($rows) => {
 					const testIds = [...$rows].map((el) =>
 						el.getAttribute('data-test')
@@ -125,9 +126,9 @@ describe('Blockera One → Templates Special Templates purpose-nav', () => {
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
 				expect(decoded).to.include('index');
-				expect(decoded).to.include('boFilter=index');
+				expect(decoded).to.include('blockera-builder=index');
 			});
-			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should('exist');
+			assertTemplatesBuilderShell();
 
 			openFreshSiteEditor();
 			openTemplatesPurposeNav();
@@ -141,7 +142,7 @@ describe('Blockera One → Templates Special Templates purpose-nav', () => {
 			cy.location('search', { timeout: 30000 }).should((search) => {
 				const decoded = decodeURIComponent(search);
 				expect(decoded).to.include('canvas=edit');
-				expect(decoded).to.include('boFilter=search');
+				expect(decoded).to.include('blockera-builder=search');
 				expect(decoded).to.include('wp_template');
 			});
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesMissing).should(
@@ -190,9 +191,9 @@ describe('Blockera One → Templates Special Templates purpose-nav', () => {
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
 				expect(decoded).to.include('index');
-				expect(decoded).to.include('boFilter=index');
+				expect(decoded).to.include('blockera-builder=index');
 			});
-			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should('exist');
+			assertTemplatesBuilderShell();
 
 			openFreshSiteEditor();
 			openTemplatesPurposeNav();
@@ -206,7 +207,7 @@ describe('Blockera One → Templates Special Templates purpose-nav', () => {
 			cy.location('search', { timeout: 30000 }).should((search) => {
 				const decoded = decodeURIComponent(search);
 				expect(decoded).to.include('canvas=edit');
-				expect(decoded).to.include('boFilter=404');
+				expect(decoded).to.include('blockera-builder=404');
 				expect(decoded).to.include('wp_template');
 			});
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesMissing).should(

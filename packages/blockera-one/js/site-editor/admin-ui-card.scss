@@ -23,6 +23,11 @@
 	max-height: 100%;
 	overflow: hidden;
 	box-sizing: border-box;
+	border-radius: var(--wpds-border-radius-xl, 12px);
+
+	.admin-ui-navigable-region {
+		overflow: auto;
+	}
 
 	/* Card root — same element or nested core Page */
 	&.admin-ui-page,
@@ -40,20 +45,19 @@
 		background-color: var(--wpds-color-background-surface-neutral, #fcfcfc);
 		color: var(--wpds-color-foreground-content-neutral, #1e1e1e);
 		border-radius: 8px;
-		box-shadow: 0 0 0 1px
-			var(
-				--wpds-color-stroke-surface-neutral-weak,
-				rgba(255, 255, 255, 0.08)
-			);
+		box-shadow: none;
 	}
 
 	.admin-ui-page__header {
-		padding: 14px 18px;
-		border-block-end: 1px solid #f0f0f0;
+		padding: 0 18px;
+		border-block-end: 1px solid #0000001a;
 		background: #ffffff;
 		position: sticky;
 		inset-block-start: 0;
 		z-index: 1;
+		min-height: var(--blockera-panel-tabs-height);
+		display: flex;
+		align-items: center;
 	}
 
 	.admin-ui-page__header-content {
@@ -128,11 +132,32 @@
 		overflow: auto;
 		display: flex;
 		flex-direction: column;
-		background: var(--wpds-color-background-surface-neutral-strong, #ffffff);
+		background: var(
+			--wpds-color-background-surface-neutral-strong,
+			#ffffff
+		);
 		padding: 0;
 
 		&.has-padding {
 			padding: 18px;
+			gap: 20px;
+			--blockera-field-gap: 0;
+		}
+	}
+
+	/* Stacked group cards in dark sidebar drill-downs (e.g. Templates builder). */
+	&.is-stacked,
+	&.is-stacked.admin-ui-page {
+		flex: 0 0 auto;
+		max-height: none;
+		overflow: hidden;
+
+		.admin-ui-page__content {
+			flex: 0 0 auto;
+		}
+
+		&.is-header-collapsed .admin-ui-page__header {
+			border-block-end: 0;
 		}
 	}
 }

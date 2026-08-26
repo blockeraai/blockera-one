@@ -9,7 +9,7 @@ import {
 import {
 	openButtonBlockGlobalStylesVariations,
 	SIZE_VARIATION_SLUGS,
-} from '../../../blocks-core/js/libs/wordpress/button/test/button-style-size-variations-helpers';
+} from '@blockera/blocks-core/js/libs/wordpress/button/test/button-style-size-variations-helpers';
 
 describe('Blockera One → global styles duplicate variation companion gate', () => {
 	describe('style variations', () => {

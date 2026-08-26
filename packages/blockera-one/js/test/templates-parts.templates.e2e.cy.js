@@ -1,5 +1,6 @@
 /**
- * Templates purpose-nav → Header / Footer / Sidebar Area Hub.
+ * Templates purpose-nav → Header / Footer / Sidebar Design/Settings
+ * builder + Area Hub on canvas.
  *
  * Category: templates (CI matrix via `*.templates.e2e.cy.js`)
  */
@@ -64,6 +65,20 @@ describe('Blockera One → Templates parts Area Hub', () => {
 		restoreAllHiddenParts();
 	});
 
+	function assertPartsBuilder({ area, hubMode = 'preview' }) {
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should('not.exist');
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesBuilderShell).should(
+			'be.visible'
+		);
+		cy.getByDataTest('blockera-templates-builder-group-design')
+			.should('be.visible')
+			.and('contain', 'Design');
+		cy.getByDataTest('blockera-templates-builder-group-settings')
+			.should('be.visible')
+			.and('contain', 'Settings');
+		assertTemplatesAreaHub({ area, mode: hubMode });
+	}
+
 	describe('Nav presence', () => {
 		it('shows Header, Footer, and Sidebar when theme parts exist', () => {
 			openFreshSiteEditor();
@@ -92,6 +107,26 @@ describe('Blockera One → Templates parts Area Hub', () => {
 		});
 	});
 
+	describe('Builder subpanel', () => {
+		['header', 'footer', 'sidebar'].forEach((area) => {
+			it(`opens ${area} Design and Settings from Templates purpose-nav`, () => {
+				openFreshSiteEditor();
+				openTemplatesPurposeNav();
+				openTemplatesPartArea(area);
+
+				assertPartsBuilder({ area });
+
+				cy.getByDataTest(SITE_EDITOR_TEST_IDS.drillDownBack).click();
+				cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should(
+					'exist'
+				);
+				cy.getByDataTest(
+					SITE_EDITOR_TEST_IDS.templatesBuilderShell
+				).should('not.exist');
+			});
+		});
+	});
+
 	describe('Canvas edit', () => {
 		it('hides banner and Manage when the Editor opens (canvas click)', () => {
 			openFreshSiteEditor();
@@ -116,9 +151,9 @@ describe('Blockera One → Templates parts Area Hub', () => {
 
 			cy.location('search', { timeout: 20000 }).should((search) => {
 				const decoded = decodeURIComponent(String(search));
-				expect(decoded).to.include('partsArea=header');
+				expect(decoded).to.include('blockera-builder=header');
 				expect(decoded).to.include('wp_template_part');
-				expect(decoded).to.not.include('p=%2Fpattern');
+				expect(decoded).to.not.include('p=/pattern');
 				expect(decoded).to.not.include('/pattern');
 			});
 			assertTemplatesAreaHub({ area: 'header', mode: 'preview' });
@@ -149,7 +184,7 @@ describe('Blockera One → Templates parts Area Hub', () => {
 			openFreshSiteEditor();
 			openTemplatesPurposeNav();
 			openTemplatesPartArea('header');
-			assertTemplatesAreaHub({ area: 'header', mode: 'empty' });
+			assertPartsBuilder({ area: 'header', hubMode: 'empty' });
 
 			cy.getByDataTest(
 				SITE_EDITOR_TEST_IDS.templatesAreaHubManage
@@ -159,37 +194,37 @@ describe('Blockera One → Templates parts Area Hub', () => {
 	});
 
 	describe('Navigation glue', () => {
-		it('switches Header → Footer while keeping General purpose-nav', () => {
+		it('switches Header → Footer via Back to purpose-nav', () => {
 			openFreshSiteEditor();
 			openTemplatesPurposeNav();
 			openTemplatesPartArea('header');
-			assertTemplatesAreaHub({ area: 'header', mode: 'preview' });
+			assertPartsBuilder({ area: 'header' });
+
+			cy.getByDataTest(SITE_EDITOR_TEST_IDS.drillDownBack).click();
+			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should('exist');
 
 			openTemplatesPartArea('footer');
-			assertTemplatesAreaHub({ area: 'footer', mode: 'preview' });
-			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavHeader).should(
-				'not.have.class',
-				'is-active'
-			);
+			assertPartsBuilder({ area: 'footer' });
 		});
 
-		it('All templates clears Area Hub / partsArea', () => {
+		it('All templates clears Area Hub / blockera-builder', () => {
 			openFreshSiteEditor();
 			openTemplatesPurposeNav();
 			openTemplatesPartArea('header');
-			assertTemplatesAreaHub({ area: 'header', mode: 'preview' });
+			assertPartsBuilder({ area: 'header' });
+
+			cy.getByDataTest(SITE_EDITOR_TEST_IDS.drillDownBack).click();
+			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should('exist');
 
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavAll).click();
 			cy.location('search')
-				.should('include', 'p=%2Ftemplate')
+				.should('include', 'p=/template')
 				.and('not.include', 'wp_template_part')
-				.and('not.include', 'partsArea=');
+				.and('not.include', 'blockera-builder=');
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesAreaHub).should(
 				'not.exist'
 			);
-			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should(
-				'be.visible'
-			);
+			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should('exist');
 		});
 	});
 });

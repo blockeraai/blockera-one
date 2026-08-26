@@ -105,4 +105,167 @@ if ( ! function_exists( 'blockera_one_register_companion_plugin_hooks' ) ) :
 	}
 endif;
 
-blockera_one_register_companion_plugin_hooks();
+if ( ! function_exists( 'blockera_one_get_theme_root_path' ) ) :
+	/**
+	 * Theme root filesystem path with trailing slash.
+	 *
+	 * Companion plugin defines BLOCKERA_SB_PATH as the plugin directory, so
+	 * theme dist lookups must use the theme root — not those constants.
+	 *
+	 * @return string
+	 */
+	function blockera_one_get_theme_root_path(): string {
+		return trailingslashit( get_template_directory() );
+	}
+endif;
+
+if ( ! function_exists( 'blockera_one_get_theme_root_url' ) ) :
+	/**
+	 * Theme root URL with trailing slash.
+	 *
+	 * @return string
+	 */
+	function blockera_one_get_theme_root_url(): string {
+		return trailingslashit( get_template_directory_uri() );
+	}
+endif;
+
+if ( ! function_exists( 'blockera_one_is_one_named_package' ) ) :
+	/**
+	 * Whether an asset slug matches the theme `*-one` package pattern.
+	 *
+	 * Matches `blockera-one` and follow-on entries such as `blockera-one-styles`.
+	 *
+	 * @param string $name Asset / package slug from config/assets.php.
+	 *
+	 * @return bool
+	 */
+	function blockera_one_is_one_named_package( string $name ): bool {
+		return str_ends_with( $name, '-one' ) || str_contains( $name, '-one-' );
+	}
+endif;
+
+if ( ! function_exists( 'blockera_one_get_one_named_editor_assets' ) ) :
+	/**
+	 * Editor asset slugs from the theme config that match `*-one`.
+	 *
+	 * Cached per request — config/assets.php is a small include, not a glob.
+	 *
+	 * @return string[]
+	 */
+	function blockera_one_get_one_named_editor_assets(): array {
+		static $cached = null;
+
+		if ( null !== $cached ) {
+			return $cached;
+		}
+
+		$config_file = blockera_one_get_theme_root_path() . 'config/assets.php';
+		if ( ! is_readable( $config_file ) ) {
+			$cached = array();
+			return $cached;
+		}
+
+		$config      = include $config_file;
+		$editor_list = is_array( $config ) ? ( $config['editor']['list'] ?? array() ) : array();
+		$cached      = array();
+
+		if ( ! is_array( $editor_list ) ) {
+			return $cached;
+		}
+
+		foreach ( $editor_list as $name ) {
+			if ( ! is_string( $name ) || ! blockera_one_is_one_named_package( $name ) ) {
+				continue;
+			}
+
+			$cached[] = $name;
+		}
+
+		return $cached;
+	}
+endif;
+
+if ( ! function_exists( 'blockera_one_get_product_details' ) ) :
+	/**
+	 * Blockera One theme product details for the products registry.
+	 *
+	 * Shape follows blockera/products `product-details.schema.json`.
+	 * Details are read from the theme headers so version bumps need no code change.
+	 *
+	 * @return array<string, mixed>
+	 */
+	function blockera_one_get_product_details(): array {
+		$theme = wp_get_theme( get_template() );
+
+		return array(
+			'name'        => $theme->get( 'Name' ) ?: 'Blockera One',
+			'description' => $theme->get( 'Description' ) ?: '',
+			'slug'        => get_template(),
+			'version'     => $theme->get( 'Version' ) ?: '0.0.0',
+			'type'        => 'theme',
+			// This code only runs while the theme is the active template.
+			'status'      => 'active',
+			'isCompanion' => false,
+			'author'      => $theme->get( 'Author' ) ?: '',
+			'homepage'    => $theme->get( 'ThemeURI' ) ?: '',
+			'requires'    => array(
+				'word' . 'press' => $theme->get( 'RequiresWP' ) ?: '',
+				'php'            => $theme->get( 'RequiresPHP' ) ?: '',
+			),
+		);
+	}
+endif;
+
+if ( ! function_exists( 'blockera_one_register_product' ) ) :
+	/**
+	 * Register the Blockera One theme into the blockera products registry.
+	 *
+	 * Hooked on `blockera/products/registry/init` (fires once, on first read
+	 * access of the registry). Wired from this file so it also runs in
+	 * embedded/theme-only mode, where php/hooks.php is not loaded.
+	 *
+	 * @return void
+	 */
+	function blockera_one_register_product(): void {
+		// The blockera/products package may be absent in stripped-down builds.
+		if ( ! function_exists( 'blockera_register_product' ) ) {
+			return;
+		}
+
+		blockera_register_product( blockera_one_get_product_details() );
+	}
+endif;
+
+if ( ! function_exists( 'blockera_one_register_product_hooks' ) ) :
+	/**
+	 * Wire the theme into the products registry.
+	 *
+	 * Embedded/theme-only mode never loads php/hooks.php, so this must also run
+	 * from this file. Companion mode may call it again from hooks.php.
+	 *
+	 * @return void
+	 */
+	function blockera_one_register_product_hooks(): void {
+		if ( ! function_exists( 'add_action' ) ) {
+			return;
+		}
+
+		// has_action() may be missing in Composer-autoload subprocess stubs.
+		if (
+			function_exists( 'has_action' )
+			&& has_action( 'blockera/products/registry/init', 'blockera_one_register_product' )
+		) {
+			return;
+		}
+
+		add_action( 'blockera/products/registry/init', 'blockera_one_register_product' );
+	}
+endif;
+
+// Only register when WordPress APIs exist. Composer may autoload this file after a
+// test prepend defines ABSPATH but before add_action() is available.
+if ( function_exists( 'add_action' ) ) {
+	blockera_one_register_companion_plugin_hooks();
+	blockera_one_register_product_hooks();
+}

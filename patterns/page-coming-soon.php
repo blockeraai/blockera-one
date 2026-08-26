@@ -2,7 +2,7 @@
 /**
  * Title: Coming soon
  * Slug: blockera-one/page-coming-soon
- * Categories: blockera_one_page, featured
+ * Categories: blockera-one/page, featured
  * Keywords: starter
  * Block Types: core/post-content
  * Post Types: page, wp_template

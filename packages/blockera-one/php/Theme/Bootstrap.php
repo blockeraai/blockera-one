@@ -33,8 +33,12 @@ class Bootstrap {
 
 		( new EditorStyles() )->register();
 		( new FrontStyles() )->register();
+		( new Accessibility() )->register();
 		( new BlockStyles() )->register();
 		( new Patterns() )->register();
 		( new Performance() )->register();
+		( new TemplateSettings() )->register();
+		( new TemplateBuilder() )->register();
+		( new ResetTheme() )->register();
 	}
 }

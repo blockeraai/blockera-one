@@ -2,14 +2,33 @@
 <?php
 
 /**
- * Generates the production (theme build) version of `blockera.php`,
- * containing alternate `define` statements from the development version.
+ * Generates the production (theme build) version of `blockera.php` or `functions.php`.
+ *
+ * Pass the target filename as the first argument (default: `blockera.php`).
+ * - `blockera.php`: production defines + `inc/app.php` front controller.
+ * - `functions.php`: shared autoloader from `inc/bootstrap.php`.
  *
  * @package blockera-build
  */
 
-$root = dirname( __DIR__ );
-$f    = fopen( $root . '/blockera.php', 'r' );
+$root            = dirname( __DIR__ );
+$target          = isset( $argv[1] ) ? basename( (string) $argv[1] ) : 'blockera.php';
+$allowed_targets = array(
+	'blockera.php',
+	'functions.php',
+);
+
+if ( ! in_array( $target, $allowed_targets, true ) ) {
+	fwrite( STDERR, "Unsupported generate target: {$target}\n" );
+	exit( 1 );
+}
+
+$f = fopen( $root . '/' . $target, 'r' );
+
+if ( false === $f ) {
+	fwrite( STDERR, "Could not read {$target}\n" );
+	exit( 1 );
+}
 
 $theme_version = null;
 $inside_block  = false;
@@ -87,7 +106,7 @@ blockera_bootstrap_shared_autoloader(
 	__DIR__,
 	[
 		'priority'         => 10,
-		'default'          => true,
+		'default'          => blockera_one_should_load_embedded_blockera(),
 		'file'             => __FILE__,
 		'type'             => 'theme',
 		'theme_stylesheet' => 'blockera-one',

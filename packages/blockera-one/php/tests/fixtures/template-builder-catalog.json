@@ -1,0 +1,1228 @@
+{
+	"archive": {
+		"header": [
+			{
+				"id": "header",
+				"label": "Default",
+				"kind": "templatePart",
+				"slug": "header",
+				"area": "header",
+				"tagName": "header",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/header-default.svg",
+				"placement": {
+					"relativeTo": "main",
+					"position": "before"
+				},
+				"chromeLayout": "stacked"
+			},
+			{
+				"id": "header-large-title",
+				"label": "Large Title",
+				"kind": "templatePart",
+				"slug": "header-large-title",
+				"area": "header",
+				"tagName": "header",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/header-large-title.svg",
+				"placement": {
+					"relativeTo": "main",
+					"position": "before"
+				},
+				"chromeLayout": "stacked"
+			},
+			{
+				"id": "vertical-header",
+				"label": "Vertical",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-header-vertical",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/header-vertical.svg",
+				"chromeLayout": "vertical-rail"
+			}
+		],
+		"page-header": [
+			{
+				"id": "simple",
+				"label": "Simple",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-page-header-simple",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/page-header-default.svg",
+				"placement": {
+					"relativeTo": "content",
+					"position": "inside-start"
+				}
+			},
+			{
+				"id": "banner",
+				"label": "Banner",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-page-header-banner",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/page-header-banner.svg",
+				"placement": {
+					"relativeTo": "main",
+					"position": "inside-start"
+				}
+			}
+		],
+		"page-header-title": [
+			{
+				"id": "default",
+				"label": "Title",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-page-header-title"
+			}
+		],
+		"page-header-description": [
+			{
+				"id": "default",
+				"label": "Description",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-page-header-description"
+			}
+		],
+		"page-header-breadcrumbs": [
+			{
+				"id": "default",
+				"label": "Breadcrumbs",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-page-header-breadcrumbs"
+			}
+		],
+		"page-header-search-title": [
+			{
+				"id": "default",
+				"label": "Title",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-page-header-search-title"
+			}
+		],
+		"page-header-search-form": [
+			{
+				"id": "default",
+				"label": "Search Form",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-page-header-search-form"
+			}
+		],
+		"page-header-results-count": [
+			{
+				"id": "default",
+				"label": "Results Count",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-page-header-results-count"
+			}
+		],
+		"page-header-search": [
+			{
+				"id": "simple",
+				"label": "Simple",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-page-header-search-simple",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/page-header-default.svg",
+				"placement": {
+					"relativeTo": "content",
+					"position": "inside-start"
+				}
+			},
+			{
+				"id": "banner",
+				"label": "Banner",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-page-header-search-banner",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/page-header-banner.svg",
+				"placement": {
+					"relativeTo": "main",
+					"position": "inside-start"
+				}
+			}
+		],
+		"posts-listing": [
+			{
+				"id": "list",
+				"label": "List",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-list",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/list.svg"
+			},
+			{
+				"id": "grid-2",
+				"label": "2 Columns",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-grid-2",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/grid-2.svg"
+			},
+			{
+				"id": "grid-3",
+				"label": "3 Columns",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-grid-3",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/grid-3.svg"
+			},
+			{
+				"id": "full-width",
+				"label": "Full Width",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-full-width",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/full-width.svg"
+			}
+		],
+		"pagination": [
+			{
+				"id": "standard",
+				"label": "Standard Buttons",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-pagination-standard",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/pagination-standard.svg"
+			},
+			{
+				"id": "load-more",
+				"label": "Load More Ajax Button",
+				"disabled": true,
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/pagination-load-more.svg",
+				"badge": "Coming soon"
+			}
+		],
+		"pagination-previous": [
+			{
+				"id": "default",
+				"label": "Previous",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-pagination-previous"
+			}
+		],
+		"pagination-next": [
+			{
+				"id": "default",
+				"label": "Next",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-pagination-next"
+			}
+		],
+		"pagination-numbers": [
+			{
+				"id": "default",
+				"label": "Numbers",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-pagination-numbers"
+			}
+		],
+		"post-featured-image": [
+			{
+				"id": "default",
+				"label": "Featured Image",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-featured-image"
+			}
+		],
+		"post-title": [
+			{
+				"id": "default",
+				"label": "Title",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-title"
+			}
+		],
+		"post-excerpt": [
+			{
+				"id": "default",
+				"label": "Excerpt",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-excerpt"
+			}
+		],
+		"post-content": [
+			{
+				"id": "default",
+				"label": "Content",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-content"
+			}
+		],
+		"post-read-more": [
+			{
+				"id": "default",
+				"label": "Read More",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-read-more"
+			}
+		],
+		"post-meta": [
+			{
+				"id": "default",
+				"label": "Post Meta",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta"
+			}
+		],
+		"post-meta-2": [
+			{
+				"id": "default",
+				"label": "Post Meta",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-2"
+			}
+		],
+		"post-meta-author-name": [
+			{
+				"id": "default",
+				"label": "Author Name",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-author-name"
+			}
+		],
+		"post-meta-comments-count": [
+			{
+				"id": "default",
+				"label": "Comments Count",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-comments-count"
+			}
+		],
+		"post-meta-comments-link": [
+			{
+				"id": "default",
+				"label": "Comments Link",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-comments-link"
+			}
+		],
+		"post-meta-post-date": [
+			{
+				"id": "default",
+				"label": "Post Date",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-post-date"
+			}
+		],
+		"post-meta-modified-date": [
+			{
+				"id": "default",
+				"label": "Modified Date",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-modified-date"
+			}
+		],
+		"post-meta-categories": [
+			{
+				"id": "default",
+				"label": "Categories",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-categories"
+			}
+		],
+		"post-meta-tags": [
+			{
+				"id": "default",
+				"label": "Tags",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-tags"
+			}
+		],
+		"post-meta-time-to-read": [
+			{
+				"id": "default",
+				"label": "Time to Read",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-time-to-read"
+			}
+		],
+		"post-meta-word-count": [
+			{
+				"id": "default",
+				"label": "Word Count",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-word-count"
+			}
+		],
+		"post-meta-2-author-name": [
+			{
+				"id": "default",
+				"label": "Author Name",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-2-author-name"
+			}
+		],
+		"post-meta-2-comments-count": [
+			{
+				"id": "default",
+				"label": "Comments Count",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-2-comments-count"
+			}
+		],
+		"post-meta-2-comments-link": [
+			{
+				"id": "default",
+				"label": "Comments Link",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-2-comments-link"
+			}
+		],
+		"post-meta-2-post-date": [
+			{
+				"id": "default",
+				"label": "Post Date",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-2-post-date"
+			}
+		],
+		"post-meta-2-modified-date": [
+			{
+				"id": "default",
+				"label": "Modified Date",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-2-modified-date"
+			}
+		],
+		"post-meta-2-categories": [
+			{
+				"id": "default",
+				"label": "Categories",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-2-categories"
+			}
+		],
+		"post-meta-2-tags": [
+			{
+				"id": "default",
+				"label": "Tags",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-2-tags"
+			}
+		],
+		"post-meta-2-time-to-read": [
+			{
+				"id": "default",
+				"label": "Time to Read",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-2-time-to-read"
+			}
+		],
+		"post-meta-2-word-count": [
+			{
+				"id": "default",
+				"label": "Word Count",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-2-word-count"
+			}
+		],
+		"post-meta-space-filler": [
+			{
+				"id": "default",
+				"label": "Space Filler",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-space-filler"
+			}
+		],
+		"post-meta-space-filler-2": [
+			{
+				"id": "default",
+				"label": "Space Filler",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-space-filler-2"
+			}
+		],
+		"post-meta-2-space-filler": [
+			{
+				"id": "default",
+				"label": "Space Filler",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-2-space-filler"
+			}
+		],
+		"post-meta-2-space-filler-2": [
+			{
+				"id": "default",
+				"label": "Space Filler",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-2-space-filler-2"
+			}
+		],
+		"layout": [
+			{
+				"id": "no-sidebar",
+				"label": "No Sidebar",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-layout-no-sidebar",
+				"areas": ["content"]
+			},
+			{
+				"id": "sidebar-left",
+				"label": "Left Sidebar",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-layout-sidebar-left",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/sidebar-left.svg",
+				"areas": ["content", "sidebar-area"]
+			},
+			{
+				"id": "sidebar-right",
+				"label": "Right Sidebar",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-layout-sidebar-right",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/sidebar-right.svg",
+				"areas": ["content", "sidebar-area"]
+			}
+		],
+		"footer": [
+			{
+				"id": "footer",
+				"label": "Default",
+				"kind": "templatePart",
+				"slug": "footer",
+				"area": "footer",
+				"tagName": "footer",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/footer-default.svg",
+				"placement": {
+					"relativeTo": "main",
+					"position": "after"
+				},
+				"chromeLayout": "stacked"
+			},
+			{
+				"id": "footer-columns",
+				"label": "Columns",
+				"kind": "templatePart",
+				"slug": "footer-columns",
+				"area": "footer",
+				"tagName": "footer",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/footer-columns.svg",
+				"placement": {
+					"relativeTo": "main",
+					"position": "after"
+				},
+				"chromeLayout": "stacked"
+			},
+			{
+				"id": "footer-newsletter",
+				"label": "Newsletter",
+				"kind": "templatePart",
+				"slug": "footer-newsletter",
+				"area": "footer",
+				"tagName": "footer",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/footer-newsletter.svg",
+				"placement": {
+					"relativeTo": "main",
+					"position": "after"
+				},
+				"chromeLayout": "stacked"
+			}
+		]
+	},
+	"single": {
+		"header": [
+			{
+				"id": "header",
+				"label": "Default",
+				"kind": "templatePart",
+				"slug": "header",
+				"area": "header",
+				"tagName": "header",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/header-default.svg",
+				"placement": {
+					"relativeTo": "main",
+					"position": "before"
+				},
+				"chromeLayout": "stacked"
+			},
+			{
+				"id": "header-large-title",
+				"label": "Large Title",
+				"kind": "templatePart",
+				"slug": "header-large-title",
+				"area": "header",
+				"tagName": "header",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/header-large-title.svg",
+				"placement": {
+					"relativeTo": "main",
+					"position": "before"
+				},
+				"chromeLayout": "stacked"
+			},
+			{
+				"id": "vertical-header",
+				"label": "Vertical",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-header-vertical",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/header-vertical.svg",
+				"chromeLayout": "vertical-rail"
+			}
+		],
+		"page-header": [
+			{
+				"id": "simple",
+				"label": "Simple",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-single-page-header-simple",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/page-header-default.svg",
+				"placement": {
+					"relativeTo": "content",
+					"position": "inside-start"
+				}
+			},
+			{
+				"id": "banner",
+				"label": "Banner",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-single-page-header-banner",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/page-header-banner.svg",
+				"placement": {
+					"relativeTo": "main",
+					"position": "inside-start"
+				}
+			}
+		],
+		"page-header-title": [
+			{
+				"id": "default",
+				"label": "Title",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-single-page-header-title"
+			}
+		],
+		"page-header-description": [
+			{
+				"id": "default",
+				"label": "Description",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-single-page-header-description"
+			}
+		],
+		"page-header-breadcrumbs": [
+			{
+				"id": "default",
+				"label": "Breadcrumbs",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-page-header-breadcrumbs"
+			}
+		],
+		"page-page-header": [
+			{
+				"id": "simple",
+				"label": "Simple",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-page-header-simple",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/page-header-default.svg",
+				"placement": {
+					"relativeTo": "content",
+					"position": "inside-start"
+				}
+			},
+			{
+				"id": "banner",
+				"label": "Banner",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-page-header-banner",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/page-header-banner.svg",
+				"placement": {
+					"relativeTo": "main",
+					"position": "inside-start"
+				}
+			},
+			{
+				"id": "no-title",
+				"label": "No Title",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-page-header-no-title",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/page-header-default.svg",
+				"placement": {
+					"relativeTo": "content",
+					"position": "inside-start"
+				}
+			}
+		],
+		"page-article": [
+			{
+				"id": "default",
+				"label": "Default",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-page-article-default",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/list.svg"
+			},
+			{
+				"id": "wide",
+				"label": "Wide",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-page-article-wide",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/full-width.svg"
+			}
+		],
+		"article": [
+			{
+				"id": "default",
+				"label": "Default",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-single-article-default",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/list.svg"
+			},
+			{
+				"id": "content",
+				"label": "Content",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-single-article-content",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/full-width.svg"
+			}
+		],
+		"post-featured-image": [
+			{
+				"id": "default",
+				"label": "Featured Image",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-featured-image"
+			}
+		],
+		"post-title": [
+			{
+				"id": "default",
+				"label": "Title",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-title"
+			}
+		],
+		"post-excerpt": [
+			{
+				"id": "default",
+				"label": "Excerpt",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-excerpt"
+			}
+		],
+		"post-content": [
+			{
+				"id": "default",
+				"label": "Content",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-content"
+			}
+		],
+		"post-read-more": [
+			{
+				"id": "default",
+				"label": "Read More",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-listing-read-more"
+			}
+		],
+		"post-comments": [
+			{
+				"id": "default",
+				"label": "Comments",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-single-comments"
+			}
+		],
+		"comments-title": [
+			{
+				"id": "default",
+				"label": "Title",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-single-comments-title"
+			}
+		],
+		"comment-template": [
+			{
+				"id": "default",
+				"label": "Comment List",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-single-comment-template"
+			}
+		],
+		"comments-pagination": [
+			{
+				"id": "default",
+				"label": "Pagination",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-single-comments-pagination"
+			}
+		],
+		"comments-form": [
+			{
+				"id": "default",
+				"label": "Comment Form",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-single-comments-form"
+			}
+		],
+		"post-navigation": [
+			{
+				"id": "default",
+				"label": "Next/Prev Post",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-single-post-navigation"
+			}
+		],
+		"post-navigation-previous": [
+			{
+				"id": "default",
+				"label": "Previous Post",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-single-post-navigation-previous"
+			}
+		],
+		"post-navigation-next": [
+			{
+				"id": "default",
+				"label": "Next Post",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-single-post-navigation-next"
+			}
+		],
+		"post-meta": [
+			{
+				"id": "default",
+				"label": "Post Meta",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta"
+			}
+		],
+		"post-meta-2": [
+			{
+				"id": "default",
+				"label": "Post Meta",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-2"
+			}
+		],
+		"post-meta-author-name": [
+			{
+				"id": "default",
+				"label": "Author Name",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-author-name"
+			}
+		],
+		"post-meta-comments-count": [
+			{
+				"id": "default",
+				"label": "Comments Count",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-comments-count"
+			}
+		],
+		"post-meta-comments-link": [
+			{
+				"id": "default",
+				"label": "Comments Link",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-comments-link"
+			}
+		],
+		"post-meta-post-date": [
+			{
+				"id": "default",
+				"label": "Post Date",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-post-date"
+			}
+		],
+		"post-meta-modified-date": [
+			{
+				"id": "default",
+				"label": "Modified Date",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-modified-date"
+			}
+		],
+		"post-meta-categories": [
+			{
+				"id": "default",
+				"label": "Categories",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-categories"
+			}
+		],
+		"post-meta-tags": [
+			{
+				"id": "default",
+				"label": "Tags",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-tags"
+			}
+		],
+		"post-meta-time-to-read": [
+			{
+				"id": "default",
+				"label": "Time to Read",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-time-to-read"
+			}
+		],
+		"post-meta-word-count": [
+			{
+				"id": "default",
+				"label": "Word Count",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-word-count"
+			}
+		],
+		"post-meta-2-author-name": [
+			{
+				"id": "default",
+				"label": "Author Name",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-2-author-name"
+			}
+		],
+		"post-meta-2-comments-count": [
+			{
+				"id": "default",
+				"label": "Comments Count",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-2-comments-count"
+			}
+		],
+		"post-meta-2-comments-link": [
+			{
+				"id": "default",
+				"label": "Comments Link",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-2-comments-link"
+			}
+		],
+		"post-meta-2-post-date": [
+			{
+				"id": "default",
+				"label": "Post Date",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-2-post-date"
+			}
+		],
+		"post-meta-2-modified-date": [
+			{
+				"id": "default",
+				"label": "Modified Date",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-2-modified-date"
+			}
+		],
+		"post-meta-2-categories": [
+			{
+				"id": "default",
+				"label": "Categories",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-2-categories"
+			}
+		],
+		"post-meta-2-tags": [
+			{
+				"id": "default",
+				"label": "Tags",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-2-tags"
+			}
+		],
+		"post-meta-2-time-to-read": [
+			{
+				"id": "default",
+				"label": "Time to Read",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-2-time-to-read"
+			}
+		],
+		"post-meta-2-word-count": [
+			{
+				"id": "default",
+				"label": "Word Count",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-2-word-count"
+			}
+		],
+		"post-meta-space-filler": [
+			{
+				"id": "default",
+				"label": "Space Filler",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-space-filler"
+			}
+		],
+		"post-meta-space-filler-2": [
+			{
+				"id": "default",
+				"label": "Space Filler",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-space-filler-2"
+			}
+		],
+		"post-meta-2-space-filler": [
+			{
+				"id": "default",
+				"label": "Space Filler",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-2-space-filler"
+			}
+		],
+		"post-meta-2-space-filler-2": [
+			{
+				"id": "default",
+				"label": "Space Filler",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-post-meta-2-space-filler-2"
+			}
+		],
+		"layout": [
+			{
+				"id": "no-sidebar",
+				"label": "No Sidebar",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-layout-no-sidebar",
+				"areas": ["content"]
+			},
+			{
+				"id": "sidebar-left",
+				"label": "Left Sidebar",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-layout-sidebar-left",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/sidebar-left.svg",
+				"areas": ["content", "sidebar-area"]
+			},
+			{
+				"id": "sidebar-right",
+				"label": "Right Sidebar",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-layout-sidebar-right",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/sidebar-right.svg",
+				"areas": ["content", "sidebar-area"]
+			}
+		],
+		"footer": [
+			{
+				"id": "footer",
+				"label": "Default",
+				"kind": "templatePart",
+				"slug": "footer",
+				"area": "footer",
+				"tagName": "footer",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/footer-default.svg",
+				"placement": {
+					"relativeTo": "main",
+					"position": "after"
+				},
+				"chromeLayout": "stacked"
+			},
+			{
+				"id": "footer-columns",
+				"label": "Columns",
+				"kind": "templatePart",
+				"slug": "footer-columns",
+				"area": "footer",
+				"tagName": "footer",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/footer-columns.svg",
+				"placement": {
+					"relativeTo": "main",
+					"position": "after"
+				},
+				"chromeLayout": "stacked"
+			},
+			{
+				"id": "footer-newsletter",
+				"label": "Newsletter",
+				"kind": "templatePart",
+				"slug": "footer-newsletter",
+				"area": "footer",
+				"tagName": "footer",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/footer-newsletter.svg",
+				"placement": {
+					"relativeTo": "main",
+					"position": "after"
+				},
+				"chromeLayout": "stacked"
+			}
+		]
+	},
+	"404": {
+		"header": [
+			{
+				"id": "header",
+				"label": "Default",
+				"kind": "templatePart",
+				"slug": "header",
+				"area": "header",
+				"tagName": "header",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/header-default.svg",
+				"placement": {
+					"relativeTo": "main",
+					"position": "before"
+				},
+				"chromeLayout": "stacked"
+			},
+			{
+				"id": "header-large-title",
+				"label": "Large Title",
+				"kind": "templatePart",
+				"slug": "header-large-title",
+				"area": "header",
+				"tagName": "header",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/header-large-title.svg",
+				"placement": {
+					"relativeTo": "main",
+					"position": "before"
+				},
+				"chromeLayout": "stacked"
+			},
+			{
+				"id": "vertical-header",
+				"label": "Vertical",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-header-vertical",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/header-vertical.svg",
+				"chromeLayout": "vertical-rail"
+			}
+		],
+		"404-template": [
+			{
+				"id": "default",
+				"label": "Default",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-404-template-default",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/list.svg"
+			},
+			{
+				"id": "stacked",
+				"label": "Stacked",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-404-template-stacked",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/full-width.svg"
+			}
+		],
+		"not-found-image": [
+			{
+				"id": "default",
+				"label": "Image",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-404-image"
+			}
+		],
+		"not-found-title": [
+			{
+				"id": "default",
+				"label": "Title",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-404-title"
+			}
+		],
+		"not-found-description": [
+			{
+				"id": "default",
+				"label": "Description",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-404-description"
+			}
+		],
+		"not-found-search": [
+			{
+				"id": "default",
+				"label": "Search Form",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-404-search"
+			}
+		],
+		"layout": [
+			{
+				"id": "no-sidebar",
+				"label": "No Sidebar",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-layout-no-sidebar",
+				"areas": ["content"]
+			},
+			{
+				"id": "sidebar-left",
+				"label": "Left Sidebar",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-layout-sidebar-left",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/sidebar-left.svg",
+				"areas": ["content", "sidebar-area"]
+			},
+			{
+				"id": "sidebar-right",
+				"label": "Right Sidebar",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-archive-layout-sidebar-right",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/sidebar-right.svg",
+				"areas": ["content", "sidebar-area"]
+			}
+		],
+		"footer": [
+			{
+				"id": "footer",
+				"label": "Default",
+				"kind": "templatePart",
+				"slug": "footer",
+				"area": "footer",
+				"tagName": "footer",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/footer-default.svg",
+				"placement": {
+					"relativeTo": "main",
+					"position": "after"
+				},
+				"chromeLayout": "stacked"
+			},
+			{
+				"id": "footer-columns",
+				"label": "Columns",
+				"kind": "templatePart",
+				"slug": "footer-columns",
+				"area": "footer",
+				"tagName": "footer",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/footer-columns.svg",
+				"placement": {
+					"relativeTo": "main",
+					"position": "after"
+				},
+				"chromeLayout": "stacked"
+			},
+			{
+				"id": "footer-newsletter",
+				"label": "Newsletter",
+				"kind": "templatePart",
+				"slug": "footer-newsletter",
+				"area": "footer",
+				"tagName": "footer",
+				"thumbnail": "{{theme_file_uri}}/assets/templates-builder/archive/footer-newsletter.svg",
+				"placement": {
+					"relativeTo": "main",
+					"position": "after"
+				},
+				"chromeLayout": "stacked"
+			}
+		]
+	},
+	"global-sidebar": {
+		"sidebar-search": [
+			{
+				"id": "default",
+				"label": "Search",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-sidebar-search"
+			}
+		],
+		"sidebar-categories": [
+			{
+				"id": "default",
+				"label": "Categories",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-sidebar-categories"
+			}
+		],
+		"sidebar-latest-posts": [
+			{
+				"id": "default",
+				"label": "Latest Posts",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-sidebar-latest-posts"
+			}
+		],
+		"sidebar-archives": [
+			{
+				"id": "default",
+				"label": "Archives",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-sidebar-archives"
+			}
+		],
+		"sidebar-tag-cloud": [
+			{
+				"id": "default",
+				"label": "Tag Cloud",
+				"kind": "pattern",
+				"patternSlug": "blockera-one/builder-sidebar-tag-cloud"
+			}
+		]
+	}
+}

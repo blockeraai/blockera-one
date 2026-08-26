@@ -35,14 +35,14 @@ describe('Blockera One → Templates Homepage purpose-nav', () => {
 	}
 
 	function hideHomeTemplate() {
-		setThemeTemplateHidden('home', true).then((result) => {
+		return setThemeTemplateHidden('home', true).then((result) => {
 			expect(result?.ok, result?.message || 'hide home').to.eq(true);
 			homeTemplateHidden = true;
 		});
 	}
 
 	function showFrontPageTemplate() {
-		installFrontPageThemeTemplate().then(() => {
+		return installFrontPageThemeTemplate().then(() => {
 			frontPageInstalled = true;
 		});
 	}
@@ -92,7 +92,7 @@ describe('Blockera One → Templates Homepage purpose-nav', () => {
 	});
 
 	describe('Latest posts (show_on_front = posts)', () => {
-		it('default home + index: Index Fallback child; Homepage opens home', () => {
+		it('default home + index: Homepage opens archive builder for home', () => {
 			ensureNoFrontPageTemplate();
 			openFreshSiteEditor();
 			resetReadingToPosts();
@@ -102,26 +102,15 @@ describe('Blockera One → Templates Homepage purpose-nav', () => {
 			assertTemplatesHomepageSection({
 				homepageStatus: null,
 				blogHomeVisible: false,
-				children: [
-					{
-						testId: SITE_EDITOR_TEST_IDS.templatesNavHomepageIndex,
-						statusTestId:
-							SITE_EDITOR_TEST_IDS.templatesNavHomepageIndexStatus,
-						statusLabel: FALLBACK_STATUS,
-					},
-				],
+				homepageOpensBuilder: true,
+				expectedHomepageFilter: 'home',
+				children: [],
 				absentChildTestIds: [
 					SITE_EDITOR_TEST_IDS.templatesNavHomepageFrontPage,
 					SITE_EDITOR_TEST_IDS.templatesNavHomepageHome,
+					SITE_EDITOR_TEST_IDS.templatesNavHomepageIndex,
 				],
 			});
-
-			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavHomepage).click();
-			cy.location('search').should((search) => {
-				const decoded = decodeURIComponent(search);
-				expect(decoded).to.include('boFilter=home');
-			});
-			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should('exist');
 		});
 
 		it('front-page + home + index: Blog Home and Index Fallback children', () => {
@@ -157,61 +146,58 @@ describe('Blockera One → Templates Homepage purpose-nav', () => {
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
 				expect(decoded).to.include('front-page');
-				expect(decoded).to.include('boFilter=front-page');
+				expect(decoded).to.include('blockera-builder=front-page');
 			});
 		});
 
 		it('front-page + index (home hidden): Index Fallback only', () => {
-			hideHomeTemplate();
-			showFrontPageTemplate();
-			openFreshSiteEditor();
-			resetReadingToPosts();
-			openFreshSiteEditor();
-
-			openTemplatesPurposeNav();
-			assertTemplatesHomepageSection({
-				homepageStatus: null,
-				blogHomeVisible: false,
-				children: [
-					{
-						testId: SITE_EDITOR_TEST_IDS.templatesNavHomepageIndex,
-						statusTestId:
-							SITE_EDITOR_TEST_IDS.templatesNavHomepageIndexStatus,
-						statusLabel: FALLBACK_STATUS,
-					},
-				],
-				absentChildTestIds: [
-					SITE_EDITOR_TEST_IDS.templatesNavHomepageFrontPage,
-					SITE_EDITOR_TEST_IDS.templatesNavHomepageHome,
-				],
-			});
+			hideHomeTemplate()
+				.then(() => showFrontPageTemplate())
+				.then(() => {
+					openFreshSiteEditor();
+					resetReadingToPosts();
+					openFreshSiteEditor();
+					openTemplatesPurposeNav();
+					assertTemplatesHomepageSection({
+						homepageStatus: null,
+						blogHomeVisible: false,
+						children: [
+							{
+								testId: SITE_EDITOR_TEST_IDS.templatesNavHomepageIndex,
+								statusTestId:
+									SITE_EDITOR_TEST_IDS.templatesNavHomepageIndexStatus,
+								statusLabel: FALLBACK_STATUS,
+							},
+						],
+						absentChildTestIds: [
+							SITE_EDITOR_TEST_IDS.templatesNavHomepageFrontPage,
+							SITE_EDITOR_TEST_IDS.templatesNavHomepageHome,
+						],
+					});
+				});
 		});
 
-		it('index only (home hidden): no inline children; Homepage opens index', () => {
-			hideHomeTemplate();
-			ensureNoFrontPageTemplate();
-			openFreshSiteEditor();
-			resetReadingToPosts();
-			openFreshSiteEditor();
-
-			openTemplatesPurposeNav();
-			assertTemplatesHomepageSection({
-				homepageStatus: null,
-				blogHomeVisible: false,
-				children: [],
-				absentChildTestIds: [
-					SITE_EDITOR_TEST_IDS.templatesNavHomepageFrontPage,
-					SITE_EDITOR_TEST_IDS.templatesNavHomepageHome,
-					SITE_EDITOR_TEST_IDS.templatesNavHomepageIndex,
-				],
-			});
-
-			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavHomepage).click();
-			cy.location('search').should((search) => {
-				const decoded = decodeURIComponent(search);
-				expect(decoded).to.include('index');
-				expect(decoded).to.include('boFilter=index');
-			});
+		it('index only (home hidden): Homepage opens archive builder for index', () => {
+			hideHomeTemplate()
+				.then(() => ensureNoFrontPageTemplate())
+				.then(() => {
+					openFreshSiteEditor();
+					resetReadingToPosts();
+					openFreshSiteEditor();
+					openTemplatesPurposeNav();
+					assertTemplatesHomepageSection({
+						homepageStatus: null,
+						blogHomeVisible: false,
+						homepageOpensBuilder: true,
+						expectedHomepageFilter: 'index',
+						children: [],
+						absentChildTestIds: [
+							SITE_EDITOR_TEST_IDS.templatesNavHomepageFrontPage,
+							SITE_EDITOR_TEST_IDS.templatesNavHomepageHome,
+							SITE_EDITOR_TEST_IDS.templatesNavHomepageIndex,
+						],
+					});
+				});
 		});
 	});
 
@@ -262,7 +248,9 @@ describe('Blockera One → Templates Homepage purpose-nav', () => {
 					cy.location('search').should((search) => {
 						const decoded = decodeURIComponent(search);
 						expect(decoded).to.include(`/page/${homeId}`);
-						expect(decoded).to.include('boFilter=homepage-root');
+						expect(decoded).to.include(
+							'blockera-builder=homepage-root'
+						);
 					});
 					cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should(
 						'exist'
@@ -274,7 +262,9 @@ describe('Blockera One → Templates Homepage purpose-nav', () => {
 					cy.location('search').should((search) => {
 						const decoded = decodeURIComponent(search);
 						expect(decoded).to.include(`/page/${postsId}`);
-						expect(decoded).to.include('boFilter=blog-posts');
+						expect(decoded).to.include(
+							'blockera-builder=blog-posts'
+						);
 					});
 					cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should(
 						'exist'
@@ -328,7 +318,9 @@ describe('Blockera One → Templates Homepage purpose-nav', () => {
 					cy.location('search').should((search) => {
 						const decoded = decodeURIComponent(search);
 						expect(decoded).to.include('front-page');
-						expect(decoded).to.include('boFilter=front-page');
+						expect(decoded).to.include(
+							'blockera-builder=front-page'
+						);
 						expect(decoded).to.not.match(/\/page\/\d+/);
 					});
 

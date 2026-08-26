@@ -1,0 +1,67 @@
+/**
+ * Text / background color — Blockera ColorControl with color variables.
+ * Empty string is the inspector “None” / reset value.
+ */
+
+import { useMemo } from '@wordpress/element';
+
+import { classNames } from '@blockera/classnames';
+import { ControlContextProvider, ColorControl } from '@blockera/controls';
+
+import { CONTROL_COLUMNS, fieldColumns } from '../constants';
+
+type ColorControlRowProps = {
+	controlId: string;
+	label?: string;
+	value: unknown;
+	disabled?: boolean;
+	controlAddonTypes?: string[];
+	variableTypes?: string[];
+	attribute?: string;
+	blockName?: string;
+	columns?: string;
+	onChange: (next: unknown) => void;
+};
+
+export default function ColorControlRow({
+	controlId,
+	label,
+	value,
+	disabled,
+	controlAddonTypes,
+	variableTypes,
+	attribute,
+	blockName,
+	columns = CONTROL_COLUMNS,
+	onChange,
+}: ColorControlRowProps) {
+	// ControlContextProvider's useSelect deps on this object identity.
+	const contextValue = useMemo(
+		() => ({
+			name: `templates-builder-${controlId}`,
+			value: value ?? '',
+			attribute,
+			blockName,
+		}),
+		[controlId, value, attribute, blockName]
+	);
+
+	return (
+		<ControlContextProvider value={contextValue}>
+			<ColorControl
+				label={label ?? ''}
+				columns={fieldColumns(label, columns)}
+				fieldProps={{
+					className: classNames('blockera-templates-builder-color', {
+						'is-disabled': disabled,
+					}),
+					'data-test': 'blockera-templates-builder-color',
+				}}
+				controlAddonTypes={controlAddonTypes}
+				variableTypes={variableTypes}
+				defaultValue=""
+				onChange={onChange}
+			/>
+		</ControlContextProvider>
+	);
+}

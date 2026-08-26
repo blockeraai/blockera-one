@@ -11,7 +11,7 @@ import {
 	assertSiteEditorMainNav,
 	openTemplatesPurposeNav,
 	assertTemplatesSingleSection,
-	assertStatusTooltip,
+	assertTemplatesBuilderShell,
 	ensureSingularHidden,
 	ensureSingularVisible,
 	installAttachmentThemeTemplate,
@@ -136,7 +136,7 @@ describe('Blockera One → Templates Single Templates purpose-nav', () => {
 	});
 
 	describe('Singular', () => {
-		it('shows Fallback status, tooltip, and opens singular canvas', () => {
+		it('shows Fallback status and opens singular canvas', () => {
 			ensureSingularVisible();
 			singularWasShown = true;
 			openFreshSiteEditor();
@@ -157,13 +157,13 @@ describe('Blockera One → Templates Single Templates purpose-nav', () => {
 
 			// Singular is the first row in the Single Templates section items list.
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav)
-				.find('.blockera-site-editor-templates-nav__section')
+				.find('.blockera-site-editor-nav__section')
 				.contains(
-					'.blockera-site-editor-templates-nav__section-title',
+					'.blockera-site-editor-nav__section-title',
 					'Single Templates'
 				)
-				.parents('.blockera-site-editor-templates-nav__section')
-				.find('.blockera-site-editor-templates-nav__items [data-test]')
+				.parents('.blockera-site-editor-nav__section')
+				.find('.blockera-site-editor-nav__items [data-test]')
 				.first()
 				.should(
 					'have.attr',
@@ -171,19 +171,11 @@ describe('Blockera One → Templates Single Templates purpose-nav', () => {
 					SITE_EDITOR_TEST_IDS.templatesNavSingular
 				);
 
-			assertStatusTooltip(
-				SITE_EDITOR_TEST_IDS.templatesNavSingularStatus,
-				{
-					heading: 'singular.html template',
-					bodyIncludes: 'custom post types',
-				}
-			);
-
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavSingular).click();
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
 				expect(decoded).to.include('singular');
-				expect(decoded).to.include('boFilter=singular');
+				expect(decoded).to.include('blockera-builder=singular');
 			});
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should('exist');
 		});
@@ -220,7 +212,7 @@ describe('Blockera One → Templates Single Templates purpose-nav', () => {
 			).click();
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
-				expect(decoded).to.include('boFilter=single');
+				expect(decoded).to.include('blockera-builder=single');
 			});
 
 			installSingleTemplatesFixture('single-post-e2e');
@@ -249,7 +241,7 @@ describe('Blockera One → Templates Single Templates purpose-nav', () => {
 			).click();
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
-				expect(decoded).to.include('boFilter=children:single');
+				expect(decoded).to.include('blockera-builder=children:single');
 			});
 		});
 	});
@@ -264,11 +256,11 @@ describe('Blockera One → Templates Single Templates purpose-nav', () => {
 			).click();
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
-				expect(decoded).to.include('boFilter=page');
+				expect(decoded).to.include('blockera-builder=page');
 			});
-			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNav).should('exist');
+			assertTemplatesBuilderShell();
 
-			// Remount purpose-nav after canvas preview (main Design nav is gone).
+			// Remount purpose-nav after builder preview (main Design nav is gone).
 			openFreshSiteEditor();
 			openTemplatesPurposeNav();
 
@@ -277,7 +269,7 @@ describe('Blockera One → Templates Single Templates purpose-nav', () => {
 				.click();
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
-				expect(decoded).to.include('boFilter=children:page');
+				expect(decoded).to.include('blockera-builder=children:page');
 			});
 		});
 	});
@@ -300,7 +292,7 @@ describe('Blockera One → Templates Single Templates purpose-nav', () => {
 			).click();
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
-				expect(decoded).to.include('boFilter=attachment');
+				expect(decoded).to.include('blockera-builder=attachment');
 			});
 
 			ensureNoAttachmentTemplate();
@@ -355,7 +347,9 @@ describe('Blockera One → Templates Single Templates purpose-nav', () => {
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavCptBook).click();
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
-				expect(decoded).to.include('boFilter=cpt-single:bo_book');
+				expect(decoded).to.include(
+					'blockera-builder=cpt-single:bo_book'
+				);
 			});
 
 			installSingleTemplatesFixture('single-bo_book-e2e');
@@ -381,7 +375,7 @@ describe('Blockera One → Templates Single Templates purpose-nav', () => {
 			cy.location('search').should((search) => {
 				const decoded = decodeURIComponent(search);
 				expect(decoded).to.include(
-					'boFilter=children:cpt-single:bo_book'
+					'blockera-builder=children:cpt-single:bo_book'
 				);
 			});
 

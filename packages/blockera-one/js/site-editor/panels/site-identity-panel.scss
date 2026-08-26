@@ -1,0 +1,19 @@
+/**
+ * Site Identity panel (sidebar drill-down card).
+ * Card chrome: `.blockera-se-admin-ui-card` → `.admin-ui-page*` (see admin-ui-card.scss).
+ * Form: core DataForm + MediaEdit inside that card.
+ */
+
+.blockera-site-editor-identity-panel {
+	.admin-ui-page__content {
+		gap: 0;
+	}
+
+	.dataforms-layouts-regular__field {
+		margin: 0;
+	}
+
+	fieldset.fields__media-edit {
+		width: 100%;
+	}
+}

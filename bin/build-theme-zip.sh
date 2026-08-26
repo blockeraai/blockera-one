@@ -47,7 +47,11 @@ if [ -z "$NO_CHECKS" ]; then
 	# Do a dry run of the repository reset. Prompting the user for a list of all
 	# files that will be removed should prevent them from losing important files!
 	status "Resetting the repository to pristine condition. ✨"
-	to_clean=$(git clean -xdf --dry-run)
+	git_clean_excludes=(
+		--exclude=packages/global-packages
+		--exclude=packages/global-packages/**
+	)
+	to_clean=$(git clean -xdf --dry-run "${git_clean_excludes[@]}")
 	if [ ! -z "$to_clean" ]; then
 		echo $to_clean
 		warning "🚨 About to delete everything above! Is this okay? 🚨"
@@ -57,7 +61,7 @@ if [ -z "$NO_CHECKS" ]; then
 			# Remove ignored files to reset repository to pristine condition. Previous
 			# test ensures that changed files abort the theme build.
 			status "Cleaning working directory... 🛀"
-			git clean -xdf
+			git clean -xdf "${git_clean_excludes[@]}"
 		else
 			error "Fair enough; aborting. Tidy up your repo and try again. 🙂"
 			exit 1
@@ -82,12 +86,18 @@ status "Generating build... 🗂"
 npm run build
 
 
-# Temporarily modify `blockera.php` with production constants defined.
-# Use a temp file because `bin/generate-blockera-php.php` reads from `blockera.php`
+# Temporarily rewrite entry files for production:
+# - blockera.php: version/mode defines + inc/app.php
+# - functions.php: shared autoloader from inc/bootstrap.php
+# Use temp files because `bin/generate-blockera-php.php` reads the source file
 # so we need to avoid writing to that file at the same time.
 status "Generating blockera.php 📝"
-php bin/generate-blockera-php.php > blockera.tmp.php
+php bin/generate-blockera-php.php blockera.php > blockera.tmp.php
 mv blockera.tmp.php blockera.php
+
+status "Generating functions.php 📝"
+php bin/generate-blockera-php.php functions.php > functions.tmp.php
+mv functions.tmp.php functions.php
 
 
 # Temporarily modify `readme.txt`.
@@ -113,20 +123,52 @@ strip_dev_only_local_experimental_config () {
   ' "$input_file" "$output_file"
 }
 
+# Shared packages live in packages/global-packages/packages and are consumed via
+# Composer path repos (vendor/blockera/*). Prefer vendor, then submodule checkout.
+resolve_shared_package_file () {
+	local relative_path="$1"
+	local candidates=(
+		"vendor/blockera/${relative_path}"
+		"packages/global-packages/packages/${relative_path}"
+	)
+	local candidate
+	for candidate in "${candidates[@]}"; do
+		if [ -f "${candidate}" ]; then
+			printf '%s\n' "${candidate}"
+			return 0
+		fi
+	done
+	return 1
+}
+
+# Temporary copy some PHP files into "inc" directory.
 status "Stripping dev-only local experimental config 🧽"
 strip_dev_only_local_experimental_config "config/panel.php" "config/panel.tmp.php"
 mv "config/panel.tmp.php" "config/panel.php"
 
-strip_dev_only_local_experimental_config "packages/env/php/functions.php" "packages/env/php/functions.tmp.php"
-mv "packages/env/php/functions.tmp.php" "packages/env/php/functions.php"
+ENV_FUNCTIONS_FILE="$(resolve_shared_package_file "env/php/functions.php" || true)"
+if [ -z "${ENV_FUNCTIONS_FILE}" ]; then
+	error "ERROR: Could not find env/php/functions.php under vendor/blockera or packages/global-packages/packages."
+fi
+strip_dev_only_local_experimental_config "${ENV_FUNCTIONS_FILE}" "${ENV_FUNCTIONS_FILE}.tmp"
+mv "${ENV_FUNCTIONS_FILE}.tmp" "${ENV_FUNCTIONS_FILE}"
 
 
-# Temporary copy some PHP files into "inc" directory.
+
 status "Generating inc/app.php 📝"
 mkdir -p "inc"
-cp packages/blockera/php/app.php inc/app.php
-cp packages/autoloader-coordinator/class-shared-autoload-coordinator.php inc/class-shared-autoload-coordinator.php
-cp packages/autoloader-coordinator/bootstrap.php inc/bootstrap.php
+APP_PHP_FILE="$(resolve_shared_package_file "blockera/php/app.php" || true)"
+if [ -z "${APP_PHP_FILE}" ]; then
+	error "ERROR: Could not find blockera/php/app.php under vendor/blockera or packages/global-packages/packages."
+fi
+cp "${APP_PHP_FILE}" inc/app.php
+COORDINATOR_BOOTSTRAP="$(resolve_shared_package_file "autoloader-coordinator/bootstrap.php" || true)"
+COORDINATOR_CLASS="$(resolve_shared_package_file "autoloader-coordinator/class-shared-autoload-coordinator.php" || true)"
+if [ -z "${COORDINATOR_BOOTSTRAP}" ] || [ -z "${COORDINATOR_CLASS}" ]; then
+	error "ERROR: Could not find autoloader-coordinator under vendor/blockera or packages/global-packages/packages."
+fi
+cp "${COORDINATOR_CLASS}" inc/class-shared-autoload-coordinator.php
+cp "${COORDINATOR_BOOTSTRAP}" inc/bootstrap.php
 
 build_files=$(
 	ls dist/*/*.{min.js,min.css,asset.php} \
@@ -166,16 +208,34 @@ zip -r -q blockera-one.zip \
   ### END AUTO-GENERATED VENDOR PACKAGES PATH PATTERN
   && echo "blockera-one.zip created successfully ✅" || echo "blockera-one.zip creation failed ❌"
 
+# Guard against incomplete shared-package packaging (causes WP Playground fatals on activate).
+if [ ! -f blockera-one.zip ]; then
+	error "ERROR: blockera-one.zip was not created."
+	exit 1
+fi
+if ! zipinfo -1 blockera-one.zip | grep -qx 'vendor/blockera/blockera/php/functions.php'; then
+	error "ERROR: blockera-one.zip is missing vendor/blockera/blockera/php/functions.php.
+Shared packages under packages/global-packages/packages were not packed. Check bin/generate-build-theme-zip-sh.php."
+	exit 1
+fi
+
 status "Cleaning up... 🧹"
 
-# Reset `blockera.php`.
-git checkout blockera.php
+# Reset production-rewritten entry files.
+git checkout blockera.php functions.php
 
 # Reset `readme.txt`.
 git checkout readme.txt
 
 # Reset stripped files.
 git checkout config/panel.php
-git checkout packages/env/php/functions.php
+# Shared env package lives in the submodule (or vendor symlink into it).
+if [ -n "${ENV_FUNCTIONS_FILE:-}" ]; then
+	if [[ "${ENV_FUNCTIONS_FILE}" == packages/global-packages/* ]]; then
+		git -C packages/global-packages checkout -- "${ENV_FUNCTIONS_FILE#packages/global-packages/}"
+	elif [[ "${ENV_FUNCTIONS_FILE}" == vendor/blockera/* ]] && [ -L vendor/blockera/env ]; then
+		git -C packages/global-packages checkout -- packages/env/php/functions.php
+	fi
+fi
 
 success "Done ✅ You've built Blockera One! 🎉 "

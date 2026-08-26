@@ -22,9 +22,13 @@ describe('Blockera One → Site Editor main panel chrome', () => {
 		openSiteEditorViewMode('/');
 	});
 
-	it('shows Blockera branding under core site hub', () => {
+	it('shows Blockera branding in the view-mode sidebar', () => {
 		assertSiteEditorChrome();
 		assertSiteEditorMainNav();
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.navTemplates).should(
+			'contain.text',
+			'Template Builder'
+		);
 	});
 
 	it('keeps branding when drilling into Pages (nav unmounts)', () => {
@@ -63,7 +67,7 @@ describe('Blockera One → Site Editor main panel chrome', () => {
 		cy.get('.edit-site-layout__area').should('not.exist');
 		/* Duplicate Page title is hidden; Style Book lives on drill-down row. */
 		cy.get(
-			'.blockera-site-editor-styles-panel .admin-ui-page__header'
+			'.blockera-site-editor-styles-panel .admin-ui-page__header, .blockera-site-editor-styles-panel .edit-site-styles > :first-child'
 		).should('not.be.visible');
 		cy.getByDataTest(SITE_EDITOR_TEST_IDS.stylesActions, {
 			timeout: 20000,
@@ -95,10 +99,5 @@ describe('Blockera One → Site Editor main panel chrome', () => {
 		cy.getByDataTest(SITE_EDITOR_TEST_IDS.navFeatureRequests)
 			.should('have.attr', 'href')
 			.and('include', 'utm_source=blockera-one-site-editor');
-	});
-
-	it('opens the branding More menu with Reset styles', () => {
-		cy.getByDataTest(SITE_EDITOR_TEST_IDS.headerMore).click();
-		cy.getByDataTest(SITE_EDITOR_TEST_IDS.resetStyles).should('be.visible');
 	});
 });

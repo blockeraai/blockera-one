@@ -5,9 +5,9 @@
  * Avoids `@wordpress/edit-site` / editor private-API unlock by relocating the
  * existing Page header-actions node React already rendered.
  *
- * Shipped WP `edit-site` wraps actions in `.admin-ui-page__header-actions`
- * (no `.edit-site-styles__header-actions` class on the HStack). Keep the
- * legacy selector as a forward-compatible fallback.
+ * Style Book actions: WP 7.1+ uses `.edit-site-styles__header-actions` on the
+ * HStack (`sidebar-global-styles`). Older WP wrapped them in BEM
+ * `.admin-ui-page__header-actions`. Query both.
  */
 
 import type { ReactNode } from 'react';
@@ -18,12 +18,12 @@ import { __ } from '@wordpress/i18n';
 /**
  * Internal dependencies
  */
-import DrillDownScreen from './drill-down-screen';
+import DrillDownScreen from './components/drill-down-screen';
 
-/** Prefer current WP Admin UI wrapper; fall back to older edit-site class. */
+/** WP 7.1+ HStack class, then older Admin UI BEM wrapper. */
 const ACTIONS_SELECTORS = [
-	'.admin-ui-page__header-actions',
 	'.edit-site-styles__header-actions',
+	'.admin-ui-page__header-actions',
 ] as const;
 
 type StylesDrillDownProps = {

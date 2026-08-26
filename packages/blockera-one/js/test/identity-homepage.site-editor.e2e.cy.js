@@ -36,13 +36,20 @@ describe('Blockera One → Site Editor Identity & Homepage panels', () => {
 		cy.getByDataTest(SITE_EDITOR_TEST_IDS.identityLogoChoose).should(
 			'be.visible'
 		);
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.identityIcon).should(
+			'be.visible'
+		);
 
-		cy.getByDataTest(SITE_EDITOR_TEST_IDS.identityTitle)
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.identityPanel)
+			.find('.dataforms-layouts-regular__field')
+			.eq(0)
 			.find('input')
 			.clear({ force: true })
 			.type(title, { delay: 0 });
 
-		cy.getByDataTest(SITE_EDITOR_TEST_IDS.identityTagline)
+		cy.getByDataTest(SITE_EDITOR_TEST_IDS.identityPanel)
+			.find('.dataforms-layouts-regular__field')
+			.eq(1)
 			.find('input')
 			.clear({ force: true })
 			.type(tagline, { delay: 0 });

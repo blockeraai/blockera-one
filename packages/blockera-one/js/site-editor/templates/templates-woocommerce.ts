@@ -8,7 +8,8 @@
 
 import { __ } from '@wordpress/i18n';
 
-import type { NavIcon } from './templates-nav-config';
+import type { NavItemIcon } from '../components/nav-item';
+import { getTemplateTitle } from './template-display';
 
 type WooTemplateLike = {
 	slug?: string;
@@ -19,7 +20,7 @@ type WooTemplateLike = {
 
 export type WooCommerceNavMeta = {
 	label: string;
-	icon: NavIcon;
+	icon: NavItemIcon;
 };
 
 /** Nested under Shop Page (browse / discovery templates). */
@@ -76,11 +77,11 @@ export function isWooCommerceShopChildSlug(slug: string): boolean {
 const WOOCOMMERCE_NAV_META: Record<string, WooCommerceNavMeta> = {
 	'archive-product': {
 		label: __('Shop Page', 'blockera'),
-		icon: 'woocommerce-store',
+		icon: { library: 'ui', icon: 'woocommerce-store' },
 	},
 	'single-product': {
 		label: __('Single Product', 'blockera'),
-		icon: 'woocommerce-product',
+		icon: { library: 'ui', icon: 'woocommerce-product' },
 	},
 	/*
 	 * Taxonomy templates: WC titles (`Products by %s`). Categories use the same
@@ -89,39 +90,39 @@ const WOOCOMMERCE_NAV_META: Record<string, WooCommerceNavMeta> = {
 	 */
 	'taxonomy-product_cat': {
 		label: __('Products by Category', 'blockera'),
-		icon: 'category',
+		icon: { library: 'ui', icon: 'categories' },
 	},
 	'taxonomy-product_tag': {
 		label: __('Products by Tag', 'blockera'),
-		icon: 'post-categories',
+		icon: { library: 'wp', icon: 'post-categories' },
 	},
 	'taxonomy-product_brand': {
 		label: __('Products by Brand', 'blockera'),
-		icon: 'post-categories',
+		icon: { library: 'wp', icon: 'post-categories' },
 	},
 	'taxonomy-product_attribute': {
 		label: __('Products by Attribute', 'blockera'),
-		icon: 'post-categories',
+		icon: { library: 'wp', icon: 'post-categories' },
 	},
 	'product-search-results': {
 		label: __('Product Search Page', 'blockera'),
-		icon: 'search',
+		icon: { library: 'wp', icon: 'search' },
 	},
 	'page-cart': {
 		label: __('Cart Page', 'blockera'),
-		icon: 'woocommerce-cart',
+		icon: { library: 'ui', icon: 'woocommerce-cart' },
 	},
 	'page-checkout': {
 		label: __('Checkout Page', 'blockera'),
-		icon: 'woocommerce-checkout',
+		icon: { library: 'ui', icon: 'woocommerce-checkout' },
 	},
 	'order-confirmation': {
 		label: __('Order Confirmation', 'blockera'),
-		icon: 'woocommerce-order',
+		icon: { library: 'ui', icon: 'woocommerce-order' },
 	},
 	'coming-soon': {
 		label: __('Coming Soon Page', 'blockera'),
-		icon: 'woocommerce-coming-soon',
+		icon: { library: 'ui', icon: 'woocommerce-coming-soon' },
 	},
 };
 
@@ -132,17 +133,6 @@ export function getWooCommerceNavMeta(
 	slug: string
 ): WooCommerceNavMeta | undefined {
 	return WOOCOMMERCE_NAV_META[slug];
-}
-
-function titleForSort(template: WooTemplateLike): string {
-	const { title, slug } = template;
-	if (typeof title === 'string' && title && title !== slug) {
-		return title;
-	}
-	if (title && typeof title === 'object' && title.rendered) {
-		return title.rendered;
-	}
-	return slug || '';
 }
 
 /**
@@ -186,7 +176,7 @@ function compareByRankThenTitle<T extends WooTemplateLike>(
 		return 1;
 	}
 
-	return titleForSort(a).localeCompare(titleForSort(b));
+	return getTemplateTitle(a).localeCompare(getTemplateTitle(b));
 }
 
 /** Sort top-level WC nav templates (excludes shop children). */

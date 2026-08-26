@@ -63,7 +63,7 @@ describe('Blockera One → Templates WooCommerce purpose-nav', () => {
 			).should('have.class', 'is-active');
 
 			cy.getByDataTest(SITE_EDITOR_TEST_IDS.templatesNavWooArchiveProduct)
-				.parents('.blockera-site-editor-templates-nav__item-shell')
+				.parents('.blockera-site-editor-nav__item-shell')
 				.parent()
 				.within(() => {
 					[
@@ -107,7 +107,7 @@ describe('Blockera One → Templates WooCommerce purpose-nav', () => {
 		];
 
 		shopChildren.forEach(({ name, testId }) => {
-			it(`opens ${name} with matching boFilter`, () => {
+			it(`opens ${name} with matching blockera-builder`, () => {
 				openFreshSiteEditor();
 				openTemplatesPurposeNav();
 				openTemplatesWooCommerceItem(testId);
@@ -140,7 +140,7 @@ describe('Blockera One → Templates WooCommerce purpose-nav', () => {
 		];
 
 		topLevel.forEach(({ name, testId }) => {
-			it(`opens ${name} with matching boFilter`, () => {
+			it(`opens ${name} with matching blockera-builder`, () => {
 				openFreshSiteEditor();
 				openTemplatesPurposeNav();
 				openTemplatesWooCommerceItem(testId);
@@ -174,7 +174,7 @@ describe('Blockera One → Templates WooCommerce purpose-nav', () => {
 	});
 
 	describe('Open Navigation restore', () => {
-		it('returns from Shop Page canvas edit with boFilter and Templates nav', () => {
+		it('returns from Shop Page canvas edit with blockera-builder and Templates nav', () => {
 			openFreshSiteEditor();
 			openTemplatesPurposeNav();
 
@@ -193,7 +193,9 @@ describe('Blockera One → Templates WooCommerce purpose-nav', () => {
 
 			cy.location('search', { timeout: 20000 }).should((search) => {
 				const decoded = decodeURIComponent(String(search));
-				expect(decoded).to.include('boFilter=child:archive-product');
+				expect(decoded).to.include(
+					'blockera-builder=child:archive-product'
+				);
 				expect(decoded).to.not.include('canvas=edit');
 			});
 

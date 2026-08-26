@@ -1,0 +1,170 @@
+/**
+ * Drill-down sidebar chrome (back + title) for Styles and Site settings panels.
+ * Visual parity with core Templates / Pages / Patterns sidebar screens.
+ *
+ * Enter animation: see `sidebar-enter.scss` (shared with MainNavigation).
+ *
+ * Header stays put; `.blockera-site-editor-drill-down__content` scrolls.
+ * 1. Optional breadcrumb row — same column as the title
+ * 2. Title row — back + h1 + actions
+ */
+
+.blockera-site-editor-drill-down {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow: hidden;
+
+	&__header {
+		flex: 0 0 auto;
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr) auto;
+		column-gap: 12px;
+		row-gap: 0;
+		align-items: center;
+		padding: 20px 0 10px 8px;
+		margin-bottom: 8px;
+		box-sizing: border-box;
+		color: #f0f0f0;
+		background: var(--wpds-color-background-surface-neutral-weak, #1e1e1e);
+	}
+
+	&__breadcrumb {
+		grid-column: 2 / -1;
+		grid-row: 1;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 1px;
+		margin: 0;
+		min-width: 0;
+		overflow: hidden;
+		white-space: nowrap;
+		font-size: 13px;
+		font-weight: 400;
+		line-height: 1.3;
+		color: #a7aaad;
+	}
+
+	&__back.components-button {
+		grid-column: 1;
+		grid-row: 1;
+		color: #cccccc;
+
+		&:hover,
+		&:focus {
+			color: #ffffff;
+			outline: none;
+		}
+	}
+
+	h1.blockera-site-editor-drill-down__title {
+		grid-column: 2;
+		grid-row: 1;
+		margin: 0;
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		color: #ffffff;
+		line-height: 32px;
+	}
+
+	&__actions-slot {
+		grid-column: 3;
+		grid-row: 1;
+		justify-self: end;
+		display: flex;
+		align-items: center;
+		min-width: 0;
+	}
+
+	&__header.has-breadcrumb {
+		.blockera-site-editor-drill-down__back,
+		h1.blockera-site-editor-drill-down__title,
+		.blockera-site-editor-drill-down__actions-slot {
+			grid-row: 2;
+		}
+	}
+
+	&__breadcrumb-item {
+		display: inline-flex;
+		align-items: center;
+		gap: 1px;
+		min-width: 0;
+	}
+
+	&__breadcrumb-sep {
+		display: inline-flex;
+		flex-shrink: 0;
+		align-items: center;
+		margin: 0;
+		color: #626466;
+
+		svg {
+			display: block;
+			fill: currentColor;
+		}
+	}
+
+	&__breadcrumb-link {
+		display: inline;
+		margin: 0;
+		padding: 0;
+		border: 0;
+		background: none;
+		color: inherit;
+		font: inherit;
+		cursor: pointer;
+		text-decoration: none;
+
+		&:hover,
+		&:focus {
+			color: #ffffff;
+			text-decoration: underline;
+			outline: none;
+		}
+	}
+
+	/* Portaled Style Book (from core `.admin-ui-page__header-actions`). */
+	&__actions {
+		display: flex;
+		align-items: center;
+		gap: 0;
+		min-height: 32px;
+
+		/* Drop core GlobalStylesActionMenu (More) — Reset lives on branding More. */
+		.components-dropdown-menu {
+			display: none;
+		}
+
+		.components-button {
+			color: #cccccc;
+
+			&:hover,
+			&:focus {
+				color: #ffffff;
+			}
+
+			&.is-pressed {
+				color: #ffffff;
+				background: rgba(255, 255, 255, 0.08);
+			}
+		}
+	}
+
+	&__content {
+		flex: 1 1 auto;
+		min-height: 0;
+		overflow: auto;
+		padding: 0 0 16px 4px;
+		box-sizing: border-box;
+		/* Keep form controls on the light card (do not inherit sidebar chrome color). */
+		color: var(--wpds-color-foreground-content-neutral, #1e1e1e);
+
+		&.is-flush {
+			padding: 0;
+		}
+	}
+}

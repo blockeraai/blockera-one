@@ -1,5 +1,6 @@
 /**
- * Blockera Design / Site / Resources navigation.
+ * Blockera Design / Site / Resources navigation (layout only —
+ * row/section chrome lives in components/nav-item.scss).
  */
 
 body.has-blockera-site-editor-main-panel.has-blockera-site-editor-design-root {
@@ -10,96 +11,15 @@ body.has-blockera-site-editor-main-panel.has-blockera-site-editor-design-root {
 		overflow: auto;
 		padding: 0 16px 16px 16px;
 		box-sizing: border-box;
-		gap: 35px;
 		margin-top: 15px;
 	}
 }
 
 .blockera-site-editor-main-navigation {
-	display: flex;
-	flex-direction: column;
-	width: 100%;
 	padding: 0 0 8px;
-	color: rgba(255, 255, 255, 0.7);
 
-	&__category {
-		&:last-child {
-			margin-top: auto;
-		}
-	}
-
-	&__category-title {
-		margin: 0;
-		padding: 0 12px;
-		font-size: 15px;
-		font-weight: 600;
-		letter-spacing: 0.02em;
-		color: #ffffff;
-		height: 40px;
-		display: flex;
-		align-items: center;
-		justify-content: flex-start;
-	}
-
-	&__category-items {
-		display: flex;
-		flex-direction: column;
-		gap: 0;
-	}
-
-	&__item {
-		display: block;
-		width: 100%;
-		margin: 0;
-		padding: 0;
-		border: none;
-		border-radius: 2px;
-		background: transparent;
-		color: inherit;
-		text-align: left;
-		text-decoration: none;
-		cursor: pointer;
-
-		&.is-active,
-		&:hover,
-		&:focus {
-			background: rgba(255, 255, 255, 0.1);
-			color: #ffffff;
-		}
-
-		svg {
-			fill: currentColor;
-		}
-	}
-
-	&__item-inner {
-		width: 100%;
-		min-height: 40px;
-		padding: 8px 10px;
-	}
-
-	&__item-label {
-		min-width: 0;
-		font-size: 13px;
-		font-weight: 500;
-	}
-
-	&__item-icon {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: 22px;
-		height: 22px;
-		flex: 0 0 22px;
-
-		svg {
-			fill: currentColor;
-		}
-	}
-
-	&__item-suffix {
-		display: inline-flex;
-		align-items: center;
-		opacity: 0.7;
+	// Pin the Resources category to the bottom of the sidebar.
+	.blockera-site-editor-nav__section:last-child {
+		margin-top: auto;
 	}
 }

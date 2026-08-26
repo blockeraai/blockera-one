@@ -5,8 +5,16 @@
  */
 
 .blockera-site-editor-styles-panel {
-	/* Duplicate “Styles” title lives on DrillDownScreen — drop the Page header. */
-	.admin-ui-page__header {
+	/*
+	 * Duplicate “Styles” title lives on DrillDownScreen — drop the Page header.
+	 * WP 6.x used BEM `.admin-ui-page__header`. WP 7.1+ `@wordpress/admin-ui`
+	 * Page hashes that class (`admin-ui/src/page/header.tsx` CSS modules);
+	 * the header is still the first child of `.edit-site-styles` and contains
+	 * the page <h2>. `:has(h1, h2)` avoids hiding Global Styles UI if core
+	 * ever omits the Page header.
+	 */
+	.admin-ui-page__header,
+	.edit-site-styles > :first-child:has(h1, h2) {
 		display: none;
 	}
 

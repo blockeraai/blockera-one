@@ -1,0 +1,15 @@
+**.js
+**.css
+**.scss
+**.php
+**package*.json
+**.eslint*
+packages/global-packages/packages/dev-tools/js/eslint/*.js
+**.jshint*
+**.prettier*
+**.stylelint*
+blockera-one.zip
+webpack.config.js
+packages/global-packages/packages/dev-tools/js/webpack/*.js
+packages/global-packages
+.github/workflows/bundle-size.yml

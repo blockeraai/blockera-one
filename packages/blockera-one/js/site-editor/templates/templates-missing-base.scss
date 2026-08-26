@@ -3,6 +3,10 @@
  */
 
 .blockera-site-editor-templates-missing {
+	.admin-ui-page__content {
+		align-items: flex-start;
+	}
+
 	&__message {
 		margin: 0;
 		font-size: 13px;

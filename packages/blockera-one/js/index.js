@@ -12,12 +12,13 @@ import { registerPlugin } from '@wordpress/plugins';
 import SiteEditorMainPanel from './site-editor/index.tsx';
 
 /**
- * This plugin defines the companion (Blockera Site Builder) plugin as installed.
+ * Theme is not the companion plugin. Pass the current value through so an
+ * active Blockera plugin (priority 10) can report true without being overwritten.
  */
 addFilter(
 	'blockera.products.isCompanionPlugin',
 	'blockera-one/products.isCompanionPlugin',
-	() => false,
+	(isCompanionPlugin) => isCompanionPlugin,
 	20
 );
 

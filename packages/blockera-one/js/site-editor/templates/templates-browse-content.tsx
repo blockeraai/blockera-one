@@ -5,17 +5,10 @@
 
 import type { ReactNode } from 'react';
 
-import { useEffect, useState } from '@wordpress/element';
-
 /**
  * Internal dependencies
  */
-import {
-	FILTER_IDS,
-	getTemplatesUrlState,
-	isChildrenFilter,
-	type FilterId,
-} from './constants';
+import { FILTER_IDS, isChildrenFilter } from './constants';
 import {
 	getBaseSlugForFilter,
 	isPurposeBaseFilter,
@@ -24,27 +17,13 @@ import TemplatesAreaHub from './templates-area-hub';
 import TemplatesFilteredBrowse from './templates-filtered-browse';
 import TemplatesMissingBase from './templates-missing-base';
 import useTemplatesData from './use-templates-data';
+import useTemplatesUrlState from './use-templates-url-state';
 import './templates-browse-content.scss';
 
 type TemplatesBrowseContentProps = {
 	/** Core PageTemplates (or mobile) area node. */
 	children: ReactNode;
 };
-
-function useBrowseFilter(): FilterId {
-	const [filter, setFilter] = useState<FilterId>(
-		() => getTemplatesUrlState().filter
-	);
-
-	useEffect(() => {
-		const sync = () => setFilter(getTemplatesUrlState().filter);
-		sync();
-		window.addEventListener('popstate', sync);
-		return () => window.removeEventListener('popstate', sync);
-	}, []);
-
-	return filter;
-}
 
 /**
  * When a purpose filter’s base template is missing, replace the DataViews table
@@ -55,18 +34,8 @@ function useBrowseFilter(): FilterId {
 export default function TemplatesBrowseContent({
 	children,
 }: TemplatesBrowseContentProps) {
-	const filter = useBrowseFilter();
+	const { filter, partsArea } = useTemplatesUrlState();
 	const { findBySlug, isLoading } = useTemplatesData();
-	const [partsArea, setPartsArea] = useState(
-		() => getTemplatesUrlState().partsArea
-	);
-
-	useEffect(() => {
-		const sync = () => setPartsArea(getTemplatesUrlState().partsArea);
-		sync();
-		window.addEventListener('popstate', sync);
-		return () => window.removeEventListener('popstate', sync);
-	}, []);
 
 	// Hub empty state when Header/Footer/Sidebar is selected but no canonical part.
 	if (partsArea) {

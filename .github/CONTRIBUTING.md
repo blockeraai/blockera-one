@@ -6,6 +6,65 @@ When contributing please ensure you follow the guidelines below so that we can k
 
 **Please Note:** GitHub is for bug reports and contributions only - if you have a support question head over to the [support forum on WordPress.org](https://wordpress.org/support/plugin/blockera).
 
+## Shared packages (git submodule)
+
+Shared packages live in a sparse submodule:
+
+```
+packages/global-packages/          # submodule → blockeraai/blockera-global-packages
+  packages/                        # only tree checked out (sparse)
+    autoloader-coordinator/
+    editor/
+    ...
+```
+
+Theme-only packages stay local under `packages/` (`blockera-one`) and are not moved into global-packages.
+
+### Local setup
+
+```bash
+git clone --recurse-submodules <blockera-one-url>
+cd blockera-one
+# If you cloned without --recurse-submodules:
+git submodule update --init packages/global-packages
+bash .github/actions/ensure-global-packages/ensure.sh
+
+composer install
+npm ci
+```
+
+npm `file:` deps and Composer path repos point at `packages/global-packages/packages/*` for shared packages.
+
+### Updating shared packages (automated)
+
+You usually **do not** bump the submodule pin by hand.
+
+1. Push to `blockeraai/blockera-global-packages` (any branch).
+2. That repo’s `notify-blockera-submodule` workflow reads `.github/global-packages-consumers.json` and dispatches `global-packages-updated` to every enabled consumer.
+3. This repo’s `sync-global-packages-submodule` workflow bumps `packages/global-packages`:
+   - **master** → opens/updates PR `chore/bump-global-packages`
+   - **matching feature branch** (created by Husky mirror) → pushes the pin bump onto that branch
+4. Manual catch-up: Actions → **Sync global-packages submodule**, or `npm run submodule:bump`.
+
+Shared CI composites/scripts live in `packages/global-packages/packages/dev-tools/github/`.
+Theme workflows pass scan/package knobs via `env:` / action `with:` (e.g.
+`BLOCKERA_E2E_PACKAGE_SUFFIX=-one`, zip `blockera-one.zip`). There is no
+product-style switch.
+
+Consumer bootstrap (must exist before the submodule is available):
+
+```bash
+bash packages/global-packages/packages/dev-tools/github/scripts/sync-consumer-bootstrap.sh
+```
+
+Husky `post-checkout` mirrors new consumer branches into the submodule as `<repo>/<branch>` (from the `origin` remote name).
+
+Husky `pre-push` verifies the pinned `packages/global-packages` SHA exists on origin (and pushes the mirrored submodule branch when needed). Skip with `BLOCKERA_SKIP_SUBMODULE_PUSH=1`.
+
+CI does **not** use `actions/checkout` `submodules:`. `setup-node` / `setup-php` run `ensure-global-packages-sparse.sh` with `secrets.BLOCKERABOT_PAT`, rewrite the SSH `.gitmodules` URL to HTTPS + PAT, then init the sparse submodule.
+
+**Note:** `repository_dispatch` only runs workflows that exist on this repo’s **default branch**.
+
 ## Getting Started
 
 -   **Do not report potential security vulnerabilities here. Email them privately to our team at [info@blockera.ai](mailto:info@blockera.ai)**

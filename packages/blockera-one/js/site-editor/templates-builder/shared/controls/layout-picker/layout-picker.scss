@@ -1,0 +1,175 @@
+.blockera-templates-builder-layout-picker {
+	transition: var(--blockera-controls-transition);
+
+	&__grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+		column-gap: 16px;
+		row-gap: 12px;
+	}
+
+	&__option {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 5px;
+		padding: 0;
+		background: transparent;
+		border: 0;
+		cursor: pointer;
+		transition: var(--blockera-controls-transition);
+
+		&.is-disabled {
+			opacity: 0.5;
+			cursor: not-allowed;
+		}
+
+		&.is-coming-soon {
+			opacity: 1;
+		}
+	}
+
+	&__option.is-selected &__preview {
+		background-color: var(
+			--blockera-controls-primary-color,
+			var(
+				--wp-components-color-accent,
+				var(--wp-admin-theme-color, #3858e9)
+			)
+		);
+	}
+
+	&__option.is-selected &__caption {
+		color: var(
+			--blockera-controls-primary-color,
+			var(
+				--wp-components-color-accent,
+				var(--wp-admin-theme-color, #3858e9)
+			)
+		);
+		opacity: 1;
+	}
+
+	&__option:hover:not(.is-disabled, .is-selected) &__preview {
+		background-color: color-mix(
+			in srgb,
+			var(
+					--blockera-controls-primary-color,
+					var(
+						--wp-components-color-accent,
+						var(--wp-admin-theme-color, #3858e9)
+					)
+				)
+				60%,
+			#ffffff
+		);
+	}
+
+	&__option:hover:not(.is-disabled, .is-selected) &__caption {
+		opacity: 1;
+	}
+
+	&__preview {
+		position: relative;
+		display: block;
+		width: 100%;
+		border-radius: 4px;
+		background-color: color-mix(
+			in srgb,
+			var(
+					--blockera-controls-primary-color,
+					var(
+						--wp-components-color-accent,
+						var(--wp-admin-theme-color, #3858e9)
+					)
+				)
+				20%,
+			10% #000000
+		);
+		line-height: 0;
+		transition: var(--blockera-controls-transition);
+
+		img {
+			display: block;
+			width: 100%;
+			height: auto;
+			border-radius: 4px;
+		}
+	}
+
+	&__caption {
+		display: block;
+		width: 100%;
+		padding: 0 2px;
+		font-size: 12px;
+		font-weight: 500;
+		line-height: 1.3;
+		text-align: center;
+		color: #1e1e1e;
+		letter-spacing: -0.2px;
+		opacity: 0.7;
+	}
+
+	&__badge {
+		position: absolute;
+		right: -10px;
+		top: -9px;
+		padding: 3px 6px;
+		border-radius: 3px;
+		background: rgba(30, 30, 30, 0.82);
+		color: #ffffff;
+		font-size: 10px;
+		font-weight: 600;
+		line-height: 1.2;
+		text-align: center;
+		pointer-events: none;
+	}
+
+	&__edits {
+		position: absolute;
+		top: -3px;
+		right: -3px;
+		z-index: 1;
+		line-height: 0;
+		pointer-events: auto;
+	}
+
+	&__fallback {
+		display: block;
+		min-height: 56px;
+	}
+
+	&:not(:last-child) {
+		padding-bottom: 16px;
+		border-bottom: 1px solid #eeeeee;
+	}
+}
+
+.blockera-templates-builder-missing {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 10px;
+	background: #f8f8f8;
+	border-radius: 6px;
+	font-size: 12px;
+	color: #50575e;
+}
+
+.blockera-templates-builder-missing__action {
+	appearance: none;
+	align-self: flex-start;
+	border: 0;
+	background: transparent;
+	color: var(--blockera-controls-primary-color, #00ba88);
+	font-size: 12px;
+	font-weight: 600;
+	cursor: pointer;
+	padding: 0;
+}
+
+.blockera-templates-builder-custom-hint {
+	margin: 8px 0 0;
+	font-size: 12px;
+	color: #757575;
+}

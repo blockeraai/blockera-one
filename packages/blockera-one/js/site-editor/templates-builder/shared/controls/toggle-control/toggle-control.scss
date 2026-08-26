@@ -1,0 +1,13 @@
+.blockera-field.blockera-templates-builder-toggle {
+	min-height: calc(var(--blockera-controls-input-height) - 8px);
+
+	& > .blockera-field-control {
+		order: 0;
+		display: flex;
+		justify-content: center;
+	}
+
+	& > .blockera-field-label {
+		height: auto;
+	}
+}

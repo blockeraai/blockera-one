@@ -11,6 +11,7 @@
  * - site-identity-panel.scss
  * - homepage-settings-panel.scss
  * - performance-panel.scss
+ * - reset/style.scss
  * - templates/*.scss (templates-nav, templates-area-hub, …)
  */
 
@@ -62,5 +63,36 @@ body.has-blockera-site-editor-main-panel.has-blockera-site-editor-design-root {
 		padding-right: 16px;
 		box-sizing: border-box;
 		margin-top: 0;
+	}
+}
+
+/*
+ * Drill-down screens (Templates / Styles / settings): pin the header and
+ * scroll `.blockera-site-editor-drill-down__content` instead of the sidebar
+ * parent. Otherwise the sticky title covers purpose-nav status badges
+ * (Cypress `be.visible` + real hover).
+ */
+body.has-blockera-site-editor-main-panel
+	.edit-site-sidebar__content:has(.blockera-site-editor-drill-down) {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	overflow: hidden;
+
+	.edit-site-sidebar__screen-wrapper {
+		display: flex;
+		flex-direction: column;
+		flex: 1 1 auto;
+		min-height: 0;
+		overflow: hidden;
+	}
+
+	.edit-site-sidebar-navigation-screen__footer {
+		flex: 0 0 auto;
+		order: 2;
+	}
+
+	.blockera-site-editor-drill-down {
+		order: 1;
 	}
 }

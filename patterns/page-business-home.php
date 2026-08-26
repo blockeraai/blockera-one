@@ -2,7 +2,7 @@
 /**
  * Title: Business homepage
  * Slug: blockera-one/page-business-home
- * Categories: blockera_one_page, featured
+ * Categories: blockera-one/page, featured
  * Keywords: starter
  * Block Types: core/post-content
  * Post Types: page, wp_template
@@ -15,7 +15,6 @@
  */
 
 ?>
-
 <!-- wp:pattern {"slug":"blockera-one/cta-centered-heading"} /-->
 <!-- wp:pattern {"slug":"blockera-one/overlapped-images"} /-->
 <!-- wp:pattern {"slug":"blockera-one/services-3-col"} /-->

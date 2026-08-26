@@ -6,14 +6,17 @@ import type { ReactNode } from 'react';
 
 import { Button } from '@wordpress/components';
 import { getQueryArg } from '@wordpress/url';
-import { useCallback, useEffect, useState } from '@wordpress/element';
+import { useEffect } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
+import { classNames } from '@blockera/classnames';
+import { Icon } from '@blockera/icons';
+import { useSiteEditorUrlState } from '@blockera/utils';
 
 /**
  * Internal dependencies
  */
 import { ROUTES } from '../constants';
-import { getSiteEditorPath, useSiteEditorNavigate } from '../utils';
+import { getSiteEditorPath } from '../utils';
 import {
 	buildTemplatePartItemPath,
 	getTemplatesUrlState,
@@ -22,9 +25,16 @@ import {
 	type PartAreaId,
 } from './constants';
 import { findCanonicalPart } from './templates-hub-parts';
-import { isOpenNavigationControl } from './templates-purpose-preview';
+import useOpenNavigationInterceptor from './use-open-navigation-interceptor';
 import useTemplatesData from './use-templates-data';
+import useTemplatesUrlState from './use-templates-url-state';
 import './templates-area-hub.scss';
+
+const AREA_ICON: Record<PartAreaId, { library: 'wp' | 'ui'; icon: string }> = {
+	header: { library: 'ui', icon: 'template-header' },
+	footer: { library: 'ui', icon: 'template-footer' },
+	sidebar: { library: 'ui', icon: 'template-sidebar' },
+};
 
 type TemplatesAreaHubProps = {
 	children?: ReactNode;
@@ -71,35 +81,24 @@ function readCanvasMode(): 'edit' | 'view' {
 		: 'view';
 }
 
+// Core router uses history.navigate → pushState (no popstate); the shared
+// URL-state hook listens to Blockera’s patched SPA navigate event as well.
 function useCanvasMode(): 'edit' | 'view' {
-	const [canvas, setCanvas] = useState<'edit' | 'view'>(readCanvasMode);
-	const sync = useCallback(() => setCanvas(readCanvasMode()), []);
-	// Core router uses history.navigate → pushState (no popstate); listen to
-	// Blockera’s patched SPA navigate event as well.
-	useSiteEditorNavigate(sync);
-	return canvas;
+	return useSiteEditorUrlState(readCanvasMode);
 }
 
 function usePartsArea(): PartAreaId | null {
-	const [partsArea, setPartsArea] = useState<PartAreaId | null>(
-		() => getTemplatesUrlState().partsArea
-	);
-	const sync = useCallback(
-		() => setPartsArea(getTemplatesUrlState().partsArea),
-		[]
-	);
-	useSiteEditorNavigate(sync);
-	return partsArea;
+	return useTemplatesUrlState().partsArea;
 }
 
 function sitePartLabel(area: PartAreaId): string {
 	switch (area) {
 		case 'header':
-			return __('Global site header', 'blockera');
+			return __('Global Header', 'blockera');
 		case 'footer':
-			return __('Global site footer', 'blockera');
+			return __('Global Footer', 'blockera');
 		case 'sidebar':
-			return __('Global site sidebar', 'blockera');
+			return __('Global Sidebar', 'blockera');
 	}
 }
 
@@ -146,32 +145,14 @@ export default function TemplatesAreaHub({ children }: TemplatesAreaHubProps) {
 	const primary = partsArea ? findCanonicalPart(partsArea, parts) : undefined;
 
 	// Intercept core Open Navigation so Templates-owned parts don't land on Patterns.
-	useEffect(() => {
-		if (!partsArea) {
-			return;
+	useOpenNavigationInterceptor((path) => {
+		const area = getTemplatesUrlState().partsArea || partsArea;
+		if (!area || !path.startsWith('/wp_template_part/')) {
+			return false;
 		}
-
-		const onClick = (event: MouseEvent) => {
-			const target = event.target as Element | null;
-			if (!target?.closest || !isOpenNavigationControl(target)) {
-				return;
-			}
-
-			const area = getTemplatesUrlState().partsArea || partsArea;
-			const path = getSiteEditorPath();
-			if (!area || !path.startsWith('/wp_template_part/')) {
-				return;
-			}
-
-			event.preventDefault();
-			event.stopPropagation();
-			event.stopImmediatePropagation();
-			returnToTemplatesPartsHub(area);
-		};
-
-		document.addEventListener('click', onClick, true);
-		return () => document.removeEventListener('click', onClick, true);
-	}, [partsArea]);
+		returnToTemplatesPartsHub(area);
+		return true;
+	}, !!partsArea);
 
 	// Open / keep the site-wide part while Hub is selected.
 	useEffect(() => {
@@ -222,12 +203,9 @@ export default function TemplatesAreaHub({ children }: TemplatesAreaHubProps) {
 
 	return (
 		<div
-			className={[
-				'blockera-site-editor-templates-area-hub',
-				canvas === 'edit' ? 'is-edit-canvas' : '',
-			]
-				.filter(Boolean)
-				.join(' ')}
+			className={classNames('blockera-site-editor-templates-area-hub', {
+				'is-edit-canvas': canvas === 'edit',
+			})}
 			data-test="blockera-site-editor-templates-area-hub"
 			data-area={partsArea}
 			data-canvas={canvas}
@@ -237,11 +215,20 @@ export default function TemplatesAreaHub({ children }: TemplatesAreaHubProps) {
 					className="blockera-site-editor-templates-area-hub__banner"
 					data-test="blockera-site-editor-templates-area-hub-banner"
 				>
-					<div className="blockera-site-editor-templates-area-hub__banner-text">
-						<div className="blockera-site-editor-templates-area-hub__banner-title">
+					<div className="blockera-site-editor-templates-area-hub__banner-leading">
+						<span
+							className="blockera-site-editor-templates-area-hub__banner-icon"
+							aria-hidden="true"
+						>
+							<Icon
+								library={AREA_ICON[partsArea].library}
+								icon={AREA_ICON[partsArea].icon}
+								iconSize={26}
+							/>
+						</span>
+						<span className="blockera-site-editor-templates-area-hub__banner-title">
 							{sitePartLabel(partsArea)}
-							<ManageAllPartsButton area={partsArea} />
-						</div>
+						</span>
 						<p className="blockera-site-editor-templates-area-hub__banner-hint">
 							{__(
 								'Editing this updates it everywhere this part is used.',
@@ -249,6 +236,7 @@ export default function TemplatesAreaHub({ children }: TemplatesAreaHubProps) {
 							)}
 						</p>
 					</div>
+					<ManageAllPartsButton area={partsArea} />
 				</div>
 			) : null}
 			<div className="blockera-site-editor-templates-area-hub__canvas">

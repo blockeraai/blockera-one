@@ -1,0 +1,655 @@
+/**
+ * Build-time lint for Templates Builder markup and the PHP catalog, run
+ * as part of the Jest suite so CI fails the PR when they diverge (replaces
+ * the old `bin/lint-builder-patterns.js` CLI).
+ *
+ * Sources of truth (nothing hardcoded here):
+ * - Stamp ids/roles come from the source dictionaries (`shared/stamps.ts` +
+ *   `<type>/stamps.ts`) via `registry.ts` `ALL_STAMPS` / `STAMP_DICTIONARIES`
+ *   (`role/id` lists aggregated into an id → role map),
+ *   so markup validation can never drift from the reference data.
+ * - Stamps are validated in every `.block-markup.config.js`
+ *   `patternsDirs` and `templatesDirs` folder (all ship
+ *   `metadata.blockeraOne.stamp` anchors). Unset dirs mean this product has
+ *   no patterns / templates — no implicit fallback.
+ * - Catalog pattern slugs come from the shared PHP fixture
+ *   (`php/tests/fixtures/template-builder-catalog.json`, asserted equal to
+ *   the real PHP output by PHPUnit) plus a regex sweep of the
+ *   `php/Theme/TemplateBuilder/*Catalog.php` sources as a cross-check for
+ *   Catalog.php edits that skipped the fixture.
+ *
+ * Family-specific pattern contracts live in sibling modules
+ * (`template-builder-post-meta.spec.js`, …).
+ */
+
+// templates/constants (pulled via archive/config) imports the nested-panels
+// barrel whose module graph reaches @wordpress/block-editor UI. Only
+// readPanelStack is consumed there — stub it to keep this suite light.
+jest.mock('../../../nested-panels', () => ({
+	readPanelStack: () => [],
+}));
+
+import fs from 'fs';
+import path from 'path';
+
+import { ALL_STAMPS, CONFIGS, STAMP_DICTIONARIES } from '../../registry';
+import { STAMP_ROLES } from '../stamp';
+import { flattenPanelControls } from '../resolve/resolve-options-panel';
+import {
+	BUILDER_CATEGORY,
+	BUILDER_PREFIX,
+	DICTIONARY_ENTRY_SHAPE,
+	KEBAB,
+	LAYOUT_MARKER,
+	STAMP_SHAPE,
+	builderPatterns,
+	catalogFiles,
+	collectFiles,
+	describeMarkup,
+	describePatterns,
+	describeTemplates,
+	extractBlockCommentAttrs,
+	extractMetadataObjects,
+	fixtureSlugs,
+	layoutPatterns,
+	patternsDirs,
+	phpCatalogSlugs,
+	registeredSlugs,
+	stampedEntries,
+	templateEntries,
+	templatesDirs,
+	themeRoot,
+} from './helpers/pattern-lint';
+
+const {
+	isCanonicalBlockeraIdentity,
+} = require('../../../../../../global-packages/packages/dev-tools/js/block-markup/sanitize-blockera-identity');
+
+const CANONICAL_BLOCKERA_ID = /^[0-9a-z]{6}$/;
+
+const layoutIds = new Set();
+const areaIds = new Set();
+
+for (const [id, role] of Object.entries(ALL_STAMPS)) {
+	if ('layout' === role) {
+		layoutIds.add(id);
+	} else if ('area' === role) {
+		areaIds.add(id);
+	}
+}
+
+describe('templates-builder patterns lint', () => {
+	// Broken globs must never pass silently (ported from the old CLI).
+	describe('non-empty guards', () => {
+		describePatterns('patterns dirs', () => {
+			it('finds builder layout patterns', () => {
+				expect(layoutPatterns.length).toBeGreaterThan(0);
+			});
+
+			it('finds pattern PHP files in every configured patterns directory', () => {
+				const empty = patternsDirs.filter(
+					(dir) =>
+						collectFiles(dir, (name) => name.endsWith('.php'))
+							.length === 0
+				);
+				expect(
+					empty.map((dir) => path.relative(themeRoot, dir))
+				).toEqual([]);
+			});
+		});
+
+		describeTemplates('templates dirs', () => {
+			it('finds stamped template files', () => {
+				expect(templateEntries.length).toBeGreaterThan(0);
+			});
+
+			it('finds HTML files in every configured templates directory', () => {
+				const empty = templatesDirs.filter(
+					(dir) =>
+						collectFiles(dir, (name) => name.endsWith('.html'))
+							.length === 0
+				);
+				expect(
+					empty.map((dir) => path.relative(themeRoot, dir))
+				).toEqual([]);
+			});
+		});
+
+		it('finds PHP type catalogs', () => {
+			expect(catalogFiles.length).toBeGreaterThan(0);
+		});
+
+		it('finds patternSlug references in the PHP catalogs', () => {
+			expect(phpCatalogSlugs.size).toBeGreaterThan(0);
+		});
+
+		it('finds pattern rows in the shared fixture', () => {
+			expect(fixtureSlugs.size).toBeGreaterThan(0);
+		});
+
+		it('derives layout and area ids from the stamp dictionaries', () => {
+			expect(layoutIds.size).toBeGreaterThan(0);
+			expect(areaIds.size).toBeGreaterThan(0);
+		});
+	});
+
+	describe('stamp dictionaries', () => {
+		it('declares role/id entries (no variant) with kebab-case ids', () => {
+			const invalid = [];
+			for (const dictionary of STAMP_DICTIONARIES) {
+				for (const entry of dictionary) {
+					const match = entry.match(DICTIONARY_ENTRY_SHAPE);
+					if (!match) {
+						invalid.push(`malformed dictionary entry "${entry}"`);
+						continue;
+					}
+					expect(STAMP_ROLES).toContain(match[1]);
+					expect(match[2]).toMatch(KEBAB);
+				}
+			}
+			expect(invalid).toEqual([]);
+		});
+
+		it('never declares an id in two dictionaries (globally unique ids)', () => {
+			const seen = new Map();
+			const conflicts = [];
+			STAMP_DICTIONARIES.forEach((dictionary, index) => {
+				for (const entry of dictionary) {
+					const match = entry.match(DICTIONARY_ENTRY_SHAPE);
+					if (!match) {
+						continue;
+					}
+					const [, role, id] = match;
+					if (seen.has(id)) {
+						conflicts.push(
+							`id "${id}" declared in dictionaries ${
+								seen.get(id).index
+							} and ${index} (entries "${
+								seen.get(id).entry
+							}" / "${entry}")`
+						);
+						continue;
+					}
+					seen.set(id, { index, entry, role });
+				}
+			});
+			expect(conflicts).toEqual([]);
+		});
+
+		it('has no dead entries: every dictionary id is stamped in markup', () => {
+			const usedIds = new Set();
+			for (const entry of stampedEntries) {
+				for (const stamp of entry.stamps) {
+					const match = stamp.match(STAMP_SHAPE);
+					if (match) {
+						usedIds.add(match[2]);
+					}
+				}
+			}
+			// Inner-region slots are opt-in per template. They belong in
+			// the shared dictionary so markup can stamp them; they do
+			// not have to appear in every (or any current) pattern.
+			// Meta item suffix is inserted by builder ops. The icon stamp
+			// is also baked into full-width listing markup.
+			const optInInnerSlots = new Set([
+				'start',
+				'end',
+				'comments',
+				'meta-item-icon',
+				'meta-item-suffix',
+			]);
+			const dead = Object.keys(ALL_STAMPS).filter(
+				(id) => !usedIds.has(id) && !optInInnerSlots.has(id)
+			);
+			expect(dead).toEqual([]);
+		});
+	});
+
+	describeMarkup('stamp validation', () => {
+		it('every stamp in patterns/templates is "role/id(:variant)" with a dictionary id + matching role', () => {
+			const invalid = [];
+			for (const entry of stampedEntries) {
+				for (const stamp of entry.stamps) {
+					const match = stamp.match(STAMP_SHAPE);
+					if (!match) {
+						invalid.push(
+							`${entry.file}: malformed stamp "${stamp}"`
+						);
+						continue;
+					}
+					const [, role, id] = match;
+					const dictionaryRole = ALL_STAMPS[id];
+					if (!dictionaryRole) {
+						invalid.push(
+							`${entry.file}: stamp id "${id}" is not declared in any stamp dictionary`
+						);
+					} else if (dictionaryRole !== role) {
+						invalid.push(
+							`${entry.file}: stamp "${stamp}" uses role "${role}" but the dictionary declares "${dictionaryRole}"`
+						);
+					}
+				}
+			}
+			expect(invalid).toEqual([]);
+		});
+	});
+
+	describe('config <-> dictionary cross-checks', () => {
+		it('registers every config layoutId with the layout role', () => {
+			for (const config of CONFIGS) {
+				expect(ALL_STAMPS[config.layoutId]).toBe('layout');
+			}
+		});
+
+		it('targets, insert anchors, heuristics and sibling sections use dictionary ids', () => {
+			const offenders = [];
+			for (const config of CONFIGS) {
+				const controls = flattenPanelControls(config.groups);
+				for (const control of controls) {
+					const { kind, id } = control.target;
+					if (kind === 'section' && ALL_STAMPS[id] !== 'section') {
+						offenders.push(
+							`${config.type}/${control.id}: section target "${id}"`
+						);
+					}
+					if (
+						kind === 'container' &&
+						ALL_STAMPS[id] !== 'container'
+					) {
+						offenders.push(
+							`${config.type}/${control.id}: container target "${id}"`
+						);
+					}
+					if (kind === 'layout' && ALL_STAMPS[id] !== 'layout') {
+						offenders.push(
+							`${config.type}/${control.id}: layout target "${id}"`
+						);
+					}
+					// Insert anchors must be detectable stamps.
+					if (
+						control.insert &&
+						!ALL_STAMPS[control.insert.relativeTo]
+					) {
+						offenders.push(
+							`${config.type}/${control.id}: insert anchor "${control.insert.relativeTo}"`
+						);
+					}
+				}
+				for (const id of Object.keys(config.sectionHeuristics || {})) {
+					if (!ALL_STAMPS[id]) {
+						offenders.push(`${config.type}: heuristic key "${id}"`);
+					}
+				}
+				for (const id of config.layoutSiblingSections || []) {
+					if (ALL_STAMPS[id] !== 'section') {
+						offenders.push(
+							`${config.type}: sibling section "${id}"`
+						);
+					}
+				}
+			}
+			expect(offenders).toEqual([]);
+		});
+	});
+
+	describePatterns('layout area consistency', () => {
+		it('every layout pattern stamps a known layout id', () => {
+			const missing = layoutPatterns
+				.filter(
+					(entry) =>
+						!entry.stamps.some((stamp) => {
+							const match = stamp.match(STAMP_SHAPE);
+							return match && layoutIds.has(match[2]);
+						})
+				)
+				.map((entry) => entry.file);
+			expect(missing).toEqual([]);
+		});
+
+		it('every layout pattern exposes the required "content" area', () => {
+			const missing = layoutPatterns
+				.filter((entry) => !entry.stamps.includes('area/content'))
+				.map((entry) => entry.file);
+			expect(missing).toEqual([]);
+		});
+
+		it('layout variant stamps match the filename variant suffix', () => {
+			// builder-layout-sidebar-right.php must stamp
+			// layout/<layout-id>:sidebar-right on its layout root.
+			const mismatched = [];
+			for (const entry of layoutPatterns) {
+				const fileVariant = entry.name
+					.slice(
+						entry.name.indexOf(LAYOUT_MARKER) + LAYOUT_MARKER.length
+					)
+					.replace(/\.php$/, '');
+				let stampVariant = null;
+				for (const stamp of entry.stamps) {
+					const match = stamp.match(STAMP_SHAPE);
+					if (match && layoutIds.has(match[2])) {
+						stampVariant = match[3] || null;
+						break;
+					}
+				}
+				if (stampVariant !== fileVariant) {
+					mismatched.push(
+						`${entry.file}: stamp variant "${stampVariant}" != filename variant "${fileVariant}"`
+					);
+				}
+			}
+			expect(mismatched).toEqual([]);
+		});
+	});
+
+	describePatterns('header contract', () => {
+		it('every builder pattern declares the builder category', () => {
+			const offenders = builderPatterns
+				.filter(
+					(entry) =>
+						!(entry.categories || '')
+							.split(',')
+							.map((category) => category.trim())
+							.includes(BUILDER_CATEGORY)
+				)
+				.map((entry) => entry.file);
+			expect(offenders).toEqual([]);
+		});
+
+		it('every builder pattern is hidden from the inserter', () => {
+			const offenders = builderPatterns
+				.filter((entry) => 'no' !== entry.inserter)
+				.map((entry) => entry.file);
+			expect(offenders).toEqual([]);
+		});
+
+		it('every builder pattern slug is shaped blockera-one/builder-<type>-… matching its folder', () => {
+			const offenders = [];
+			for (const entry of builderPatterns) {
+				if (!entry.slug) {
+					offenders.push(`${entry.file}: missing Slug header`);
+					continue;
+				}
+				const folderPrefix = `blockera-one/${BUILDER_PREFIX}${entry.typeDir}`;
+				if (
+					entry.slug !== folderPrefix &&
+					!entry.slug.startsWith(`${folderPrefix}-`)
+				) {
+					offenders.push(
+						`${entry.file}: slug "${entry.slug}" must be "${folderPrefix}" or start with "${folderPrefix}-"`
+					);
+				}
+			}
+			expect(offenders).toEqual([]);
+		});
+	});
+
+	describePatterns('catalog <-> pattern files', () => {
+		it('every fixture patternSlug maps to a pattern file Slug header', () => {
+			const missing = [...fixtureSlugs].filter(
+				(slug) => !registeredSlugs.has(slug)
+			);
+			expect(missing).toEqual([]);
+		});
+
+		it('every PHP catalog patternSlug maps to a pattern file Slug header', () => {
+			const missing = [...phpCatalogSlugs].filter(
+				(slug) => !registeredSlugs.has(slug)
+			);
+			expect(missing).toEqual([]);
+		});
+
+		it('every builder pattern file is referenced by a catalog (no orphans)', () => {
+			const orphans = builderPatterns
+				.filter(
+					(entry) =>
+						!fixtureSlugs.has(entry.slug) &&
+						!phpCatalogSlugs.has(entry.slug)
+				)
+				.map((entry) => `${entry.file} (${entry.slug})`);
+			expect(orphans).toEqual([]);
+		});
+	});
+
+	describePatterns('blockera identity', () => {
+		it('is unique within each builder pattern file', () => {
+			const offenders = [];
+			for (const entry of builderPatterns) {
+				const source = fs.readFileSync(
+					path.join(themeRoot, entry.file),
+					'utf8'
+				);
+				const counts = new Map();
+				const idRe = /"blockeraId"\s*:\s*"([^"]+)"/g;
+				let match;
+				while ((match = idRe.exec(source))) {
+					const id = match[1];
+					counts.set(id, (counts.get(id) || 0) + 1);
+				}
+				for (const [id, count] of counts) {
+					if (count > 1) {
+						offenders.push(
+							`${entry.file}: "${id}" appears ${count} times`
+						);
+					}
+				}
+			}
+			expect(offenders).toEqual([]);
+		});
+
+		it('does not ship leftover propsId, compatId, or block mode', () => {
+			const offenders = [];
+			for (const entry of builderPatterns) {
+				const source = fs.readFileSync(
+					path.join(themeRoot, entry.file),
+					'utf8'
+				);
+				if (source.includes('blockeraPropsId')) {
+					offenders.push(`${entry.file}: blockeraPropsId`);
+				}
+				if (source.includes('blockeraCompatId')) {
+					offenders.push(`${entry.file}: blockeraCompatId`);
+				}
+				if (source.includes('blockeraBlockMode')) {
+					offenders.push(`${entry.file}: blockeraBlockMode`);
+				}
+				if (source.includes('blockera-block--')) {
+					offenders.push(`${entry.file}: legacy blockera-block--`);
+				}
+			}
+			expect(offenders).toEqual([]);
+		});
+
+		it('uses canonical blockeraId and matching unique class when features exist', () => {
+			const offenders = [];
+			for (const entry of builderPatterns) {
+				const source = fs.readFileSync(
+					path.join(themeRoot, entry.file),
+					'utf8'
+				);
+				const attrsList = extractBlockCommentAttrs(source);
+				for (let i = 0; i < attrsList.length; i++) {
+					const attrs = attrsList[i];
+					if (isCanonicalBlockeraIdentity(attrs)) {
+						continue;
+					}
+					offenders.push(
+						`${entry.file}: non-canonical identity ${JSON.stringify(
+							{
+								blockeraId: attrs.blockeraId,
+								className: attrs.className,
+							}
+						)}`
+					);
+				}
+			}
+			expect(offenders).toEqual([]);
+		});
+
+		it('uses 6-character lowercase blockeraId values', () => {
+			const offenders = [];
+			for (const entry of builderPatterns) {
+				const source = fs.readFileSync(
+					path.join(themeRoot, entry.file),
+					'utf8'
+				);
+				const idRe = /"blockeraId"\s*:\s*"([^"]+)"/g;
+				let match;
+				while ((match = idRe.exec(source))) {
+					if (!CANONICAL_BLOCKERA_ID.test(match[1])) {
+						offenders.push(`${entry.file}: "${match[1]}"`);
+					}
+				}
+			}
+			expect(offenders).toEqual([]);
+		});
+	});
+
+	describeMarkup('query loop perPage', () => {
+		it('does not store query.perPage on section/posts-listing:<variant> Query Loops', () => {
+			const offenders = [];
+			let listings = 0;
+			const queryOpen = /<!--\s+wp:(?:core\/)?query(?!-)(?:\s|\{)/g;
+
+			for (const entry of stampedEntries) {
+				const source = fs.readFileSync(
+					path.join(themeRoot, entry.file),
+					'utf8'
+				);
+				let match;
+				queryOpen.lastIndex = 0;
+				while ((match = queryOpen.exec(source))) {
+					const end = source.indexOf('-->', match.index);
+					if (end === -1) {
+						break;
+					}
+					const comment = source.slice(match.index, end);
+					const stampMatch = comment.match(/"stamp"\s*:\s*"([^"]+)"/);
+					const parsed = stampMatch
+						? stampMatch[1].match(STAMP_SHAPE)
+						: null;
+					if (
+						!parsed ||
+						'section' !== parsed[1] ||
+						'posts-listing' !== parsed[2] ||
+						!parsed[3]
+					) {
+						continue;
+					}
+					listings += 1;
+					if (/"perPage"\s*:/.test(comment)) {
+						offenders.push(
+							`${entry.file}: ${stampMatch[1]} still has query.perPage`
+						);
+					}
+				}
+			}
+
+			expect(listings).toBeGreaterThan(0);
+			expect(offenders).toEqual([]);
+		});
+	});
+
+	describeMarkup('posts-listing metadata.name', () => {
+		it('requires a List View name on every section/posts-listing stamp', () => {
+			const offenders = [];
+			let listings = 0;
+
+			for (const entry of stampedEntries) {
+				const source = fs.readFileSync(
+					path.join(themeRoot, entry.file),
+					'utf8'
+				);
+				const metas = extractMetadataObjects(source);
+				for (const meta of metas) {
+					const stamp =
+						typeof meta.blockeraOne?.stamp === 'string'
+							? meta.blockeraOne.stamp
+							: '';
+					if (!stamp) {
+						continue;
+					}
+					const match = stamp.match(STAMP_SHAPE);
+					if (
+						!match ||
+						'section' !== match[1] ||
+						'posts-listing' !== match[2]
+					) {
+						continue;
+					}
+
+					listings += 1;
+					const name =
+						typeof meta.name === 'string' ? meta.name.trim() : '';
+					if (!name) {
+						offenders.push(
+							`${entry.file}: stamp ${stamp} is missing metadata.name (default "Posts Query Loop")`
+						);
+					}
+				}
+			}
+
+			expect(listings).toBeGreaterThan(0);
+			expect(offenders).toEqual([]);
+		});
+	});
+
+	describePatterns('loop-item parent metadata.name', () => {
+		const LOOP_PARENT_STAMPS = new Set([
+			'container/media',
+			'container/body',
+		]);
+		const LOOP_PARENT_NAMES = {
+			'builder-listing-full-width.php': {
+				'container/media': 'Media Column',
+				'container/body': 'Content Column',
+			},
+			'builder-listing-grid-2.php': {
+				'container/body': 'Content Blocks',
+			},
+			'builder-listing-grid-3.php': {
+				'container/body': 'Content Blocks',
+			},
+			'builder-listing-list.php': {
+				'container/body': 'Content Blocks',
+			},
+		};
+
+		function extractLoopParentNames(source) {
+			const names = {};
+			const metas = extractMetadataObjects(source);
+			for (const meta of metas) {
+				const stamp = meta?.blockeraOne?.stamp;
+				if (
+					typeof stamp === 'string' &&
+					LOOP_PARENT_STAMPS.has(stamp) &&
+					typeof meta.name === 'string'
+				) {
+					names[stamp] = meta.name;
+				}
+			}
+			return names;
+		}
+
+		it('uses Media Column / Content Column / Content Blocks on listing parents', () => {
+			const mismatches = [];
+			for (const [fileName, expected] of Object.entries(
+				LOOP_PARENT_NAMES
+			)) {
+				const entry = builderPatterns.find(
+					(pattern) => pattern.name === fileName
+				);
+				if (!entry) {
+					mismatches.push(`missing pattern file ${fileName}`);
+					continue;
+				}
+				const source = fs.readFileSync(
+					path.join(themeRoot, entry.file),
+					'utf8'
+				);
+				const actual = extractLoopParentNames(source);
+				expect(actual).toEqual(expected);
+			}
+			expect(mismatches).toEqual([]);
+		});
+	});
+});

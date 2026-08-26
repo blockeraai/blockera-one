@@ -1,0 +1,254 @@
+/**
+ * Parent-scoped stamp lookup. Dictionary ids stay unique; the tree may
+ * repeat nested ids under different parents (listing card vs article).
+ * Layout, area, and chrome slots stay tree-global first-match.
+ */
+
+import { getStamp } from './metadata';
+import type { Stamp } from './stamp';
+import {
+	findBlockByClientId,
+	findByStamp,
+	findByStampWithin,
+	getAtPath,
+	type WalkMatch,
+} from './tree';
+import type { BlockNode, ControlDef, InnerOrderRule } from './types';
+
+/** Chrome slots in a template wrapping `core/template-part`. */
+export const CHROME_SLOT_IDS = new Set(['header', 'footer', 'sidebar']);
+
+/**
+ * Stamp ids that always use tree-global first-match (skip selection and
+ * parentId scoping). Layout roots, fill areas, and chrome slots.
+ */
+export const ALWAYS_GLOBAL_STAMP_IDS = new Set([
+	'main',
+	'header',
+	'footer',
+	'sidebar',
+	'content',
+	'sidebar-area',
+	'rail-body-area',
+	'site-header',
+	'site-footer',
+	'site-sidebar',
+]);
+
+export type StampLookupOptions = {
+	/** Explicit ancestor stamp id (tested including that ancestor). */
+	within?: string;
+	/** Canvas selection — nearest section/container ancestor is the scope. */
+	selectedClientId?: string | null;
+	/** Fallback ancestor stamp id (`innerOrder.parentId`, heuristic parent). */
+	parentId?: string;
+	/**
+	 * Like `within`, but after canvas selection. Used so listing `body`
+	 * is not the tree-global first match when nothing is selected, without
+	 * ignoring a selected loop item.
+	 */
+	fallbackWithin?: string;
+};
+
+export function isAlwaysGlobalStampId(id: string): boolean {
+	return ALWAYS_GLOBAL_STAMP_IDS.has(id);
+}
+
+function isScopeRootStamp(stamp: Stamp): boolean {
+	if (stamp.role === 'layout' || stamp.role === 'area') {
+		return false;
+	}
+	if (CHROME_SLOT_IDS.has(stamp.id)) {
+		return false;
+	}
+	return stamp.role === 'section' || stamp.role === 'container';
+}
+
+/**
+ * Walk ancestors of the selected block. Return the nearest parent whose
+ * stamp is a section or container (not chrome, layout, or area). The
+ * selected node itself is used only when no parent scope exists (e.g.
+ * the listing section is selected).
+ */
+export function resolveWithinFromSelection(
+	blocks: BlockNode[],
+	selectedClientId: string
+): WalkMatch | null {
+	const selected = findBlockByClientId(blocks, selectedClientId);
+	if (!selected) {
+		return null;
+	}
+	let selectedRoot: WalkMatch | null = null;
+	for (let depth = selected.path.length; depth >= 1; depth--) {
+		const path = selected.path.slice(0, depth);
+		const block = getAtPath(blocks, path);
+		if (!block) {
+			continue;
+		}
+		const stamp = getStamp(block);
+		if (!stamp || !isScopeRootStamp(stamp)) {
+			continue;
+		}
+		const match = { block, path };
+		if (depth === selected.path.length) {
+			selectedRoot = match;
+			continue;
+		}
+		return match;
+	}
+	return selectedRoot;
+}
+
+function findWithinAncestorId(
+	blocks: BlockNode[],
+	ancestorId: string,
+	predicate: (stamp: Stamp | null, block: BlockNode) => boolean
+): WalkMatch | null {
+	const ancestor = findByStamp(blocks, (stamp) => stamp?.id === ancestorId);
+	if (!ancestor) {
+		return null;
+	}
+	return findByStampWithin(blocks, ancestor.path, predicate);
+}
+
+/**
+ * Resolve a stamp id with parent scope, then miss fallbacks.
+ *
+ * Nested ids: within (exclusive) → selection → fallbackWithin →
+ * parentId (scoped under within/fallbackWithin when those differ) →
+ * tree-global first-match only when fallbackWithin is absent.
+ * Always-global ids skip the scoped steps. An explicit `within` never
+ * falls through to another section, so reorder cannot land in a
+ * sibling `body` / `start`.
+ */
+export function findStampById(
+	blocks: BlockNode[],
+	id: string,
+	options?: StampLookupOptions
+): WalkMatch | null {
+	const byId = (stamp: Stamp | null) => stamp?.id === id;
+
+	if (isAlwaysGlobalStampId(id)) {
+		return findByStamp(blocks, byId);
+	}
+
+	if (options?.within) {
+		return findWithinAncestorId(blocks, options.within, byId);
+	}
+
+	if (options?.selectedClientId) {
+		const scope = resolveWithinFromSelection(
+			blocks,
+			options.selectedClientId
+		);
+		if (scope) {
+			const match = findByStampWithin(blocks, scope.path, byId);
+			if (match) {
+				return match;
+			}
+		}
+	}
+
+	if (options?.fallbackWithin) {
+		const match = findWithinAncestorId(
+			blocks,
+			options.fallbackWithin,
+			byId
+		);
+		if (match) {
+			return match;
+		}
+	}
+
+	if (options?.parentId) {
+		const ancestorScope = options.within || options.fallbackWithin;
+		let parent: WalkMatch | null = null;
+		if (ancestorScope && ancestorScope !== options.parentId) {
+			parent = findWithinAncestorId(
+				blocks,
+				ancestorScope,
+				(stamp) => stamp?.id === options.parentId
+			);
+		} else {
+			parent = findByStamp(
+				blocks,
+				(stamp) => stamp?.id === options.parentId
+			);
+		}
+		if (parent) {
+			const match = findByStampWithin(blocks, parent.path, byId);
+			if (match) {
+				return match;
+			}
+		}
+	}
+
+	// fallbackWithin already searched its ancestor. Do not steal a
+	// sibling instance (page-header post-meta for an article toggle).
+	if (options?.fallbackWithin) {
+		return null;
+	}
+
+	return findByStamp(blocks, byId);
+}
+
+/**
+ * Pin nested `parentId` under the rule's ancestor. Used for panel reads
+ * (buckets, parent names) where canvas selection is absent.
+ */
+export function lookupFromInnerOrder(
+	rule: Pick<InnerOrderRule, 'parentId' | 'within'>,
+	selectedClientId?: string | null
+): StampLookupOptions {
+	return {
+		selectedClientId: selectedClientId || undefined,
+		parentId: rule.parentId,
+		...(rule.within ? { within: rule.within } : {}),
+	};
+}
+
+/**
+ * Page-header* ids always pin under `page-header`. Nested inner-order
+ * `within` pins reorders immediately and listing toggles after selection.
+ */
+function isExclusiveWithinOperation(
+	operation: ControlDef['operation'] | undefined
+): boolean {
+	return (
+		operation === 'setMetaItemsDesign' ||
+		operation === 'setMetaSeparator' ||
+		operation === 'setMetaItemPart' ||
+		operation === 'selectInCanvas'
+	);
+}
+
+function controlLookupScope(
+	control: Pick<ControlDef, 'id' | 'innerOrder' | 'operation'>
+): Pick<StampLookupOptions, 'within' | 'fallbackWithin'> {
+	if (control.id?.startsWith('page-header')) {
+		return { within: 'page-header' };
+	}
+	const scope = control.innerOrder?.within;
+	if (!scope) {
+		return {};
+	}
+	if (
+		control.id?.startsWith('reorder-') ||
+		isExclusiveWithinOperation(control.operation)
+	) {
+		return { within: scope };
+	}
+	return { fallbackWithin: scope };
+}
+
+/** Lookup options from a control plus an optional canvas selection. */
+export function lookupFromControl(
+	control: Pick<ControlDef, 'innerOrder' | 'id' | 'operation'>,
+	selectedClientId?: string | null
+): StampLookupOptions {
+	return {
+		selectedClientId: selectedClientId || undefined,
+		parentId: control.innerOrder?.parentId,
+		...controlLookupScope(control),
+	};
+}
