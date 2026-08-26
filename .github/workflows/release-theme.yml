@@ -1,4 +1,4 @@
-name: Build Blockera One Theme Zip
+name: Release Blockera Theme
 
 on:
     pull_request:
