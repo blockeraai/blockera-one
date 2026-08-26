@@ -37,14 +37,23 @@ npm `file:` deps and Composer path repos point at `packages/global-packages/pack
 
 ### Updating shared packages (automated)
 
-You usually **do not** bump the submodule pin by hand.
+Master pins are automated; **feature-branch pins are local**.
 
 1. Push to `blockeraai/blockera-global-packages` (any branch).
 2. That repo’s `notify-blockera-submodule` workflow reads `.github/global-packages-consumers.json` and dispatches `global-packages-updated` to every enabled consumer.
-3. This repo’s `sync-global-packages-submodule` workflow bumps `packages/global-packages`:
+3. This repo’s `sync-global-packages-submodule` workflow:
    - **master** → opens/updates PR `chore/bump-global-packages`
-   - **matching feature branch** (created by Husky mirror) → pushes the pin bump onto that branch
-4. Manual catch-up: Actions → **Sync global-packages submodule**, or `npm run submodule:bump`.
+   - **matching feature branch** (created by Husky mirror) → **skipped**. Pin locally with `npm run submodule:bump` (not auto-pushed to origin).
+4. Manual remote catch-up: Actions → **Sync global-packages submodule** (`workflow_dispatch` with `mode=pr` or `mode=push`), or wait for the daily schedule (master only).
+
+Feature-branch gitlink bump (commits **locally**, does not `git push`; uncommitted submodule files are kept after the GP pin lands):
+
+```bash
+npm run submodule:bump                 # advance current pin’s branch tip and commit
+npm run submodule:bump -- fix/issues   # or any branch / SHA (explicit override)
+```
+
+Push this repo yourself when you are ready.
 
 Shared CI composites/scripts live in `packages/global-packages/packages/dev-tools/github/`.
 Theme workflows pass scan/package knobs via `env:` / action `with:` (e.g.
