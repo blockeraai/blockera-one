@@ -114,6 +114,7 @@ jobs:
             - env:
                   OLD_VERSION: ${{ steps.get_version.outputs.old_version }}
                   NEW_VERSION: ${{ steps.get_version.outputs.new_version }}
+                  BLOCKERA_BUILD_ZIP_MAIN_FILE: style.css
               run: bash packages/global-packages/packages/dev-tools/github/scripts/jobs/build-plugin-zip/bump-plugin-version-files.sh
 
             - id: commit_version_bump_to_release_branch
