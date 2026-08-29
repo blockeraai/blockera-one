@@ -1,3 +1,280 @@
+## [0.1.1] - 2026-08-29
+
+### Features
+
+- Added full compatibility with the Create Block Theme plugin, allowing you to create and export custom themes while keeping all your Blockera styling intact.
+- Improved how Blockera works with theme creation tools, ensuring your custom designs are properly saved when creating child themes, cloning themes, or starting fresh with blank themes.
+- Enhanced theme style variations support, making it easier to create and save different style options for your theme directly from the editor.
+- Added a new system to manage plugin features that works seamlessly between your website (server) and browser (client), making the plugin more flexible and easier to customize.
+- Improved plugin stability and performance by ensuring only one instance of core functionality runs at a time, preventing potential conflicts and reducing memory usage.
+- Enhanced WordPress's built-in design tools by adding support for global styles and theme customization, making it easier to style your entire website consistently with just a few clicks.
+- Added a way for blocks to get a unique ID automatically, making them work more smoothly.
+- Added support for blocks to better integrate with the block editor's features.
+- `Navigation` block: add support.
+- `Navigation Overlay Close` block: add support.
+- `Post Time to Read` block: add support.
+- `Post Word Count` block: add support.
+- `Math` block: add support.
+- `Post Comments Count` block: add support.
+- `Post Comments Link` block: add support.
+- `Term Template` block: add support.
+- `Term Query → Term Name` block: add support.
+- `Term Query → Term Count` block: add support.
+- Added a new feature to better organize and simplify how website assets (like styles and scripts) are loaded
+- Added StepperControl: a horizontal minus / value / plus number stepper for discrete counts.
+- Added Grid Settings: The grid columns count and columns min width setting while support in breakpoints. 
+- Added support for WordPress block theme developers to include Blockera features in their theme.json files, making it easier to customize and configure themes with Blockera's capabilities.
+- Added search functionality for block features: You can now quickly find any feature by typing in the search box. Simply type what you're looking for, and the list will automatically filter to show matching features, making it much easier to find the settings you need.
+- Added a new feature management system that allows website developers.
+- Improved plugin flexibility by making features work seamlessly between your website and the block editor.
+- Features can now be controlled both from your WordPress dashboard and programmatically by developers.
+- Added support for contextual toolbar menus in the WordPress block editor, making it easier to access and control Blockera features directly from the block toolbar. This includes both individual toolbar buttons and a dropdown menu for multiple controls.
+- Added `@blockera/global-styles-ui`, a dedicated package for managing theme.json preset variables in the WordPress Site Editor global styles sidebar.
+- Added global styles panel takeovers for **Colors**, **Typography**, and **Shadows**, replacing native WordPress preset navigation with Blockera variable editors while keeping WordPress navigator compatibility (pre– and post–WP 7.0 class hooks).
+- Added preset variable editors for **color palette**, **linear gradients**, **radial gradients**, **spacing**, **font sizes**, **borders**, **border radius**, **box shadows**, **text shadows**, **filters**, **transforms**, **transitions**, and **width & height** sizes, each supporting theme, default, and custom `theme.json` origins where applicable.
+- Added **color shade variations**: define shade ramps on palette colors, with accordion editors, swatch stacks in preset openers, and shade rows in the variable picker.
+- Added **preset taxonomy** UI: tree-style grouping for theme, default, and custom preset origins with shared name, slug, description, and visibility controls.
+- Added **Typography** hub in global styles: font size variables moved under `typography/font-sizes`, with a dedicated navigation screen for typography presets.
+- Added **line height variables** editor under `typography/line-heights`, following the font size preset pattern (`typography.lineHeights` in `theme.json`) and wiring the block editor line height control to the variable picker.
+- Added **variable picker preset panels**: export `*PresetContent` bodies so `@blockera/controls` can embed global-styles editors inside the block variable picker without circular imports.
+- Added **fallback preset catalog** in the variable picker for read-only theme/layout tokens (for example content and wide width sizes) alongside editable custom presets.
+- Added **preset row canvas preview**: hover or click a preset row in global styles to preview typography, spacing, color, shadow, border, and effect values on the style book canvas.
+- Added **missing variable recreate**: restore deleted custom presets from a missing variable binding via the variable picker unlink flow.
+- Added **plain theme.json preset merged state** helpers for resolving preset slugs and scalar values from merged editor features (shared with `@blockera/data` and `@blockera/controls`).
+- Added **preset variables view mode** toolbar for switching how origin groups are displayed on variable screens.
+- Added **read-only global styles preset mode** when the current user lacks permission to edit global styles (repeaters and edit popovers respect `canEditGlobalStyles`).
+- Added the popular FontAwesome icon collection to give you more icon choices.
+- Added version compatibility checking between Blockera and Blockera Pro to ensure they work together properly. You'll now be notified if you need to update Blockera Pro.
+- Added new helper functions to improve plugin functionality.
+- Added support for icons in blocks, allowing users to easily add and customize icons in their content.
+
+### Improvements
+
+- Improved how theme data is exported to ensure better compatibility with other plugins and tools.
+- Enhanced the connection between Blockera and the Create Block Theme plugin for smoother theme creation.
+- Streamlined the theme export process to work more reliably across different setups.
+- Improved how style variations are created and saved when using theme creation tools.
+- Added automatic detection and setup for compatible plugins to ensure they work together seamlessly.
+- `List` block: `Icon` inner block added.
+- `List Item` block: `Icon` inner block added.
+- `Button` block: `Icon` inner block added.
+- `Page List` block: `Current Page` inner block added.
+- `Gallery` block: improve support.
+- `Search` block: improve support.
+- `Post Navigation Link` block: improve support.
+- `Image` block: `img/svg` inner block added.
+- `Audio` block: `caption` inner block added.
+- `Embed` block: `caption` inner block added.
+- `Calendar` block: `Body → Link Cells` and `Link` inner blocks added.
+- `Paragraph` block: `strong`, `italic`, `kbd`, `span`, `code` and `mark` inner blocks added.
+- `Button` block: `strong`, `italic`, `kbd`, `span`, `code` and `mark` inner blocks added.
+- `Buttons` block: `strong`, `italic`, `kbd`, `span`, `code` and `mark` inner blocks added.
+- `Column` block: `strong`, `italic`, `kbd`, `span`, `code` and `mark` inner blocks added.
+- `Columns` block: `strong`, `italic`, `kbd`, `span`, `code` and `mark` inner blocks added.
+- `Accordion Heading` block: `strong`, `italic`, `kbd`, `span`, `code` and `mark` inner blocks added.
+- `Accordion Panel` block: `strong`, `italic`, `kbd`, `span`, `code` and `mark` inner blocks added.
+- `Comment Content` block: `strong`, `italic`, `kbd`, `span`, `code` and `mark` inner blocks added.
+- `Post Excerpt` block: `strong`, `italic`, `kbd`, `span`, `code` and `mark` inner blocks added.
+- `Details` block: `strong`, `italic`, `kbd`, `span`, `code` and `mark` inner blocks added.
+- `Group` block: `strong`, `italic`, `kbd`, `span`, `code` and `mark` inner blocks added.
+- `Heading` block: `strong`, `italic`, `kbd`, `span`, `code` and `mark` inner blocks added.
+- `List` block: `strong`, `italic`, `kbd`, `span`, `code` and `mark` inner blocks added.
+- `List Item` block: `strong`, `italic`, `kbd`, `span`, `code` and `mark` inner blocks added.
+- `Navigation Link` block: `strong`, `italic`, `kbd`, `span`, `code` and `mark` inner blocks added.
+- `Navigation Submenu` block: `strong`, `italic`, `kbd`, `span`, `code` and `mark` inner blocks added.
+- `Post Content` block: `strong`, `italic`, `kbd`, `span`, `code` and `mark` inner blocks added.
+- `Post Navigation Link` block: `strong`, `italic`, `kbd`, `span`, `code` and `mark` inner blocks added.
+- `Post Template` block: `strong`, `italic`, `kbd`, `span`, `code` and `mark` inner blocks added.
+- `Post Title` block: `strong`, `italic`, `kbd`, `span`, `code` and `mark` inner blocks added.
+- `Quote` block: `strong`, `italic`, `kbd`, `span`, `code` and `mark` inner blocks added.
+- `Pullquote` block: `strong`, `italic`, `kbd`, `span`, `code` and `mark` inner blocks added.
+- `Table` block: `strong`, `italic`, `kbd`, `span`, `code` and `mark` inner blocks added.
+- `Term Description` block: `strong`, `italic`, `kbd`, `span`, `code` and `mark` inner blocks added.
+- `Term Template` block: `strong`, `italic`, `kbd`, `span`, `code` and `mark` inner blocks added.
+- `Verse` block: `strong`, `italic`, `kbd`, `span`, `code` and `mark` inner blocks added.
+- `Code` block: `strong`, `italic`, `kbd`, `span`, `code` and `mark` inner blocks added.
+- `Footnotes` block: `strong`, `italic`, `kbd`, `span`, `code` and `mark` inner blocks added.
+- `Preformatted` block: `strong`, `italic`, `kbd`, `span`, `code` and `mark` inner blocks added.
+- `Read More` block: `strong`, `italic`, `kbd`, `span`, `code` and `mark` inner blocks added.
+- Color indicator: contextual CSS color keywords (such as transparent, currentColor, and inherit) now use a striped swatch with a short badge instead of a misleading solid fill.
+- Color picker: added a color value field for hex, rgb(), named colors, and CSS variables, with a more compact saturation area in the sketch panel.
+- Enhance the design of the image uploader control.
+- Enhance the design of the icon control.
+- Box spacing control improved to detect lock for horizontal or vertical based on value for blocks.
+- Border control design and UX improvement.
+- Border radius control design and UX improvement.
+- Tooltip control design improvement.
+- Features Labels: design improved.
+- Flex Layout Control: improve design and tooltips to show corresponding CSS values on hover.
+- Tabs Control: improved performance when switching between tabs for a smoother experience.
+- Code Control: Add Prettify button to code control to reformat CSS codes.
+- Site Editor Templates Cypress helpers assert `blockera-builder` and literal `p=/` paths.
+- GitHub workflows: rename `build-plugin-zip.yml` to `release-plugin.yml` (title: Release Blockera Plugin) and `build-plugin-zip-tests.yml` to `release-plugin-tests.yml`.
+- Master changelog workflow: run on merge to master (major by default), fold `## Unreleased` into a dated version heading and drop the inbox, bump only packages that changed since the previous merge, and synthesize notes when CHANGELOG.md was not edited.
+- Bootstrap: add `--watch` so `npm start` re-runs sync-config when `root-configs/` or `cursor/` templates change; headings show `#N` and a pulsing `● watching` marker; elapsed time sits on the Build heading only. The last line is only `Ctrl+C to stop`.
+- Root configs: move `.editorconfig` into `root-configs/` (drop the package-root copy) and remove the leftover package-root `browserslistrc`.
+- PR config jobs: detect all leftover PR-only files (`.pr-workflows.json`, `.pr-cypress.env.json`, `.pr-playwright.env.json`, `.pr-env.json`, `.pr-sync-env.json`, `.pr-github-playground.json`, plus `.pr-*`), still skipping example templates.
+- Bootstrap: print one count line per step (`Prepare workspace` / `Configure project files`); item names stay in `.cache/watch-bootstrap.log`.
+- Root configs: sync `.editorconfig`, `.env.example`, `.eslintrc.js`, `.gitignore`, `cypress.config.js`, and `cypress.env-example.json` (shared templates plus per-product overlays). `.gitignore` prepends product extras when `.gitignore.<project>` exists. Bootstrap clean-up also removes Cypress/Playwright reports, coverage, snapshot diffs, and test caches.
+- Root configs: sync Playwright (`playwright.config.js`, `playwright.env.example.json`, `.pr-playwright.env-example.json`) and Cypress (`.pr-cypress.env-example.json`) examples; `.pr-env.example.json` writes only for `blockera-one`.
+- PR workflows: add `.pr-workflows.example.json` and gate pull_request CI via `.pr-workflows.json` → `allowedActions`.
+- PR workflow gate: keep action in dev-tools submodule; gate jobs require BLOCKERA_GLOBAL_PACKAGES_TOKEN.
+- setup-php: strip wp-cli with composer remove --no-update and fix jq lock pruning.
+- Bundle size: truncate oversized PR comments to GitHub's 65536-character limit instead of dropping files from the report.
+- Improved block features organization for better code structure and easier maintenance.
+- Added support for third-party developers to extend and customize the style engine filters.
+- Made the application faster by identifying and fixing slow areas of the code 🚀.
+- Improved how styles are applied to blocks to ensure they follow web standards and work reliably across different browsers.
+- The inner block items design improved to make them different of the block states.
+- Block Settings Section: improve design and UX.
+- Add `&` support for targeting current block in custom CSS feature.
+- Compatibility for detecting variables from core blocks if the variable not found.
+- Improve to show `Flex Child` settings smartly for all blocks and inner blocks that have `flex` parent.
+- Improve the breakpoints management setting UX.
+- Before and After: add support to CSS functions: `attr()`, `counter()`, `counters()` and `url()`
+- `Stretch` value type for size control like Width, Height... added.
+- Effects Extension: Added change indicator to Transform Settings button to visually indicate when any transform settings modified.
+- Typography feature now supports WordPress global styles interface, allowing typography settings to work correctly in both block inspector and global styles contexts. This ensures compatibility with WordPress 6.7 theme.json schema.
+- Size feature now supports WordPress global styles interface, allowing width, height, min-height, and aspect-ratio settings to work correctly in both block inspector and global styles contexts. This ensures compatibility with WordPress 6.7 theme.json schema.
+- Layout feature now supports WordPress global styles interface, allowing spacing (padding/margin) and gap settings to work correctly in both block inspector and global styles contexts. This ensures compatibility with WordPress 6.7 theme.json schema.
+- Background feature now supports WordPress global styles interface, allowing background color, background image, background gradients, background size, background repeat, and background position settings to work correctly in both block inspector and global styles contexts. This ensures compatibility with WordPress 6.7 theme.json schema.
+- Border and Shadow feature now supports WordPress global styles interface, allowing border, border radius, and shadow settings to work correctly in both block inspector and global styles contexts. Shadow compatibility includes support for WordPress shadow presets (var:preset|shadow|slug format) with automatic resolution to CSS values, ensuring compatibility with WordPress 6.7 theme.json schema.
+- Text Orientation Feature: improve label for options.
+- You can now easily add and use icons anywhere on your website with the new Blockera Icon feature.
+- Renamed global styles copy from “presets” to “variables” across color, gradient, spacing, typography, border, and effects screens for consistency with Blockera variable terminology.
+- Shared **SharedPresetControls** for preset name, slug, description, visibility, and ID change consent across all preset editors.
+- Enabled **creatingStep** flow on preset repeaters so new variables open in an edit popover immediately after add.
+- Improved preset delete and reset dialogs with origin-aware copy (theme, default, and custom layers).
+- Improved variable picker integration: search filters preset rows, custom add seeds from the current control value or search text, and deleting the active picker row unlinks the bound feature.
+- Improved color preset openers with padded swatch/gradient previews, shade strip markers for base vs edited steps, and shorter description labels with an info tooltip.
+- Improved spacing preset preview with a dashed width measure and hatch pattern styling.
+- Improved border and border-radius preset editors to use Blockera `BorderControl` and `InputControl` with link toggles hidden in the preset context.
+- Improved effects preset editors (filter, transform, transition) with value addons disabled where inappropriate for global preset rows.
+- Improved panel override cleanup styles so typography font size and line height inspector screens hide native WordPress chrome correctly.
+- Site Editor SPA URLs keep `/` and `:` literal in the query string (`p` and custom params), including the address bar on first load.
+- Length values used in block styles (for example borders and shadows) are normalized more reliably when saved data uses shorthand decimals or omits a unit; the `normalizeCssLengthValue` helper also accepts an optional default unit (defaults to `px`, or use an empty string to keep numbers unitless).
+
+### Bug Fixes
+
+- Color picker: fixed a stray "#" being added when typing CSS keywords such as `currentColor` (incomplete hex-like prefixes no longer force a hash unless you type one).
+- Color picker: fixed hex input being rewritten while typing (for example six-digit colors turning into the wrong value).
+- Fixed an issue where icons weren't updating properly when changed.
+- Fixed variable picker design issue while variable names were too long.
+- Fixed extra horizontal scrollbar while opening variable picker.
+- Release branches: every rc and stable run forks `release/*` from origin/master HEAD (not from an existing release or RC tip); push uses `--force-with-lease`.
+- Zip version bump: set the WordPress `Version:` header in `BLOCKERA_BUILD_ZIP_MAIN_FILE` (theme `style.css` or plugin bootstrap) to `NEW_VERSION` even when it did not match `OLD_VERSION`.
+- Zip changelog accumulation: ignore a prerelease `OLD_VERSION` / previous tag so RC and stable both accumulate from the last stable product tag.
+- Release notes: match GitHub milestones by display-name prefix + version series (`Name 0.1` finds `Name 0.1.0`; when several exist, prefer the release `x.y.z`). List same-prefix titles when none match.
+- Release notes: quote `--milestone="Name 2.0"` so Commander does not look up a title that is only the product name; complete a truncated title from the release version; fail the job instead of writing the stack into the GitHub release body.
+- Sync global-packages submodule: skip auto-push on matching feature branches so `npm run submodule:bump` is not followed by a duplicate blockerabot commit. Master still opens/updates the bump PR; use workflow_dispatch `mode=push` or `mode=pr` for a remote feature-branch pin.
+- Zip changelog accumulation: allow products with no consumer `packages/*/CHANGELOG.md` (global-packages only); fail only when `BLOCKERA_CHANGELOG_CONSUMER_GLOBS` is set and matches nothing.
+- Zip changelog accumulation: include GP notes only for packages whose `package.json` / `composer.json` version changed since the previous product release pin, from that previous version through the new version (do not dump unchanged package history).
+- Zip changelog accumulation: GP-only products (no `packages/*/CHANGELOG.md`) read previous package versions from inlined `packages/<name>` when the last release has no GP gitlink, and keep leftover `## Unreleased` bullets instead of failing.
+- Global styles: When you edit which blocks use a style variation (the “used in multiple blocks” dialog) and save, the block icons shown on that style row now refresh right away instead of staying on the old list until something else updates the screen.
+- Letter-spacing, line-height, and position inset values (top, right, bottom, left) from WordPress now pass through CSS length normalization when syncing into Blockera, so bare zeros, shorthand decimals, and similar core formats match what the controls expect. Line height keeps unitless values from core without adding a `px` suffix.
+- Border radius from WordPress core: bare zero values (for example `0`) are now normalized to explicit lengths like `0px` when syncing into Blockera, so corner radius controls and generated CSS stay consistent with how border widths are handled.
+- Cursor feature: Fix pointer option icon and improve auto icon.
+- Fixed typography **line height variables** screen not appearing after navigation by extending preset cleanup CSS to support multiple inspector-active classes (`blockera-font-size-preset-inspector-active` and `blockera-line-height-preset-inspector-active`).
+- Fixed typography panel override not clearing when using the navigator back button.
+- Fixed default WordPress preset groups duplicating theme presets in the variable picker when the theme layer already supplies variables.
+- Fixed preset repeaters inside the variable picker re-rendering and losing focus during create, rename, and slug edit flows.
+- Fixed color variable linking to persist live `var()` references when binding palette variables as values.
+- Fixed shade accordion headers showing redundant hex values inside the variable picker.
+- Fixed variable picker shade strip rows not receiving selection state.
+- Fixed border preset `BorderControl` menu opening downward and clipping inside popovers.
+- Fixed gradient preset name field losing focus and custom gradient slugs not preserving visibility flags.
+- Fixed preset popover width and scroll issues on long variable names and variation layouts.
+
+### Automated Tests
+
+- Added E2E tests to check icon functionality of `Categories` block.
+- Added E2E tests to check icon functionality of `Page List` block.
+- Added E2E tests to check icon functionality of `Home Link` block.
+- Added E2E tests to check icon functionality of `Navigation Link` block.
+- Added E2E tests to check icon functionality of `Navigation Submenu` block.
+- Added E2E tests to check functionality and support of `Post Time to Read` block.
+- Added E2E tests to check functionality and support of `Post Word Count` block.
+- Added E2E tests to check functionality and support of `Math` block.
+- Added E2E tests to check functionality and support of `Accordion` block.
+- Added E2E tests to check functionality and support of `Accordion Item` block.
+- Added E2E tests to check functionality and support of `Accordion Heading` block.
+- Added E2E tests to check functionality and support of `Accordion Panel` block.
+- Added E2E tests to check functionality and support of `Post Comments Count` block.
+- Added E2E tests to check functionality and support of `Post Comments Link` block.
+- Added E2E tests to check functionality and support of `Term Template` block.
+- Added E2E tests to check functionality and support of `Term Query → Term Name` block.
+- Added E2E tests to check functionality and support of `Term Query → Term Count` block.
+- Added E2E tests to check functionality and support of `Image Block → Img/SVG` block.
+- Added E2E tests to check functionality `Paragraph` new inner block.
+- Added E2E tests to check functionality `Button` new inner block.
+- Added E2E tests to check functionality `Buttons` new inner block.
+- Added E2E tests to check functionality `Column` new inner block.
+- Added E2E tests to check functionality `Columns` new inner block.
+- Added E2E tests to check functionality `Accordion Heading` new inner block.
+- Added E2E tests to check functionality `Comment Content` new inner block.
+- Added E2E tests to check functionality `Post Excerpt` new inner block.
+- Added E2E tests to check functionality `Details` new inner block.
+- Added E2E tests to check functionality `Group` new inner block.
+- Added E2E tests to check functionality `Heading` new inner block.
+- Added E2E tests to check functionality `List` new inner block.
+- Added E2E tests to check functionality `List Item` new inner block.
+- Added E2E tests to check functionality `Navigation Link` new inner block.
+- Added E2E tests to check functionality `Navigation Submenu` new inner block.
+- Added E2E tests to check functionality `Post Content` new inner block.
+- Added E2E tests to check functionality `Post Navigation Link` new inner block.
+- Added E2E tests to check functionality `Post Template` new inner block.
+- Added E2E tests to check functionality `Post Title` new inner block.
+- Added E2E tests to check functionality `Quote` new inner block.
+- Added E2E tests to check functionality `Pullquote` new inner block.
+- Added E2E tests to check functionality `Table` new inner block.
+- Added E2E tests to check functionality `Term Description` new inner block.
+- Added E2E tests to check functionality `Term Template` new inner block.
+- Added E2E tests to check functionality `Verse` new inner block.
+- Added E2E tests to check functionality `Code` new inner block.
+- Automated test to check `font color` WP data compatibility if variables not found. 
+- Automated test to check `background color` WP data compatibility if variables not found. 
+- Automated test to check `background image` WP data compatibility if variables not found. 
+- Automated test to check `border color` WP data compatibility if variables not found. 
+- Automated test to check `font size` WP data compatibility if variables not found. 
+- Automated test to check `spacing` WP data compatibility if variables not found. 
+- Automated test to check `font size` WP data compatibility in global styles context.
+- Automated test to check `font family` WP data compatibility in global styles context.
+- Automated test to check `font color` WP data compatibility in global styles context (simple and variable values).
+- Automated test to check `line height` WP data compatibility in global styles context.
+- Automated test to check `text align` WP data compatibility in global styles context.
+- Automated test to check `font appearance` WP data compatibility in global styles context (weight and style, weight only, style only).
+- Automated test to check `letter spacing` WP data compatibility in global styles context.
+- Automated test to check `text decoration` WP data compatibility in global styles context.
+- Automated test to check `text orientation` WP data compatibility in global styles context (horizontal and vertical values).
+- Automated test to check `text transform` WP data compatibility in global styles context.
+- Automated test to check `min height` WP data compatibility in global styles context.
+- Automated test to check `aspect ratio` WP data compatibility in global styles context.
+- Automated test to check `width` WP data compatibility in global styles context.
+- Automated test to check `height` WP data compatibility in global styles context.
+- Automated test to check `spacing` WP data compatibility in global styles context.
+- Automated test to check `gap` WP data compatibility in global styles context.
+- Automated test to check `background color` WP data compatibility in global styles context.
+- Automated test to check `background size` WP data compatibility in global styles context.
+- Automated test to check `background repeat` WP data compatibility in global styles context.
+- Automated test to check `background position` WP data compatibility in global styles context.
+- Automated test to check `shadow` WP data compatibility in block-level context (CSS values and preset references).
+- Automated test to check `shadow` WP data compatibility in global styles context (CSS values and preset references).
+- Added Cypress E2E coverage for global styles **color palette**, **linear gradient**, **radial gradient**, **spacing**, **font size**, **border**, **border radius**, **box shadow**, **text shadow**, **filter**, **transform**, and **transition** preset variables (theme merge, UI display, and persistence).
+- Added Cypress E2E for the **typography** global styles panel (override class, hub navigation, font size and **line height** variables screens, cleanup/inspector-active DOM, custom preset groups, and back navigation).
+- Added shared Cypress helper `openGlobalStylesLineHeightsVariablesScreen` for typography → line height variables navigation in global styles E2E specs.
+- Added Cypress E2E for **preset taxonomy** smoke flows, rename deferral, variable descriptions, variations, read-only permission mode, and variable picker search.
+- Added Cypress E2E for **color shade variations** in the palette editor and variable picker (shade strip selection and flat-theme picker scenarios).
+- Added Cypress E2E for **missing variable recreate** and **clear-on-delete** variable picker selection behavior.
+- Added unit tests for preset repeater value utils, missing-variable recreate builders, variable picker custom-add seeding, and panel override cleanup screen helpers.
+- Added test to make sure smart search data for icon libraries are update always.
+- Changed the "Tests" folder name to "tests" so everything works smoothly behind the scenes.
+
+### Bug Fixes:
+
+- Fixed PHP product registrants never running: `blockera/products/registry/init` now also fires on `wp_loaded` via `blockera_products_bootstrap()`, so registration no longer depends on JS localization finding a script handle.
+- Fixed products localization never attaching on the block editor: `blockera_products_l10n()` now also runs on `enqueue_block_editor_assets` (editor scripts are not registered on `admin_enqueue_scripts`).
+- Fixed products localization never attaching: the assets loader registers version-suffixed script handles (e.g. `@blockera/products-1-0-0`), so `blockera_products_l10n()` now resolves the exact registered handle via the new `blockera_products_script_handle()` helper.
+
 ## [1.12.2] - 2025-07-22
 
 ### Improvements
