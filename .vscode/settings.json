@@ -99,9 +99,6 @@
 		"typescript",
 		"typescriptreact"
 	],
-	"eslint.options": {
-		"configFile": "${workspaceFolder}/.eslintrc.js"
-	},
 	"eslint.workingDirectories": ["${workspaceFolder}"],
 	"[javascript]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode",
