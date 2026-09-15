@@ -5,6 +5,12 @@ const {
 } = require( './packages/global-packages/packages/dev-tools/js/eslint/config' );
 
 module.exports = createConfig( {
-	extraIgnores: [ '/bin/**' ],
+	extraIgnores: [
+		'/bin/**',
+		'packages/*-pro/**',
+		'packages/*-pro-*/**',
+		'packages/global-packages/packages/**/*-pro/**',
+		'packages/global-packages/packages/**/*-pro-*/**',
+	],
 	allowedTextDomains: [ 'blockera', 'blockera-one' ],
 } );
