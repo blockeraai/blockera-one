@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4fc173b95c26132596746c23bcdc1804",
+    "content-hash": "304880a8e5c47ecb6ffca40cdc2ac233",
     "packages": [
         {
             "name": "blockera/auth",
@@ -98,8 +98,8 @@
             "version": "0.1.0",
             "dist": {
                 "type": "path",
-                "url": "./packages/blockera-one",
-                "reference": "245075437aa7c2a438996921456a3df5589b31e8"
+                "url": "packages/global-packages/packages/blockera-one",
+                "reference": "39180e110aab86a726c56a06ad274b7898d790b9"
             },
             "type": "library",
             "autoload": {
@@ -117,6 +117,7 @@
             },
             "description": "The bootstrapper for blockera one theme php application for WordPress in admin and front-end sides.",
             "transport-options": {
+                "symlink": true,
                 "relative": true
             }
         },

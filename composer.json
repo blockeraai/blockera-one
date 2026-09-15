@@ -17,10 +17,6 @@
 			"options": {
 				"symlink": true
 			}
-		},
-		{
-			"type": "path",
-			"url": "./packages/blockera-one"
 		}
 	],
 	"authors": [
@@ -102,7 +98,7 @@
 	"autoload-dev": {
 		"psr-4": {
 			"Blockera\\Tests\\": "tests/phpunit/main/",
-			"Blockera\\One\\Tests\\": "packages/blockera-one/php/tests/",
+			"Blockera\\One\\Tests\\": "packages/global-packages/packages/blockera-one/php/tests/",
 			"Blockera\\Products\\Tests\\": "packages/global-packages/packages/products/php/tests/"
 		},
 		"files": [

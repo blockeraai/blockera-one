@@ -1,12 +1,12 @@
 # Agents — Blockera One
 
-Block theme (FSE) for the Site Builder. Host packages: `blockera-one`, `blockera-admin-one`.
+Block theme (FSE) for the Site Builder. Theme packages live in GP: `blockera-one`, `blockera-admin-one`.
 
 ## Inspect
 
 - Shared: [`packages/global-packages/packages/dev-tools/ai/index.md`](packages/global-packages/packages/dev-tools/ai/index.md)
 - Product: [`.ai/index.md`](.ai/index.md)
-- Stamps: [`packages/blockera-one/js/site-editor/templates-builder/STAMPS.md`](packages/blockera-one/js/site-editor/templates-builder/STAMPS.md) (Cursor overlay `templates-builder-stamps.mdc`)
+- Stamps: [`packages/global-packages/packages/blockera-one/js/site-editor/templates-builder/STAMPS.md`](packages/global-packages/packages/blockera-one/js/site-editor/templates-builder/STAMPS.md) (Cursor overlay `templates-builder-stamps.mdc`)
 - Gutenberg / WordPress: `source-codes/`
 
 ## Constraints
