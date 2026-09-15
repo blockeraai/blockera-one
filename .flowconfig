@@ -38,11 +38,15 @@
 <PROJECT_ROOT>/packages/global-packages/packages/.*/js/\.patch/.*
 <PROJECT_ROOT>/packages/global-packages/packages/.*/\.patch/.*
 # Overlay packages may appear after a GP bump; they are not this product.
-# Do not use character classes here: `[` starts a new .flowconfig section.
-<PROJECT_ROOT>/packages/.*-pro/.*
-<PROJECT_ROOT>/packages/.*-pro-.*/.*
-<PROJECT_ROOT>/packages/.*-toolkit/.*
-<PROJECT_ROOT>/packages/.*-toolkit-.*/.*
+# `[^/]` is a valid ignore regex. Only a whole line `[name]` starts a section.
+<PROJECT_ROOT>/packages/[^/]*-pro/.*
+<PROJECT_ROOT>/packages/[^/]*-pro-[^/]+/.*
+<PROJECT_ROOT>/packages/global-packages/packages/[^/]*-pro/.*
+<PROJECT_ROOT>/packages/global-packages/packages/[^/]*-pro-[^/]+/.*
+<PROJECT_ROOT>/packages/[^/]*-toolkit/.*
+<PROJECT_ROOT>/packages/[^/]*-toolkit-[^/]+/.*
+<PROJECT_ROOT>/packages/global-packages/packages/[^/]*-toolkit/.*
+<PROJECT_ROOT>/packages/global-packages/packages/[^/]*-toolkit-[^/]+/.*
 
 # Dependencies stay resolvable (imports are `any`) but are not parsed/typechecked.
 [untyped]
