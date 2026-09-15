@@ -11,6 +11,10 @@ module.exports = createConfig( {
 		'packages/*-pro-*/**',
 		'packages/global-packages/packages/**/*-pro/**',
 		'packages/global-packages/packages/**/*-pro-*/**',
+		'packages/*-toolkit/**',
+		'packages/*-toolkit-*/**',
+		'packages/global-packages/packages/**/*-toolkit/**',
+		'packages/global-packages/packages/**/*-toolkit-*/**',
 	],
 	allowedTextDomains: [ 'blockera', 'blockera-one' ],
 } );

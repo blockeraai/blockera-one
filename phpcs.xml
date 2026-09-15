@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<!-- Edit packages/global-packages/packages/dev-tools/root-configs/phpcs.xml -->
-<!-- project:bootstrap copies this to the host repo root and fills the project id. -->
+<!-- Edit packages/global-packages/packages/dev-tools/root-configs/phpcs.blockera-one.xml -->
+<!-- project:bootstrap copies this to the host repo root for the blockera-one project and fills the project id. -->
 <ruleset name="WordPress Coding Standards for blockera-one">
     <description>Consumer ruleset: shared Blockera PHPCS + blockera-one text_domain and scan roots.</description>
 
@@ -8,6 +8,11 @@
 
     <config name="text_domain" value="blockera-one,blockera,default"/>
     <file>./packages</file>
+
+    <exclude-pattern>*/packages/[^/]*-pro/</exclude-pattern>
+    <exclude-pattern>*/packages/[^/]*-pro-[^/]+/</exclude-pattern>
+    <exclude-pattern>*/packages/[^/]*-toolkit/</exclude-pattern>
+    <exclude-pattern>*/packages/[^/]*-toolkit-[^/]+/</exclude-pattern>
 
     <arg name="cache" value=".cache/phpcs.json"/>
 </ruleset>

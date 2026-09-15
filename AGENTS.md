@@ -15,3 +15,4 @@ Block theme (FSE) for the Site Builder. Theme packages live in GP: `blockera-one
 - Changelog/README: [`…/ai/workflows/changelog-and-readme.md`](packages/global-packages/packages/dev-tools/ai/workflows/changelog-and-readme.md)
 - Scripts from **this** root: `npm run test:e2e`, `test:js`, `test:unit:php` — [`…/ai/workflows/product-scripts-and-deps.md`](packages/global-packages/packages/dev-tools/ai/workflows/product-scripts-and-deps.md)
 - Do not invent stamp grammar; update `STAMPS.md` in the same change as stamp dictionaries/markup.
+- Skip Pro overlay packages (`*-pro`) and toolkit overlay packages (`*-toolkit`) in this product’s tests and lint. They may appear on disk after a GP bump.
