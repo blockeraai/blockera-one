@@ -7,6 +7,34 @@
     "content-hash": "98f5aecf3ce19654259065f201233f2a",
     "packages": [
         {
+            "name": "blockera/auth",
+            "version": "1.0.0",
+            "dist": {
+                "type": "path",
+                "url": "packages/global-packages/packages/auth",
+                "reference": "4d90cb8c69e637130b5a78188c1461b4e4e03511"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Blockera\\Auth\\": "php/"
+                },
+                "files": [
+                    "php/functions.php"
+                ]
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Blockera\\Auth\\Tests\\": "php/tests/"
+                }
+            },
+            "description": "Login-only OAuth connect session for Blockera.",
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
+        },
+        {
             "name": "blockera/blockera",
             "version": "1.3.3",
             "dist": {

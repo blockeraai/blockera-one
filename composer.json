@@ -31,6 +31,7 @@
 	"minimum-stability": "dev",
 	"require": {
 		"php": ">=7.4",
+		"blockera/auth": "*",
 		"blockera/blockera": "*",
 		"blockera/blockera-one": "*",
 		"blockera/features-core": "*",
@@ -54,6 +55,7 @@
 		"blockera/data-editor": "*",
 		"blockera/http": "*",
 		"blockera/telemetry": "*",
+		"league/oauth2-client": "dev-master",
 		"vlucas/phpdotenv": "^5.5@dev",
 		"voku/simple_html_dom": "dev-master",
 		"enshrined/svg-sanitize": "^0.22"
