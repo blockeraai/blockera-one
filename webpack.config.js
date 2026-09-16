@@ -56,7 +56,6 @@ module.exports = createRootWebpackConfig({
 	dependencies,
 	packagesConfig,
 	resolvePackageDir,
-	obfuscateProduction: false,
 	getExternals: (blockeraPackagesVersion) => ({
 		'@blockera/icons': 'blockeraIcons',
 		'@blockera/blockera-one':
