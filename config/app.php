@@ -38,12 +38,10 @@ return [
         'blockera.application.providers',
         [
             \Blockera\Auth\Providers\AuthProvider::class,
-            \Blockera\Admin\Providers\AdminProvider::class,
             \Blockera\Setup\Providers\EditorAssetsProvider::class,
             \Blockera\Setup\Providers\RestAPIProvider::class,
             \Blockera\Setup\Providers\AppServiceProvider::class,
 			\Blockera\Editor\Providers\StyleDefinitionsProvider::class,
-            \Blockera\Admin\Providers\AdminAssetsProvider::class,
         ]
     ),
 ];
