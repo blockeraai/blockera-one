@@ -1,6 +1,6 @@
 # Agents — Blockera One
 
-Block theme (FSE) for the Site Builder. Theme packages live in GP: `blockera-one`, `blockera-admin-one`.
+Block theme (FSE) for the Site Builder. Theme packages live in GP: `blockera-one`.
 
 ## Inspect
 
