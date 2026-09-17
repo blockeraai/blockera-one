@@ -30,17 +30,19 @@
 
     <testsuites>
         <!--
-            Unit tests: theme packages ending with -one / blockera-one-* only.
-            CI skip-if-empty uses list-phpunit-package-test-dirs.js with
-            BLOCKERA_PHPUNIT_PACKAGE_SUFFIX=-one and _PREFIX=blockera-one-.
+            Unit tests: theme packages plus shared coordinator and products
+            suites (formerly origin-only in blockera-global-packages).
         -->
         <testsuite name="units">
             <directory suffix=".php">./packages/global-packages/packages/dev-phpunit/php/</directory>
             <directory suffix=".php">./packages/global-packages/packages/blockera-one/php/tests/</directory>
             <directory suffix=".php">./packages/global-packages/packages/products/php/tests/</directory>
+            <directory suffix="Test.php">./packages/global-packages/packages/autoloader-coordinator/php/tests/</directory>
             <exclude>./node_modules/</exclude>
             <exclude>./dist/</exclude>
             <exclude>./packages/global-packages/packages/products/php/tests/TestCase.php</exclude>
+            <exclude>./packages/global-packages/packages/autoloader-coordinator/php/tests/TestCase.php</exclude>
+            <exclude>./packages/global-packages/packages/autoloader-coordinator/php/tests/fixtures/</exclude>
             <exclude>./packages/global-packages/packages/blockera-one/php/tests/TestCase.php</exclude>
             <exclude>./packages/global-packages/packages/blockera-one/php/test-support/</exclude>
         </testsuite>
