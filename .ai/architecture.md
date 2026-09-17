@@ -8,7 +8,7 @@ FSE theme. PHP under `packages/global-packages/packages/blockera-one/php/` (them
 
 ## Tests
 
-From theme root: `npm run test:e2e`, `test:js`, `test:unit:php`, `test:snapshots:php`. Playwright: `test:e2e:base` when present.
+From theme root: `npm run test:e2e`, `test:js`, `test:unit:php`, `test:snapshots:php`. Playwright: `test:e2e:base` when present. Package allow-list: [declared-gp-packages.md](declared-gp-packages.md).
 
 ## Source-codes
 

@@ -1,20 +1,19 @@
 // Edit packages/global-packages/packages/dev-tools/root-configs/eslint.config.blockera-one.cjs
 // project:bootstrap copies this to the host repo root for --project=blockera-one.
+const fs = require('fs');
+const path = require('path');
 const {
 	createConfig,
 } = require('./packages/global-packages/packages/dev-tools/js/eslint/config');
+const lockfileExtraIgnoresPath = path.join(
+	__dirname,
+	'packages/global-packages/packages/dev-tools/js/consumer-packages/lockfile-extra-ignores.cjs'
+);
+const getLockfileExtraIgnores = fs.existsSync(lockfileExtraIgnoresPath)
+	? require(lockfileExtraIgnoresPath).getLockfileExtraIgnores
+	: () => [];
 
 module.exports = createConfig({
-	extraIgnores: [
-		'/bin/**',
-		'packages/*-pro/**',
-		'packages/*-pro-*/**',
-		'packages/global-packages/packages/**/*-pro/**',
-		'packages/global-packages/packages/**/*-pro-*/**',
-		'packages/*-toolkit/**',
-		'packages/*-toolkit-*/**',
-		'packages/global-packages/packages/**/*-toolkit/**',
-		'packages/global-packages/packages/**/*-toolkit-*/**',
-	],
+	extraIgnores: ['/bin/**', ...getLockfileExtraIgnores(__dirname)],
 	allowedTextDomains: ['blockera', 'blockera-one'],
 });
