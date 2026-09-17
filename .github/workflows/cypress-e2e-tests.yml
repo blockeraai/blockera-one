@@ -28,6 +28,7 @@ env:
     BLOCKERA_WP_ENV_FREE_EXTRACT_DIR: .github/cache/blockera
     BLOCKERA_WP_ENV_DEFAULT_PLUGIN: https://github.com/blockeraai/blockera/tree/master
     BLOCKERA_WP_ENV_DEFAULT_PLUGIN_CATEGORIES: companion-plugin
+    BLOCKERA_WP_ENV_OMIT_COMPANION_PLUGINS_CATEGORIES: required-blockera-builder
 
 jobs:
     detect_categories:
@@ -61,6 +62,7 @@ jobs:
                 category: ${{ fromJson(needs.detect_categories.outputs.categories) }}
         env:
             BLOCKERA_E2E_CATEGORY: ${{ matrix.category }}
+            BLOCKERA_WP_ENV_OMIT_COMPANION_PLUGINS_CATEGORIES: required-blockera-builder
         steps:
             - uses: actions/checkout@v5
               with:
