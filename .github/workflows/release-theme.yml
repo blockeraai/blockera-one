@@ -108,8 +108,6 @@ jobs:
               env:
                   NEW_VERSION: ${{ steps.get_version.outputs.new_version }}
                   OLD_VERSION: ${{ steps.get_version.outputs.old_version }}
-                  BLOCKERA_CHANGELOG_CONSUMER_GLOBS: |
-                      packages/global-packages/packages/blockera-one/CHANGELOG.md
               run: bash packages/global-packages/packages/dev-tools/github/scripts/jobs/build-plugin-zip/update-changelogs.sh
 
             - env:
