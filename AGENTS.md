@@ -19,5 +19,5 @@ Block theme (FSE) for the Site Builder. Theme packages live in GP: `blockera-one
 ## Declared GP packages
 
 <!-- generated:declared-gp-packages -->
-Read [`.ai/declared-gp-packages.md`](.ai/declared-gp-packages.md) before changing PHPUnit, Jest, PHPCS, ESLint, Stylelint, or CI package filters. `project:bootstrap` rewrites that file from `package.json` `dependencies` and `composer.json` `require`. Do **not** add a GP package to those setups if it is missing from the generated list.
+Read [`.ai/declared-gp-packages.md`](.ai/declared-gp-packages.md) before changing PHPUnit, Jest, PHPCS, ESLint, Stylelint, Cypress spec/CI filters, or CI package filters. `project:bootstrap` rewrites that file from `package.json` `dependencies` and `composer.json` `require`. Do **not** add a GP package to those setups if it is missing from the generated list.
 <!-- /generated:declared-gp-packages -->
