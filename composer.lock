@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1e5405e0a2a092207107b69a541066e3",
+    "content-hash": "8f5b9eb3c525e177b9c3f7c540526d6c",
     "packages": [
         {
             "name": "blockera/auth",
@@ -448,6 +448,34 @@
                 }
             },
             "description": "The blockera icons package.",
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
+        },
+        {
+            "name": "blockera/interact",
+            "version": "1.0.0",
+            "dist": {
+                "type": "path",
+                "url": "packages/global-packages/packages/interact",
+                "reference": "e3acfd39f4d01bbaa8c8cc2b47a531a808f0f557"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Blockera\\Interact\\": "php/"
+                },
+                "files": [
+                    "php/functions.php"
+                ]
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Blockera\\Interact\\Tests\\": "php/tests/"
+                }
+            },
+            "description": "Blockera animation runtime: collector, Interactivity config, and used Wix preset inlining.",
             "transport-options": {
                 "symlink": true,
                 "relative": true
@@ -8927,5 +8955,5 @@
     "platform-overrides": {
         "php": "7.4"
     },
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }

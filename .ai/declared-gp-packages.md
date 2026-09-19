@@ -11,6 +11,7 @@ Autoloader-coordinator and products are always on the PHPUnit/PHPCS list (bootst
 
 ## Jest (`package.json` `dependencies`)
 
+- `@blockera/auth` — `packages/global-packages/packages/auth`
 - `@blockera/blockera` — `packages/global-packages/packages/blockera`
 - `@blockera/blockera-one` — `packages/global-packages/packages/blockera-one`
 - `@blockera/blocks-core` — `packages/global-packages/packages/blocks-core`
@@ -25,6 +26,7 @@ Autoloader-coordinator and products are always on the PHPUnit/PHPCS list (bootst
 - `@blockera/features-core` — `packages/global-packages/packages/features-core`
 - `@blockera/global-styles-ui` — `packages/global-packages/packages/global-styles-ui`
 - `@blockera/icons` — `packages/global-packages/packages/icons`
+- `@blockera/interact` — `packages/global-packages/packages/interact`
 - `@blockera/plugin-compatibility` — `packages/global-packages/packages/plugin-compatibility`
 - `@blockera/products` — `packages/global-packages/packages/products`
 - `@blockera/storage` — `packages/global-packages/packages/storage`
@@ -34,6 +36,7 @@ Autoloader-coordinator and products are always on the PHPUnit/PHPCS list (bootst
 
 ## PHPUnit / PHPCS (`composer.json` `require` + coordinator/products)
 
+- `blockera/auth` — `packages/global-packages/packages/auth`
 - `blockera/autoloader-coordinator` — `packages/global-packages/packages/autoloader-coordinator`
 - `blockera/blockera` — `packages/global-packages/packages/blockera`
 - `blockera/blockera-admin` — `packages/global-packages/packages/blockera-admin`
@@ -52,6 +55,7 @@ Autoloader-coordinator and products are always on the PHPUnit/PHPCS list (bootst
 - `blockera/global-styles-ui` — `packages/global-packages/packages/global-styles-ui`
 - `blockera/http` — `packages/global-packages/packages/http`
 - `blockera/icons` — `packages/global-packages/packages/icons`
+- `blockera/interact` — `packages/global-packages/packages/interact`
 - `blockera/plugin-compatibility` — `packages/global-packages/packages/plugin-compatibility`
 - `blockera/products` — `packages/global-packages/packages/products`
 - `blockera/storage` — `packages/global-packages/packages/storage`
