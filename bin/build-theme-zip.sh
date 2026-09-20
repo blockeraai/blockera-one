@@ -175,7 +175,7 @@ build_files=$(
 )
 
 vendor_without_blockera=$(
-  find ./vendor -type f -not -path "./vendor/blockera" \
+  find ./vendor \( -path './vendor/blockera' -o -path './vendor/blockera/*' \) -prune -o -type f -print
 );
 
 # Generate the theme zip file.
