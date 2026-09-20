@@ -174,13 +174,9 @@ build_files=$(
 	ls dist/*/*.{min.js,min.css,asset.php} \
 )
 
-vendor_without_blockera=$(
-  find ./vendor \( -path './vendor/blockera' -o -path './vendor/blockera/*' \) -prune -o -type f -print
-);
-
 # Generate the theme zip file.
 status "Creating archive... 🎁"
-zip -r -q blockera-one.zip \
+zip -r -9 -q blockera-one.zip \
 	style.css \
 	style.min.css \
 	functions.php \
@@ -191,10 +187,10 @@ zip -r -q blockera-one.zip \
 	parts \
 	patterns \
 	styles \
-	images \
+	$(find ./images -type f ! -name "*.map" ! -name "*.scss" 2>/dev/null) \
 	inc \
 	config \
-	assets \
+	$(find ./assets -type f ! -name "*.map" ! -name "*.scss" 2>/dev/null) \
 	bootstrap \
 	blockera.php \
 	readme.txt \
@@ -203,9 +199,11 @@ zip -r -q blockera-one.zip \
 	changelog.txt \
 	composer.json \
 	experimental.config.json \
-	$vendor_without_blockera \
+  ### BEGIN AUTO-GENERATED THIRD-PARTY VENDOR PATH PATTERN
+  ### END AUTO-GENERATED THIRD-PARTY VENDOR PATH PATTERN
   ### BEGIN AUTO-GENERATED VENDOR PACKAGES PATH PATTERN
   ### END AUTO-GENERATED VENDOR PACKAGES PATH PATTERN
+  -x "*.map" "*.scss" "*.zip-build.bak" \
   && echo "blockera-one.zip created successfully ✅" || echo "blockera-one.zip creation failed ❌"
 
 # Guard against incomplete shared-package packaging (causes WP Playground fatals on activate).
