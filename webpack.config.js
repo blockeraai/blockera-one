@@ -3,7 +3,7 @@
  */
 const fs = require('fs');
 const path = require('path');
-const { dependencies } = require('./package');
+const packageJson = require('./package.json');
 const packagesConfig = require('./packages/global-packages/packages/dev-tools/js/webpack/packages');
 const createRootWebpackConfig = require('./packages/global-packages/packages/dev-tools/js/webpack/create-root-config');
 
@@ -53,7 +53,8 @@ function resolvePackageDir(packageName) {
 }
 
 module.exports = createRootWebpackConfig({
-	dependencies,
+	packageJson,
+	dependencies: packageJson.dependencies,
 	packagesConfig,
 	resolvePackageDir,
 	getExternals: (blockeraPackagesVersion) => ({
