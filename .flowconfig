@@ -53,6 +53,7 @@
 # BEGIN generated:undeclared-npm-packages
 # GP packages not in package.json dependencies or devDependencies (@blockera/* file:).
 # Treated as untyped so declared packages can import them. project:bootstrap rewrites this block.
+<PROJECT_ROOT>/packages/global-packages/packages/auth/.*
 <PROJECT_ROOT>/packages/global-packages/packages/auth-pro/.*
 <PROJECT_ROOT>/packages/global-packages/packages/blockera-admin/.*
 <PROJECT_ROOT>/packages/global-packages/packages/blockera-pro/.*
@@ -62,6 +63,7 @@
 <PROJECT_ROOT>/packages/global-packages/packages/controls-pro/.*
 <PROJECT_ROOT>/packages/global-packages/packages/editor-pro/.*
 <PROJECT_ROOT>/packages/global-packages/packages/guard-pro/.*
+<PROJECT_ROOT>/packages/global-packages/packages/plugin-compatibility/.*
 <PROJECT_ROOT>/packages/global-packages/packages/plugin-compatibility-pro/.*
 <PROJECT_ROOT>/packages/global-packages/packages/site-toolkit/.*
 <PROJECT_ROOT>/packages/global-packages/packages/validator-pro/.*
