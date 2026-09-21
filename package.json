@@ -29,6 +29,7 @@
 	"dependencies": {
 		"@blockera/auth": "file:./packages/global-packages/packages/auth",
 		"@blockera/blockera": "file:./packages/global-packages/packages/blockera",
+		"@blockera/blockera-admin": "file:./packages/global-packages/packages/blockera-admin",
 		"@blockera/blockera-one": "file:./packages/global-packages/packages/blockera-one",
 		"@blockera/blocks-core": "file:./packages/global-packages/packages/blocks-core",
 		"@blockera/bootstrap": "file:./packages/global-packages/packages/bootstrap",
@@ -93,6 +94,7 @@
 		"@babel/preset-typescript": "^7.25.7",
 		"@blockera/dev-cypress": "file:./packages/global-packages/packages/dev-cypress",
 		"@blockera/dev-jest": "file:./packages/global-packages/packages/dev-jest",
+		"@blockera/dev-phpunit": "file:./packages/global-packages/packages/dev-phpunit",
 		"@blockera/dev-playwright": "file:./packages/global-packages/packages/dev-playwright",
 		"@blockera/dev-tools": "file:./packages/global-packages/packages/dev-tools",
 		"@cypress/browserify-preprocessor": "^3.0.2",
@@ -143,6 +145,7 @@
 		"clsx": "^2.1.1",
 		"commander": "^8.3.0",
 		"copy-webpack-plugin": "^14.0.0",
+		"crypto-js": "^4.2.0",
 		"css-minimizer-webpack-plugin": "^8.0.0",
 		"cypress": "^15.18.0",
 		"cypress-image-diff-js": "^2.3.0",
