@@ -3,8 +3,9 @@
 /**
  * Generates the production (theme build) version of `./bin/build-theme-zip.sh`.
  *
- * GP vendor paths come from composer.json `require` (`blockera/*`), not every
- * package directory on disk after a submodule bump. Local `packages/<name>/php`
+ * GP vendor paths come from `composer.json` `require` (`blockera/*`) union
+ * `config/assets.php` `list` handles, not every package directory on disk
+ * after a submodule bump. Local `packages/<name>/php`
  * (excluding the GP submodule) can still be packed.
  *
  * @package blockera-build
