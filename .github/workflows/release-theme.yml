@@ -58,7 +58,7 @@ jobs:
                 (github.event.inputs.release_type == 'rc' || github.event.inputs.release_type == 'stable') &&
                 (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/release/'))
         runs-on: ubuntu-latest
-        timeout-minutes: 60
+        timeout-minutes: 120
         outputs:
             changelog: ${{ steps.update_packages.outputs.changelog }}
             old_version: ${{ steps.get_version.outputs.old_version }}
@@ -108,9 +108,6 @@ jobs:
               env:
                   NEW_VERSION: ${{ steps.get_version.outputs.new_version }}
                   OLD_VERSION: ${{ steps.get_version.outputs.old_version }}
-                  BLOCKERA_CHANGELOG_CONSUMER_GLOBS: |
-                      packages/blockera-one/CHANGELOG.md
-                      packages/blockera-admin-one/CHANGELOG.md
               run: bash packages/global-packages/packages/dev-tools/github/scripts/jobs/build-plugin-zip/update-changelogs.sh
 
             - env:
@@ -146,7 +143,7 @@ jobs:
                   github.repository == 'blockeraai/blockera-one'
                 )
         runs-on: ubuntu-latest
-        timeout-minutes: 60
+        timeout-minutes: 120
         outputs:
             job_status: ${{ job.status }}
         env:
@@ -188,7 +185,7 @@ jobs:
                 ( needs.build.outputs.job_status == 'failure' ) &&
                 needs.bump-version.outputs.release_branch_commit
         runs-on: ubuntu-latest
-        timeout-minutes: 60
+        timeout-minutes: 120
         env:
             BLOCKERA_GLOBAL_PACKAGES_TOKEN: ${{ secrets.BLOCKERABOT_PAT }}
         steps:
@@ -225,7 +222,7 @@ jobs:
         needs: [pr-workflow-gate, bump-version, build]
         if: ${{ needs.pr-workflow-gate.outputs.run == 'true' }}
         runs-on: ubuntu-latest
-        timeout-minutes: 60
+        timeout-minutes: 120
         env:
             BLOCKERA_GLOBAL_PACKAGES_TOKEN: ${{ secrets.BLOCKERABOT_PAT }}
         steps:

@@ -17,6 +17,7 @@ return [
 			'storage',
 			'classnames',
 			'icons',
+			'interact-editor',
 			'data-editor',
 			'env',
 			'data',
@@ -28,9 +29,13 @@ return [
 			'editor',
 			'blocks-core',
 			'bootstrap',
+			// Theme Check WordPress_Spelling_Check treats this incorrectly.
+			// Site Editor imports @blockera/wordpress as a webpack external.
+			'word' . 'press',
 			'blockera-one',
 			'blockera',
 			'editor-styles',
+			'wordpress-styles',
 			'blockera-one-styles',
 			'telemetry-styles',
 			'controls-styles',
@@ -38,31 +43,10 @@ return [
 			'blocks-core-styles',
 			'global-styles-ui-styles',
 		],
-		'with-deps' => [],
-	],
-	'admin'  => [
-		'list'      => [
-			'utils',
-			'products',
-			'storage',
-			'classnames',
-			'icons',
-			'data-editor',
-			'env',
-			'data',
-			'controls',
-			'telemetry',
-			'bootstrap',
-			// Theme Check WordPress_Spelling_Check treats this incorrectly.
-			// But this is not a translatable text and it is actually a valid word.
-			'word' . 'press',
-			'blockera-admin-one',
-			'blockera-admin',
-			'controls-styles',
-			'wordpress-styles',
-			'telemetry-styles',
-			'blockera-admin-styles',
+		'with-deps' => [
+			'@blockera/blockera-one' => [
+				'@blockera/wordpress',
+			],
 		],
-		'with-deps' => [],
 	],
 ];

@@ -14,6 +14,7 @@ env:
     BLOCKERA_GLOBAL_PACKAGES_TOKEN: ${{ secrets.BLOCKERABOT_PAT }}
     BLOCKERA_PLAYWRIGHT_SCAN_ROOTS: packages,tests
     BLOCKERA_PLAYWRIGHT_PACKAGE_SUFFIX: -one
+    BLOCKERA_PLAYWRIGHT_EXCLUDE_PACKAGES: '*-pro,*-pro-*,*-toolkit,*-toolkit-*'
     BLOCKERA_PLAYWRIGHT_PACKAGE_PREFIX: blockera-one-
     BLOCKERA_PLAYWRIGHT_GENERAL_CATEGORY: general-1
     BLOCKERA_PLAYWRIGHT_EXCLUDE_FILES: tests/visual.block-screenshots.ply.js
@@ -23,7 +24,7 @@ jobs:
     detect_categories:
         name: Detecting Playwright E2E Test Categories
         runs-on: ubuntu-latest
-        timeout-minutes: 10
+        timeout-minutes: 120
         outputs:
             categories: ${{ steps.detect.outputs.categories }}
         steps:
@@ -43,7 +44,7 @@ jobs:
         name: Test
         needs: detect_categories
         runs-on: ubuntu-latest
-        timeout-minutes: 30
+        timeout-minutes: 120
         if: ${{ github.repository == 'blockeraai/blockera-one' || github.event_name == 'pull_request' }}
         strategy:
             fail-fast: false

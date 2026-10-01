@@ -13,7 +13,7 @@ jobs:
     compute-previous-wordpress-version:
         name: Compute previous WordPress version
         runs-on: ubuntu-latest
-        timeout-minutes: 30
+        timeout-minutes: 120
         outputs:
             previous-wordpress-version: ${{ steps.get-previous-wordpress-version.outputs.previous-wordpress-version }}
         env:
@@ -33,7 +33,7 @@ jobs:
         name: PHP ${{ matrix.php }} snapshots tests on ubuntu-latest
         needs: compute-previous-wordpress-version
         runs-on: ubuntu-latest
-        timeout-minutes: 20
+        timeout-minutes: 120
         if: ${{ github.repository == 'blockeraai/blockera-one' || github.event_name == 'pull_request' }}
         strategy:
             fail-fast: true

@@ -34,7 +34,8 @@ if ( ! function_exists( 'blockera_add_cron_interval' ) ) {
 
 if ( ! function_exists( 'blockera_redirect_to_dashboard_page' ) ) {
 	/**
-	 * Redirecting your WordPress admin to your plugin dashboard page after activation it.
+	 * Theme does not register Blockera Settings. Clear the activation flag
+	 * without redirecting to a dashboard the companion plugin owns.
 	 *
 	 * @return void
 	 */
@@ -46,20 +47,8 @@ if ( ! function_exists( 'blockera_redirect_to_dashboard_page' ) ) {
 
 		$option = blockera_core_config( 'telemetryRestParams.slug' ) . '_do_activation_redirect';
 
-		if ( ! get_option( $option, false ) ) {
-			return;
-		}
-
-		if ( blockera_telemetry_opt_in_is_off( 'blockera' ) ) {
-			return;
-		}
-
-		delete_option( $option );
-
-		if ( current_user_can( 'activate_plugins' ) ) {
-			// Redirect to plugin dashboard or settings page.
-			wp_safe_redirect( admin_url( 'admin.php?page=' . blockera_core_config( 'app.dashboard_page' ) ) );
-			exit;
+		if ( get_option( $option, false ) ) {
+			delete_option( $option );
 		}
 	}
 }

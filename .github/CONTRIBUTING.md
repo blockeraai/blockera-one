@@ -20,6 +20,8 @@ packages/global-packages/          # submodule → blockeraai/blockera-global-pa
 
 Theme-only packages stay local under `packages/` (`blockera-one`) and are not moved into global-packages.
 
+Local Flow, ESLint, Stylelint, PHPCS, and Jest ignore Pro overlay packages (`*-pro`, `*-pro-*`) and toolkit overlay packages (`*-toolkit`, `*-toolkit-*`) after a GP bump. Do not add those packages to this product’s npm or Composer manifests.
+
 ### Local setup
 
 ```bash
