@@ -12,7 +12,7 @@ jobs:
     build:
         name: Building and Give Sizes
         runs-on: ubuntu-latest
-        timeout-minutes: 30
+        timeout-minutes: 120
         if: ${{ github.repository == 'blockeraai/blockera-one' || github.event_name == 'pull_request' }}
         permissions:
             contents: read
